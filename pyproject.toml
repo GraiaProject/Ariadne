@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "graia-ariadne"
+version = "0.1.0"
+description = "An elegant mirai-api-http v2 Python SDK."
+authors = ["BlueGlassBlock <blueglassblock@outlook.com>", "GreyElaina <GreyElaina@outlook.com>"]
+packages = [
+    { include = "graia", from = "src" }
+]
+
+[[tool.poetry.source]]
+name = "tuna-tsinghua"
+default = false
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+graia-broadcast = "^0.13.1"
+aiohttp = "^3.7.4"
+pydantic = "^1.8.2"
+yarl = "^1.6.3"
+loguru = "^0.5.3"
+typing-extensions = "^3.10.0"
+
+[tool.poetry.dev-dependencies]
+black = "^21.9b0"
+isort = "^5.9.3"
+devtools = "^0.8.0"
+objgraph = "^3.5.0"
+ptpython = "^3.0.20"
+pdoc3 = "^0.10.0"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

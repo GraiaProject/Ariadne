@@ -146,14 +146,17 @@ class Adapter(abc.ABC):
             raise InvalidArgument("Unable to find 'type' field for automatic parsing")
         event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)
         if not event_class:
-            raise ValueError(f"Unable to find event: {event_class}")
+            logger.error(
+                "An event is not recognized! Please report with your log to help us diagnose."
+            )
+            raise ValueError(f"Unable to find event: {event_type}", data)
         data = {k: v for k, v in data.items() if k != "type"}
         obj = event_class.parse_obj(data)
         return await run_always_await(obj)
 
     async def start(self):
         if not self.session:
-            self.session = ClientSession(loop=self.broadcast.loop)
+            self.session = ClientSession()
         if not self.fetch_task or self.fetch_task.done():
             self.running = True
             self.fetch_task = self.loop.create_task(self.fetch_cycle())
@@ -427,7 +430,8 @@ class DebugAdapter(DefaultAdapter):
         try:
             event = await super().build_event(data)
         except ValueError as e:
-            logger.exception(e)
+            logger.error(f'{e.args[0]}\n{json.dumps(data, indent=4)}')
+            raise
         else:
             logger.debug(event)
-        return event
+            return event

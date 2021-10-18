@@ -5,11 +5,11 @@ from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 if typing.TYPE_CHECKING:
-    from graia.ariadne import AriadneMiraiApplication
+    from graia.ariadne.app import Ariadne
 
 
 class ApplicationLaunched(Dispatchable):
-    app: "AriadneMiraiApplication"
+    app: "Ariadne"
 
     def __init__(self, app) -> None:
         self.app = app
@@ -24,7 +24,7 @@ class ApplicationLaunched(Dispatchable):
 
 
 class ApplicationShutdowned(Dispatchable):
-    app: "AriadneMiraiApplication"
+    app: "Ariadne"
 
     def __init__(self, app) -> None:
         self.app = app

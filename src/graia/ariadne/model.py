@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Union
+
 from loguru import logger
 from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra
@@ -9,7 +10,7 @@ from typing_extensions import Literal
 from yarl import URL
 
 if TYPE_CHECKING:
-    from graia.ariadne import AriadneMiraiApplication
+    from graia.ariadne.app import Ariadne
 
 
 class AriadneBaseModel(BaseModel):
@@ -32,13 +33,13 @@ class ChatLogConfig(BaseModel):
         "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
     )
 
-    def initialize(self, app: "AriadneMiraiApplication"):
+    def initialize(self, app: "Ariadne"):
         from graia.ariadne.event.message import (
-            GroupMessage,
             FriendMessage,
-            TempMessage,
+            GroupMessage,
             OtherClientMessage,
             StrangerMessage,
+            TempMessage,
         )
 
         @app.broadcast.receiver(GroupMessage)

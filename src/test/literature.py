@@ -37,7 +37,6 @@ from graia.ariadne.message.parser.pattern import (
     SwitchParameter,
 )
 
-
 if __name__ == "__main__":
     from graia.ariadne.message.element import At, AtAll
 

@@ -185,9 +185,19 @@ class HttpAdapter(Adapter):
     Note: Working In Progress
     """
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -> None:
+    def __init__(
+        self,
+        broadcast: Broadcast,
+        mirai_session: MiraiSession,
+        fetch_interval: float = 0.5,
+    ) -> None:
         super.__init__(self, broadcast, mirai_session)
+        self.fetch_interval = fetch_interval
         raise NotImplementedError("HTTP Adapter is not supported yet!")
+
+    async def fetch_cycle(self):
+        while self.running:
+            await asyncio.sleep(self.fetch_interval)
 
     @require_verified
     @error_wrapper
@@ -430,7 +440,7 @@ class DebugAdapter(DefaultAdapter):
         try:
             event = await super().build_event(data)
         except ValueError as e:
-            logger.error(f'{e.args[0]}\n{json.dumps(data, indent=4)}')
+            logger.error(f"{e.args[0]}\n{json.dumps(data, indent=4)}")
             raise
         else:
             logger.debug(event)

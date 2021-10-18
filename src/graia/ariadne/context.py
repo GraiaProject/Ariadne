@@ -9,12 +9,12 @@ if TYPE_CHECKING:
 
     from graia.broadcast import Broadcast
 
-    from graia.ariadne import AriadneMiraiApplication
     from graia.ariadne.adapter import Adapter
+    from graia.ariadne.app import Ariadne
     from graia.ariadne.event import MiraiEvent
 
 
-application_ctx: ContextVar["AriadneMiraiApplication"] = ContextVar("application")
+application_ctx: ContextVar["Ariadne"] = ContextVar("application")
 adapter_ctx: ContextVar["Adapter"] = ContextVar("adapter")
 event_ctx: ContextVar["MiraiEvent"] = ContextVar("event")
 event_loop_ctx: ContextVar["AbstractEventLoop"] = ContextVar("event_loop")

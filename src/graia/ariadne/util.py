@@ -62,9 +62,9 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         self.context.__exit__(exception.__class__ if exception else None, exception, tb)
 
     async def catch(self, interface: "DispatcherInterface"):
-        from graia.ariadne import AriadneMiraiApplication
+        from graia.ariadne.app import Ariadne
 
-        if interface.annotation is AriadneMiraiApplication:
+        if interface.annotation is Ariadne:
             return self.app
 
 

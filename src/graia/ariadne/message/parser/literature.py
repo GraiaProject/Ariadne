@@ -10,12 +10,11 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.utilles import printer
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.chain import MessageIndex
-from graia.ariadne.message.element import Element
+from graia.ariadne.message.chain import MessageChain, MessageIndex
 from graia.ariadne.message.element import (
     App,
     At,
+    Element,
     FlashImage,
     Json,
     Plain,

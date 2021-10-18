@@ -1,9 +1,8 @@
 from datetime import datetime
-from typing import List
+from typing import List, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from pydantic import BaseModel, Field
 
 from graia.ariadne.dispatcher import (
     ApplicationDispatcher,
@@ -19,6 +18,7 @@ from . import MiraiEvent
 class MessageEvent(MiraiEvent):
     type: str = "MessageEvent"
     messageChain: MessageChain
+    sender: Union[Friend, Member, Client]
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]

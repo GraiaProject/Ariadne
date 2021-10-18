@@ -8,8 +8,8 @@ sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne import AriadneMiraiApplication
 from graia.ariadne.adapter import DebugAdapter
+from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.model import Friend, MiraiSession
@@ -23,10 +23,10 @@ if __name__ == "__main__":
     loop.set_debug(True)
     bcc = Broadcast(loop=loop)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    app = AriadneMiraiApplication(bcc, adapter)
+    app = Ariadne(bcc, adapter)
 
     @bcc.receiver(FriendMessage)
-    async def reply(app: AriadneMiraiApplication, chain: MessageChain, friend: Friend):
+    async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
         await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
 
     async def main():

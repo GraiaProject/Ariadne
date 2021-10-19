@@ -566,7 +566,7 @@ class DebugAdapter(DefaultAdapter):
 <dl>
 <dt id="graia.ariadne.adapter.Adapter"><code class="flex name class">
 <span>class <span class="ident">Adapter</span></span>
-<span>(</span><span>broadcast: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>适配器抽象基类。</p>
@@ -856,7 +856,7 @@ async def fetch_cycle(self) -&gt; None:
 </dd>
 <dt id="graia.ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">CombinedAdapter</span></span>
-<span>(</span><span>bcc: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
@@ -1058,7 +1058,7 @@ async def call_api(
 </dd>
 <dt id="graia.ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">DefaultAdapter</span></span>
-<span>(</span><span>bcc: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
@@ -1183,7 +1183,7 @@ async def call_api(
 </dd>
 <dt id="graia.ariadne.adapter.DebugAdapter"><code class="flex name class">
 <span>class <span class="ident">DebugAdapter</span></span>
-<span>(</span><span>bcc: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Debugging adapter</p></div>
@@ -1243,7 +1243,7 @@ async def call_api(
 </dd>
 <dt id="graia.ariadne.adapter.HttpAdapter"><code class="flex name class">
 <span>class <span class="ident">HttpAdapter</span></span>
-<span>(</span><span>broadcast: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, fetch_interval: float = 0.5)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, fetch_interval: float = 0.5)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>仅使用正向 HTTP 的适配器，采用短轮询接收事件/消息。
@@ -1325,7 +1325,7 @@ Note: Working In Progress</p></div>
 </dd>
 <dt id="graia.ariadne.adapter.WebsocketAdapter"><code class="flex name class">
 <span>class <span class="ident">WebsocketAdapter</span></span>
-<span>(</span><span>bcc: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="graia.ariadne.model.MiraiSession" href="model.html#graia.ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>仅使用正向 Websocket 的适配器。

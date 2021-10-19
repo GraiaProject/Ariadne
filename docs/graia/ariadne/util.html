@@ -188,7 +188,7 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.broadcast.entities.dispatcher.BaseDispatcher" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher">BaseDispatcher</a></li>
+<li>graia.broadcast.entities.dispatcher.BaseDispatcher</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -201,18 +201,90 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <div class="desc"></div>
 </dd>
 </dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="graia.broadcast.entities.dispatcher.BaseDispatcher" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher">BaseDispatcher</a></b></code>:
-<ul class="hlist">
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.afterDispatch" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.afterDispatch">afterDispatch</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.afterExecution" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.afterExecution">afterExecution</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.beforeExecution" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.beforeExecution">beforeExecution</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.catch" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.catch">catch</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.mixin" href="../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.mixin">mixin</a></code></li>
-</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="graia.ariadne.util.ApplicationMiddlewareDispatcher.afterExecution"><code class="name flex">
+<span>def <span class="ident">afterExecution</span></span>(<span>self, interface: DispatcherInterface, exception, tb)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)完成(包含因异常被抛出而退出)后被调用.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
+<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
+</dl>
+<ul>
+<li>当前解析中的参数的信息;</li>
+<li>
+<dl>
+<dt>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</dt>
+<dt><strong><code>exception</code></strong> :&ensp;<code>Optional[Exception]</code></dt>
+<dd>可能存在的异常对象, 若为 None 则表示无异常被抛出, 执行顺利完成.</dd>
+</dl>
 </li>
 </ul>
+<dl>
+<dt><strong><code>tb</code></strong> :&ensp;<code>Optional[TracebackType]</code></dt>
+<dd>可能存在的异常堆栈对象, 若为 None 则表示无异常被抛出, 执行顺利完成.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def afterExecution(self, interface: &#34;DispatcherInterface&#34;, exception, tb):
+    self.context.__exit__(exception.__class__ if exception else None, exception, tb)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.util.ApplicationMiddlewareDispatcher.beforeExecution"><code class="name flex">
+<span>def <span class="ident">beforeExecution</span></span>(<span>self, interface: DispatcherInterface)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)开始前被调用</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
+<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
+</dl>
+<ul>
+<li>当前解析中的参数的信息;</li>
+<li>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def beforeExecution(self, interface: &#34;DispatcherInterface&#34;):
+    self.context = enter_context(self.app, interface.event)
+    self.context.__enter__()</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.util.ApplicationMiddlewareDispatcher.catch"><code class="name flex">
+<span>async def <span class="ident">catch</span></span>(<span>self, interface: DispatcherInterface)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>该方法可以是 <code>staticmethod</code>, <code>classmethod</code> 亦或是普通的方法/函数.
+唯一的要求是 <code>Dispatcher.catch</code> 获取到的必须为一可调用异步 Callable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
+<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
+</dl>
+<ul>
+<li>当前解析中的参数的信息;</li>
+<li>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def catch(self, interface: &#34;DispatcherInterface&#34;):
+    from graia.ariadne.app import Ariadne
+
+    if interface.annotation is Ariadne:
+        return self.app</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 </dl>
 </section>
@@ -239,7 +311,10 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <li>
 <h4><code><a title="graia.ariadne.util.ApplicationMiddlewareDispatcher" href="#graia.ariadne.util.ApplicationMiddlewareDispatcher">ApplicationMiddlewareDispatcher</a></code></h4>
 <ul class="">
+<li><code><a title="graia.ariadne.util.ApplicationMiddlewareDispatcher.afterExecution" href="#graia.ariadne.util.ApplicationMiddlewareDispatcher.afterExecution">afterExecution</a></code></li>
 <li><code><a title="graia.ariadne.util.ApplicationMiddlewareDispatcher.always" href="#graia.ariadne.util.ApplicationMiddlewareDispatcher.always">always</a></code></li>
+<li><code><a title="graia.ariadne.util.ApplicationMiddlewareDispatcher.beforeExecution" href="#graia.ariadne.util.ApplicationMiddlewareDispatcher.beforeExecution">beforeExecution</a></code></li>
+<li><code><a title="graia.ariadne.util.ApplicationMiddlewareDispatcher.catch" href="#graia.ariadne.util.ApplicationMiddlewareDispatcher.catch">catch</a></code></li>
 <li><code><a title="graia.ariadne.util.ApplicationMiddlewareDispatcher.context" href="#graia.ariadne.util.ApplicationMiddlewareDispatcher.context">context</a></code></li>
 </ul>
 </li>

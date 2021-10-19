@@ -505,7 +505,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.broadcast.entities.dispatcher.BaseDispatcher" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher">BaseDispatcher</a></li>
+<li>graia.broadcast.entities.dispatcher.BaseDispatcher</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -533,7 +533,7 @@ if __name__ == &#34;__main__&#34;:
 <h3>Methods</h3>
 <dl>
 <dt id="graia.ariadne.message.parser.literature.Literature.beforeDispatch"><code class="name flex">
-<span>async def <span class="ident">beforeDispatch</span></span>(<span>self, interface: <a title="graia.broadcast.interfaces.dispatcher.DispatcherInterface" href="../../../broadcast/interfaces/dispatcher.html#graia.broadcast.interfaces.dispatcher.DispatcherInterface">DispatcherInterface</a>)</span>
+<span>async def <span class="ident">beforeDispatch</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -564,6 +564,47 @@ if __name__ == &#34;__main__&#34;:
     interface.execution_contexts[-1].literature_detect_result = self.parse_message(
         noprefix
     )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.message.parser.literature.Literature.catch"><code class="name flex">
+<span>async def <span class="ident">catch</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>该方法可以是 <code>staticmethod</code>, <code>classmethod</code> 亦或是普通的方法/函数.
+唯一的要求是 <code>Dispatcher.catch</code> 获取到的必须为一可调用异步 Callable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
+<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
+</dl>
+<ul>
+<li>当前解析中的参数的信息;</li>
+<li>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def catch(self, interface: DispatcherInterface):
+    if interface.name == &#34;__literature_messagechain__&#34;:
+        return
+
+    result = interface.execution_contexts[-1].literature_detect_result
+    if result:
+        match_result, variargs = result
+        if interface.default == &#34;__literature_variables__&#34;:
+            return variargs
+
+        arg_fetch_result = match_result.get(interface.name)
+        if arg_fetch_result:
+
+            match_value, raw_argument = arg_fetch_result
+            if isinstance(raw_argument, SwitchParameter):
+                return Force(match_value)
+            elif interface.annotation is ParamPattern:
+                return raw_argument
+            elif match_value is not None:
+                return match_value</code></pre>
 </details>
 </dd>
 <dt id="graia.ariadne.message.parser.literature.Literature.gen_long_map"><code class="name flex">
@@ -767,18 +808,6 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 </dl>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="graia.broadcast.entities.dispatcher.BaseDispatcher" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher">BaseDispatcher</a></b></code>:
-<ul class="hlist">
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.afterDispatch" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.afterDispatch">afterDispatch</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.afterExecution" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.afterExecution">afterExecution</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.beforeExecution" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.beforeExecution">beforeExecution</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.catch" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.catch">catch</a></code></li>
-<li><code><a title="graia.broadcast.entities.dispatcher.BaseDispatcher.mixin" href="../../../broadcast/entities/dispatcher.html#graia.broadcast.entities.dispatcher.BaseDispatcher.mixin">mixin</a></code></li>
-</ul>
-</li>
-</ul>
 </dd>
 </dl>
 </section>
@@ -803,6 +832,7 @@ if __name__ == &#34;__main__&#34;:
 <li><code><a title="graia.ariadne.message.parser.literature.Literature.always" href="#graia.ariadne.message.parser.literature.Literature.always">always</a></code></li>
 <li><code><a title="graia.ariadne.message.parser.literature.Literature.arguments" href="#graia.ariadne.message.parser.literature.Literature.arguments">arguments</a></code></li>
 <li><code><a title="graia.ariadne.message.parser.literature.Literature.beforeDispatch" href="#graia.ariadne.message.parser.literature.Literature.beforeDispatch">beforeDispatch</a></code></li>
+<li><code><a title="graia.ariadne.message.parser.literature.Literature.catch" href="#graia.ariadne.message.parser.literature.Literature.catch">catch</a></code></li>
 <li><code><a title="graia.ariadne.message.parser.literature.Literature.gen_long_map" href="#graia.ariadne.message.parser.literature.Literature.gen_long_map">gen_long_map</a></code></li>
 <li><code><a title="graia.ariadne.message.parser.literature.Literature.gen_long_map_with_bar" href="#graia.ariadne.message.parser.literature.Literature.gen_long_map_with_bar">gen_long_map_with_bar</a></code></li>
 <li><code><a title="graia.ariadne.message.parser.literature.Literature.gen_short_map" href="#graia.ariadne.message.parser.literature.Literature.gen_short_map">gen_short_map</a></code></li>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>graia.ariadne.app API documentation</title>
-<meta name="description" content="The actual implementation of `Ariadne`." />
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,15 +22,11 @@
 <h1 class="title">Module <code>graia.ariadne.app</code></h1>
 </header>
 <section id="section-intro">
-<p>The actual implementation of <code><a title="graia.ariadne.app.Ariadne" href="#graia.ariadne.app.Ariadne">Ariadne</a></code>.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34;
-The actual implementation of `Ariadne`.
-&#34;&#34;&#34;
-import asyncio
+<pre><code class="python">import asyncio
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
@@ -76,7 +72,9 @@ from graia.ariadne.util import ApplicationMiddlewareDispatcher, app_ctx_manager
 class Ariadne:
     &#34;&#34;&#34;
     艾莉亚德妮 (Ariadne).
+
     面向 `mirai-api-http` 接口的实际功能实现.
+    
     你的应用大多都围绕着本类及本类的实例展开.
 
     Attributes:
@@ -1222,9 +1220,9 @@ class Ariadne:
 <span>(</span><span>broadcast: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, adapter: <a title="graia.ariadne.adapter.Adapter" href="adapter.html#graia.ariadne.adapter.Adapter">Adapter</a>, *, chat_log_config: Optional[<a title="graia.ariadne.model.ChatLogConfig" href="model.html#graia.ariadne.model.ChatLogConfig">ChatLogConfig</a>] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>艾莉亚德妮 (Ariadne).
-面向 <code>mirai-api-http</code> 接口的实际功能实现.
-你的应用大多都围绕着本类及本类的实例展开.</p>
+<div class="desc"><p>艾莉亚德妮 (Ariadne).</p>
+<p>面向 <code>mirai-api-http</code> 接口的实际功能实现.</p>
+<p>你的应用大多都围绕着本类及本类的实例展开.</p>
 <h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>broadcast</code></strong> :&ensp;<code>Broadcast</code></dt>
@@ -1250,7 +1248,9 @@ class Ariadne:
 <pre><code class="python">class Ariadne:
     &#34;&#34;&#34;
     艾莉亚德妮 (Ariadne).
+
     面向 `mirai-api-http` 接口的实际功能实现.
+    
     你的应用大多都围绕着本类及本类的实例展开.
 
     Attributes:

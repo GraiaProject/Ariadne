@@ -44,7 +44,9 @@ from graia.ariadne.util import ApplicationMiddlewareDispatcher, app_ctx_manager
 class Ariadne:
     """
     艾莉亚德妮 (Ariadne).
+
     面向 `mirai-api-http` 接口的实际功能实现.
+    
     你的应用大多都围绕着本类及本类的实例展开.
 
     Attributes:

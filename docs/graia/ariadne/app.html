@@ -1,0 +1,4438 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>graia.ariadne.app API documentation</title>
+<meta name="description" content="The actual implementation of `Ariadne`." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>graia.ariadne.app</code></h1>
+</header>
+<section id="section-intro">
+<p>The actual implementation of <code><a title="graia.ariadne.app.Ariadne" href="#graia.ariadne.app.Ariadne">Ariadne</a></code>.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+The actual implementation of `Ariadne`.
+&#34;&#34;&#34;
+import asyncio
+import time
+from asyncio.events import AbstractEventLoop
+from asyncio.exceptions import CancelledError
+from asyncio.tasks import Task
+from typing import TYPE_CHECKING, List, Optional, Union
+
+from graia.broadcast import Broadcast
+from loguru import logger
+
+from graia.ariadne.adapter import Adapter
+from graia.ariadne.context import enter_message_send_context
+from graia.ariadne.event import MiraiEvent
+from graia.ariadne.event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+from graia.ariadne.event.message import (
+    FriendMessage,
+    GroupMessage,
+    MessageEvent,
+    TempMessage,
+)
+from graia.ariadne.message.element import Source
+
+if TYPE_CHECKING:
+    from graia.ariadne.message.element import Image, Voice
+
+from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.model import (
+    BotMessage,
+    CallMethod,
+    ChatLogConfig,
+    FileInfo,
+    Friend,
+    Group,
+    GroupConfig,
+    Member,
+    MemberInfo,
+    MiraiSession,
+    Profile,
+    UploadMethod,
+)
+from graia.ariadne.util import ApplicationMiddlewareDispatcher, app_ctx_manager
+
+
+class Ariadne:
+    &#34;&#34;&#34;
+    艾莉亚德妮 (Ariadne).
+    面向 `mirai-api-http` 接口的实际功能实现.
+    你的应用大多都围绕着本类及本类的实例展开.
+
+    Attributes:
+        broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
+            通常你不需要干涉该属性;
+        adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        broadcast: Broadcast,
+        adapter: Adapter,
+        *,
+        chat_log_config: Optional[ChatLogConfig] = None,
+    ):
+        &#34;&#34;&#34;
+        初始化 Ariadne.
+
+        Args:
+            broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+            adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+            chat_log_config (ChatLogConfig): 聊天日志的配置，请移步 `ChatLogConfig` 查看使用方法。
+        &#34;&#34;&#34;
+        self.broadcast: Broadcast = broadcast
+        self.adapter: Adapter = adapter
+        self.mirai_session: MiraiSession = adapter.mirai_session
+        self.loop: AbstractEventLoop = broadcast.loop
+        self.daemon_task: Optional[Task] = None
+        self.running: bool = False
+        self.remote_version: str = &#34;&#34;
+        self.chat_log_cfg: ChatLogConfig = (
+            chat_log_config if chat_log_config else ChatLogConfig()
+        )
+
+    @property
+    def session_key(self) -&gt; Optional[str]:
+        return self.mirai_session.session_key
+
+    async def daemon(self, retry_interval: float = 5.0):
+        logger.debug(&#34;Application daemon started.&#34;)
+        while self.running:
+            try:
+                await self.adapter.start()
+                try:
+                    if self.adapter.fetch_task:
+                        await self.adapter.fetch_task
+                except Exception as e:
+                    logger.debug(e)
+                await self.adapter.stop()
+                logger.warning(f&#34;daemon: adapter down, restart in {retry_interval}s&#34;)
+                await asyncio.sleep(retry_interval)
+                logger.info(&#34;daemon: restarting adapter&#34;)
+            except CancelledError:
+                await self.adapter.stop()
+        logger.debug(&#34;Application daemon stopped.&#34;)
+
+    async def msg_logger(self, event: MiraiEvent):
+        logger.info(event)
+
+    async def launch(self):
+        if not self.running:
+            self.running = True
+            start_time = time.time()
+            logger.info(&#34;Launching app...&#34;)
+            self.broadcast.dispatcher_interface.inject_global_raw(
+                ApplicationMiddlewareDispatcher(self)
+            )
+            if self.chat_log_cfg.enabled:
+                self.chat_log_cfg.initialize(self)
+            self.daemon_task = self.loop.create_task(self.daemon())
+            while not self.adapter.session_activated:
+                await asyncio.sleep(0.001)
+            self.broadcast.postEvent(ApplicationLaunched(self))
+            self.remote_version = await self.getVersion()
+            logger.info(f&#34;Remote version: {self.remote_version}&#34;)
+            logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
+
+    async def stop(self):
+        if self.running:
+            self.broadcast.postEvent(ApplicationShutdowned(self))
+            self.running = False
+            if self.daemon_task:
+                self.daemon_task.cancel()
+                self.daemon_task = None
+            await self.adapter.stop()
+            for t in asyncio.all_tasks(self.loop):
+                if t is not asyncio.current_task(self.loop):
+                    t.cancel()
+                    try:
+                        await t
+                    except asyncio.CancelledError:
+                        pass
+
+    async def lifecycle(self):
+        await self.launch()
+        try:
+            if self.daemon_task:
+                await self.daemon_task
+        except CancelledError:
+            pass
+        await self.stop()
+
+    @app_ctx_manager
+    async def getVersion(self, auto_set: bool = True):
+        if self.mirai_session.version:
+            return self.mirai_session.version
+        result = await self.adapter.call_api.__wrapped__(
+            self.adapter, &#34;about&#34;, CallMethod.GET
+        )
+        version = result[&#34;version&#34;]
+        if auto_set:
+            self.mirai_session.version = version
+        return version
+
+    @app_ctx_manager
+    async def getMessageFromId(self, messageId: int) -&gt; MessageChain:
+        result = await self.adapter.call_api(
+            &#34;messageFromId&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key, &#34;id&#34;: messageId},
+        )
+        return MessageChain.parse_obj(result)
+
+    @app_ctx_manager
+    async def getFriendList(self) -&gt; List[Friend]:
+        result = await self.adapter.call_api(
+            &#34;friendList&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key},
+        )
+        return [Friend.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getFriend(self, friend_id: int) -&gt; Optional[Friend]:
+        &#34;&#34;&#34;从已知的可能的好友 ID, 获取 Friend 实例.
+
+        Args:
+            friend_id (int): 已知的可能的好友 ID.
+
+        Returns:
+            Friend: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        &#34;&#34;&#34;
+        data = await self.getFriendList()
+        for i in data:
+            if i.id == friend_id:
+                return i
+
+    @app_ctx_manager
+    async def getGroupList(self) -&gt; List[Group]:
+        result = await self.adapter.call_api(
+            &#34;groupList&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key},
+        )
+        return [Group.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getGroup(self, group_id: int) -&gt; Optional[Group]:
+        &#34;&#34;&#34;尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
+
+        Args:
+            group_id (int): 尝试获取的群组的唯一 ID.
+
+        Returns:
+            Group: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        &#34;&#34;&#34;
+        data = await self.getGroupList()
+        for i in data:
+            if i.id == group_id:
+                return i
+
+    @app_ctx_manager
+    async def getMemberList(self, group: Union[Group, int]) -&gt; List[Member]:
+        result = await self.adapter.call_api(
+            &#34;memberList&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+        return [Member.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getMember(
+        self, group: Union[Group, int], member_id: int
+    ) -&gt; Optional[Member]:
+        &#34;&#34;&#34;尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
+
+        Args:
+            group_id (Union[Group, int]): 已知的群组唯一 ID
+            member_id (int): 已知的群组成员的 ID
+
+        Returns:
+            Member: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        &#34;&#34;&#34;
+        data = await self.getMemberList(group)
+        for i in data:
+            if i.id == member_id:
+                return i
+
+    @app_ctx_manager
+    async def getBotProfile(self) -&gt; Profile:
+        result = await self.adapter.call_api(
+            &#34;botProfile&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key},
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def getFriendProfile(self, friend: Union[Friend, int]) -&gt; Profile:
+        result = await self.adapter.call_api(
+            &#34;friendProfile&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: friend.id if isinstance(friend, Friend) else friend,
+            },
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def getMemberProfile(
+        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+    ) -&gt; Profile:
+        member_id = member.id if isinstance(member, Member) else member
+        group = group or (member.group if isinstance(member, Member) else None)
+        group_id = group.id if isinstance(group, Group) else group
+        if not group_id:
+            raise ValueError(&#34;Missing necessary argument: group&#34;)
+        result = await self.adapter.call_api(
+            &#34;memberProfile&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: group_id, &#34;memberId&#34;: member_id},
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def sendFriendMessage(
+        self,
+        target: Union[Friend, int],
+        message: MessageChain,
+        *,
+        quote: Optional[Union[Source, int]] = None,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;发送消息给好友, 可以指定回复的消息.
+
+        Args:
+            target (Union[Friend, int]): 指定的好友
+            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        with enter_message_send_context(UploadMethod.Friend):
+            new_msg = message.copy()
+            await new_msg.prepare()
+            result = await self.adapter.call_api(
+                &#34;sendFriendMessage&#34;,
+                CallMethod.POST,
+                {
+                    &#34;sessionKey&#34;: self.session_key,
+                    &#34;target&#34;: target.id if isinstance(target, Friend) else target,
+                    &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                    **(
+                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                        if quote
+                        else {}
+                    ),
+                },
+            )
+            logger.info(
+                &#34;[BOT {bot_id}] Friend({friend_id}) &lt;- {message}&#34;.format_map(
+                    {
+                        &#34;bot_id&#34;: self.mirai_session.account,
+                        &#34;friend_id&#34;: target.id
+                        if isinstance(target, Friend)
+                        else target,
+                        &#34;message&#34;: new_msg.asDisplay(),
+                    }
+                )
+            )
+            return BotMessage(messageId=result[&#34;messageId&#34;])
+
+    @app_ctx_manager
+    async def sendGroupMessage(
+        self,
+        group: Union[Group, int],
+        message: MessageChain,
+        *,
+        quote: Optional[Union[Source, int]] = None,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;发送消息到群组内, 可以指定回复的消息.
+
+        Args:
+            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        with enter_message_send_context(UploadMethod.Group):
+            new_msg = message.copy()
+            await new_msg.prepare()
+            result = await self.adapter.call_api(
+                &#34;sendGroupMessage&#34;,
+                CallMethod.POST,
+                {
+                    &#34;sessionKey&#34;: self.session_key,
+                    &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                    **(
+                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                        if quote
+                        else {}
+                    ),
+                },
+            )
+            logger.info(
+                &#34;[BOT {bot_id}] Group({group_id}) &lt;- {message}&#34;.format_map(
+                    {
+                        &#34;bot_id&#34;: self.mirai_session.account,
+                        &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                        &#34;message&#34;: new_msg.asDisplay(),
+                    }
+                )
+            )
+            return BotMessage(messageId=result[&#34;messageId&#34;])
+
+    @app_ctx_manager
+    async def sendTempMessage(
+        self,
+        target: Union[Member, int],
+        message: MessageChain,
+        group: Optional[Union[Group, int]] = None,
+        *,
+        quote: Optional[Union[Source, int]] = None,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;发送临时会话给群组中的特定成员, 可指定回复的消息.
+
+        Args:
+            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            target (Union[Member, int]): 指定的群组成员, 可以是成员的 ID 也可以是 Member 实例.
+            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        new_msg = message.copy()
+        await new_msg.prepare()
+        group = target.group if (isinstance(target, Member) and not group) else group
+        if not group:
+            raise ValueError(&#34;Missing necessary argument: group&#34;)
+        with enter_message_send_context(UploadMethod.Temp):
+            result = await self.adapter.call_api(
+                &#34;sendTempMessage&#34;,
+                CallMethod.POST,
+                {
+                    &#34;sessionKey&#34;: self.session_key,
+                    &#34;group&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;qq&#34;: target.id if isinstance(target, Member) else target,
+                    &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                    **(
+                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                        if quote
+                        else {}
+                    ),
+                },
+            )
+            logger.info(
+                &#34;[BOT {bot_id}] Member({member_id}, in {group_id}) &lt;- {message}&#34;.format_map(
+                    {
+                        &#34;bot_id&#34;: self.mirai_session.account,
+                        &#34;member_id&#34;: target.id
+                        if isinstance(target, Member)
+                        else target,
+                        &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                        &#34;message&#34;: new_msg.asDisplay(),
+                    }
+                )
+            )
+            return BotMessage(messageId=result[&#34;messageId&#34;])
+
+    @app_ctx_manager
+    async def sendMessage(
+        self,
+        target: Union[MessageEvent, Group, Friend, Member],
+        message: MessageChain,
+        *,
+        quote: Union[bool, int, Source] = False,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;
+        依据传入的 `target` 自动发送消息。
+        请注意发送给群成员时会自动作为临时消息发送。
+
+        Args:
+            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标。
+            message (MessageChain): 要发送的消息链。
+            quote (Union[bool, int, Source]): 若为布尔类型，则会尝试通过传入对象解析要回复的消息，
+            否则会视为 `messageId` 处理。
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        data = {&#34;message&#34;: message}
+        if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
+            data[&#34;quote&#34;] = target.messageChain.getFirst(Source)
+        elif isinstance(quote, (int, Source)):
+            data[&#34;quote&#34;] = quote
+        if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+            data[&#34;target&#34;] = target.sender
+        else:
+            data[&#34;target&#34;] = target
+        if isinstance(data[&#34;target&#34;], Friend):
+            return await self.sendFriendMessage(**data)
+        if isinstance(data[&#34;target&#34;], Group):
+            return await self.sendGroupMessage(**data)
+        elif isinstance(data[&#34;target&#34;], Member):
+            return await self.sendTempMessage(**data)
+        else:
+            raise NotImplementedError(
+                f&#34;Unable to send message with {target} as target.&#34;
+            )
+
+    @app_ctx_manager
+    async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
+        &#34;&#34;&#34;
+        向指定的群组成员或好友发送戳一戳消息。
+
+        Args:
+            target (Union[Friend, Member]): 发送戳一戳的目标。
+
+        Returns:
+            None: 没有返回。
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;sendNudge&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: target.id,
+                &#34;subject&#34;: target.group.id if isinstance(target, Member) else target.id,
+                &#34;kind&#34;: {Member: &#34;Group&#34;, Friend: &#34;Friend&#34;}[target.__class__],
+            },
+        )
+
+    @app_ctx_manager
+    async def recallMessage(self, target: Union[Source, BotMessage, int]):
+        &#34;&#34;&#34;撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
+
+        Args:
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, BotMessage):
+            target = target.messageId
+        elif isinstance(target, Source):
+            target = target.id
+
+        await self.adapter.call_api(
+            &#34;recall&#34;,
+            CallMethod.POST,
+            {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: target},
+        )
+
+    @app_ctx_manager
+    async def deleteFriend(self, target: Union[Friend, int]):
+        &#34;&#34;&#34;
+        删除指定好友。
+
+        Args:
+            target (Union[Friend, int]): 好友对象或QQ号。
+
+        Returns:
+            None: 没有返回。
+        &#34;&#34;&#34;
+
+        friend_id = target.id if isinstance(target, Friend) else target
+
+        await self.adapter.call_api(
+            &#34;deleteFriend&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: friend_id,
+            },
+        )
+
+    @app_ctx_manager
+    async def muteMember(
+        self, group: Union[Group, int], member: Union[Member, int], time: int
+    ):
+        &#34;&#34;&#34;
+        在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
+        当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+
+        Args:
+            group (Union[Group, int]): 指定的群组
+            member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+            time (int): 禁言事件, 单位秒, 修正规则: `{time|0 &lt; time &lt;= 2592000}`
+
+        Raises:
+            PermissionError: 没有相应操作权限.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        time = max(0, min(time, 2592000))  # Fix time parameter
+        if not time:
+            return
+        await self.adapter.call_api(
+            &#34;mute&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;time&#34;: time,
+            },
+        )
+
+    @app_ctx_manager
+    async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int]):
+        &#34;&#34;&#34;
+        在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+
+        Args:
+            group (Union[Group, int]): 指定的群组
+            member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+
+        Raises:
+            PermissionError: 没有相应操作权限.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;unmute&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            },
+        )
+
+    @app_ctx_manager
+    async def muteAll(self, group: Union[Group, int]):
+        &#34;&#34;&#34;在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
+
+        Args:
+            group (Union[Group, int]): 指定的群组.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;muteAll&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+    @app_ctx_manager
+    async def unmuteAll(self, group: Union[Group, int]):
+        &#34;&#34;&#34;在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
+
+        Args:
+            group (Union[Group, int]): 指定的群组.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;unmuteAll&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+    @app_ctx_manager
+    async def kickMember(
+        self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;
+    ):
+        &#34;&#34;&#34;
+        将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
+
+        Args:
+            group (Union[Group, int]): 指定的群组
+            member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+            message (str, optional): 对踢出对象要展示的消息
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;kick&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;msg&#34;: message,
+            },
+        )
+
+    @app_ctx_manager
+    async def quitGroup(self, group: Union[Group, int]):
+        &#34;&#34;&#34;
+        主动从指定群组退出
+
+        Args:
+            group (Union[Group, int]): 需要退出的指定群组
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;quit&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+    @app_ctx_manager
+    async def setEssence(self, target: Union[Source, BotMessage, int]):
+        &#34;&#34;&#34;
+        添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
+        请自行判断消息来源是否为群组.
+
+        Args:
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, BotMessage):
+            target = target.messageId
+        elif isinstance(target, Source):
+            target = target.id
+
+        await self.adapter.call_api(
+            &#34;setEssence&#34;,
+            CallMethod.POST,
+            {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: target},
+        )
+
+    @app_ctx_manager
+    async def getGroupConfig(self, group: Union[Group, int]) -&gt; GroupConfig:
+        &#34;&#34;&#34;
+        获取指定群组的群设置
+
+        Args:
+            group (Union[Group, int]): 需要获取群设置的指定群组
+
+        Returns:
+            GroupConfig: 指定群组的群设置
+        &#34;&#34;&#34;
+        result = await self.adapter.call_api(
+            &#34;groupConfig&#34;,
+            CallMethod.RESTGET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+        return GroupConfig.parse_obj(result)
+
+    @app_ctx_manager
+    async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig):
+        &#34;&#34;&#34;修改指定群组的群设置; 需要具有相应权限(管理员/群主).
+
+        Args:
+            group (Union[Group, int]): 需要修改群设置的指定群组
+            config (GroupConfig): 经过修改后的群设置
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;groupConfig&#34;,
+            CallMethod.RESTPOST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;config&#34;: config.dict(exclude_unset=True, exclude_none=True),
+            },
+        )
+
+    @app_ctx_manager
+    async def getMemberInfo(
+        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+    ) -&gt; MemberInfo:
+        &#34;&#34;&#34;
+        获取指定群组成员的可修改状态.
+
+        Args:
+            member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+        Returns:
+            MemberInfo: 指定群组成员的可修改状态
+        &#34;&#34;&#34;
+        if not group and not isinstance(member, Member):
+            raise TypeError(
+                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+            )
+        if isinstance(member, Member) and not group:
+            group: Group = member.group
+        result = await self.adapter.call_api(
+            &#34;memberInfo&#34;,
+            CallMethod.RESTGET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            },
+        )
+
+        return MemberInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def modifyMemberInfo(
+        self,
+        member: Union[Member, int],
+        info: MemberInfo,
+        group: Optional[Union[Group, int]] = None,
+    ):
+        &#34;&#34;&#34;
+        修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).
+
+        Args:
+            member (Union[Member, int]): 指定的群组成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            info (MemberInfo): 已修改的指定群组成员的可修改状态
+            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if not group and not isinstance(member, Member):
+            raise TypeError(
+                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+            )
+        if isinstance(member, Member) and not group:
+            group: Group = member.group
+        await self.adapter.call_api(
+            &#34;memberInfo&#34;,
+            CallMethod.RESTPOST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;info&#34;: info.dict(exclude_none=True, exclude_unset=True, by_alias=True),
+            },
+        )
+
+    @app_ctx_manager
+    async def modifyMemberAdmin(
+        self,
+        assign: bool,
+        member: Union[Member, int],
+        group: Optional[Union[Group, int]] = None,
+    ):
+        &#34;&#34;&#34;
+        修改一位群组成员管理员权限; 需要有相应权限(群主)
+
+        Args:
+            member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            assign (bool): 是否设置群成员为管理员.
+            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+            PermissionError: 没有相应操作权限.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if not group and not isinstance(member, Member):
+            raise TypeError(
+                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+            )
+        if isinstance(member, Member) and not group:
+            group: Group = member.group
+
+        await self.adapter.call_api(
+            &#34;memberAdmin&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;assign&#34;: assign,
+            },
+        )
+
+    @app_ctx_manager
+    async def listFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        offset: Optional[int] = 0,
+        size: Optional[int] = 1,
+        with_download_info: bool = False,
+    ) -&gt; List[FileInfo]:
+        &#34;&#34;&#34;
+        列出指定文件夹下的所有文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 文件夹ID, 空串为根目录
+            offset (int): 分页偏移
+            size (int): 分页大小
+            with_download_info (bool): 是否携带下载信息，无必要不要携带
+
+        Returns:
+            List[FileInfo]: 返回的文件信息列表.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/list&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;withDownloadInfo&#34;: str(
+                    with_download_info
+                ),  # yarl don&#39;t accept boolean
+                &#34;offset&#34;: offset,
+                &#34;size&#34;: size,
+            },
+        )
+        return [FileInfo.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getFileInfo(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        with_download_info: bool = False,
+    ) -&gt; FileInfo:
+        &#34;&#34;&#34;
+        获取指定文件的信息.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 文件ID, 空串为根目录
+            with_download_info (bool): 是否携带下载信息，无必要不要携带
+
+        Returns:
+            FileInfo: 返回的文件信息.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/list&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;withDownloadInfo&#34;: str(
+                    with_download_info
+                ),  # yarl don&#39;t accept boolean
+            },
+        )
+
+        return FileInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def makeDirectory(
+        self,
+        target: Union[Friend, Group, int],
+        name: str,
+        id: str = &#34;&#34;,
+    ) -&gt; FileInfo:
+        &#34;&#34;&#34;
+        在指定位置创建新文件夹.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            name (str): 要创建的文件夹名称.
+            id (str): 上级文件夹ID, 空串为根目录
+
+        Returns:
+            FileInfo: 新创建文件夹的信息.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/mkdir&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;name&#34;: name,
+                &#34;target&#34;: target,
+            },
+        )
+
+        return FileInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def deleteFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+    ):
+        &#34;&#34;&#34;
+        删除指定文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 文件ID
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        await self.adapter.call_api(
+            &#34;file/delete&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+            },
+        )
+
+    @app_ctx_manager
+    async def moveFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        dest_id: str = &#34;&#34;,
+    ):
+        &#34;&#34;&#34;
+        移动指定文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 源文件ID
+            dest_id (str): 目标文件夹ID
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        await self.adapter.call_api(
+            &#34;file/move&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;moveTo&#34;: dest_id,
+            },
+        )
+
+    @app_ctx_manager
+    async def renameFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        dest_name: str = &#34;&#34;,
+    ):
+        &#34;&#34;&#34;
+        重命名指定文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 源文件ID
+            dest_name (str): 目标文件新名称.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        await self.adapter.call_api(
+            &#34;file/move&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;renameTo&#34;: dest_name,
+            },
+        )
+
+    @app_ctx_manager
+    async def uploadFile(
+        self,
+        data: bytes,
+        method: UploadMethod,
+        target: Union[Friend, Group, int],
+        path: str = &#34;&#34;,
+    ) -&gt; &#34;FileInfo&#34;:
+        &#34;&#34;&#34;
+        上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
+        上传目标, (可选)上传目录ID.
+        Args:
+            data (bytes): 文件的原始数据
+            method (UploadMethod): 文件的上传类型
+        Returns:
+            FileInfo: 文件信息
+        &#34;&#34;&#34;
+
+        if method != UploadMethod.Group or isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for {method}&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/upload&#34;,
+            CallMethod.MULTIPART,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;type&#34;: method.value,
+                &#34;target&#34;: target,
+                &#34;path&#34;: path,
+                &#34;file&#34;: data,
+            },
+        )
+
+        return FileInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&#34;:
+        &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。
+        Args:
+            image_bytes (bytes): 图片的原始数据
+            method (UploadMethod): 图片的上传类型
+        Returns:
+            Image: 生成的图片消息元素
+        &#34;&#34;&#34;
+        from graia.ariadne.message.element import Image
+
+        result = await self.adapter.call_api(
+            &#34;uploadImage&#34;,
+            CallMethod.MULTIPART,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;type&#34;: method.value,
+                &#34;img&#34;: data,
+            },
+        )
+
+        return Image.parse_obj(result)
+
+    @app_ctx_manager
+    async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&#34;:
+        &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。
+        Args:
+            data (bytes): 语音的原始数据
+            method (UploadMethod): 语音的上传类型
+        Returns:
+            Voice: 生成的语音消息元素
+        &#34;&#34;&#34;
+        from graia.ariadne.message.element import Voice
+
+        result = await self.adapter.call_api(
+            &#34;uploadVoice&#34;,
+            CallMethod.MULTIPART,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;type&#34;: method.value,
+                &#34;voice&#34;: data,
+            },
+        )
+
+        return Voice.parse_obj(result)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="graia.ariadne.app.Ariadne"><code class="flex name class">
+<span>class <span class="ident">Ariadne</span></span>
+<span>(</span><span>broadcast: <a title="graia.broadcast.Broadcast" href="../broadcast/index.html#graia.broadcast.Broadcast">Broadcast</a>, adapter: <a title="graia.ariadne.adapter.Adapter" href="adapter.html#graia.ariadne.adapter.Adapter">Adapter</a>, *, chat_log_config: Optional[<a title="graia.ariadne.model.ChatLogConfig" href="model.html#graia.ariadne.model.ChatLogConfig">ChatLogConfig</a>] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>艾莉亚德妮 (Ariadne).
+面向 <code>mirai-api-http</code> 接口的实际功能实现.
+你的应用大多都围绕着本类及本类的实例展开.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>broadcast</code></strong> :&ensp;<code>Broadcast</code></dt>
+<dd>被指定的, 外置的事件系统, 即 <code>Broadcast Control</code>,
+通常你不需要干涉该属性;</dd>
+<dt><strong><code>adapter</code></strong> :&ensp;<code>Adapter</code></dt>
+<dd>后端适配器，负责实际与 <code>mirai-api-http</code> 进行交互.</dd>
+</dl>
+<p>初始化 Ariadne.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>broadcast</code></strong> :&ensp;<code>Broadcast</code></dt>
+<dd>被指定的, 外置的事件系统, 即 <code>Broadcast Control</code> 实例.</dd>
+<dt><strong><code>adapter</code></strong> :&ensp;<code>Adapter</code></dt>
+<dd>后端适配器，负责实际与 <code>mirai-api-http</code> 进行交互.</dd>
+<dt><strong><code>chat_log_config</code></strong> :&ensp;<code>ChatLogConfig</code></dt>
+<dd>聊天日志的配置，请移步 <code>ChatLogConfig</code> 查看使用方法。</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Ariadne:
+    &#34;&#34;&#34;
+    艾莉亚德妮 (Ariadne).
+    面向 `mirai-api-http` 接口的实际功能实现.
+    你的应用大多都围绕着本类及本类的实例展开.
+
+    Attributes:
+        broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
+            通常你不需要干涉该属性;
+        adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        broadcast: Broadcast,
+        adapter: Adapter,
+        *,
+        chat_log_config: Optional[ChatLogConfig] = None,
+    ):
+        &#34;&#34;&#34;
+        初始化 Ariadne.
+
+        Args:
+            broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+            adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+            chat_log_config (ChatLogConfig): 聊天日志的配置，请移步 `ChatLogConfig` 查看使用方法。
+        &#34;&#34;&#34;
+        self.broadcast: Broadcast = broadcast
+        self.adapter: Adapter = adapter
+        self.mirai_session: MiraiSession = adapter.mirai_session
+        self.loop: AbstractEventLoop = broadcast.loop
+        self.daemon_task: Optional[Task] = None
+        self.running: bool = False
+        self.remote_version: str = &#34;&#34;
+        self.chat_log_cfg: ChatLogConfig = (
+            chat_log_config if chat_log_config else ChatLogConfig()
+        )
+
+    @property
+    def session_key(self) -&gt; Optional[str]:
+        return self.mirai_session.session_key
+
+    async def daemon(self, retry_interval: float = 5.0):
+        logger.debug(&#34;Application daemon started.&#34;)
+        while self.running:
+            try:
+                await self.adapter.start()
+                try:
+                    if self.adapter.fetch_task:
+                        await self.adapter.fetch_task
+                except Exception as e:
+                    logger.debug(e)
+                await self.adapter.stop()
+                logger.warning(f&#34;daemon: adapter down, restart in {retry_interval}s&#34;)
+                await asyncio.sleep(retry_interval)
+                logger.info(&#34;daemon: restarting adapter&#34;)
+            except CancelledError:
+                await self.adapter.stop()
+        logger.debug(&#34;Application daemon stopped.&#34;)
+
+    async def msg_logger(self, event: MiraiEvent):
+        logger.info(event)
+
+    async def launch(self):
+        if not self.running:
+            self.running = True
+            start_time = time.time()
+            logger.info(&#34;Launching app...&#34;)
+            self.broadcast.dispatcher_interface.inject_global_raw(
+                ApplicationMiddlewareDispatcher(self)
+            )
+            if self.chat_log_cfg.enabled:
+                self.chat_log_cfg.initialize(self)
+            self.daemon_task = self.loop.create_task(self.daemon())
+            while not self.adapter.session_activated:
+                await asyncio.sleep(0.001)
+            self.broadcast.postEvent(ApplicationLaunched(self))
+            self.remote_version = await self.getVersion()
+            logger.info(f&#34;Remote version: {self.remote_version}&#34;)
+            logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
+
+    async def stop(self):
+        if self.running:
+            self.broadcast.postEvent(ApplicationShutdowned(self))
+            self.running = False
+            if self.daemon_task:
+                self.daemon_task.cancel()
+                self.daemon_task = None
+            await self.adapter.stop()
+            for t in asyncio.all_tasks(self.loop):
+                if t is not asyncio.current_task(self.loop):
+                    t.cancel()
+                    try:
+                        await t
+                    except asyncio.CancelledError:
+                        pass
+
+    async def lifecycle(self):
+        await self.launch()
+        try:
+            if self.daemon_task:
+                await self.daemon_task
+        except CancelledError:
+            pass
+        await self.stop()
+
+    @app_ctx_manager
+    async def getVersion(self, auto_set: bool = True):
+        if self.mirai_session.version:
+            return self.mirai_session.version
+        result = await self.adapter.call_api.__wrapped__(
+            self.adapter, &#34;about&#34;, CallMethod.GET
+        )
+        version = result[&#34;version&#34;]
+        if auto_set:
+            self.mirai_session.version = version
+        return version
+
+    @app_ctx_manager
+    async def getMessageFromId(self, messageId: int) -&gt; MessageChain:
+        result = await self.adapter.call_api(
+            &#34;messageFromId&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key, &#34;id&#34;: messageId},
+        )
+        return MessageChain.parse_obj(result)
+
+    @app_ctx_manager
+    async def getFriendList(self) -&gt; List[Friend]:
+        result = await self.adapter.call_api(
+            &#34;friendList&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key},
+        )
+        return [Friend.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getFriend(self, friend_id: int) -&gt; Optional[Friend]:
+        &#34;&#34;&#34;从已知的可能的好友 ID, 获取 Friend 实例.
+
+        Args:
+            friend_id (int): 已知的可能的好友 ID.
+
+        Returns:
+            Friend: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        &#34;&#34;&#34;
+        data = await self.getFriendList()
+        for i in data:
+            if i.id == friend_id:
+                return i
+
+    @app_ctx_manager
+    async def getGroupList(self) -&gt; List[Group]:
+        result = await self.adapter.call_api(
+            &#34;groupList&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key},
+        )
+        return [Group.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getGroup(self, group_id: int) -&gt; Optional[Group]:
+        &#34;&#34;&#34;尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
+
+        Args:
+            group_id (int): 尝试获取的群组的唯一 ID.
+
+        Returns:
+            Group: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        &#34;&#34;&#34;
+        data = await self.getGroupList()
+        for i in data:
+            if i.id == group_id:
+                return i
+
+    @app_ctx_manager
+    async def getMemberList(self, group: Union[Group, int]) -&gt; List[Member]:
+        result = await self.adapter.call_api(
+            &#34;memberList&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+        return [Member.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getMember(
+        self, group: Union[Group, int], member_id: int
+    ) -&gt; Optional[Member]:
+        &#34;&#34;&#34;尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
+
+        Args:
+            group_id (Union[Group, int]): 已知的群组唯一 ID
+            member_id (int): 已知的群组成员的 ID
+
+        Returns:
+            Member: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        &#34;&#34;&#34;
+        data = await self.getMemberList(group)
+        for i in data:
+            if i.id == member_id:
+                return i
+
+    @app_ctx_manager
+    async def getBotProfile(self) -&gt; Profile:
+        result = await self.adapter.call_api(
+            &#34;botProfile&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key},
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def getFriendProfile(self, friend: Union[Friend, int]) -&gt; Profile:
+        result = await self.adapter.call_api(
+            &#34;friendProfile&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: friend.id if isinstance(friend, Friend) else friend,
+            },
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def getMemberProfile(
+        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+    ) -&gt; Profile:
+        member_id = member.id if isinstance(member, Member) else member
+        group = group or (member.group if isinstance(member, Member) else None)
+        group_id = group.id if isinstance(group, Group) else group
+        if not group_id:
+            raise ValueError(&#34;Missing necessary argument: group&#34;)
+        result = await self.adapter.call_api(
+            &#34;memberProfile&#34;,
+            CallMethod.GET,
+            {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: group_id, &#34;memberId&#34;: member_id},
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def sendFriendMessage(
+        self,
+        target: Union[Friend, int],
+        message: MessageChain,
+        *,
+        quote: Optional[Union[Source, int]] = None,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;发送消息给好友, 可以指定回复的消息.
+
+        Args:
+            target (Union[Friend, int]): 指定的好友
+            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        with enter_message_send_context(UploadMethod.Friend):
+            new_msg = message.copy()
+            await new_msg.prepare()
+            result = await self.adapter.call_api(
+                &#34;sendFriendMessage&#34;,
+                CallMethod.POST,
+                {
+                    &#34;sessionKey&#34;: self.session_key,
+                    &#34;target&#34;: target.id if isinstance(target, Friend) else target,
+                    &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                    **(
+                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                        if quote
+                        else {}
+                    ),
+                },
+            )
+            logger.info(
+                &#34;[BOT {bot_id}] Friend({friend_id}) &lt;- {message}&#34;.format_map(
+                    {
+                        &#34;bot_id&#34;: self.mirai_session.account,
+                        &#34;friend_id&#34;: target.id
+                        if isinstance(target, Friend)
+                        else target,
+                        &#34;message&#34;: new_msg.asDisplay(),
+                    }
+                )
+            )
+            return BotMessage(messageId=result[&#34;messageId&#34;])
+
+    @app_ctx_manager
+    async def sendGroupMessage(
+        self,
+        group: Union[Group, int],
+        message: MessageChain,
+        *,
+        quote: Optional[Union[Source, int]] = None,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;发送消息到群组内, 可以指定回复的消息.
+
+        Args:
+            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        with enter_message_send_context(UploadMethod.Group):
+            new_msg = message.copy()
+            await new_msg.prepare()
+            result = await self.adapter.call_api(
+                &#34;sendGroupMessage&#34;,
+                CallMethod.POST,
+                {
+                    &#34;sessionKey&#34;: self.session_key,
+                    &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                    **(
+                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                        if quote
+                        else {}
+                    ),
+                },
+            )
+            logger.info(
+                &#34;[BOT {bot_id}] Group({group_id}) &lt;- {message}&#34;.format_map(
+                    {
+                        &#34;bot_id&#34;: self.mirai_session.account,
+                        &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                        &#34;message&#34;: new_msg.asDisplay(),
+                    }
+                )
+            )
+            return BotMessage(messageId=result[&#34;messageId&#34;])
+
+    @app_ctx_manager
+    async def sendTempMessage(
+        self,
+        target: Union[Member, int],
+        message: MessageChain,
+        group: Optional[Union[Group, int]] = None,
+        *,
+        quote: Optional[Union[Source, int]] = None,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;发送临时会话给群组中的特定成员, 可指定回复的消息.
+
+        Args:
+            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            target (Union[Member, int]): 指定的群组成员, 可以是成员的 ID 也可以是 Member 实例.
+            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        new_msg = message.copy()
+        await new_msg.prepare()
+        group = target.group if (isinstance(target, Member) and not group) else group
+        if not group:
+            raise ValueError(&#34;Missing necessary argument: group&#34;)
+        with enter_message_send_context(UploadMethod.Temp):
+            result = await self.adapter.call_api(
+                &#34;sendTempMessage&#34;,
+                CallMethod.POST,
+                {
+                    &#34;sessionKey&#34;: self.session_key,
+                    &#34;group&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;qq&#34;: target.id if isinstance(target, Member) else target,
+                    &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                    **(
+                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                        if quote
+                        else {}
+                    ),
+                },
+            )
+            logger.info(
+                &#34;[BOT {bot_id}] Member({member_id}, in {group_id}) &lt;- {message}&#34;.format_map(
+                    {
+                        &#34;bot_id&#34;: self.mirai_session.account,
+                        &#34;member_id&#34;: target.id
+                        if isinstance(target, Member)
+                        else target,
+                        &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                        &#34;message&#34;: new_msg.asDisplay(),
+                    }
+                )
+            )
+            return BotMessage(messageId=result[&#34;messageId&#34;])
+
+    @app_ctx_manager
+    async def sendMessage(
+        self,
+        target: Union[MessageEvent, Group, Friend, Member],
+        message: MessageChain,
+        *,
+        quote: Union[bool, int, Source] = False,
+    ) -&gt; BotMessage:
+        &#34;&#34;&#34;
+        依据传入的 `target` 自动发送消息。
+        请注意发送给群成员时会自动作为临时消息发送。
+
+        Args:
+            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标。
+            message (MessageChain): 要发送的消息链。
+            quote (Union[bool, int, Source]): 若为布尔类型，则会尝试通过传入对象解析要回复的消息，
+            否则会视为 `messageId` 处理。
+
+        Returns:
+            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+        &#34;&#34;&#34;
+        data = {&#34;message&#34;: message}
+        if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
+            data[&#34;quote&#34;] = target.messageChain.getFirst(Source)
+        elif isinstance(quote, (int, Source)):
+            data[&#34;quote&#34;] = quote
+        if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+            data[&#34;target&#34;] = target.sender
+        else:
+            data[&#34;target&#34;] = target
+        if isinstance(data[&#34;target&#34;], Friend):
+            return await self.sendFriendMessage(**data)
+        if isinstance(data[&#34;target&#34;], Group):
+            return await self.sendGroupMessage(**data)
+        elif isinstance(data[&#34;target&#34;], Member):
+            return await self.sendTempMessage(**data)
+        else:
+            raise NotImplementedError(
+                f&#34;Unable to send message with {target} as target.&#34;
+            )
+
+    @app_ctx_manager
+    async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
+        &#34;&#34;&#34;
+        向指定的群组成员或好友发送戳一戳消息。
+
+        Args:
+            target (Union[Friend, Member]): 发送戳一戳的目标。
+
+        Returns:
+            None: 没有返回。
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;sendNudge&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: target.id,
+                &#34;subject&#34;: target.group.id if isinstance(target, Member) else target.id,
+                &#34;kind&#34;: {Member: &#34;Group&#34;, Friend: &#34;Friend&#34;}[target.__class__],
+            },
+        )
+
+    @app_ctx_manager
+    async def recallMessage(self, target: Union[Source, BotMessage, int]):
+        &#34;&#34;&#34;撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
+
+        Args:
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, BotMessage):
+            target = target.messageId
+        elif isinstance(target, Source):
+            target = target.id
+
+        await self.adapter.call_api(
+            &#34;recall&#34;,
+            CallMethod.POST,
+            {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: target},
+        )
+
+    @app_ctx_manager
+    async def deleteFriend(self, target: Union[Friend, int]):
+        &#34;&#34;&#34;
+        删除指定好友。
+
+        Args:
+            target (Union[Friend, int]): 好友对象或QQ号。
+
+        Returns:
+            None: 没有返回。
+        &#34;&#34;&#34;
+
+        friend_id = target.id if isinstance(target, Friend) else target
+
+        await self.adapter.call_api(
+            &#34;deleteFriend&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: friend_id,
+            },
+        )
+
+    @app_ctx_manager
+    async def muteMember(
+        self, group: Union[Group, int], member: Union[Member, int], time: int
+    ):
+        &#34;&#34;&#34;
+        在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
+        当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+
+        Args:
+            group (Union[Group, int]): 指定的群组
+            member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+            time (int): 禁言事件, 单位秒, 修正规则: `{time|0 &lt; time &lt;= 2592000}`
+
+        Raises:
+            PermissionError: 没有相应操作权限.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        time = max(0, min(time, 2592000))  # Fix time parameter
+        if not time:
+            return
+        await self.adapter.call_api(
+            &#34;mute&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;time&#34;: time,
+            },
+        )
+
+    @app_ctx_manager
+    async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int]):
+        &#34;&#34;&#34;
+        在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+
+        Args:
+            group (Union[Group, int]): 指定的群组
+            member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+
+        Raises:
+            PermissionError: 没有相应操作权限.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;unmute&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            },
+        )
+
+    @app_ctx_manager
+    async def muteAll(self, group: Union[Group, int]):
+        &#34;&#34;&#34;在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
+
+        Args:
+            group (Union[Group, int]): 指定的群组.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;muteAll&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+    @app_ctx_manager
+    async def unmuteAll(self, group: Union[Group, int]):
+        &#34;&#34;&#34;在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
+
+        Args:
+            group (Union[Group, int]): 指定的群组.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;unmuteAll&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+    @app_ctx_manager
+    async def kickMember(
+        self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;
+    ):
+        &#34;&#34;&#34;
+        将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
+
+        Args:
+            group (Union[Group, int]): 指定的群组
+            member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+            message (str, optional): 对踢出对象要展示的消息
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;kick&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;msg&#34;: message,
+            },
+        )
+
+    @app_ctx_manager
+    async def quitGroup(self, group: Union[Group, int]):
+        &#34;&#34;&#34;
+        主动从指定群组退出
+
+        Args:
+            group (Union[Group, int]): 需要退出的指定群组
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;quit&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+    @app_ctx_manager
+    async def setEssence(self, target: Union[Source, BotMessage, int]):
+        &#34;&#34;&#34;
+        添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
+        请自行判断消息来源是否为群组.
+
+        Args:
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, BotMessage):
+            target = target.messageId
+        elif isinstance(target, Source):
+            target = target.id
+
+        await self.adapter.call_api(
+            &#34;setEssence&#34;,
+            CallMethod.POST,
+            {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: target},
+        )
+
+    @app_ctx_manager
+    async def getGroupConfig(self, group: Union[Group, int]) -&gt; GroupConfig:
+        &#34;&#34;&#34;
+        获取指定群组的群设置
+
+        Args:
+            group (Union[Group, int]): 需要获取群设置的指定群组
+
+        Returns:
+            GroupConfig: 指定群组的群设置
+        &#34;&#34;&#34;
+        result = await self.adapter.call_api(
+            &#34;groupConfig&#34;,
+            CallMethod.RESTGET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            },
+        )
+
+        return GroupConfig.parse_obj(result)
+
+    @app_ctx_manager
+    async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig):
+        &#34;&#34;&#34;修改指定群组的群设置; 需要具有相应权限(管理员/群主).
+
+        Args:
+            group (Union[Group, int]): 需要修改群设置的指定群组
+            config (GroupConfig): 经过修改后的群设置
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        await self.adapter.call_api(
+            &#34;groupConfig&#34;,
+            CallMethod.RESTPOST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;config&#34;: config.dict(exclude_unset=True, exclude_none=True),
+            },
+        )
+
+    @app_ctx_manager
+    async def getMemberInfo(
+        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+    ) -&gt; MemberInfo:
+        &#34;&#34;&#34;
+        获取指定群组成员的可修改状态.
+
+        Args:
+            member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+        Returns:
+            MemberInfo: 指定群组成员的可修改状态
+        &#34;&#34;&#34;
+        if not group and not isinstance(member, Member):
+            raise TypeError(
+                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+            )
+        if isinstance(member, Member) and not group:
+            group: Group = member.group
+        result = await self.adapter.call_api(
+            &#34;memberInfo&#34;,
+            CallMethod.RESTGET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            },
+        )
+
+        return MemberInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def modifyMemberInfo(
+        self,
+        member: Union[Member, int],
+        info: MemberInfo,
+        group: Optional[Union[Group, int]] = None,
+    ):
+        &#34;&#34;&#34;
+        修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).
+
+        Args:
+            member (Union[Member, int]): 指定的群组成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            info (MemberInfo): 已修改的指定群组成员的可修改状态
+            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if not group and not isinstance(member, Member):
+            raise TypeError(
+                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+            )
+        if isinstance(member, Member) and not group:
+            group: Group = member.group
+        await self.adapter.call_api(
+            &#34;memberInfo&#34;,
+            CallMethod.RESTPOST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;info&#34;: info.dict(exclude_none=True, exclude_unset=True, by_alias=True),
+            },
+        )
+
+    @app_ctx_manager
+    async def modifyMemberAdmin(
+        self,
+        assign: bool,
+        member: Union[Member, int],
+        group: Optional[Union[Group, int]] = None,
+    ):
+        &#34;&#34;&#34;
+        修改一位群组成员管理员权限; 需要有相应权限(群主)
+
+        Args:
+            member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            assign (bool): 是否设置群成员为管理员.
+            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+            PermissionError: 没有相应操作权限.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if not group and not isinstance(member, Member):
+            raise TypeError(
+                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+            )
+        if isinstance(member, Member) and not group:
+            group: Group = member.group
+
+        await self.adapter.call_api(
+            &#34;memberAdmin&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+                &#34;assign&#34;: assign,
+            },
+        )
+
+    @app_ctx_manager
+    async def listFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        offset: Optional[int] = 0,
+        size: Optional[int] = 1,
+        with_download_info: bool = False,
+    ) -&gt; List[FileInfo]:
+        &#34;&#34;&#34;
+        列出指定文件夹下的所有文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 文件夹ID, 空串为根目录
+            offset (int): 分页偏移
+            size (int): 分页大小
+            with_download_info (bool): 是否携带下载信息，无必要不要携带
+
+        Returns:
+            List[FileInfo]: 返回的文件信息列表.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/list&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;withDownloadInfo&#34;: str(
+                    with_download_info
+                ),  # yarl don&#39;t accept boolean
+                &#34;offset&#34;: offset,
+                &#34;size&#34;: size,
+            },
+        )
+        return [FileInfo.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getFileInfo(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        with_download_info: bool = False,
+    ) -&gt; FileInfo:
+        &#34;&#34;&#34;
+        获取指定文件的信息.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 文件ID, 空串为根目录
+            with_download_info (bool): 是否携带下载信息，无必要不要携带
+
+        Returns:
+            FileInfo: 返回的文件信息.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/list&#34;,
+            CallMethod.GET,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;withDownloadInfo&#34;: str(
+                    with_download_info
+                ),  # yarl don&#39;t accept boolean
+            },
+        )
+
+        return FileInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def makeDirectory(
+        self,
+        target: Union[Friend, Group, int],
+        name: str,
+        id: str = &#34;&#34;,
+    ) -&gt; FileInfo:
+        &#34;&#34;&#34;
+        在指定位置创建新文件夹.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            name (str): 要创建的文件夹名称.
+            id (str): 上级文件夹ID, 空串为根目录
+
+        Returns:
+            FileInfo: 新创建文件夹的信息.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/mkdir&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;name&#34;: name,
+                &#34;target&#34;: target,
+            },
+        )
+
+        return FileInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def deleteFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+    ):
+        &#34;&#34;&#34;
+        删除指定文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 文件ID
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        await self.adapter.call_api(
+            &#34;file/delete&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+            },
+        )
+
+    @app_ctx_manager
+    async def moveFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        dest_id: str = &#34;&#34;,
+    ):
+        &#34;&#34;&#34;
+        移动指定文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 源文件ID
+            dest_id (str): 目标文件夹ID
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        await self.adapter.call_api(
+            &#34;file/move&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;moveTo&#34;: dest_id,
+            },
+        )
+
+    @app_ctx_manager
+    async def renameFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        dest_name: str = &#34;&#34;,
+    ):
+        &#34;&#34;&#34;
+        重命名指定文件.
+
+        Args:
+            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            为群组或好友或QQ号（当前仅支持群组）
+            id (str): 源文件ID
+            dest_name (str): 目标文件新名称.
+
+        Returns:
+            None: 没有返回.
+        &#34;&#34;&#34;
+        if isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        await self.adapter.call_api(
+            &#34;file/move&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;id&#34;: id,
+                &#34;target&#34;: target,
+                &#34;renameTo&#34;: dest_name,
+            },
+        )
+
+    @app_ctx_manager
+    async def uploadFile(
+        self,
+        data: bytes,
+        method: UploadMethod,
+        target: Union[Friend, Group, int],
+        path: str = &#34;&#34;,
+    ) -&gt; &#34;FileInfo&#34;:
+        &#34;&#34;&#34;
+        上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
+        上传目标, (可选)上传目录ID.
+        Args:
+            data (bytes): 文件的原始数据
+            method (UploadMethod): 文件的上传类型
+        Returns:
+            FileInfo: 文件信息
+        &#34;&#34;&#34;
+
+        if method != UploadMethod.Group or isinstance(target, Friend):
+            raise NotImplementedError(f&#34;Not implemented for {method}&#34;)
+
+        target = target.id if isinstance(target, Friend) else target
+        target = target.id if isinstance(target, Group) else target
+
+        result = await self.adapter.call_api(
+            &#34;file/upload&#34;,
+            CallMethod.MULTIPART,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;type&#34;: method.value,
+                &#34;target&#34;: target,
+                &#34;path&#34;: path,
+                &#34;file&#34;: data,
+            },
+        )
+
+        return FileInfo.parse_obj(result)
+
+    @app_ctx_manager
+    async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&#34;:
+        &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。
+        Args:
+            image_bytes (bytes): 图片的原始数据
+            method (UploadMethod): 图片的上传类型
+        Returns:
+            Image: 生成的图片消息元素
+        &#34;&#34;&#34;
+        from graia.ariadne.message.element import Image
+
+        result = await self.adapter.call_api(
+            &#34;uploadImage&#34;,
+            CallMethod.MULTIPART,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;type&#34;: method.value,
+                &#34;img&#34;: data,
+            },
+        )
+
+        return Image.parse_obj(result)
+
+    @app_ctx_manager
+    async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&#34;:
+        &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。
+        Args:
+            data (bytes): 语音的原始数据
+            method (UploadMethod): 语音的上传类型
+        Returns:
+            Voice: 生成的语音消息元素
+        &#34;&#34;&#34;
+        from graia.ariadne.message.element import Voice
+
+        result = await self.adapter.call_api(
+            &#34;uploadVoice&#34;,
+            CallMethod.MULTIPART,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;type&#34;: method.value,
+                &#34;voice&#34;: data,
+            },
+        )
+
+        return Voice.parse_obj(result)</code></pre>
+</details>
+<h3>Instance variables</h3>
+<dl>
+<dt id="graia.ariadne.app.Ariadne.session_key"><code class="name">var <span class="ident">session_key</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def session_key(self) -&gt; Optional[str]:
+    return self.mirai_session.session_key</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="graia.ariadne.app.Ariadne.daemon"><code class="name flex">
+<span>async def <span class="ident">daemon</span></span>(<span>self, retry_interval: float = 5.0)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def daemon(self, retry_interval: float = 5.0):
+    logger.debug(&#34;Application daemon started.&#34;)
+    while self.running:
+        try:
+            await self.adapter.start()
+            try:
+                if self.adapter.fetch_task:
+                    await self.adapter.fetch_task
+            except Exception as e:
+                logger.debug(e)
+            await self.adapter.stop()
+            logger.warning(f&#34;daemon: adapter down, restart in {retry_interval}s&#34;)
+            await asyncio.sleep(retry_interval)
+            logger.info(&#34;daemon: restarting adapter&#34;)
+        except CancelledError:
+            await self.adapter.stop()
+    logger.debug(&#34;Application daemon stopped.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.deleteFile"><code class="name flex">
+<span>async def <span class="ident">deleteFile</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], id: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>删除指定文件.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
+<dd>要列出文件的根位置，</dd>
+<dt>为群组或好友或QQ号（当前仅支持群组）</dt>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>文件ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def deleteFile(
+    self,
+    target: Union[Friend, Group, int],
+    id: str = &#34;&#34;,
+):
+    &#34;&#34;&#34;
+    删除指定文件.
+
+    Args:
+        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        为群组或好友或QQ号（当前仅支持群组）
+        id (str): 文件ID
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    await self.adapter.call_api(
+        &#34;file/delete&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;id&#34;: id,
+            &#34;target&#34;: target,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.deleteFriend"><code class="name flex">
+<span>async def <span class="ident">deleteFriend</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>删除指定好友。</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, int]</code></dt>
+<dd>好友对象或QQ号。</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回。</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def deleteFriend(self, target: Union[Friend, int]):
+    &#34;&#34;&#34;
+    删除指定好友。
+
+    Args:
+        target (Union[Friend, int]): 好友对象或QQ号。
+
+    Returns:
+        None: 没有返回。
+    &#34;&#34;&#34;
+
+    friend_id = target.id if isinstance(target, Friend) else target
+
+    await self.adapter.call_api(
+        &#34;deleteFriend&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: friend_id,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getBotProfile"><code class="name flex">
+<span>async def <span class="ident">getBotProfile</span></span>(<span>self) ‑> <a title="graia.ariadne.model.Profile" href="model.html#graia.ariadne.model.Profile">Profile</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getBotProfile(self) -&gt; Profile:
+    result = await self.adapter.call_api(
+        &#34;botProfile&#34;,
+        CallMethod.GET,
+        {&#34;sessionKey&#34;: self.session_key},
+    )
+    return Profile.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getFileInfo"><code class="name flex">
+<span>async def <span class="ident">getFileInfo</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], id: str = '', with_download_info: bool = False) ‑> <a title="graia.ariadne.model.FileInfo" href="model.html#graia.ariadne.model.FileInfo">FileInfo</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>获取指定文件的信息.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
+<dd>要列出文件的根位置，</dd>
+<dt>为群组或好友或QQ号（当前仅支持群组）</dt>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>文件ID, 空串为根目录</dd>
+<dt><strong><code>with_download_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>是否携带下载信息，无必要不要携带</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>FileInfo</code></dt>
+<dd>返回的文件信息.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getFileInfo(
+    self,
+    target: Union[Friend, Group, int],
+    id: str = &#34;&#34;,
+    with_download_info: bool = False,
+) -&gt; FileInfo:
+    &#34;&#34;&#34;
+    获取指定文件的信息.
+
+    Args:
+        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        为群组或好友或QQ号（当前仅支持群组）
+        id (str): 文件ID, 空串为根目录
+        with_download_info (bool): 是否携带下载信息，无必要不要携带
+
+    Returns:
+        FileInfo: 返回的文件信息.
+    &#34;&#34;&#34;
+    if isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    result = await self.adapter.call_api(
+        &#34;file/list&#34;,
+        CallMethod.GET,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;id&#34;: id,
+            &#34;target&#34;: target,
+            &#34;withDownloadInfo&#34;: str(
+                with_download_info
+            ),  # yarl don&#39;t accept boolean
+        },
+    )
+
+    return FileInfo.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getFriend"><code class="name flex">
+<span>async def <span class="ident">getFriend</span></span>(<span>self, friend_id: int) ‑> Optional[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>从已知的可能的好友 ID, 获取 Friend 实例.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>friend_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>已知的可能的好友 ID.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Friend</code></dt>
+<dd>操作成功, 你得到了你应得的.</dd>
+<dt><code>None</code></dt>
+<dd>未能获取到.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getFriend(self, friend_id: int) -&gt; Optional[Friend]:
+    &#34;&#34;&#34;从已知的可能的好友 ID, 获取 Friend 实例.
+
+    Args:
+        friend_id (int): 已知的可能的好友 ID.
+
+    Returns:
+        Friend: 操作成功, 你得到了你应得的.
+        None: 未能获取到.
+    &#34;&#34;&#34;
+    data = await self.getFriendList()
+    for i in data:
+        if i.id == friend_id:
+            return i</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getFriendList"><code class="name flex">
+<span>async def <span class="ident">getFriendList</span></span>(<span>self) ‑> List[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getFriendList(self) -&gt; List[Friend]:
+    result = await self.adapter.call_api(
+        &#34;friendList&#34;,
+        CallMethod.GET,
+        {&#34;sessionKey&#34;: self.session_key},
+    )
+    return [Friend.parse_obj(i) for i in result]</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getFriendProfile"><code class="name flex">
+<span>async def <span class="ident">getFriendProfile</span></span>(<span>self, friend: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, int]) ‑> <a title="graia.ariadne.model.Profile" href="model.html#graia.ariadne.model.Profile">Profile</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getFriendProfile(self, friend: Union[Friend, int]) -&gt; Profile:
+    result = await self.adapter.call_api(
+        &#34;friendProfile&#34;,
+        CallMethod.GET,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: friend.id if isinstance(friend, Friend) else friend,
+        },
+    )
+    return Profile.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getGroup"><code class="name flex">
+<span>async def <span class="ident">getGroup</span></span>(<span>self, group_id: int) ‑> Optional[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>尝试获取的群组的唯一 ID.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Group</code></dt>
+<dd>操作成功, 你得到了你应得的.</dd>
+<dt><code>None</code></dt>
+<dd>未能获取到.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getGroup(self, group_id: int) -&gt; Optional[Group]:
+    &#34;&#34;&#34;尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
+
+    Args:
+        group_id (int): 尝试获取的群组的唯一 ID.
+
+    Returns:
+        Group: 操作成功, 你得到了你应得的.
+        None: 未能获取到.
+    &#34;&#34;&#34;
+    data = await self.getGroupList()
+    for i in data:
+        if i.id == group_id:
+            return i</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getGroupConfig"><code class="name flex">
+<span>async def <span class="ident">getGroupConfig</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int]) ‑> <a title="graia.ariadne.model.GroupConfig" href="model.html#graia.ariadne.model.GroupConfig">GroupConfig</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>获取指定群组的群设置</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>需要获取群设置的指定群组</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>GroupConfig</code></dt>
+<dd>指定群组的群设置</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getGroupConfig(self, group: Union[Group, int]) -&gt; GroupConfig:
+    &#34;&#34;&#34;
+    获取指定群组的群设置
+
+    Args:
+        group (Union[Group, int]): 需要获取群设置的指定群组
+
+    Returns:
+        GroupConfig: 指定群组的群设置
+    &#34;&#34;&#34;
+    result = await self.adapter.call_api(
+        &#34;groupConfig&#34;,
+        CallMethod.RESTGET,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+        },
+    )
+
+    return GroupConfig.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getGroupList"><code class="name flex">
+<span>async def <span class="ident">getGroupList</span></span>(<span>self) ‑> List[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getGroupList(self) -&gt; List[Group]:
+    result = await self.adapter.call_api(
+        &#34;groupList&#34;,
+        CallMethod.GET,
+        {&#34;sessionKey&#34;: self.session_key},
+    )
+    return [Group.parse_obj(i) for i in result]</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getMember"><code class="name flex">
+<span>async def <span class="ident">getMember</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], member_id: int) ‑> Optional[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group_id</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>已知的群组唯一 ID</dd>
+<dt><strong><code>member_id</code></strong> :&ensp;<code>int</code></dt>
+<dd>已知的群组成员的 ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Member</code></dt>
+<dd>操作成功, 你得到了你应得的.</dd>
+<dt><code>None</code></dt>
+<dd>未能获取到.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getMember(
+    self, group: Union[Group, int], member_id: int
+) -&gt; Optional[Member]:
+    &#34;&#34;&#34;尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
+
+    Args:
+        group_id (Union[Group, int]): 已知的群组唯一 ID
+        member_id (int): 已知的群组成员的 ID
+
+    Returns:
+        Member: 操作成功, 你得到了你应得的.
+        None: 未能获取到.
+    &#34;&#34;&#34;
+    data = await self.getMemberList(group)
+    for i in data:
+        if i.id == member_id:
+            return i</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getMemberInfo"><code class="name flex">
+<span>async def <span class="ident">getMemberInfo</span></span>(<span>self, member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None) ‑> <a title="graia.ariadne.model.MemberInfo" href="model.html#graia.ariadne.model.MemberInfo">MemberInfo</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>获取指定群组成员的可修改状态.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.</dd>
+<dt><strong><code>group</code></strong> :&ensp;<code>Optional[Union[Group, int]]</code>, optional</dt>
+<dd>如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>TypeError</code></dt>
+<dd>提供了错误的参数, 阅读有关文档得到问题原因</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>MemberInfo</code></dt>
+<dd>指定群组成员的可修改状态</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getMemberInfo(
+    self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+) -&gt; MemberInfo:
+    &#34;&#34;&#34;
+    获取指定群组成员的可修改状态.
+
+    Args:
+        member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+        group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+    Raises:
+        TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+    Returns:
+        MemberInfo: 指定群组成员的可修改状态
+    &#34;&#34;&#34;
+    if not group and not isinstance(member, Member):
+        raise TypeError(
+            &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+        )
+    if isinstance(member, Member) and not group:
+        group: Group = member.group
+    result = await self.adapter.call_api(
+        &#34;memberInfo&#34;,
+        CallMethod.RESTGET,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+        },
+    )
+
+    return MemberInfo.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getMemberList"><code class="name flex">
+<span>async def <span class="ident">getMemberList</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int]) ‑> List[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getMemberList(self, group: Union[Group, int]) -&gt; List[Member]:
+    result = await self.adapter.call_api(
+        &#34;memberList&#34;,
+        CallMethod.GET,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+        },
+    )
+    return [Member.parse_obj(i) for i in result]</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getMemberProfile"><code class="name flex">
+<span>async def <span class="ident">getMemberProfile</span></span>(<span>self, member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None) ‑> <a title="graia.ariadne.model.Profile" href="model.html#graia.ariadne.model.Profile">Profile</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getMemberProfile(
+    self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+) -&gt; Profile:
+    member_id = member.id if isinstance(member, Member) else member
+    group = group or (member.group if isinstance(member, Member) else None)
+    group_id = group.id if isinstance(group, Group) else group
+    if not group_id:
+        raise ValueError(&#34;Missing necessary argument: group&#34;)
+    result = await self.adapter.call_api(
+        &#34;memberProfile&#34;,
+        CallMethod.GET,
+        {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: group_id, &#34;memberId&#34;: member_id},
+    )
+    return Profile.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getMessageFromId"><code class="name flex">
+<span>async def <span class="ident">getMessageFromId</span></span>(<span>self, messageId: int) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="message/chain.html#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getMessageFromId(self, messageId: int) -&gt; MessageChain:
+    result = await self.adapter.call_api(
+        &#34;messageFromId&#34;,
+        CallMethod.GET,
+        {&#34;sessionKey&#34;: self.session_key, &#34;id&#34;: messageId},
+    )
+    return MessageChain.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.getVersion"><code class="name flex">
+<span>async def <span class="ident">getVersion</span></span>(<span>self, auto_set: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def getVersion(self, auto_set: bool = True):
+    if self.mirai_session.version:
+        return self.mirai_session.version
+    result = await self.adapter.call_api.__wrapped__(
+        self.adapter, &#34;about&#34;, CallMethod.GET
+    )
+    version = result[&#34;version&#34;]
+    if auto_set:
+        self.mirai_session.version = version
+    return version</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.kickMember"><code class="name flex">
+<span>async def <span class="ident">kickMember</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], message: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组</dd>
+<dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)</dd>
+<dt><strong><code>message</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>对踢出对象要展示的消息</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def kickMember(
+    self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;
+):
+    &#34;&#34;&#34;
+    将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
+
+    Args:
+        group (Union[Group, int]): 指定的群组
+        member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+        message (str, optional): 对踢出对象要展示的消息
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;kick&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            &#34;msg&#34;: message,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.launch"><code class="name flex">
+<span>async def <span class="ident">launch</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def launch(self):
+    if not self.running:
+        self.running = True
+        start_time = time.time()
+        logger.info(&#34;Launching app...&#34;)
+        self.broadcast.dispatcher_interface.inject_global_raw(
+            ApplicationMiddlewareDispatcher(self)
+        )
+        if self.chat_log_cfg.enabled:
+            self.chat_log_cfg.initialize(self)
+        self.daemon_task = self.loop.create_task(self.daemon())
+        while not self.adapter.session_activated:
+            await asyncio.sleep(0.001)
+        self.broadcast.postEvent(ApplicationLaunched(self))
+        self.remote_version = await self.getVersion()
+        logger.info(f&#34;Remote version: {self.remote_version}&#34;)
+        logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.lifecycle"><code class="name flex">
+<span>async def <span class="ident">lifecycle</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def lifecycle(self):
+    await self.launch()
+    try:
+        if self.daemon_task:
+            await self.daemon_task
+    except CancelledError:
+        pass
+    await self.stop()</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.listFile"><code class="name flex">
+<span>async def <span class="ident">listFile</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[<a title="graia.ariadne.model.FileInfo" href="model.html#graia.ariadne.model.FileInfo">FileInfo</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>列出指定文件夹下的所有文件.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
+<dd>要列出文件的根位置，</dd>
+<dt>为群组或好友或QQ号（当前仅支持群组）</dt>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>文件夹ID, 空串为根目录</dd>
+<dt><strong><code>offset</code></strong> :&ensp;<code>int</code></dt>
+<dd>分页偏移</dd>
+<dt><strong><code>size</code></strong> :&ensp;<code>int</code></dt>
+<dd>分页大小</dd>
+<dt><strong><code>with_download_info</code></strong> :&ensp;<code>bool</code></dt>
+<dd>是否携带下载信息，无必要不要携带</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List[FileInfo]</code></dt>
+<dd>返回的文件信息列表.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def listFile(
+    self,
+    target: Union[Friend, Group, int],
+    id: str = &#34;&#34;,
+    offset: Optional[int] = 0,
+    size: Optional[int] = 1,
+    with_download_info: bool = False,
+) -&gt; List[FileInfo]:
+    &#34;&#34;&#34;
+    列出指定文件夹下的所有文件.
+
+    Args:
+        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        为群组或好友或QQ号（当前仅支持群组）
+        id (str): 文件夹ID, 空串为根目录
+        offset (int): 分页偏移
+        size (int): 分页大小
+        with_download_info (bool): 是否携带下载信息，无必要不要携带
+
+    Returns:
+        List[FileInfo]: 返回的文件信息列表.
+    &#34;&#34;&#34;
+    if isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    result = await self.adapter.call_api(
+        &#34;file/list&#34;,
+        CallMethod.GET,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;id&#34;: id,
+            &#34;target&#34;: target,
+            &#34;withDownloadInfo&#34;: str(
+                with_download_info
+            ),  # yarl don&#39;t accept boolean
+            &#34;offset&#34;: offset,
+            &#34;size&#34;: size,
+        },
+    )
+    return [FileInfo.parse_obj(i) for i in result]</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.makeDirectory"><code class="name flex">
+<span>async def <span class="ident">makeDirectory</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], name: str, id: str = '') ‑> <a title="graia.ariadne.model.FileInfo" href="model.html#graia.ariadne.model.FileInfo">FileInfo</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>在指定位置创建新文件夹.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
+<dd>要列出文件的根位置，</dd>
+<dt>为群组或好友或QQ号（当前仅支持群组）</dt>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>要创建的文件夹名称.</dd>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>上级文件夹ID, 空串为根目录</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>FileInfo</code></dt>
+<dd>新创建文件夹的信息.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def makeDirectory(
+    self,
+    target: Union[Friend, Group, int],
+    name: str,
+    id: str = &#34;&#34;,
+) -&gt; FileInfo:
+    &#34;&#34;&#34;
+    在指定位置创建新文件夹.
+
+    Args:
+        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        为群组或好友或QQ号（当前仅支持群组）
+        name (str): 要创建的文件夹名称.
+        id (str): 上级文件夹ID, 空串为根目录
+
+    Returns:
+        FileInfo: 新创建文件夹的信息.
+    &#34;&#34;&#34;
+    if isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    result = await self.adapter.call_api(
+        &#34;file/mkdir&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;id&#34;: id,
+            &#34;name&#34;: name,
+            &#34;target&#34;: target,
+        },
+    )
+
+    return FileInfo.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.modifyGroupConfig"><code class="name flex">
+<span>async def <span class="ident">modifyGroupConfig</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], config: <a title="graia.ariadne.model.GroupConfig" href="model.html#graia.ariadne.model.GroupConfig">GroupConfig</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>修改指定群组的群设置; 需要具有相应权限(管理员/群主).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>需要修改群设置的指定群组</dd>
+<dt><strong><code>config</code></strong> :&ensp;<code>GroupConfig</code></dt>
+<dd>经过修改后的群设置</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig):
+    &#34;&#34;&#34;修改指定群组的群设置; 需要具有相应权限(管理员/群主).
+
+    Args:
+        group (Union[Group, int]): 需要修改群设置的指定群组
+        config (GroupConfig): 经过修改后的群设置
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;groupConfig&#34;,
+        CallMethod.RESTPOST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;config&#34;: config.dict(exclude_unset=True, exclude_none=True),
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.modifyMemberAdmin"><code class="name flex">
+<span>async def <span class="ident">modifyMemberAdmin</span></span>(<span>self, assign: bool, member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>修改一位群组成员管理员权限; 需要有相应权限(群主)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.</dd>
+<dt><strong><code>assign</code></strong> :&ensp;<code>bool</code></dt>
+<dd>是否设置群成员为管理员.</dd>
+<dt><strong><code>group</code></strong> :&ensp;<code>Optional[Union[Group, int]]</code>, optional</dt>
+<dd>如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>TypeError</code></dt>
+<dd>提供了错误的参数, 阅读有关文档得到问题原因</dd>
+<dt><code>PermissionError</code></dt>
+<dd>没有相应操作权限.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def modifyMemberAdmin(
+    self,
+    assign: bool,
+    member: Union[Member, int],
+    group: Optional[Union[Group, int]] = None,
+):
+    &#34;&#34;&#34;
+    修改一位群组成员管理员权限; 需要有相应权限(群主)
+
+    Args:
+        member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+        assign (bool): 是否设置群成员为管理员.
+        group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+    Raises:
+        TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+        PermissionError: 没有相应操作权限.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if not group and not isinstance(member, Member):
+        raise TypeError(
+            &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+        )
+    if isinstance(member, Member) and not group:
+        group: Group = member.group
+
+    await self.adapter.call_api(
+        &#34;memberAdmin&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            &#34;assign&#34;: assign,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.modifyMemberInfo"><code class="name flex">
+<span>async def <span class="ident">modifyMemberInfo</span></span>(<span>self, member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], info: <a title="graia.ariadne.model.MemberInfo" href="model.html#graia.ariadne.model.MemberInfo">MemberInfo</a>, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定的群组成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.</dd>
+<dt><strong><code>info</code></strong> :&ensp;<code>MemberInfo</code></dt>
+<dd>已修改的指定群组成员的可修改状态</dd>
+<dt><strong><code>group</code></strong> :&ensp;<code>Optional[Union[Group, int]]</code>, optional</dt>
+<dd>如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>TypeError</code></dt>
+<dd>提供了错误的参数, 阅读有关文档得到问题原因</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def modifyMemberInfo(
+    self,
+    member: Union[Member, int],
+    info: MemberInfo,
+    group: Optional[Union[Group, int]] = None,
+):
+    &#34;&#34;&#34;
+    修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).
+
+    Args:
+        member (Union[Member, int]): 指定的群组成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+        info (MemberInfo): 已修改的指定群组成员的可修改状态
+        group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+
+    Raises:
+        TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if not group and not isinstance(member, Member):
+        raise TypeError(
+            &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
+        )
+    if isinstance(member, Member) and not group:
+        group: Group = member.group
+    await self.adapter.call_api(
+        &#34;memberInfo&#34;,
+        CallMethod.RESTPOST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            &#34;info&#34;: info.dict(exclude_none=True, exclude_unset=True, by_alias=True),
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.moveFile"><code class="name flex">
+<span>async def <span class="ident">moveFile</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], id: str = '', dest_id: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>移动指定文件.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
+<dd>要列出文件的根位置，</dd>
+<dt>为群组或好友或QQ号（当前仅支持群组）</dt>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>源文件ID</dd>
+<dt><strong><code>dest_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>目标文件夹ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def moveFile(
+    self,
+    target: Union[Friend, Group, int],
+    id: str = &#34;&#34;,
+    dest_id: str = &#34;&#34;,
+):
+    &#34;&#34;&#34;
+    移动指定文件.
+
+    Args:
+        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        为群组或好友或QQ号（当前仅支持群组）
+        id (str): 源文件ID
+        dest_id (str): 目标文件夹ID
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    await self.adapter.call_api(
+        &#34;file/move&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;id&#34;: id,
+            &#34;target&#34;: target,
+            &#34;moveTo&#34;: dest_id,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.msg_logger"><code class="name flex">
+<span>async def <span class="ident">msg_logger</span></span>(<span>self, event: <a title="graia.ariadne.event.MiraiEvent" href="event/index.html#graia.ariadne.event.MiraiEvent">MiraiEvent</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def msg_logger(self, event: MiraiEvent):
+    logger.info(event)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.muteAll"><code class="name flex">
+<span>async def <span class="ident">muteAll</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def muteAll(self, group: Union[Group, int]):
+    &#34;&#34;&#34;在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
+
+    Args:
+        group (Union[Group, int]): 指定的群组.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;muteAll&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.muteMember"><code class="name flex">
+<span>async def <span class="ident">muteMember</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], time: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); <code>time</code> 不得大于 <code>30*24*60*60=2592000</code> 或小于 <code>0</code>, 否则会自动修正;
+当 <code>time</code> 小于等于 <code>0</code> 时, 不会触发禁言操作; 禁言对象极有可能触发 <code>PermissionError</code>, 在这之前请对其进行判断!</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组</dd>
+<dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)</dd>
+<dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
+<dd>禁言事件, 单位秒, 修正规则: <code>{time|0 &lt; time &lt;= 2592000}</code></dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>PermissionError</code></dt>
+<dd>没有相应操作权限.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def muteMember(
+    self, group: Union[Group, int], member: Union[Member, int], time: int
+):
+    &#34;&#34;&#34;
+    在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
+    当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+
+    Args:
+        group (Union[Group, int]): 指定的群组
+        member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+        time (int): 禁言事件, 单位秒, 修正规则: `{time|0 &lt; time &lt;= 2592000}`
+
+    Raises:
+        PermissionError: 没有相应操作权限.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    time = max(0, min(time, 2592000))  # Fix time parameter
+    if not time:
+        return
+    await self.adapter.call_api(
+        &#34;mute&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+            &#34;time&#34;: time,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.quitGroup"><code class="name flex">
+<span>async def <span class="ident">quitGroup</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>主动从指定群组退出</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>需要退出的指定群组</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def quitGroup(self, group: Union[Group, int]):
+    &#34;&#34;&#34;
+    主动从指定群组退出
+
+    Args:
+        group (Union[Group, int]): 需要退出的指定群组
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;quit&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.recallMessage"><code class="name flex">
+<span>async def <span class="ident">recallMessage</span></span>(<span>self, target: Union[<a title="graia.ariadne.message.element.Source" href="message/element.html#graia.ariadne.message.element.Source">Source</a>, <a title="graia.ariadne.model.BotMessage" href="model.html#graia.ariadne.model.BotMessage">BotMessage</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Source, BotMessage, int]</code></dt>
+<dd>特定信息的 <code>messageId</code>, 可以是 <code>Source</code> 实例, <code>BotMessage</code> 实例或者是单纯的 int 整数.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def recallMessage(self, target: Union[Source, BotMessage, int]):
+    &#34;&#34;&#34;撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
+
+    Args:
+        target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if isinstance(target, BotMessage):
+        target = target.messageId
+    elif isinstance(target, Source):
+        target = target.id
+
+    await self.adapter.call_api(
+        &#34;recall&#34;,
+        CallMethod.POST,
+        {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: target},
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.renameFile"><code class="name flex">
+<span>async def <span class="ident">renameFile</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], id: str = '', dest_name: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>重命名指定文件.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
+<dd>要列出文件的根位置，</dd>
+<dt>为群组或好友或QQ号（当前仅支持群组）</dt>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>源文件ID</dd>
+<dt><strong><code>dest_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>目标文件新名称.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def renameFile(
+    self,
+    target: Union[Friend, Group, int],
+    id: str = &#34;&#34;,
+    dest_name: str = &#34;&#34;,
+):
+    &#34;&#34;&#34;
+    重命名指定文件.
+
+    Args:
+        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        为群组或好友或QQ号（当前仅支持群组）
+        id (str): 源文件ID
+        dest_name (str): 目标文件新名称.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for friend&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    await self.adapter.call_api(
+        &#34;file/move&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;id&#34;: id,
+            &#34;target&#34;: target,
+            &#34;renameTo&#34;: dest_name,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.sendFriendMessage"><code class="name flex">
+<span>async def <span class="ident">sendFriendMessage</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, int], message: <a title="graia.ariadne.message.chain.MessageChain" href="message/chain.html#graia.ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[<a title="graia.ariadne.message.element.Source" href="message/element.html#graia.ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="graia.ariadne.model.BotMessage" href="model.html#graia.ariadne.model.BotMessage">BotMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>发送消息给好友, 可以指定回复的消息.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, int]</code></dt>
+<dd>指定的好友</dd>
+<dt><strong><code>message</code></strong> :&ensp;<code>MessageChain</code></dt>
+<dd>有效的, 可发送的(Sendable)消息链.</dd>
+<dt><strong><code>quote</code></strong> :&ensp;<code>Optional[Union[Source, int]]</code>, optional</dt>
+<dd>需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>BotMessage</code></dt>
+<dd>即当前会话账号所发出消息的元数据, 内包含有一 <code>messageId</code> 属性, 可用于回复.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def sendFriendMessage(
+    self,
+    target: Union[Friend, int],
+    message: MessageChain,
+    *,
+    quote: Optional[Union[Source, int]] = None,
+) -&gt; BotMessage:
+    &#34;&#34;&#34;发送消息给好友, 可以指定回复的消息.
+
+    Args:
+        target (Union[Friend, int]): 指定的好友
+        message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+        quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+    Returns:
+        BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+    &#34;&#34;&#34;
+    with enter_message_send_context(UploadMethod.Friend):
+        new_msg = message.copy()
+        await new_msg.prepare()
+        result = await self.adapter.call_api(
+            &#34;sendFriendMessage&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: target.id if isinstance(target, Friend) else target,
+                &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                **(
+                    {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                    if quote
+                    else {}
+                ),
+            },
+        )
+        logger.info(
+            &#34;[BOT {bot_id}] Friend({friend_id}) &lt;- {message}&#34;.format_map(
+                {
+                    &#34;bot_id&#34;: self.mirai_session.account,
+                    &#34;friend_id&#34;: target.id
+                    if isinstance(target, Friend)
+                    else target,
+                    &#34;message&#34;: new_msg.asDisplay(),
+                }
+            )
+        )
+        return BotMessage(messageId=result[&#34;messageId&#34;])</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.sendGroupMessage"><code class="name flex">
+<span>async def <span class="ident">sendGroupMessage</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], message: <a title="graia.ariadne.message.chain.MessageChain" href="message/chain.html#graia.ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[<a title="graia.ariadne.message.element.Source" href="message/element.html#graia.ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="graia.ariadne.model.BotMessage" href="model.html#graia.ariadne.model.BotMessage">BotMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>发送消息到群组内, 可以指定回复的消息.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组, 可以是群组的 ID 也可以是 Group 实例.</dd>
+<dt><strong><code>message</code></strong> :&ensp;<code>MessageChain</code></dt>
+<dd>有效的, 可发送的(Sendable)消息链.</dd>
+<dt><strong><code>quote</code></strong> :&ensp;<code>Optional[Union[Source, int]]</code>, optional</dt>
+<dd>需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>BotMessage</code></dt>
+<dd>即当前会话账号所发出消息的元数据, 内包含有一 <code>messageId</code> 属性, 可用于回复.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def sendGroupMessage(
+    self,
+    group: Union[Group, int],
+    message: MessageChain,
+    *,
+    quote: Optional[Union[Source, int]] = None,
+) -&gt; BotMessage:
+    &#34;&#34;&#34;发送消息到群组内, 可以指定回复的消息.
+
+    Args:
+        group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+        message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+        quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+    Returns:
+        BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+    &#34;&#34;&#34;
+    with enter_message_send_context(UploadMethod.Group):
+        new_msg = message.copy()
+        await new_msg.prepare()
+        result = await self.adapter.call_api(
+            &#34;sendGroupMessage&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                **(
+                    {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                    if quote
+                    else {}
+                ),
+            },
+        )
+        logger.info(
+            &#34;[BOT {bot_id}] Group({group_id}) &lt;- {message}&#34;.format_map(
+                {
+                    &#34;bot_id&#34;: self.mirai_session.account,
+                    &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;message&#34;: new_msg.asDisplay(),
+                }
+            )
+        )
+        return BotMessage(messageId=result[&#34;messageId&#34;])</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.sendMessage"><code class="name flex">
+<span>async def <span class="ident">sendMessage</span></span>(<span>self, target: Union[<a title="graia.ariadne.event.message.MessageEvent" href="event/message.html#graia.ariadne.event.message.MessageEvent">MessageEvent</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, <a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>], message: <a title="graia.ariadne.message.chain.MessageChain" href="message/chain.html#graia.ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[bool, int, <a title="graia.ariadne.message.element.Source" href="message/element.html#graia.ariadne.message.element.Source">Source</a>] = False) ‑> <a title="graia.ariadne.model.BotMessage" href="model.html#graia.ariadne.model.BotMessage">BotMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>依据传入的 <code>target</code> 自动发送消息。
+请注意发送给群成员时会自动作为临时消息发送。</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[MessageEvent, Group, Friend, Member]</code></dt>
+<dd>消息发送目标。</dd>
+<dt><strong><code>message</code></strong> :&ensp;<code>MessageChain</code></dt>
+<dd>要发送的消息链。</dd>
+<dt><strong><code>quote</code></strong> :&ensp;<code>Union[bool, int, Source]</code></dt>
+<dd>若为布尔类型，则会尝试通过传入对象解析要回复的消息，</dd>
+</dl>
+<p>否则会视为 <code>messageId</code> 处理。</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>BotMessage</code></dt>
+<dd>即当前会话账号所发出消息的元数据, 内包含有一 <code>messageId</code> 属性, 可用于回复.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def sendMessage(
+    self,
+    target: Union[MessageEvent, Group, Friend, Member],
+    message: MessageChain,
+    *,
+    quote: Union[bool, int, Source] = False,
+) -&gt; BotMessage:
+    &#34;&#34;&#34;
+    依据传入的 `target` 自动发送消息。
+    请注意发送给群成员时会自动作为临时消息发送。
+
+    Args:
+        target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标。
+        message (MessageChain): 要发送的消息链。
+        quote (Union[bool, int, Source]): 若为布尔类型，则会尝试通过传入对象解析要回复的消息，
+        否则会视为 `messageId` 处理。
+
+    Returns:
+        BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+    &#34;&#34;&#34;
+    data = {&#34;message&#34;: message}
+    if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
+        data[&#34;quote&#34;] = target.messageChain.getFirst(Source)
+    elif isinstance(quote, (int, Source)):
+        data[&#34;quote&#34;] = quote
+    if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+        data[&#34;target&#34;] = target.sender
+    else:
+        data[&#34;target&#34;] = target
+    if isinstance(data[&#34;target&#34;], Friend):
+        return await self.sendFriendMessage(**data)
+    if isinstance(data[&#34;target&#34;], Group):
+        return await self.sendGroupMessage(**data)
+    elif isinstance(data[&#34;target&#34;], Member):
+        return await self.sendTempMessage(**data)
+    else:
+        raise NotImplementedError(
+            f&#34;Unable to send message with {target} as target.&#34;
+        )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.sendNudge"><code class="name flex">
+<span>async def <span class="ident">sendNudge</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>向指定的群组成员或好友发送戳一戳消息。</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Member]</code></dt>
+<dd>发送戳一戳的目标。</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回。</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
+    &#34;&#34;&#34;
+    向指定的群组成员或好友发送戳一戳消息。
+
+    Args:
+        target (Union[Friend, Member]): 发送戳一戳的目标。
+
+    Returns:
+        None: 没有返回。
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;sendNudge&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: target.id,
+            &#34;subject&#34;: target.group.id if isinstance(target, Member) else target.id,
+            &#34;kind&#34;: {Member: &#34;Group&#34;, Friend: &#34;Friend&#34;}[target.__class__],
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.sendTempMessage"><code class="name flex">
+<span>async def <span class="ident">sendTempMessage</span></span>(<span>self, target: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int], message: <a title="graia.ariadne.message.chain.MessageChain" href="message/chain.html#graia.ariadne.message.chain.MessageChain">MessageChain</a>, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None, *, quote: Union[<a title="graia.ariadne.message.element.Source" href="message/element.html#graia.ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="graia.ariadne.model.BotMessage" href="model.html#graia.ariadne.model.BotMessage">BotMessage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>发送临时会话给群组中的特定成员, 可指定回复的消息.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组, 可以是群组的 ID 也可以是 Group 实例.</dd>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定的群组成员, 可以是成员的 ID 也可以是 Member 实例.</dd>
+<dt><strong><code>message</code></strong> :&ensp;<code>MessageChain</code></dt>
+<dd>有效的, 可发送的(Sendable)消息链.</dd>
+<dt><strong><code>quote</code></strong> :&ensp;<code>Optional[Union[Source, int]]</code>, optional</dt>
+<dd>需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>BotMessage</code></dt>
+<dd>即当前会话账号所发出消息的元数据, 内包含有一 <code>messageId</code> 属性, 可用于回复.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def sendTempMessage(
+    self,
+    target: Union[Member, int],
+    message: MessageChain,
+    group: Optional[Union[Group, int]] = None,
+    *,
+    quote: Optional[Union[Source, int]] = None,
+) -&gt; BotMessage:
+    &#34;&#34;&#34;发送临时会话给群组中的特定成员, 可指定回复的消息.
+
+    Args:
+        group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+        target (Union[Member, int]): 指定的群组成员, 可以是成员的 ID 也可以是 Member 实例.
+        message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+        quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+
+    Returns:
+        BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+    &#34;&#34;&#34;
+    new_msg = message.copy()
+    await new_msg.prepare()
+    group = target.group if (isinstance(target, Member) and not group) else group
+    if not group:
+        raise ValueError(&#34;Missing necessary argument: group&#34;)
+    with enter_message_send_context(UploadMethod.Temp):
+        result = await self.adapter.call_api(
+            &#34;sendTempMessage&#34;,
+            CallMethod.POST,
+            {
+                &#34;sessionKey&#34;: self.session_key,
+                &#34;group&#34;: group.id if isinstance(group, Group) else group,
+                &#34;qq&#34;: target.id if isinstance(target, Member) else target,
+                &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
+                **(
+                    {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
+                    if quote
+                    else {}
+                ),
+            },
+        )
+        logger.info(
+            &#34;[BOT {bot_id}] Member({member_id}, in {group_id}) &lt;- {message}&#34;.format_map(
+                {
+                    &#34;bot_id&#34;: self.mirai_session.account,
+                    &#34;member_id&#34;: target.id
+                    if isinstance(target, Member)
+                    else target,
+                    &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;message&#34;: new_msg.asDisplay(),
+                }
+            )
+        )
+        return BotMessage(messageId=result[&#34;messageId&#34;])</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.setEssence"><code class="name flex">
+<span>async def <span class="ident">setEssence</span></span>(<span>self, target: Union[<a title="graia.ariadne.message.element.Source" href="message/element.html#graia.ariadne.message.element.Source">Source</a>, <a title="graia.ariadne.model.BotMessage" href="model.html#graia.ariadne.model.BotMessage">BotMessage</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
+请自行判断消息来源是否为群组.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Source, BotMessage, int]</code></dt>
+<dd>特定信息的 <code>messageId</code>, 可以是 <code>Source</code> 实例, <code>BotMessage</code> 实例或者是单纯的 int 整数.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def setEssence(self, target: Union[Source, BotMessage, int]):
+    &#34;&#34;&#34;
+    添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
+    请自行判断消息来源是否为群组.
+
+    Args:
+        target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    if isinstance(target, BotMessage):
+        target = target.messageId
+    elif isinstance(target, Source):
+        target = target.id
+
+    await self.adapter.call_api(
+        &#34;setEssence&#34;,
+        CallMethod.POST,
+        {&#34;sessionKey&#34;: self.session_key, &#34;target&#34;: target},
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.stop"><code class="name flex">
+<span>async def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def stop(self):
+    if self.running:
+        self.broadcast.postEvent(ApplicationShutdowned(self))
+        self.running = False
+        if self.daemon_task:
+            self.daemon_task.cancel()
+            self.daemon_task = None
+        await self.adapter.stop()
+        for t in asyncio.all_tasks(self.loop):
+            if t is not asyncio.current_task(self.loop):
+                t.cancel()
+                try:
+                    await t
+                except asyncio.CancelledError:
+                    pass</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.unmuteAll"><code class="name flex">
+<span>async def <span class="ident">unmuteAll</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def unmuteAll(self, group: Union[Group, int]):
+    &#34;&#34;&#34;在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
+
+    Args:
+        group (Union[Group, int]): 指定的群组.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;unmuteAll&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.unmuteMember"><code class="name flex">
+<span>async def <span class="ident">unmuteMember</span></span>(<span>self, group: Union[<a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], member: Union[<a title="graia.ariadne.model.Member" href="model.html#graia.ariadne.model.Member">Member</a>, int])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 <code>PermissionError</code>, 在这之前请对其进行判断!</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dd>指定的群组</dd>
+<dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
+<dd>指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>PermissionError</code></dt>
+<dd>没有相应操作权限.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>None</code></dt>
+<dd>没有返回.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int]):
+    &#34;&#34;&#34;
+    在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+
+    Args:
+        group (Union[Group, int]): 指定的群组
+        member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
+
+    Raises:
+        PermissionError: 没有相应操作权限.
+
+    Returns:
+        None: 没有返回.
+    &#34;&#34;&#34;
+    await self.adapter.call_api(
+        &#34;unmute&#34;,
+        CallMethod.POST,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;target&#34;: group.id if isinstance(group, Group) else group,
+            &#34;memberId&#34;: member.id if isinstance(member, Member) else member,
+        },
+    )</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.uploadFile"><code class="name flex">
+<span>async def <span class="ident">uploadFile</span></span>(<span>self, data: bytes, method: <a title="graia.ariadne.model.UploadMethod" href="model.html#graia.ariadne.model.UploadMethod">UploadMethod</a>, target: Union[<a title="graia.ariadne.model.Friend" href="model.html#graia.ariadne.model.Friend">Friend</a>, <a title="graia.ariadne.model.Group" href="model.html#graia.ariadne.model.Group">Group</a>, int], path: str = '') ‑> <a title="graia.ariadne.model.FileInfo" href="model.html#graia.ariadne.model.FileInfo">FileInfo</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
+上传目标, (可选)上传目录ID.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>文件的原始数据</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>UploadMethod</code></dt>
+<dd>文件的上传类型</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>FileInfo</code></dt>
+<dd>文件信息</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def uploadFile(
+    self,
+    data: bytes,
+    method: UploadMethod,
+    target: Union[Friend, Group, int],
+    path: str = &#34;&#34;,
+) -&gt; &#34;FileInfo&#34;:
+    &#34;&#34;&#34;
+    上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
+    上传目标, (可选)上传目录ID.
+    Args:
+        data (bytes): 文件的原始数据
+        method (UploadMethod): 文件的上传类型
+    Returns:
+        FileInfo: 文件信息
+    &#34;&#34;&#34;
+
+    if method != UploadMethod.Group or isinstance(target, Friend):
+        raise NotImplementedError(f&#34;Not implemented for {method}&#34;)
+
+    target = target.id if isinstance(target, Friend) else target
+    target = target.id if isinstance(target, Group) else target
+
+    result = await self.adapter.call_api(
+        &#34;file/upload&#34;,
+        CallMethod.MULTIPART,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;type&#34;: method.value,
+            &#34;target&#34;: target,
+            &#34;path&#34;: path,
+            &#34;file&#34;: data,
+        },
+    )
+
+    return FileInfo.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.uploadImage"><code class="name flex">
+<span>async def <span class="ident">uploadImage</span></span>(<span>self, data: bytes, method: <a title="graia.ariadne.model.UploadMethod" href="model.html#graia.ariadne.model.UploadMethod">UploadMethod</a>) ‑> Image</span>
+</code></dt>
+<dd>
+<div class="desc"><p>上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>image_bytes</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>图片的原始数据</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>UploadMethod</code></dt>
+<dd>图片的上传类型</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Image</code></dt>
+<dd>生成的图片消息元素</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&#34;:
+    &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。
+    Args:
+        image_bytes (bytes): 图片的原始数据
+        method (UploadMethod): 图片的上传类型
+    Returns:
+        Image: 生成的图片消息元素
+    &#34;&#34;&#34;
+    from graia.ariadne.message.element import Image
+
+    result = await self.adapter.call_api(
+        &#34;uploadImage&#34;,
+        CallMethod.MULTIPART,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;type&#34;: method.value,
+            &#34;img&#34;: data,
+        },
+    )
+
+    return Image.parse_obj(result)</code></pre>
+</details>
+</dd>
+<dt id="graia.ariadne.app.Ariadne.uploadVoice"><code class="name flex">
+<span>async def <span class="ident">uploadVoice</span></span>(<span>self, data: bytes, method: <a title="graia.ariadne.model.UploadMethod" href="model.html#graia.ariadne.model.UploadMethod">UploadMethod</a>) ‑> Voice</span>
+</code></dt>
+<dd>
+<div class="desc"><p>上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
+<dd>语音的原始数据</dd>
+<dt><strong><code>method</code></strong> :&ensp;<code>UploadMethod</code></dt>
+<dd>语音的上传类型</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Voice</code></dt>
+<dd>生成的语音消息元素</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@app_ctx_manager
+async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&#34;:
+    &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。
+    Args:
+        data (bytes): 语音的原始数据
+        method (UploadMethod): 语音的上传类型
+    Returns:
+        Voice: 生成的语音消息元素
+    &#34;&#34;&#34;
+    from graia.ariadne.message.element import Voice
+
+    result = await self.adapter.call_api(
+        &#34;uploadVoice&#34;,
+        CallMethod.MULTIPART,
+        {
+            &#34;sessionKey&#34;: self.session_key,
+            &#34;type&#34;: method.value,
+            &#34;voice&#34;: data,
+        },
+    )
+
+    return Voice.parse_obj(result)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="graia.ariadne" href="index.html">graia.ariadne</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="graia.ariadne.app.Ariadne" href="#graia.ariadne.app.Ariadne">Ariadne</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.app.Ariadne.daemon" href="#graia.ariadne.app.Ariadne.daemon">daemon</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.deleteFile" href="#graia.ariadne.app.Ariadne.deleteFile">deleteFile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.deleteFriend" href="#graia.ariadne.app.Ariadne.deleteFriend">deleteFriend</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getBotProfile" href="#graia.ariadne.app.Ariadne.getBotProfile">getBotProfile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getFileInfo" href="#graia.ariadne.app.Ariadne.getFileInfo">getFileInfo</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getFriend" href="#graia.ariadne.app.Ariadne.getFriend">getFriend</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getFriendList" href="#graia.ariadne.app.Ariadne.getFriendList">getFriendList</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getFriendProfile" href="#graia.ariadne.app.Ariadne.getFriendProfile">getFriendProfile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getGroup" href="#graia.ariadne.app.Ariadne.getGroup">getGroup</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getGroupConfig" href="#graia.ariadne.app.Ariadne.getGroupConfig">getGroupConfig</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getGroupList" href="#graia.ariadne.app.Ariadne.getGroupList">getGroupList</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getMember" href="#graia.ariadne.app.Ariadne.getMember">getMember</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getMemberInfo" href="#graia.ariadne.app.Ariadne.getMemberInfo">getMemberInfo</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getMemberList" href="#graia.ariadne.app.Ariadne.getMemberList">getMemberList</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getMemberProfile" href="#graia.ariadne.app.Ariadne.getMemberProfile">getMemberProfile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getMessageFromId" href="#graia.ariadne.app.Ariadne.getMessageFromId">getMessageFromId</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.getVersion" href="#graia.ariadne.app.Ariadne.getVersion">getVersion</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.kickMember" href="#graia.ariadne.app.Ariadne.kickMember">kickMember</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.launch" href="#graia.ariadne.app.Ariadne.launch">launch</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.lifecycle" href="#graia.ariadne.app.Ariadne.lifecycle">lifecycle</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.listFile" href="#graia.ariadne.app.Ariadne.listFile">listFile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.makeDirectory" href="#graia.ariadne.app.Ariadne.makeDirectory">makeDirectory</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.modifyGroupConfig" href="#graia.ariadne.app.Ariadne.modifyGroupConfig">modifyGroupConfig</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.modifyMemberAdmin" href="#graia.ariadne.app.Ariadne.modifyMemberAdmin">modifyMemberAdmin</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.modifyMemberInfo" href="#graia.ariadne.app.Ariadne.modifyMemberInfo">modifyMemberInfo</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.moveFile" href="#graia.ariadne.app.Ariadne.moveFile">moveFile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.msg_logger" href="#graia.ariadne.app.Ariadne.msg_logger">msg_logger</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.muteAll" href="#graia.ariadne.app.Ariadne.muteAll">muteAll</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.muteMember" href="#graia.ariadne.app.Ariadne.muteMember">muteMember</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.quitGroup" href="#graia.ariadne.app.Ariadne.quitGroup">quitGroup</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.recallMessage" href="#graia.ariadne.app.Ariadne.recallMessage">recallMessage</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.renameFile" href="#graia.ariadne.app.Ariadne.renameFile">renameFile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.sendFriendMessage" href="#graia.ariadne.app.Ariadne.sendFriendMessage">sendFriendMessage</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.sendGroupMessage" href="#graia.ariadne.app.Ariadne.sendGroupMessage">sendGroupMessage</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.sendMessage" href="#graia.ariadne.app.Ariadne.sendMessage">sendMessage</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.sendNudge" href="#graia.ariadne.app.Ariadne.sendNudge">sendNudge</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.sendTempMessage" href="#graia.ariadne.app.Ariadne.sendTempMessage">sendTempMessage</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.session_key" href="#graia.ariadne.app.Ariadne.session_key">session_key</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.setEssence" href="#graia.ariadne.app.Ariadne.setEssence">setEssence</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.stop" href="#graia.ariadne.app.Ariadne.stop">stop</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.unmuteAll" href="#graia.ariadne.app.Ariadne.unmuteAll">unmuteAll</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.unmuteMember" href="#graia.ariadne.app.Ariadne.unmuteMember">unmuteMember</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.uploadFile" href="#graia.ariadne.app.Ariadne.uploadFile">uploadFile</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.uploadImage" href="#graia.ariadne.app.Ariadne.uploadImage">uploadImage</a></code></li>
+<li><code><a title="graia.ariadne.app.Ariadne.uploadVoice" href="#graia.ariadne.app.Ariadne.uploadVoice">uploadVoice</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

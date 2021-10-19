@@ -1,0 +1,1555 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>graia.ariadne.model API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>graia.ariadne.model</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from datetime import datetime
+from enum import Enum
+from typing import TYPE_CHECKING, Optional, Union
+
+from loguru import logger
+from pydantic import BaseModel, Field, validator
+from pydantic.main import BaseConfig, Extra
+from pydantic.networks import AnyHttpUrl
+from typing_extensions import Literal
+from yarl import URL
+
+if TYPE_CHECKING:
+    from graia.ariadne.app import Ariadne
+
+
+class AriadneBaseModel(BaseModel):
+    class Config(BaseConfig):
+        extra = Extra.allow
+
+
+class ChatLogConfig(BaseModel):
+    enabled: bool = True
+    log_level: str = &#34;INFO&#34;
+    group_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
+    friend_message_log_format: str = (
+        &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    )
+    temp_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
+    other_client_message_log_format: str = (
+        &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    )
+    stranger_message_log_format: str = (
+        &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
+    )
+
+    def initialize(self, app: &#34;Ariadne&#34;):
+        from graia.ariadne.event.message import (
+            FriendMessage,
+            GroupMessage,
+            OtherClientMessage,
+            StrangerMessage,
+            TempMessage,
+        )
+
+        @app.broadcast.receiver(GroupMessage)
+        def log_group_message(event: GroupMessage):
+            logger.log(
+                self.log_level,
+                self.group_message_log_format.format_map(
+                    dict(
+                        group_id=event.sender.group.id,
+                        group_name=event.sender.group.name,
+                        member_id=event.sender.id,
+                        member_name=event.sender.name,
+                        member_permission=event.sender.permission.name,
+                        bot_id=app.mirai_session.account,
+                        bot_permission=event.sender.group.accountPerm.name,
+                        message_string=event.messageChain.asDisplay().__repr__(),
+                    )
+                ),
+            )
+
+        @app.broadcast.receiver(FriendMessage)
+        def log_friend_message(event: FriendMessage):
+            logger.log(
+                self.log_level,
+                self.friend_message_log_format.format_map(
+                    dict(
+                        bot_id=app.mirai_session.account,
+                        friend_name=event.sender.nickname,
+                        friend_id=event.sender.id,
+                        message_string=event.messageChain.asDisplay().__repr__(),
+                    )
+                ),
+            )
+
+        @app.broadcast.receiver(TempMessage)
+        def log_temp_message(event: TempMessage):
+            logger.log(
+                self.log_level,
+                self.temp_message_log_format.format_map(
+                    dict(
+                        group_id=event.sender.group.id,
+                        group_name=event.sender.group.name,
+                        member_id=event.sender.id,
+                        member_name=event.sender.name,
+                        member_permission=event.sender.permission.name,
+                        bot_id=app.mirai_session.account,
+                        bot_permission=event.sender.group.accountPerm.name,
+                        message_string=event.messageChain.asDisplay().__repr__(),
+                    )
+                ),
+            )
+
+        @app.broadcast.receiver(StrangerMessage)
+        def log_stranger_message(event: StrangerMessage):
+            logger.log(
+                self.log_level,
+                self.stranger_message_log_format.format_map(
+                    bot_id=app.mirai_session.account,
+                    stranger_name=event.sender.nickname,
+                    stranger_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                ),
+            )
+
+        @app.broadcast.receiver(OtherClientMessage)
+        def log_other_client_message(event: OtherClientMessage):
+            logger.log(
+                self.log_level,
+                self.other_client_message_log_format.format_map(
+                    bot_id=app.mirai_session.account,
+                    platform_name=event.sender.platform,
+                    platform_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                ),
+            )
+
+
+class MiraiSession(AriadneBaseModel):
+    &#34;&#34;&#34;
+    用于描述与上游接口会话, 并存储会话状态的实体类.
+
+    Attributes:
+        host (AnyHttpUrl): `mirai-api-http` 服务所在的根接口地址
+        account (int): 应用所使用账号的整数 ID, 虽然启用 `singleMode` 时不需要, 但仍然建议填写.
+        verify_key (str): 在 `mirai-api-http` 配置流程中定义, 需为相同的值以通过安全验证, 需在 mirai-api-http 配置里启用 `enableVerify`.
+        session_key (str, optional): 会话标识, 即会话中用于进行操作的唯一认证凭证.
+    &#34;&#34;&#34;
+
+    host: AnyHttpUrl
+    single_mode: bool = False
+    account: Optional[int] = None
+    verify_key: Optional[str] = None
+    session_key: Optional[str] = None
+    version: Optional[str] = None
+
+    def __init__(
+        self,
+        host: AnyHttpUrl,
+        account: Optional[int] = None,
+        verify_key: Optional[str] = None,
+        *,
+        single_mode: bool = False,
+    ) -&gt; None:
+        super().__init__(
+            host=host, account=account, verify_key=verify_key, single_mode=single_mode
+        )
+
+    def url_gen(self, route: str) -&gt; str:
+        return str(URL(self.host) / route)
+
+
+class Friend(AriadneBaseModel):
+    &#34;描述 Tencent QQ 中的好友.&#34;
+
+    id: int
+    nickname: str
+    remark: str
+
+
+class MemberPerm(Enum):
+    &#34;描述群成员在群组中所具备的权限&#34;
+
+    Member = &#34;MEMBER&#34;  # 普通成员
+    Administrator = &#34;ADMINISTRATOR&#34;  # 管理员
+    Owner = &#34;OWNER&#34;  # 群主
+
+
+class Group(AriadneBaseModel):
+    &#34;描述 Tencent QQ 中的群组.&#34;
+
+    id: int
+    name: str
+    accountPerm: MemberPerm = Field(..., alias=&#34;permission&#34;)
+
+
+class Member(AriadneBaseModel):
+    &#34;描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID.&#34;
+
+    id: int
+    name: str = Field(..., alias=&#34;memberName&#34;)
+    permission: MemberPerm
+    specialTitle: Optional[str] = None
+    joinTimestamp: Optional[int] = None
+    lastSpeakTimestamp: Optional[int] = None
+    mutetimeRemaining: Optional[int] = None
+    group: Group
+
+
+class GroupConfig(AriadneBaseModel):
+    &#34;描述群组各项功能的设置.&#34;
+
+    name: str = &#34;&#34;
+    announcement: str = &#34;&#34;
+    confessTalk: bool = False
+    allowMemberInvite: bool = False
+    autoApprove: bool = False
+    anonymousChat: bool = False
+
+    # 调用 json 方法时记得加 exclude_none=True.
+
+    class Config:
+        allow_mutation = True
+
+
+class MemberInfo(AriadneBaseModel):
+    &#34;描述群组成员的可修改状态, 修改需要管理员/群主权限.&#34;
+
+    name: str = &#34;&#34;
+    specialTitle: str = &#34;&#34;
+
+    # 调用 json 方法时记得加 exclude_none=True.
+
+    class Config:
+        allow_mutation = True
+
+
+class DownloadInfo(AriadneBaseModel):
+    sha: str = &#34;&#34;
+    md5: str = &#34;&#34;
+    download_times: int = Field(..., alias=&#34;downloadTimes&#34;)
+    uploader_id: int = Field(..., alias=&#34;uploaderId&#34;)
+    upload_time: datetime = Field(..., alias=&#34;uploadTime&#34;)
+    last_modify_time: datetime = Field(..., alias=&#34;lastModifyTime&#34;)
+    url: Optional[str] = None
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: int(v.timestamp()),
+        }
+
+
+class FileInfo(AriadneBaseModel):
+    &#34;群组文件详细信息&#34;
+
+    name: str = &#34;&#34;
+    path: str = &#34;&#34;
+    id: Optional[str] = &#34;&#34;
+    parent: Optional[&#34;FileInfo&#34;] = None
+    contact: Optional[Union[Group, Friend]] = None
+    is_file: bool = Field(..., alias=&#34;isFile&#34;)
+    is_directory: bool = Field(..., alias=&#34;isDirectory&#34;)
+    download_info: Optional[DownloadInfo] = Field(None, alias=&#34;downloadInfo&#34;)
+
+    @validator(&#34;contact&#34;, pre=True, allow_reuse=True)
+    def _(cls, val: Optional[dict]):
+        if not val:
+            return None
+        else:
+            if &#34;remark&#34; in val:  # Friend
+                return Friend.parse_obj(val)
+            else:  # Group
+                return Group.parse_obj(val)
+
+
+FileInfo.update_forward_refs(FileInfo=FileInfo)
+
+
+class UploadMethod(Enum):
+    &#34;&#34;&#34;用于向 `uploadImage` 或 `uploadVoice` 方法描述图片的上传类型&#34;&#34;&#34;
+
+    Friend = &#34;friend&#34;
+    Group = &#34;group&#34;
+    Temp = &#34;temp&#34;
+
+
+class CallMethod(Enum):
+    GET = &#34;GET&#34;
+    POST = &#34;POST&#34;
+    RESTGET = &#34;get&#34;
+    RESTPOST = &#34;update&#34;
+    MULTIPART = &#34;multipart&#34;
+
+
+class Client(AriadneBaseModel):
+    &#34;&#34;&#34;
+    指示其他客户端
+    &#34;&#34;&#34;
+
+    id: int
+    platform: str
+
+
+class Profile(AriadneBaseModel):
+    &#34;&#34;&#34;
+    指示某个用户的个人资料
+    &#34;&#34;&#34;
+
+    nickname: str
+    email: Optional[str]
+    age: Optional[int]
+    level: int
+    sign: str
+    sex: Literal[&#34;UNKNOWN&#34;, &#34;MALE&#34;, &#34;FEMALE&#34;]
+
+
+class BotMessage(AriadneBaseModel):
+    messageId: int</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="graia.ariadne.model.AriadneBaseModel"><code class="flex name class">
+<span>class <span class="ident">AriadneBaseModel</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AriadneBaseModel(BaseModel):
+    class Config(BaseConfig):
+        extra = Extra.allow</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.message.element.Element" href="message/element.html#graia.ariadne.message.element.Element">Element</a></li>
+<li><a title="graia.ariadne.model.BotMessage" href="#graia.ariadne.model.BotMessage">BotMessage</a></li>
+<li><a title="graia.ariadne.model.Client" href="#graia.ariadne.model.Client">Client</a></li>
+<li><a title="graia.ariadne.model.DownloadInfo" href="#graia.ariadne.model.DownloadInfo">DownloadInfo</a></li>
+<li><a title="graia.ariadne.model.FileInfo" href="#graia.ariadne.model.FileInfo">FileInfo</a></li>
+<li><a title="graia.ariadne.model.Friend" href="#graia.ariadne.model.Friend">Friend</a></li>
+<li><a title="graia.ariadne.model.Group" href="#graia.ariadne.model.Group">Group</a></li>
+<li><a title="graia.ariadne.model.GroupConfig" href="#graia.ariadne.model.GroupConfig">GroupConfig</a></li>
+<li><a title="graia.ariadne.model.Member" href="#graia.ariadne.model.Member">Member</a></li>
+<li><a title="graia.ariadne.model.MemberInfo" href="#graia.ariadne.model.MemberInfo">MemberInfo</a></li>
+<li><a title="graia.ariadne.model.MiraiSession" href="#graia.ariadne.model.MiraiSession">MiraiSession</a></li>
+<li><a title="graia.ariadne.model.Profile" href="#graia.ariadne.model.Profile">Profile</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.AriadneBaseModel.Config"><code class="name">var <span class="ident">Config</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.BotMessage"><code class="flex name class">
+<span>class <span class="ident">BotMessage</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BotMessage(AriadneBaseModel):
+    messageId: int</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.BotMessage.messageId"><code class="name">var <span class="ident">messageId</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.CallMethod"><code class="flex name class">
+<span>class <span class="ident">CallMethod</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CallMethod(Enum):
+    GET = &#34;GET&#34;
+    POST = &#34;POST&#34;
+    RESTGET = &#34;get&#34;
+    RESTPOST = &#34;update&#34;
+    MULTIPART = &#34;multipart&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.CallMethod.GET"><code class="name">var <span class="ident">GET</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.CallMethod.MULTIPART"><code class="name">var <span class="ident">MULTIPART</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.CallMethod.POST"><code class="name">var <span class="ident">POST</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.CallMethod.RESTGET"><code class="name">var <span class="ident">RESTGET</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.CallMethod.RESTPOST"><code class="name">var <span class="ident">RESTPOST</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig"><code class="flex name class">
+<span>class <span class="ident">ChatLogConfig</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ChatLogConfig(BaseModel):
+    enabled: bool = True
+    log_level: str = &#34;INFO&#34;
+    group_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
+    friend_message_log_format: str = (
+        &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    )
+    temp_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
+    other_client_message_log_format: str = (
+        &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    )
+    stranger_message_log_format: str = (
+        &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
+    )
+
+    def initialize(self, app: &#34;Ariadne&#34;):
+        from graia.ariadne.event.message import (
+            FriendMessage,
+            GroupMessage,
+            OtherClientMessage,
+            StrangerMessage,
+            TempMessage,
+        )
+
+        @app.broadcast.receiver(GroupMessage)
+        def log_group_message(event: GroupMessage):
+            logger.log(
+                self.log_level,
+                self.group_message_log_format.format_map(
+                    dict(
+                        group_id=event.sender.group.id,
+                        group_name=event.sender.group.name,
+                        member_id=event.sender.id,
+                        member_name=event.sender.name,
+                        member_permission=event.sender.permission.name,
+                        bot_id=app.mirai_session.account,
+                        bot_permission=event.sender.group.accountPerm.name,
+                        message_string=event.messageChain.asDisplay().__repr__(),
+                    )
+                ),
+            )
+
+        @app.broadcast.receiver(FriendMessage)
+        def log_friend_message(event: FriendMessage):
+            logger.log(
+                self.log_level,
+                self.friend_message_log_format.format_map(
+                    dict(
+                        bot_id=app.mirai_session.account,
+                        friend_name=event.sender.nickname,
+                        friend_id=event.sender.id,
+                        message_string=event.messageChain.asDisplay().__repr__(),
+                    )
+                ),
+            )
+
+        @app.broadcast.receiver(TempMessage)
+        def log_temp_message(event: TempMessage):
+            logger.log(
+                self.log_level,
+                self.temp_message_log_format.format_map(
+                    dict(
+                        group_id=event.sender.group.id,
+                        group_name=event.sender.group.name,
+                        member_id=event.sender.id,
+                        member_name=event.sender.name,
+                        member_permission=event.sender.permission.name,
+                        bot_id=app.mirai_session.account,
+                        bot_permission=event.sender.group.accountPerm.name,
+                        message_string=event.messageChain.asDisplay().__repr__(),
+                    )
+                ),
+            )
+
+        @app.broadcast.receiver(StrangerMessage)
+        def log_stranger_message(event: StrangerMessage):
+            logger.log(
+                self.log_level,
+                self.stranger_message_log_format.format_map(
+                    bot_id=app.mirai_session.account,
+                    stranger_name=event.sender.nickname,
+                    stranger_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                ),
+            )
+
+        @app.broadcast.receiver(OtherClientMessage)
+        def log_other_client_message(event: OtherClientMessage):
+            logger.log(
+                self.log_level,
+                self.other_client_message_log_format.format_map(
+                    bot_id=app.mirai_session.account,
+                    platform_name=event.sender.platform,
+                    platform_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                ),
+            )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.ChatLogConfig.enabled"><code class="name">var <span class="ident">enabled</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig.friend_message_log_format"><code class="name">var <span class="ident">friend_message_log_format</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig.group_message_log_format"><code class="name">var <span class="ident">group_message_log_format</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig.log_level"><code class="name">var <span class="ident">log_level</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig.other_client_message_log_format"><code class="name">var <span class="ident">other_client_message_log_format</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig.stranger_message_log_format"><code class="name">var <span class="ident">stranger_message_log_format</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.ChatLogConfig.temp_message_log_format"><code class="name">var <span class="ident">temp_message_log_format</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="graia.ariadne.model.ChatLogConfig.initialize"><code class="name flex">
+<span>def <span class="ident">initialize</span></span>(<span>self, app: Ariadne)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def initialize(self, app: &#34;Ariadne&#34;):
+    from graia.ariadne.event.message import (
+        FriendMessage,
+        GroupMessage,
+        OtherClientMessage,
+        StrangerMessage,
+        TempMessage,
+    )
+
+    @app.broadcast.receiver(GroupMessage)
+    def log_group_message(event: GroupMessage):
+        logger.log(
+            self.log_level,
+            self.group_message_log_format.format_map(
+                dict(
+                    group_id=event.sender.group.id,
+                    group_name=event.sender.group.name,
+                    member_id=event.sender.id,
+                    member_name=event.sender.name,
+                    member_permission=event.sender.permission.name,
+                    bot_id=app.mirai_session.account,
+                    bot_permission=event.sender.group.accountPerm.name,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                )
+            ),
+        )
+
+    @app.broadcast.receiver(FriendMessage)
+    def log_friend_message(event: FriendMessage):
+        logger.log(
+            self.log_level,
+            self.friend_message_log_format.format_map(
+                dict(
+                    bot_id=app.mirai_session.account,
+                    friend_name=event.sender.nickname,
+                    friend_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                )
+            ),
+        )
+
+    @app.broadcast.receiver(TempMessage)
+    def log_temp_message(event: TempMessage):
+        logger.log(
+            self.log_level,
+            self.temp_message_log_format.format_map(
+                dict(
+                    group_id=event.sender.group.id,
+                    group_name=event.sender.group.name,
+                    member_id=event.sender.id,
+                    member_name=event.sender.name,
+                    member_permission=event.sender.permission.name,
+                    bot_id=app.mirai_session.account,
+                    bot_permission=event.sender.group.accountPerm.name,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                )
+            ),
+        )
+
+    @app.broadcast.receiver(StrangerMessage)
+    def log_stranger_message(event: StrangerMessage):
+        logger.log(
+            self.log_level,
+            self.stranger_message_log_format.format_map(
+                bot_id=app.mirai_session.account,
+                stranger_name=event.sender.nickname,
+                stranger_id=event.sender.id,
+                message_string=event.messageChain.asDisplay().__repr__(),
+            ),
+        )
+
+    @app.broadcast.receiver(OtherClientMessage)
+    def log_other_client_message(event: OtherClientMessage):
+        logger.log(
+            self.log_level,
+            self.other_client_message_log_format.format_map(
+                bot_id=app.mirai_session.account,
+                platform_name=event.sender.platform,
+                platform_id=event.sender.id,
+                message_string=event.messageChain.asDisplay().__repr__(),
+            ),
+        )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.Client"><code class="flex name class">
+<span>class <span class="ident">Client</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>指示其他客户端</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Client(AriadneBaseModel):
+    &#34;&#34;&#34;
+    指示其他客户端
+    &#34;&#34;&#34;
+
+    id: int
+    platform: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.Client.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Client.platform"><code class="name">var <span class="ident">platform</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo"><code class="flex name class">
+<span>class <span class="ident">DownloadInfo</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DownloadInfo(AriadneBaseModel):
+    sha: str = &#34;&#34;
+    md5: str = &#34;&#34;
+    download_times: int = Field(..., alias=&#34;downloadTimes&#34;)
+    uploader_id: int = Field(..., alias=&#34;uploaderId&#34;)
+    upload_time: datetime = Field(..., alias=&#34;uploadTime&#34;)
+    last_modify_time: datetime = Field(..., alias=&#34;lastModifyTime&#34;)
+    url: Optional[str] = None
+
+    class Config:
+        json_encoders = {
+            datetime: lambda v: int(v.timestamp()),
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.DownloadInfo.Config"><code class="name">var <span class="ident">Config</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.download_times"><code class="name">var <span class="ident">download_times</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.last_modify_time"><code class="name">var <span class="ident">last_modify_time</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.md5"><code class="name">var <span class="ident">md5</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.sha"><code class="name">var <span class="ident">sha</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.upload_time"><code class="name">var <span class="ident">upload_time</span> : datetime.datetime</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.uploader_id"><code class="name">var <span class="ident">uploader_id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.DownloadInfo.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.FileInfo"><code class="flex name class">
+<span>class <span class="ident">FileInfo</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>群组文件详细信息</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FileInfo(AriadneBaseModel):
+    &#34;群组文件详细信息&#34;
+
+    name: str = &#34;&#34;
+    path: str = &#34;&#34;
+    id: Optional[str] = &#34;&#34;
+    parent: Optional[&#34;FileInfo&#34;] = None
+    contact: Optional[Union[Group, Friend]] = None
+    is_file: bool = Field(..., alias=&#34;isFile&#34;)
+    is_directory: bool = Field(..., alias=&#34;isDirectory&#34;)
+    download_info: Optional[DownloadInfo] = Field(None, alias=&#34;downloadInfo&#34;)
+
+    @validator(&#34;contact&#34;, pre=True, allow_reuse=True)
+    def _(cls, val: Optional[dict]):
+        if not val:
+            return None
+        else:
+            if &#34;remark&#34; in val:  # Friend
+                return Friend.parse_obj(val)
+            else:  # Group
+                return Group.parse_obj(val)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.FileInfo.contact"><code class="name">var <span class="ident">contact</span> : Union[<a title="graia.ariadne.model.Group" href="#graia.ariadne.model.Group">Group</a>, <a title="graia.ariadne.model.Friend" href="#graia.ariadne.model.Friend">Friend</a>, ForwardRef(None)]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.download_info"><code class="name">var <span class="ident">download_info</span> : Optional[<a title="graia.ariadne.model.DownloadInfo" href="#graia.ariadne.model.DownloadInfo">DownloadInfo</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.is_directory"><code class="name">var <span class="ident">is_directory</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.is_file"><code class="name">var <span class="ident">is_file</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.parent"><code class="name">var <span class="ident">parent</span> : Optional[<a title="graia.ariadne.model.FileInfo" href="#graia.ariadne.model.FileInfo">FileInfo</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.FileInfo.path"><code class="name">var <span class="ident">path</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.Friend"><code class="flex name class">
+<span>class <span class="ident">Friend</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述 Tencent QQ 中的好友.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Friend(AriadneBaseModel):
+    &#34;描述 Tencent QQ 中的好友.&#34;
+
+    id: int
+    nickname: str
+    remark: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.Friend.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Friend.nickname"><code class="name">var <span class="ident">nickname</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Friend.remark"><code class="name">var <span class="ident">remark</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.Group"><code class="flex name class">
+<span>class <span class="ident">Group</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述 Tencent QQ 中的群组.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Group(AriadneBaseModel):
+    &#34;描述 Tencent QQ 中的群组.&#34;
+
+    id: int
+    name: str
+    accountPerm: MemberPerm = Field(..., alias=&#34;permission&#34;)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.Group.accountPerm"><code class="name">var <span class="ident">accountPerm</span> : <a title="graia.ariadne.model.MemberPerm" href="#graia.ariadne.model.MemberPerm">MemberPerm</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Group.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Group.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig"><code class="flex name class">
+<span>class <span class="ident">GroupConfig</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述群组各项功能的设置.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class GroupConfig(AriadneBaseModel):
+    &#34;描述群组各项功能的设置.&#34;
+
+    name: str = &#34;&#34;
+    announcement: str = &#34;&#34;
+    confessTalk: bool = False
+    allowMemberInvite: bool = False
+    autoApprove: bool = False
+    anonymousChat: bool = False
+
+    # 调用 json 方法时记得加 exclude_none=True.
+
+    class Config:
+        allow_mutation = True</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.GroupConfig.Config"><code class="name">var <span class="ident">Config</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig.allowMemberInvite"><code class="name">var <span class="ident">allowMemberInvite</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig.announcement"><code class="name">var <span class="ident">announcement</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig.anonymousChat"><code class="name">var <span class="ident">anonymousChat</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig.autoApprove"><code class="name">var <span class="ident">autoApprove</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig.confessTalk"><code class="name">var <span class="ident">confessTalk</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.GroupConfig.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.Member"><code class="flex name class">
+<span>class <span class="ident">Member</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Member(AriadneBaseModel):
+    &#34;描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID.&#34;
+
+    id: int
+    name: str = Field(..., alias=&#34;memberName&#34;)
+    permission: MemberPerm
+    specialTitle: Optional[str] = None
+    joinTimestamp: Optional[int] = None
+    lastSpeakTimestamp: Optional[int] = None
+    mutetimeRemaining: Optional[int] = None
+    group: Group</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.Member.group"><code class="name">var <span class="ident">group</span> : <a title="graia.ariadne.model.Group" href="#graia.ariadne.model.Group">Group</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.joinTimestamp"><code class="name">var <span class="ident">joinTimestamp</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.lastSpeakTimestamp"><code class="name">var <span class="ident">lastSpeakTimestamp</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.mutetimeRemaining"><code class="name">var <span class="ident">mutetimeRemaining</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.permission"><code class="name">var <span class="ident">permission</span> : <a title="graia.ariadne.model.MemberPerm" href="#graia.ariadne.model.MemberPerm">MemberPerm</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Member.specialTitle"><code class="name">var <span class="ident">specialTitle</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.MemberInfo"><code class="flex name class">
+<span>class <span class="ident">MemberInfo</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述群组成员的可修改状态, 修改需要管理员/群主权限.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MemberInfo(AriadneBaseModel):
+    &#34;描述群组成员的可修改状态, 修改需要管理员/群主权限.&#34;
+
+    name: str = &#34;&#34;
+    specialTitle: str = &#34;&#34;
+
+    # 调用 json 方法时记得加 exclude_none=True.
+
+    class Config:
+        allow_mutation = True</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.MemberInfo.Config"><code class="name">var <span class="ident">Config</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MemberInfo.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MemberInfo.specialTitle"><code class="name">var <span class="ident">specialTitle</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.MemberPerm"><code class="flex name class">
+<span>class <span class="ident">MemberPerm</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述群成员在群组中所具备的权限</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MemberPerm(Enum):
+    &#34;描述群成员在群组中所具备的权限&#34;
+
+    Member = &#34;MEMBER&#34;  # 普通成员
+    Administrator = &#34;ADMINISTRATOR&#34;  # 管理员
+    Owner = &#34;OWNER&#34;  # 群主</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.MemberPerm.Administrator"><code class="name">var <span class="ident">Administrator</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MemberPerm.Member"><code class="name">var <span class="ident">Member</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MemberPerm.Owner"><code class="name">var <span class="ident">Owner</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.MiraiSession"><code class="flex name class">
+<span>class <span class="ident">MiraiSession</span></span>
+<span>(</span><span>host: pydantic.networks.AnyHttpUrl, account: Optional[int] = None, verify_key: Optional[str] = None, *, single_mode: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>用于描述与上游接口会话, 并存储会话状态的实体类.</p>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>host</code></strong> :&ensp;<code>AnyHttpUrl</code></dt>
+<dd><code>mirai-api-http</code> 服务所在的根接口地址</dd>
+<dt><strong><code>account</code></strong> :&ensp;<code>int</code></dt>
+<dd>应用所使用账号的整数 ID, 虽然启用 <code>singleMode</code> 时不需要, 但仍然建议填写.</dd>
+<dt><strong><code>verify_key</code></strong> :&ensp;<code>str</code></dt>
+<dd>在 <code>mirai-api-http</code> 配置流程中定义, 需为相同的值以通过安全验证, 需在 mirai-api-http 配置里启用 <code>enableVerify</code>.</dd>
+<dt><strong><code>session_key</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>会话标识, 即会话中用于进行操作的唯一认证凭证.</dd>
+</dl>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MiraiSession(AriadneBaseModel):
+    &#34;&#34;&#34;
+    用于描述与上游接口会话, 并存储会话状态的实体类.
+
+    Attributes:
+        host (AnyHttpUrl): `mirai-api-http` 服务所在的根接口地址
+        account (int): 应用所使用账号的整数 ID, 虽然启用 `singleMode` 时不需要, 但仍然建议填写.
+        verify_key (str): 在 `mirai-api-http` 配置流程中定义, 需为相同的值以通过安全验证, 需在 mirai-api-http 配置里启用 `enableVerify`.
+        session_key (str, optional): 会话标识, 即会话中用于进行操作的唯一认证凭证.
+    &#34;&#34;&#34;
+
+    host: AnyHttpUrl
+    single_mode: bool = False
+    account: Optional[int] = None
+    verify_key: Optional[str] = None
+    session_key: Optional[str] = None
+    version: Optional[str] = None
+
+    def __init__(
+        self,
+        host: AnyHttpUrl,
+        account: Optional[int] = None,
+        verify_key: Optional[str] = None,
+        *,
+        single_mode: bool = False,
+    ) -&gt; None:
+        super().__init__(
+            host=host, account=account, verify_key=verify_key, single_mode=single_mode
+        )
+
+    def url_gen(self, route: str) -&gt; str:
+        return str(URL(self.host) / route)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.MiraiSession.account"><code class="name">var <span class="ident">account</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MiraiSession.host"><code class="name">var <span class="ident">host</span> : pydantic.networks.AnyHttpUrl</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MiraiSession.session_key"><code class="name">var <span class="ident">session_key</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MiraiSession.single_mode"><code class="name">var <span class="ident">single_mode</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MiraiSession.verify_key"><code class="name">var <span class="ident">verify_key</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.MiraiSession.version"><code class="name">var <span class="ident">version</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="graia.ariadne.model.MiraiSession.url_gen"><code class="name flex">
+<span>def <span class="ident">url_gen</span></span>(<span>self, route: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def url_gen(self, route: str) -&gt; str:
+    return str(URL(self.host) / route)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.Profile"><code class="flex name class">
+<span>class <span class="ident">Profile</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>指示某个用户的个人资料</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Profile(AriadneBaseModel):
+    &#34;&#34;&#34;
+    指示某个用户的个人资料
+    &#34;&#34;&#34;
+
+    nickname: str
+    email: Optional[str]
+    age: Optional[int]
+    level: int
+    sign: str
+    sex: Literal[&#34;UNKNOWN&#34;, &#34;MALE&#34;, &#34;FEMALE&#34;]</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.Profile.age"><code class="name">var <span class="ident">age</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Profile.email"><code class="name">var <span class="ident">email</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Profile.level"><code class="name">var <span class="ident">level</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Profile.nickname"><code class="name">var <span class="ident">nickname</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Profile.sex"><code class="name">var <span class="ident">sex</span> : Literal['UNKNOWN', 'MALE', 'FEMALE']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.Profile.sign"><code class="name">var <span class="ident">sign</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="graia.ariadne.model.UploadMethod"><code class="flex name class">
+<span>class <span class="ident">UploadMethod</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>用于向 <code>uploadImage</code> 或 <code>uploadVoice</code> 方法描述图片的上传类型</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UploadMethod(Enum):
+    &#34;&#34;&#34;用于向 `uploadImage` 或 `uploadVoice` 方法描述图片的上传类型&#34;&#34;&#34;
+
+    Friend = &#34;friend&#34;
+    Group = &#34;group&#34;
+    Temp = &#34;temp&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="graia.ariadne.model.UploadMethod.Friend"><code class="name">var <span class="ident">Friend</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.UploadMethod.Group"><code class="name">var <span class="ident">Group</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="graia.ariadne.model.UploadMethod.Temp"><code class="name">var <span class="ident">Temp</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="graia.ariadne" href="index.html">graia.ariadne</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="graia.ariadne.model.AriadneBaseModel" href="#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.AriadneBaseModel.Config" href="#graia.ariadne.model.AriadneBaseModel.Config">Config</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.BotMessage" href="#graia.ariadne.model.BotMessage">BotMessage</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.BotMessage.messageId" href="#graia.ariadne.model.BotMessage.messageId">messageId</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.CallMethod" href="#graia.ariadne.model.CallMethod">CallMethod</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.CallMethod.GET" href="#graia.ariadne.model.CallMethod.GET">GET</a></code></li>
+<li><code><a title="graia.ariadne.model.CallMethod.MULTIPART" href="#graia.ariadne.model.CallMethod.MULTIPART">MULTIPART</a></code></li>
+<li><code><a title="graia.ariadne.model.CallMethod.POST" href="#graia.ariadne.model.CallMethod.POST">POST</a></code></li>
+<li><code><a title="graia.ariadne.model.CallMethod.RESTGET" href="#graia.ariadne.model.CallMethod.RESTGET">RESTGET</a></code></li>
+<li><code><a title="graia.ariadne.model.CallMethod.RESTPOST" href="#graia.ariadne.model.CallMethod.RESTPOST">RESTPOST</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.ChatLogConfig" href="#graia.ariadne.model.ChatLogConfig">ChatLogConfig</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.ChatLogConfig.enabled" href="#graia.ariadne.model.ChatLogConfig.enabled">enabled</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.friend_message_log_format" href="#graia.ariadne.model.ChatLogConfig.friend_message_log_format">friend_message_log_format</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.group_message_log_format" href="#graia.ariadne.model.ChatLogConfig.group_message_log_format">group_message_log_format</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.initialize" href="#graia.ariadne.model.ChatLogConfig.initialize">initialize</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.log_level" href="#graia.ariadne.model.ChatLogConfig.log_level">log_level</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.other_client_message_log_format" href="#graia.ariadne.model.ChatLogConfig.other_client_message_log_format">other_client_message_log_format</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.stranger_message_log_format" href="#graia.ariadne.model.ChatLogConfig.stranger_message_log_format">stranger_message_log_format</a></code></li>
+<li><code><a title="graia.ariadne.model.ChatLogConfig.temp_message_log_format" href="#graia.ariadne.model.ChatLogConfig.temp_message_log_format">temp_message_log_format</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.Client" href="#graia.ariadne.model.Client">Client</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.Client.id" href="#graia.ariadne.model.Client.id">id</a></code></li>
+<li><code><a title="graia.ariadne.model.Client.platform" href="#graia.ariadne.model.Client.platform">platform</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.DownloadInfo" href="#graia.ariadne.model.DownloadInfo">DownloadInfo</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.model.DownloadInfo.Config" href="#graia.ariadne.model.DownloadInfo.Config">Config</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.download_times" href="#graia.ariadne.model.DownloadInfo.download_times">download_times</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.last_modify_time" href="#graia.ariadne.model.DownloadInfo.last_modify_time">last_modify_time</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.md5" href="#graia.ariadne.model.DownloadInfo.md5">md5</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.sha" href="#graia.ariadne.model.DownloadInfo.sha">sha</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.upload_time" href="#graia.ariadne.model.DownloadInfo.upload_time">upload_time</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.uploader_id" href="#graia.ariadne.model.DownloadInfo.uploader_id">uploader_id</a></code></li>
+<li><code><a title="graia.ariadne.model.DownloadInfo.url" href="#graia.ariadne.model.DownloadInfo.url">url</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.FileInfo" href="#graia.ariadne.model.FileInfo">FileInfo</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.model.FileInfo.contact" href="#graia.ariadne.model.FileInfo.contact">contact</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.download_info" href="#graia.ariadne.model.FileInfo.download_info">download_info</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.id" href="#graia.ariadne.model.FileInfo.id">id</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.is_directory" href="#graia.ariadne.model.FileInfo.is_directory">is_directory</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.is_file" href="#graia.ariadne.model.FileInfo.is_file">is_file</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.name" href="#graia.ariadne.model.FileInfo.name">name</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.parent" href="#graia.ariadne.model.FileInfo.parent">parent</a></code></li>
+<li><code><a title="graia.ariadne.model.FileInfo.path" href="#graia.ariadne.model.FileInfo.path">path</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.Friend" href="#graia.ariadne.model.Friend">Friend</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.Friend.id" href="#graia.ariadne.model.Friend.id">id</a></code></li>
+<li><code><a title="graia.ariadne.model.Friend.nickname" href="#graia.ariadne.model.Friend.nickname">nickname</a></code></li>
+<li><code><a title="graia.ariadne.model.Friend.remark" href="#graia.ariadne.model.Friend.remark">remark</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.Group" href="#graia.ariadne.model.Group">Group</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.Group.accountPerm" href="#graia.ariadne.model.Group.accountPerm">accountPerm</a></code></li>
+<li><code><a title="graia.ariadne.model.Group.id" href="#graia.ariadne.model.Group.id">id</a></code></li>
+<li><code><a title="graia.ariadne.model.Group.name" href="#graia.ariadne.model.Group.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.GroupConfig" href="#graia.ariadne.model.GroupConfig">GroupConfig</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.model.GroupConfig.Config" href="#graia.ariadne.model.GroupConfig.Config">Config</a></code></li>
+<li><code><a title="graia.ariadne.model.GroupConfig.allowMemberInvite" href="#graia.ariadne.model.GroupConfig.allowMemberInvite">allowMemberInvite</a></code></li>
+<li><code><a title="graia.ariadne.model.GroupConfig.announcement" href="#graia.ariadne.model.GroupConfig.announcement">announcement</a></code></li>
+<li><code><a title="graia.ariadne.model.GroupConfig.anonymousChat" href="#graia.ariadne.model.GroupConfig.anonymousChat">anonymousChat</a></code></li>
+<li><code><a title="graia.ariadne.model.GroupConfig.autoApprove" href="#graia.ariadne.model.GroupConfig.autoApprove">autoApprove</a></code></li>
+<li><code><a title="graia.ariadne.model.GroupConfig.confessTalk" href="#graia.ariadne.model.GroupConfig.confessTalk">confessTalk</a></code></li>
+<li><code><a title="graia.ariadne.model.GroupConfig.name" href="#graia.ariadne.model.GroupConfig.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.Member" href="#graia.ariadne.model.Member">Member</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.model.Member.group" href="#graia.ariadne.model.Member.group">group</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.id" href="#graia.ariadne.model.Member.id">id</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.joinTimestamp" href="#graia.ariadne.model.Member.joinTimestamp">joinTimestamp</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.lastSpeakTimestamp" href="#graia.ariadne.model.Member.lastSpeakTimestamp">lastSpeakTimestamp</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.mutetimeRemaining" href="#graia.ariadne.model.Member.mutetimeRemaining">mutetimeRemaining</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.name" href="#graia.ariadne.model.Member.name">name</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.permission" href="#graia.ariadne.model.Member.permission">permission</a></code></li>
+<li><code><a title="graia.ariadne.model.Member.specialTitle" href="#graia.ariadne.model.Member.specialTitle">specialTitle</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.MemberInfo" href="#graia.ariadne.model.MemberInfo">MemberInfo</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.MemberInfo.Config" href="#graia.ariadne.model.MemberInfo.Config">Config</a></code></li>
+<li><code><a title="graia.ariadne.model.MemberInfo.name" href="#graia.ariadne.model.MemberInfo.name">name</a></code></li>
+<li><code><a title="graia.ariadne.model.MemberInfo.specialTitle" href="#graia.ariadne.model.MemberInfo.specialTitle">specialTitle</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.MemberPerm" href="#graia.ariadne.model.MemberPerm">MemberPerm</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.MemberPerm.Administrator" href="#graia.ariadne.model.MemberPerm.Administrator">Administrator</a></code></li>
+<li><code><a title="graia.ariadne.model.MemberPerm.Member" href="#graia.ariadne.model.MemberPerm.Member">Member</a></code></li>
+<li><code><a title="graia.ariadne.model.MemberPerm.Owner" href="#graia.ariadne.model.MemberPerm.Owner">Owner</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.MiraiSession" href="#graia.ariadne.model.MiraiSession">MiraiSession</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.model.MiraiSession.account" href="#graia.ariadne.model.MiraiSession.account">account</a></code></li>
+<li><code><a title="graia.ariadne.model.MiraiSession.host" href="#graia.ariadne.model.MiraiSession.host">host</a></code></li>
+<li><code><a title="graia.ariadne.model.MiraiSession.session_key" href="#graia.ariadne.model.MiraiSession.session_key">session_key</a></code></li>
+<li><code><a title="graia.ariadne.model.MiraiSession.single_mode" href="#graia.ariadne.model.MiraiSession.single_mode">single_mode</a></code></li>
+<li><code><a title="graia.ariadne.model.MiraiSession.url_gen" href="#graia.ariadne.model.MiraiSession.url_gen">url_gen</a></code></li>
+<li><code><a title="graia.ariadne.model.MiraiSession.verify_key" href="#graia.ariadne.model.MiraiSession.verify_key">verify_key</a></code></li>
+<li><code><a title="graia.ariadne.model.MiraiSession.version" href="#graia.ariadne.model.MiraiSession.version">version</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.Profile" href="#graia.ariadne.model.Profile">Profile</a></code></h4>
+<ul class="two-column">
+<li><code><a title="graia.ariadne.model.Profile.age" href="#graia.ariadne.model.Profile.age">age</a></code></li>
+<li><code><a title="graia.ariadne.model.Profile.email" href="#graia.ariadne.model.Profile.email">email</a></code></li>
+<li><code><a title="graia.ariadne.model.Profile.level" href="#graia.ariadne.model.Profile.level">level</a></code></li>
+<li><code><a title="graia.ariadne.model.Profile.nickname" href="#graia.ariadne.model.Profile.nickname">nickname</a></code></li>
+<li><code><a title="graia.ariadne.model.Profile.sex" href="#graia.ariadne.model.Profile.sex">sex</a></code></li>
+<li><code><a title="graia.ariadne.model.Profile.sign" href="#graia.ariadne.model.Profile.sign">sign</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="graia.ariadne.model.UploadMethod" href="#graia.ariadne.model.UploadMethod">UploadMethod</a></code></h4>
+<ul class="">
+<li><code><a title="graia.ariadne.model.UploadMethod.Friend" href="#graia.ariadne.model.UploadMethod.Friend">Friend</a></code></li>
+<li><code><a title="graia.ariadne.model.UploadMethod.Group" href="#graia.ariadne.model.UploadMethod.Group">Group</a></code></li>
+<li><code><a title="graia.ariadne.model.UploadMethod.Temp" href="#graia.ariadne.model.UploadMethod.Temp">Temp</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

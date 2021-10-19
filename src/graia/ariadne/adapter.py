@@ -175,6 +175,7 @@ class Adapter(abc.ABC):
                 await self.fetch_task
             except CancelledError:
                 pass
+        self.fetch_task = None
         self.mirai_session.session_key = None
 
 

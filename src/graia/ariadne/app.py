@@ -1,6 +1,3 @@
-"""
-The actual implementation of `Ariadne`.
-"""
 import asyncio
 import time
 from asyncio.events import AbstractEventLoop
@@ -45,6 +42,17 @@ from graia.ariadne.util import ApplicationMiddlewareDispatcher, app_ctx_manager
 
 
 class Ariadne:
+    """
+    艾莉亚德妮 (Ariadne).
+    面向 `mirai-api-http` 接口的实际功能实现.
+    你的应用大多都围绕着本类及本类的实例展开.
+
+    Attributes:
+        broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
+            通常你不需要干涉该属性;
+        adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+    """
+
     def __init__(
         self,
         broadcast: Broadcast,
@@ -52,6 +60,14 @@ class Ariadne:
         *,
         chat_log_config: Optional[ChatLogConfig] = None,
     ):
+        """
+        初始化 Ariadne.
+
+        Args:
+            broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+            adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+            chat_log_config (ChatLogConfig): 聊天日志的配置，请移步 `ChatLogConfig` 查看使用方法。
+        """
         self.broadcast: Broadcast = broadcast
         self.adapter: Adapter = adapter
         self.mirai_session: MiraiSession = adapter.mirai_session
@@ -78,7 +94,7 @@ class Ariadne:
                 except Exception as e:
                     logger.debug(e)
                 await self.adapter.stop()
-                logger.info(f"daemon: adapter down, restart in {retry_interval}s")
+                logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
                 await asyncio.sleep(retry_interval)
                 logger.info("daemon: restarting adapter")
             except CancelledError:

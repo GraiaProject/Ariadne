@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
 
-from graia.ariadne.context import application_ctx, upload_method_ctx, adapter_ctx
-from graia.ariadne.util import datetime_encoder
+from graia.ariadne.context import adapter_ctx, application_ctx, upload_method_ctx
 from graia.ariadne.exception import InvalidArgument
 from graia.ariadne.model import AriadneBaseModel, UploadMethod
+from graia.ariadne.util import datetime_encoder
 
 if TYPE_CHECKING:
     from graia.ariadne.message.chain import MessageChain

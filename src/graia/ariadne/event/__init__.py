@@ -1,7 +1,7 @@
 from graia.broadcast import Dispatchable
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from pydantic import BaseModel, validator
 
+from graia.ariadne.dispatcher import ApplicationDispatcher
 from graia.ariadne.exception import InvalidEventTypeDefinition
 
 
@@ -19,5 +19,4 @@ class MiraiEvent(Dispatchable, BaseModel):
     class Config:
         extra = "ignore"
 
-    class Dispatcher:
-        pass
+    Dispatcher = ApplicationDispatcher

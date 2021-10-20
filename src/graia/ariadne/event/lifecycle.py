@@ -8,7 +8,11 @@ if typing.TYPE_CHECKING:
     from graia.ariadne.app import Ariadne
 
 
-class ApplicationLaunched(Dispatchable):
+class ApplicationLifecycleEvent(Dispatchable):
+    """
+    指示有关应用 (Ariadne) 的事件.
+    """
+
     app: "Ariadne"
 
     def __init__(self, app) -> None:
@@ -16,23 +20,20 @@ class ApplicationLaunched(Dispatchable):
 
     class Dispatcher(BaseDispatcher):
         @staticmethod
-        async def catch(interface: "DispatcherInterface[ApplicationLaunched]"):
-            from .. import GraiaMiraiApplication
+        async def catch(interface: "DispatcherInterface[ApplicationLifecycleEvent]"):
+            from ..app import Ariadne
 
-            if interface.annotation is GraiaMiraiApplication:
+            if interface.annotation is Ariadne:
                 return interface.event.app
+
+
+class ApplicationLaunched(Dispatchable):
+    """
+    指示 Ariadne 启动.
+    """
 
 
 class ApplicationShutdowned(Dispatchable):
-    app: "Ariadne"
-
-    def __init__(self, app) -> None:
-        self.app = app
-
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: "DispatcherInterface[ApplicationShutdowned]"):
-            from .. import GraiaMiraiApplication
-
-            if interface.annotation is GraiaMiraiApplication:
-                return interface.event.app
+    """
+    指示 Ariadne 关闭.
+    """

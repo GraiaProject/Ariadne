@@ -1,5 +1,5 @@
-from datetime import datetime
 import functools
+from datetime import datetime
 from typing import Callable, ContextManager, TypeVar, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher

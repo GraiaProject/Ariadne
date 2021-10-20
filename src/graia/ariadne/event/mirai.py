@@ -17,88 +17,96 @@ from graia.ariadne.util import validate_response
 from . import MiraiEvent
 
 
-class BotOnlineEvent(MiraiEvent):
+class BotEvent(MiraiEvent):
+    """
+    指示有关 Bot 本身的事件.
+    """
+
+
+class FriendEvent(MiraiEvent):
+    """
+    指示有关好友的事件.
+    """
+
+
+class GroupEvent(MiraiEvent):
+    """
+    指示有关群组的事件.
+    """
+
+
+class BotOnlineEvent(BotEvent):
     """当该事件发生时, 应用实例所辖账号登录成功
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "BotOnlineEvent"
     qq: int
 
-    Dispatcher = ApplicationDispatcher
 
-
-class BotOfflineEventActive(MiraiEvent):
+class BotOfflineEventActive(BotEvent):
     """当该事件发生时, 应用实例所辖账号主动离线
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "BotOfflineEventActive"
     qq: int
 
-    Dispatcher = ApplicationDispatcher
 
-
-class BotOfflineEventForce(MiraiEvent):
+class BotOfflineEventForce(BotEvent):
     """当该事件发生时, 应用实例所辖账号被迫离线
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "BotOfflineEventForce"
     qq: int
 
-    Dispatcher = ApplicationDispatcher
 
-
-class BotOfflineEventDropped(MiraiEvent):
+class BotOfflineEventDropped(BotEvent):
     """当该事件发生时, 应用实例所辖账号与服务器的连接被服务器主动断开, 或因网络原因离线
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "BotOfflineEventDropped"
     qq: int
 
-    Dispatcher = ApplicationDispatcher
 
-
-class BotReloginEvent(MiraiEvent):
+class BotReloginEvent(BotEvent):
     """当该事件发生时, 应用实例所辖账号正尝试重新登录
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "BotReloginEvent"
     qq: int
 
-    Dispatcher = ApplicationDispatcher
 
-
-class FriendInputStatusChangedEvent(MiraiEvent):
+class FriendInputStatusChangedEvent(FriendEvent):
     """当该事件发生时, 应用实例所辖账号的某一好友输入状态改变。
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "FriendInputStatusChangedEvent"
@@ -106,13 +114,13 @@ class FriendInputStatusChangedEvent(MiraiEvent):
     inputting: bool
 
 
-class FriendNickChangedEvent(MiraiEvent):
+class FriendNickChangedEvent(FriendEvent):
     """当该事件发生时, 应用实例所辖账号的某一好友更改了昵称。
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "FriendNickChangedEvent"
@@ -121,13 +129,13 @@ class FriendNickChangedEvent(MiraiEvent):
     to_name: str = Field(..., alias="to")
 
 
-class BotGroupPermissionChangeEvent(MiraiEvent):
+class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
     """当该事件发生时, 应用实例所辖账号在一特定群组内所具有的权限发生变化
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "BotGroupPermissionChangeEvent"
@@ -135,16 +143,14 @@ class BotGroupPermissionChangeEvent(MiraiEvent):
     current: MemberPerm
     group: Group
 
-    Dispatcher = ApplicationDispatcher
 
-
-class BotMuteEvent(MiraiEvent):
+class BotMuteEvent(GroupEvent, BotEvent):
     """当该事件发生时, 应用实例所辖账号在一特定群组内被管理员/群主禁言
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Member (annotation, optional = None): 执行禁言操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
         Group (annotation, optional = None): 发生该事件的群组
     """
@@ -165,13 +171,13 @@ class BotMuteEvent(MiraiEvent):
                 return interface.event.group
 
 
-class BotUnmuteEvent(MiraiEvent):
+class BotUnmuteEvent(GroupEvent, BotEvent):
     """当该事件发生时, 应用实例所辖账号在一特定群组内被管理员/群主解除禁言
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Member (annotation, optional = None): 执行解除禁言操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
         Group (annotation, optional = None): 发生该事件的群组
     """
@@ -191,13 +197,13 @@ class BotUnmuteEvent(MiraiEvent):
                 return interface.event.group
 
 
-class BotJoinGroupEvent(MiraiEvent):
+class BotJoinGroupEvent(GroupEvent, BotEvent):
     """当该事件发生时, 应用实例所辖账号加入指定群组
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation, optional = None): 发生该事件的群组
     """
 
@@ -214,13 +220,13 @@ class BotJoinGroupEvent(MiraiEvent):
                 return interface.event.group
 
 
-class BotLeaveEventActive(MiraiEvent):
+class BotLeaveEventActive(GroupEvent, BotEvent):
     """当该事件发生时, 应用实例所辖账号主动退出了某群组.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation, optional = None): 发生该事件的群组
     """
 
@@ -236,13 +242,13 @@ class BotLeaveEventActive(MiraiEvent):
                 return interface.event.group
 
 
-class BotLeaveEventKick(MiraiEvent):
+class BotLeaveEventKick(GroupEvent, BotEvent):
     """当该事件发生时, 应用实例所辖账号被某群组的管理员/群主从该群组中删除.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation, optional = None): 发生该事件的群组
     """
 
@@ -258,13 +264,13 @@ class BotLeaveEventKick(MiraiEvent):
                 return interface.event.group
 
 
-class GroupRecallEvent(MiraiEvent):
+class GroupRecallEvent(GroupEvent):
     """当该事件发生时, 有群成员在指定群组撤回了一条消息, 注意, 这里的群成员若具有管理员/群主权限, 则他们可以撤回其他普通群员的消息, 且不受发出时间限制.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Member (annotation, return:optional): 执行本操作的群成员, 若为 None 则为应用实例所辖账号操作
         Group (annotation): 发生该事件的群组
     """
@@ -287,13 +293,13 @@ class GroupRecallEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class FriendRecallEvent(MiraiEvent):
+class FriendRecallEvent(FriendEvent):
     """当该事件发生时, 有一位与应用实例所辖账号为好友关系的用户撤回了一条消息
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "FriendRecallEvent"
@@ -302,8 +308,6 @@ class FriendRecallEvent(MiraiEvent):
     time: int
     operator: int
 
-    Dispatcher = ApplicationDispatcher
-
 
 class NudgeEvent(MiraiEvent):
     """当该事件发生时, 应用实例所辖账号被某个账号在相应上下文区域进行 "戳一戳"(Nudge) 的行为.
@@ -311,7 +315,7 @@ class NudgeEvent(MiraiEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type: str = "NudgeEvent"
@@ -341,16 +345,14 @@ class NudgeEvent(MiraiEvent):
     def subject_handle_context_type(cls, v, values):
         return str.lower(values["origin_subject_info"]["kind"])
 
-    Dispatcher = ApplicationDispatcher
 
-
-class GroupNameChangeEvent(MiraiEvent):
+class GroupNameChangeEvent(GroupEvent):
     """该事件发生时, 有一群组被修改了群名称
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 被修改了群名称的群组
         Member (annotation): 更改群名称的成员, 权限必定为管理员或是群主
     """
@@ -372,13 +374,13 @@ class GroupNameChangeEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class GroupEntranceAnnouncementChangeEvent(MiraiEvent):
+class GroupEntranceAnnouncementChangeEvent(GroupEvent):
     """该事件发生时, 有一群组被修改了入群公告
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 被修改了入群公告的群组
         Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
     """
@@ -402,13 +404,13 @@ class GroupEntranceAnnouncementChangeEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class GroupMuteAllEvent(MiraiEvent):
+class GroupMuteAllEvent(GroupEvent):
     """该事件发生时, 有一群组开启了全体禁言
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 开启了全体禁言的群组
         Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
     """
@@ -430,13 +432,13 @@ class GroupMuteAllEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class GroupAllowAnonymousChatEvent(MiraiEvent):
+class GroupAllowAnonymousChatEvent(GroupEvent):
     """该事件发生时, 有一群组修改了有关匿名聊天的相关设定
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 修改了相关设定的群组
         Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
     """
@@ -458,13 +460,13 @@ class GroupAllowAnonymousChatEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class GroupAllowConfessTalkEvent(MiraiEvent):
+class GroupAllowConfessTalkEvent(GroupEvent):
     """该事件发生时, 有一群组修改了有关坦白说的相关设定
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 修改了相关设定的群组
         Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
     """
@@ -486,13 +488,13 @@ class GroupAllowConfessTalkEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class GroupAllowMemberInviteEvent(MiraiEvent):
+class GroupAllowMemberInviteEvent(GroupEvent):
     """该事件发生时, 有一群组修改了有关是否允许已有成员邀请其他用户加入群组的相关设定
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 修改了相关设定的群组
         Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
     """
@@ -514,13 +516,13 @@ class GroupAllowMemberInviteEvent(MiraiEvent):
                 return interface.event.operator
 
 
-class MemberJoinEvent(MiraiEvent):
+class MemberJoinEvent(GroupEvent):
     """该事件发生时, 有一新成员加入了一特定群组
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 该用户加入的群组
         Member (annotation): 关于该用户的成员实例
     """
@@ -540,13 +542,13 @@ class MemberJoinEvent(MiraiEvent):
                 return interface.event.member.group
 
 
-class MemberLeaveEventKick(MiraiEvent):
+class MemberLeaveEventKick(GroupEvent):
     """该事件发生时, 有一群组成员被管理员/群主从群组中删除, 当 `operator` 为 `None` 时, 执行者为应用实例所辖账号.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 指定的群组
         Member (annotation):
           - `"target"` (default, const, str): 被从群组删除的成员
@@ -571,13 +573,13 @@ class MemberLeaveEventKick(MiraiEvent):
                 return interface.event.member.group
 
 
-class MemberLeaveEventQuit(MiraiEvent):
+class MemberLeaveEventQuit(GroupEvent):
     """该事件发生时, 有一群组成员主动退出群组.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生本事件的群组, 通常的, 在本事件发生后本群组成员数量少于之前
         Member (annotation): 主动退出群组的成员
     """
@@ -596,13 +598,13 @@ class MemberLeaveEventQuit(MiraiEvent):
                 return interface.event.member.group
 
 
-class MemberCardChangeEvent(MiraiEvent):
+class MemberCardChangeEvent(GroupEvent):
     """该事件发生时, 有一群组成员的群名片被更改, 执行者可能是管理员/群主, 该成员自己, 也可能是应用实例所辖账号(这时, `operator` 为 `None`).
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被更改群名片的成员
@@ -627,13 +629,13 @@ class MemberCardChangeEvent(MiraiEvent):
                     return interface.event.operator
 
 
-class MemberSpecialTitleChangeEvent(MiraiEvent):
+class MemberSpecialTitleChangeEvent(GroupEvent):
     """该事件发生时, 有一群组成员的群头衔被更改, 执行者只可能是群组的群主.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation): 被更改群头衔的群组成员
     """
@@ -656,13 +658,13 @@ class MemberSpecialTitleChangeEvent(MiraiEvent):
                 return interface.event.member.group
 
 
-class MemberPermissionChangeEvent(MiraiEvent):
+class MemberPermissionChangeEvent(GroupEvent):
     """该事件发生时, 有一群组成员的权限被更改/调整, 执行者只可能是群组的群主.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation): 被调整权限的群组成员
     """
@@ -689,7 +691,7 @@ class MemberMuteEvent(MiraiEvent):
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被禁言的成员
@@ -715,13 +717,13 @@ class MemberMuteEvent(MiraiEvent):
                 return interface.event.member.group
 
 
-class MemberUnmuteEvent(MiraiEvent):
+class MemberUnmuteEvent(GroupEvent):
     """该事件发生时, 有一群组成员被管理员/群组解除禁言, 当 `operator` 为 `None` 时为应用实例所辖账号操作.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被禁言的成员
@@ -746,13 +748,13 @@ class MemberUnmuteEvent(MiraiEvent):
                 return interface.event.member.group
 
 
-class MemberHonorChangeEvent:
+class MemberHonorChangeEvent(GroupEvent):
     """该事件发生时, 有一群组成员获得/失去了某个荣誉。
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation): 获得/失去荣誉的成员
     """
@@ -812,7 +814,7 @@ class NewFriendRequestEvent(RequestEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
 
     Addon Introduction:
         该事件的处理需要你获取原始事件实例.
@@ -830,8 +832,6 @@ class NewFriendRequestEvent(RequestEvent):
     """
 
     type = "NewFriendRequestEvent"
-
-    Dispatcher = ApplicationDispatcher
 
     async def accept(self, message: str = "") -> None:
         """同意对方的加好友请求.
@@ -885,7 +885,7 @@ class MemberJoinRequestEvent(RequestEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
 
     Addon Introduction:
         该事件的处理需要你获取原始事件实例.
@@ -912,8 +912,6 @@ class MemberJoinRequestEvent(RequestEvent):
     groupName: str = Field(..., alias="groupName")
     nickname: str = Field(..., alias="nick")
     message: str
-
-    Dispatcher = ApplicationDispatcher
 
     async def accept(self, message: str = "") -> None:
         """同意对方加入群组.
@@ -997,7 +995,7 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
 
     Addon Introduction:
         该事件的处理需要你获取原始事件实例.
@@ -1021,8 +1019,6 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent):
     groupName: str = Field(..., alias="groupName")
     nickname: str = Field(..., alias="nick")
     message: str
-
-    Dispatcher = ApplicationDispatcher
 
     async def accept(self, message: str = "") -> None:
         """接受邀请并加入群组/发起对指定群组的加入申请.
@@ -1061,7 +1057,7 @@ class OtherClientOnlineEvent(MiraiEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "OtherClientOnlineEvent"
@@ -1075,7 +1071,7 @@ class OtherClientOfflineEvent(MiraiEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     type = "OtherClientOfflineEvent"
@@ -1088,7 +1084,7 @@ class CommandExecutedEvent(MiraiEvent):
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
     Allowed Extra Parameters(提供的额外注解支持):
-        AriadneMiraiApplication (annotation): 发布事件的应用实例
+        Ariadne (annotation): 发布事件的应用实例
     """
 
     eventId: int

@@ -55,13 +55,13 @@ class ApplicationLifecycleEvent(Dispatchable):
                 return interface.event.app
 
 
-class ApplicationLaunched(Dispatchable):
+class ApplicationLaunched(ApplicationLifecycleEvent):
     &#34;&#34;&#34;
     指示 Ariadne 启动.
     &#34;&#34;&#34;
 
 
-class ApplicationShutdowned(Dispatchable):
+class ApplicationShutdowned(ApplicationLifecycleEvent):
     &#34;&#34;&#34;
     指示 Ariadne 关闭.
     &#34;&#34;&#34;</code></pre>
@@ -78,6 +78,7 @@ class ApplicationShutdowned(Dispatchable):
 <dl>
 <dt id="ariadne.event.lifecycle.ApplicationLaunched"><code class="flex name class">
 <span>class <span class="ident">ApplicationLaunched</span></span>
+<span>(</span><span>app)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示 Ariadne 启动.</p></div>
@@ -85,22 +86,31 @@ class ApplicationShutdowned(Dispatchable):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ApplicationLaunched(Dispatchable):
+<pre><code class="python">class ApplicationLaunched(ApplicationLifecycleEvent):
     &#34;&#34;&#34;
     指示 Ariadne 启动.
     &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></li>
 <li>graia.broadcast.entities.event.Dispatchable</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.lifecycle.ApplicationLaunched.Dispatcher"><code class="name">var <span class="ident">Dispatcher</span> : Type[graia.broadcast.entities.dispatcher.BaseDispatcher]</code></dt>
+<dt id="ariadne.event.lifecycle.ApplicationLaunched.app"><code class="name">var <span class="ident">app</span> : Ariadne</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher">Dispatcher</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.event.lifecycle.ApplicationLifecycleEvent"><code class="flex name class">
 <span>class <span class="ident">ApplicationLifecycleEvent</span></span>
@@ -134,6 +144,11 @@ class ApplicationShutdowned(Dispatchable):
 <ul class="hlist">
 <li>graia.broadcast.entities.event.Dispatchable</li>
 </ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="ariadne.event.lifecycle.ApplicationLaunched" href="#ariadne.event.lifecycle.ApplicationLaunched">ApplicationLaunched</a></li>
+<li><a title="ariadne.event.lifecycle.ApplicationShutdowned" href="#ariadne.event.lifecycle.ApplicationShutdowned">ApplicationShutdowned</a></li>
+</ul>
 <h3>Class variables</h3>
 <dl>
 <dt id="ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher"><code class="name">var <span class="ident">Dispatcher</span></code></dt>
@@ -148,6 +163,7 @@ class ApplicationShutdowned(Dispatchable):
 </dd>
 <dt id="ariadne.event.lifecycle.ApplicationShutdowned"><code class="flex name class">
 <span>class <span class="ident">ApplicationShutdowned</span></span>
+<span>(</span><span>app)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示 Ariadne 关闭.</p></div>
@@ -155,22 +171,31 @@ class ApplicationShutdowned(Dispatchable):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ApplicationShutdowned(Dispatchable):
+<pre><code class="python">class ApplicationShutdowned(ApplicationLifecycleEvent):
     &#34;&#34;&#34;
     指示 Ariadne 关闭.
     &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></li>
 <li>graia.broadcast.entities.event.Dispatchable</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.lifecycle.ApplicationShutdowned.Dispatcher"><code class="name">var <span class="ident">Dispatcher</span> : Type[graia.broadcast.entities.dispatcher.BaseDispatcher]</code></dt>
+<dt id="ariadne.event.lifecycle.ApplicationShutdowned.app"><code class="name">var <span class="ident">app</span> : Ariadne</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher">Dispatcher</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -191,7 +216,7 @@ class ApplicationShutdowned(Dispatchable):
 <li>
 <h4><code><a title="ariadne.event.lifecycle.ApplicationLaunched" href="#ariadne.event.lifecycle.ApplicationLaunched">ApplicationLaunched</a></code></h4>
 <ul class="">
-<li><code><a title="ariadne.event.lifecycle.ApplicationLaunched.Dispatcher" href="#ariadne.event.lifecycle.ApplicationLaunched.Dispatcher">Dispatcher</a></code></li>
+<li><code><a title="ariadne.event.lifecycle.ApplicationLaunched.app" href="#ariadne.event.lifecycle.ApplicationLaunched.app">app</a></code></li>
 </ul>
 </li>
 <li>
@@ -204,7 +229,7 @@ class ApplicationShutdowned(Dispatchable):
 <li>
 <h4><code><a title="ariadne.event.lifecycle.ApplicationShutdowned" href="#ariadne.event.lifecycle.ApplicationShutdowned">ApplicationShutdowned</a></code></h4>
 <ul class="">
-<li><code><a title="ariadne.event.lifecycle.ApplicationShutdowned.Dispatcher" href="#ariadne.event.lifecycle.ApplicationShutdowned.Dispatcher">Dispatcher</a></code></li>
+<li><code><a title="ariadne.event.lifecycle.ApplicationShutdowned.app" href="#ariadne.event.lifecycle.ApplicationShutdowned.app">app</a></code></li>
 </ul>
 </li>
 </ul>

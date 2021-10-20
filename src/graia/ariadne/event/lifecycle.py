@@ -27,13 +27,13 @@ class ApplicationLifecycleEvent(Dispatchable):
                 return interface.event.app
 
 
-class ApplicationLaunched(Dispatchable):
+class ApplicationLaunched(ApplicationLifecycleEvent):
     """
     指示 Ariadne 启动.
     """
 
 
-class ApplicationShutdowned(Dispatchable):
+class ApplicationShutdowned(ApplicationLifecycleEvent):
     """
     指示 Ariadne 关闭.
     """

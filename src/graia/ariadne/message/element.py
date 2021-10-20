@@ -12,8 +12,7 @@ from pydantic.fields import Field
 
 from graia.ariadne.context import adapter_ctx, application_ctx, upload_method_ctx
 from graia.ariadne.exception import InvalidArgument
-from graia.ariadne.model import AriadneBaseModel, UploadMethod
-from graia.ariadne.util import datetime_encoder
+from graia.ariadne.model import AriadneBaseModel, UploadMethod, datetime_encoder
 
 if TYPE_CHECKING:
     from graia.ariadne.message.chain import MessageChain

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>graia.ariadne.message.element API documentation</title>
+<title>ariadne.message.element API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>graia.ariadne.message.element</code></h1>
+<h1 class="title">Module <code>ariadne.message.element</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -35,14 +35,12 @@ from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
-import aiohttp
-from aiohttp import ClientSession
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
 
-from graia.ariadne.context import application_ctx, upload_method_ctx
+from graia.ariadne.context import adapter_ctx, application_ctx, upload_method_ctx
 from graia.ariadne.exception import InvalidArgument
-from graia.ariadne.model import AriadneBaseModel, UploadMethod
+from graia.ariadne.model import AriadneBaseModel, UploadMethod, datetime_encoder
 
 if TYPE_CHECKING:
     from graia.ariadne.message.chain import MessageChain
@@ -94,7 +92,7 @@ class Source(Element):
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }
 
 
@@ -174,6 +172,7 @@ class Face(Element):
 
 
 class Xml(Element):
+    &#34;表示消息中的 XML 消息元素&#34;
     type = &#34;Xml&#34;
     xml: str
 
@@ -182,6 +181,7 @@ class Xml(Element):
 
 
 class Json(Element):
+    &#34;表示消息中的 JSON 消息元素&#34;
     type = &#34;Json&#34;
     Json: str = Field(..., alias=&#34;json&#34;)
 
@@ -198,6 +198,7 @@ class Json(Element):
 
 
 class App(Element):
+    &#34;表示消息中自带的 App 消息元素&#34;
     type = &#34;App&#34;
     content: str
 
@@ -206,6 +207,7 @@ class App(Element):
 
 
 class PokeMethods(Enum):
+    &#34;戳一戳可用方法&#34;
     ChuoYiChuo = &#34;ChuoYiChuo&#34;
     BiXin = &#34;BiXin&#34;
     DianZan = &#34;DianZan&#34;
@@ -225,6 +227,7 @@ class PokeMethods(Enum):
 
 
 class Poke(Element):
+    &#34;表示消息中戳一戳消息元素&#34;
     type = &#34;Poke&#34;
     name: PokeMethods
 
@@ -233,6 +236,7 @@ class Poke(Element):
 
 
 class Dice(Element):
+    &#34;表示消息中骰子消息元素&#34;
     type = &#34;Dice&#34;
     value: int
 
@@ -241,6 +245,7 @@ class Dice(Element):
 
 
 class MusicShare(Element):
+    &#34;表示消息中音乐分享消息元素&#34;
     type = &#34;MusicShare&#34;
     kind: Optional[str]
     title: Optional[str]
@@ -255,6 +260,7 @@ class MusicShare(Element):
 
 
 class ForwardNode(BaseModel):
+    &#34;表示合并转发中的一个节点&#34;
     senderId: int
     time: datetime
     senderName: str
@@ -263,7 +269,7 @@ class ForwardNode(BaseModel):
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }
 
 
@@ -282,6 +288,7 @@ class Forward(Element):
 
 
 class File(Element):
+    &#34;指示一个文件信息元素&#34;
     type = &#34;File&#34;
     id: str
     name: str
@@ -306,6 +313,7 @@ image_upload_method_type_map = {
 
 
 class Image(Element):
+    &#34;指示消息中的图片元素&#34;
     type = &#34;Image&#34;
     ready: bool = True
     imageId: Optional[str] = None
@@ -343,8 +351,28 @@ class Image(Element):
     def asDisplay(self) -&gt; str:
         return &#34;[图片]&#34;
 
+    async def get_bytes(self, url: str = None) -&gt; bytes:
+        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        &#34;&#34;&#34;
+        if not (self.url or url):
+            raise ValueError(&#34;you should offer a url.&#34;)
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            return await response.read()
+
 
 class FlashImage(Image):
+    &#34;指示消息中的闪照元素&#34;
     type = &#34;FlashImage&#34;
 
     def __init__(
@@ -378,6 +406,7 @@ class FlashImage(Image):
 
 
 class Voice(Element):
+    &#34;指示消息中的语音元素&#34;
     type = &#34;Voice&#34;
     voiceId: Optional[str]
     url: Optional[str]
@@ -412,6 +441,25 @@ class Voice(Element):
     def asDisplay(self) -&gt; str:
         return &#34;[语音]&#34;
 
+    async def get_bytes(self, url: str = None) -&gt; bytes:
+        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        &#34;&#34;&#34;
+        if not (self.url or url):
+            raise ValueError(&#34;you should offer a url.&#34;)
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            return await response.read()
+
 
 def _update_forward_refs():
     &#34;&#34;&#34;
@@ -433,13 +481,12 @@ def _update_forward_refs():
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="graia.ariadne.message.element.App"><code class="flex name class">
+<dt id="ariadne.message.element.App"><code class="flex name class">
 <span>class <span class="ident">App</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>表示消息中自带的 App 消息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -447,6 +494,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class App(Element):
+    &#34;表示消息中自带的 App 消息元素&#34;
     type = &#34;App&#34;
     content: str
 
@@ -455,22 +503,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.App.content"><code class="name">var <span class="ident">content</span> : str</code></dt>
+<dt id="ariadne.message.element.App.content"><code class="name">var <span class="ident">content</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.App.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.App.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -486,14 +534,14 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.At"><code class="flex name class">
+<dt id="ariadne.message.element.At"><code class="flex name class">
 <span>class <span class="ident">At</span></span>
 <span>(</span><span>target: int, **kwargs)</span>
 </code></dt>
@@ -540,30 +588,30 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.At.display"><code class="name">var <span class="ident">display</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.At.display"><code class="name">var <span class="ident">display</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.At.target"><code class="name">var <span class="ident">target</span> : int</code></dt>
+<dt id="ariadne.message.element.At.target"><code class="name">var <span class="ident">target</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.At.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.At.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.At.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.At.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -579,14 +627,14 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.AtAll"><code class="flex name class">
+<dt id="ariadne.message.element.AtAll"><code class="flex name class">
 <span>class <span class="ident">AtAll</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
@@ -618,22 +666,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.AtAll.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.AtAll.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.AtAll.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.AtAll.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -649,20 +697,19 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Dice"><code class="flex name class">
+<dt id="ariadne.message.element.Dice"><code class="flex name class">
 <span>class <span class="ident">Dice</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>表示消息中骰子消息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -670,6 +717,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Dice(Element):
+    &#34;表示消息中骰子消息元素&#34;
     type = &#34;Dice&#34;
     value: int
 
@@ -678,22 +726,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Dice.value"><code class="name">var <span class="ident">value</span> : int</code></dt>
+<dt id="ariadne.message.element.Dice.value"><code class="name">var <span class="ident">value</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Dice.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Dice.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -709,14 +757,14 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Element"><code class="flex name class">
+<dt id="ariadne.message.element.Element"><code class="flex name class">
 <span>class <span class="ident">Element</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
@@ -752,40 +800,40 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.App" href="#graia.ariadne.message.element.App">App</a></li>
-<li><a title="graia.ariadne.message.element.At" href="#graia.ariadne.message.element.At">At</a></li>
-<li><a title="graia.ariadne.message.element.AtAll" href="#graia.ariadne.message.element.AtAll">AtAll</a></li>
-<li><a title="graia.ariadne.message.element.Dice" href="#graia.ariadne.message.element.Dice">Dice</a></li>
-<li><a title="graia.ariadne.message.element.Face" href="#graia.ariadne.message.element.Face">Face</a></li>
-<li><a title="graia.ariadne.message.element.File" href="#graia.ariadne.message.element.File">File</a></li>
-<li><a title="graia.ariadne.message.element.Forward" href="#graia.ariadne.message.element.Forward">Forward</a></li>
-<li><a title="graia.ariadne.message.element.Image" href="#graia.ariadne.message.element.Image">Image</a></li>
-<li><a title="graia.ariadne.message.element.Json" href="#graia.ariadne.message.element.Json">Json</a></li>
-<li><a title="graia.ariadne.message.element.MusicShare" href="#graia.ariadne.message.element.MusicShare">MusicShare</a></li>
-<li><a title="graia.ariadne.message.element.Plain" href="#graia.ariadne.message.element.Plain">Plain</a></li>
-<li><a title="graia.ariadne.message.element.Poke" href="#graia.ariadne.message.element.Poke">Poke</a></li>
-<li><a title="graia.ariadne.message.element.Quote" href="#graia.ariadne.message.element.Quote">Quote</a></li>
-<li><a title="graia.ariadne.message.element.Source" href="#graia.ariadne.message.element.Source">Source</a></li>
-<li><a title="graia.ariadne.message.element.Voice" href="#graia.ariadne.message.element.Voice">Voice</a></li>
-<li><a title="graia.ariadne.message.element.Xml" href="#graia.ariadne.message.element.Xml">Xml</a></li>
+<li><a title="ariadne.message.element.App" href="#ariadne.message.element.App">App</a></li>
+<li><a title="ariadne.message.element.At" href="#ariadne.message.element.At">At</a></li>
+<li><a title="ariadne.message.element.AtAll" href="#ariadne.message.element.AtAll">AtAll</a></li>
+<li><a title="ariadne.message.element.Dice" href="#ariadne.message.element.Dice">Dice</a></li>
+<li><a title="ariadne.message.element.Face" href="#ariadne.message.element.Face">Face</a></li>
+<li><a title="ariadne.message.element.File" href="#ariadne.message.element.File">File</a></li>
+<li><a title="ariadne.message.element.Forward" href="#ariadne.message.element.Forward">Forward</a></li>
+<li><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></li>
+<li><a title="ariadne.message.element.Json" href="#ariadne.message.element.Json">Json</a></li>
+<li><a title="ariadne.message.element.MusicShare" href="#ariadne.message.element.MusicShare">MusicShare</a></li>
+<li><a title="ariadne.message.element.Plain" href="#ariadne.message.element.Plain">Plain</a></li>
+<li><a title="ariadne.message.element.Poke" href="#ariadne.message.element.Poke">Poke</a></li>
+<li><a title="ariadne.message.element.Quote" href="#ariadne.message.element.Quote">Quote</a></li>
+<li><a title="ariadne.message.element.Source" href="#ariadne.message.element.Source">Source</a></li>
+<li><a title="ariadne.message.element.Voice" href="#ariadne.message.element.Voice">Voice</a></li>
+<li><a title="ariadne.message.element.Xml" href="#ariadne.message.element.Xml">Xml</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Element.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.Element.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Element.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Element.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -798,7 +846,7 @@ type (str): 元素类型</p>
     return &#34;&#34;</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.element.Element.prepare"><code class="name flex">
+<dt id="ariadne.message.element.Element.prepare"><code class="name flex">
 <span>def <span class="ident">prepare</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
@@ -819,7 +867,7 @@ type (str): 元素类型</p>
 </dd>
 </dl>
 </dd>
-<dt id="graia.ariadne.message.element.Face"><code class="flex name class">
+<dt id="ariadne.message.element.Face"><code class="flex name class">
 <span>class <span class="ident">Face</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
@@ -842,30 +890,30 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Face.faceId"><code class="name">var <span class="ident">faceId</span> : int</code></dt>
+<dt id="ariadne.message.element.Face.faceId"><code class="name">var <span class="ident">faceId</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Face.name"><code class="name">var <span class="ident">name</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Face.name"><code class="name">var <span class="ident">name</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Face.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.Face.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Face.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Face.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -881,20 +929,19 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.File"><code class="flex name class">
+<dt id="ariadne.message.element.File"><code class="flex name class">
 <span>class <span class="ident">File</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>指示一个文件信息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -902,6 +949,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class File(Element):
+    &#34;指示一个文件信息元素&#34;
     type = &#34;File&#34;
     id: str
     name: str
@@ -912,30 +960,30 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.File.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dt id="ariadne.message.element.File.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.File.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dt id="ariadne.message.element.File.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.File.size"><code class="name">var <span class="ident">size</span> : int</code></dt>
+<dt id="ariadne.message.element.File.size"><code class="name">var <span class="ident">size</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.File.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.File.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -951,20 +999,19 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.FlashImage"><code class="flex name class">
+<dt id="ariadne.message.element.FlashImage"><code class="flex name class">
 <span>class <span class="ident">FlashImage</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, normal: Optional[ForwardRef('<a title="graia.ariadne.message.element.Image" href="#graia.ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
+<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, normal: Optional[ForwardRef('<a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>指示消息中的闪照元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -972,6 +1019,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FlashImage(Image):
+    &#34;指示消息中的闪照元素&#34;
     type = &#34;FlashImage&#34;
 
     def __init__(
@@ -1005,43 +1053,43 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Image" href="#graia.ariadne.message.element.Image">Image</a></li>
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.FlashImage.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.FlashImage.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.FlashImage.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
+<dt id="ariadne.message.element.FlashImage.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.FlashImage.imageId"><code class="name">var <span class="ident">imageId</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.FlashImage.imageId"><code class="name">var <span class="ident">imageId</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.FlashImage.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
+<dt id="ariadne.message.element.FlashImage.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.FlashImage.ready"><code class="name">var <span class="ident">ready</span> : bool</code></dt>
+<dt id="ariadne.message.element.FlashImage.ready"><code class="name">var <span class="ident">ready</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.FlashImage.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.FlashImage.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.FlashImage.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.FlashImage.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -1057,14 +1105,15 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Image" href="#graia.ariadne.message.element.Image">Image</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Image.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Image.get_bytes" href="#ariadne.message.element.Image.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Image.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Forward"><code class="flex name class">
+<dt id="ariadne.message.element.Forward"><code class="flex name class">
 <span>class <span class="ident">Forward</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
@@ -1092,22 +1141,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Forward.nodeList"><code class="name">var <span class="ident">nodeList</span> : List[<a title="graia.ariadne.message.element.ForwardNode" href="#graia.ariadne.message.element.ForwardNode">ForwardNode</a>]</code></dt>
+<dt id="ariadne.message.element.Forward.nodeList"><code class="name">var <span class="ident">nodeList</span> : List[<a title="ariadne.message.element.ForwardNode" href="#ariadne.message.element.ForwardNode">ForwardNode</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Forward.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Forward.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1123,25 +1172,27 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.ForwardNode"><code class="flex name class">
+<dt id="ariadne.message.element.ForwardNode"><code class="flex name class">
 <span>class <span class="ident">ForwardNode</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<div class="desc"><p>表示合并转发中的一个节点</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ForwardNode(BaseModel):
+    &#34;表示合并转发中的一个节点&#34;
     senderId: int
     time: datetime
     senderName: str
@@ -1150,7 +1201,7 @@ type (str): 元素类型</p>
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1160,39 +1211,38 @@ type (str): 元素类型</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.ForwardNode.Config"><code class="name">var <span class="ident">Config</span></code></dt>
+<dt id="ariadne.message.element.ForwardNode.Config"><code class="name">var <span class="ident">Config</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ForwardNode.messageChain"><code class="name">var <span class="ident">messageChain</span> : Optional[MessageChain]</code></dt>
+<dt id="ariadne.message.element.ForwardNode.messageChain"><code class="name">var <span class="ident">messageChain</span> : Optional[MessageChain]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ForwardNode.messageId"><code class="name">var <span class="ident">messageId</span> : Optional[int]</code></dt>
+<dt id="ariadne.message.element.ForwardNode.messageId"><code class="name">var <span class="ident">messageId</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ForwardNode.senderId"><code class="name">var <span class="ident">senderId</span> : int</code></dt>
+<dt id="ariadne.message.element.ForwardNode.senderId"><code class="name">var <span class="ident">senderId</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ForwardNode.senderName"><code class="name">var <span class="ident">senderName</span> : str</code></dt>
+<dt id="ariadne.message.element.ForwardNode.senderName"><code class="name">var <span class="ident">senderName</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ForwardNode.time"><code class="name">var <span class="ident">time</span> : datetime.datetime</code></dt>
+<dt id="ariadne.message.element.ForwardNode.time"><code class="name">var <span class="ident">time</span> : datetime.datetime</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="graia.ariadne.message.element.Image"><code class="flex name class">
+<dt id="ariadne.message.element.Image"><code class="flex name class">
 <span>class <span class="ident">Image</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, flash: Optional[ForwardRef('<a title="graia.ariadne.message.element.FlashImage" href="#graia.ariadne.message.element.FlashImage">FlashImage</a>')] = None, **kwargs)</span>
+<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, flash: Optional[ForwardRef('<a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a>')] = None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>指示消息中的图片元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -1200,6 +1250,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Image(Element):
+    &#34;指示消息中的图片元素&#34;
     type = &#34;Image&#34;
     ready: bool = True
     imageId: Optional[str] = None
@@ -1235,50 +1286,69 @@ type (str): 元素类型</p>
         super().__init__(**data, **kwargs)
 
     def asDisplay(self) -&gt; str:
-        return &#34;[图片]&#34;</code></pre>
+        return &#34;[图片]&#34;
+
+    async def get_bytes(self, url: str = None) -&gt; bytes:
+        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        &#34;&#34;&#34;
+        if not (self.url or url):
+            raise ValueError(&#34;you should offer a url.&#34;)
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            return await response.read()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.FlashImage" href="#graia.ariadne.message.element.FlashImage">FlashImage</a></li>
+<li><a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Image.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Image.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Image.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
+<dt id="ariadne.message.element.Image.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Image.imageId"><code class="name">var <span class="ident">imageId</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Image.imageId"><code class="name">var <span class="ident">imageId</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Image.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
+<dt id="ariadne.message.element.Image.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Image.ready"><code class="name">var <span class="ident">ready</span> : bool</code></dt>
+<dt id="ariadne.message.element.Image.ready"><code class="name">var <span class="ident">ready</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Image.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Image.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Image.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Image.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1291,17 +1361,61 @@ type (str): 元素类型</p>
     return &#34;[图片]&#34;</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.element.Image.get_bytes"><code class="name flex">
+<span>async def <span class="ident">get_bytes</span></span>(<span>self, url: str = None) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>如果提供, 则从本参数获取 bytes. 默认为 None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>你尝试获取并不包含 url 属性的本元素的 bytes.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bytes</code></dt>
+<dd>元素原始数据</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_bytes(self, url: str = None) -&gt; bytes:
+    &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+    Args:
+        url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+    Raises:
+        ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+    Returns:
+        bytes: 元素原始数据
+    &#34;&#34;&#34;
+    if not (self.url or url):
+        raise ValueError(&#34;you should offer a url.&#34;)
+    session = adapter_ctx.get().session
+    async with session.get(self.url or url) as response:
+        response.raise_for_status()
+        return await response.read()</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.ImageType"><code class="flex name class">
+<dt id="ariadne.message.element.ImageType"><code class="flex name class">
 <span>class <span class="ident">ImageType</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
@@ -1323,31 +1437,30 @@ type (str): 元素类型</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.ImageType.Friend"><code class="name">var <span class="ident">Friend</span></code></dt>
+<dt id="ariadne.message.element.ImageType.Friend"><code class="name">var <span class="ident">Friend</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ImageType.Group"><code class="name">var <span class="ident">Group</span></code></dt>
+<dt id="ariadne.message.element.ImageType.Group"><code class="name">var <span class="ident">Group</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ImageType.Temp"><code class="name">var <span class="ident">Temp</span></code></dt>
+<dt id="ariadne.message.element.ImageType.Temp"><code class="name">var <span class="ident">Temp</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.ImageType.Unknown"><code class="name">var <span class="ident">Unknown</span></code></dt>
+<dt id="ariadne.message.element.ImageType.Unknown"><code class="name">var <span class="ident">Unknown</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="graia.ariadne.message.element.Json"><code class="flex name class">
+<dt id="ariadne.message.element.Json"><code class="flex name class">
 <span>class <span class="ident">Json</span></span>
 <span>(</span><span>json: Union[dict, str], **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>表示消息中的 JSON 消息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -1355,6 +1468,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Json(Element):
+    &#34;表示消息中的 JSON 消息元素&#34;
     type = &#34;Json&#34;
     Json: str = Field(..., alias=&#34;json&#34;)
 
@@ -1371,22 +1485,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Json.Json"><code class="name">var <span class="ident">Json</span> : str</code></dt>
+<dt id="ariadne.message.element.Json.Json"><code class="name">var <span class="ident">Json</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Json.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Json.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1399,7 +1513,7 @@ type (str): 元素类型</p>
     return &#34;[JSON消息]&#34;</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.element.Json.dict"><code class="name flex">
+<dt id="ariadne.message.element.Json.dict"><code class="name flex">
 <span>def <span class="ident">dict</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -1415,20 +1529,19 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare"><code class="flex name class">
+<dt id="ariadne.message.element.MusicShare"><code class="flex name class">
 <span>class <span class="ident">MusicShare</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>表示消息中音乐分享消息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -1436,6 +1549,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MusicShare(Element):
+    &#34;表示消息中音乐分享消息元素&#34;
     type = &#34;MusicShare&#34;
     kind: Optional[str]
     title: Optional[str]
@@ -1450,46 +1564,46 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.MusicShare.brief"><code class="name">var <span class="ident">brief</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.brief"><code class="name">var <span class="ident">brief</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare.jumpUrl"><code class="name">var <span class="ident">jumpUrl</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.jumpUrl"><code class="name">var <span class="ident">jumpUrl</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare.kind"><code class="name">var <span class="ident">kind</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.kind"><code class="name">var <span class="ident">kind</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare.musicUrl"><code class="name">var <span class="ident">musicUrl</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.musicUrl"><code class="name">var <span class="ident">musicUrl</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare.pictureUrl"><code class="name">var <span class="ident">pictureUrl</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.pictureUrl"><code class="name">var <span class="ident">pictureUrl</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare.summary"><code class="name">var <span class="ident">summary</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.summary"><code class="name">var <span class="ident">summary</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.MusicShare.title"><code class="name">var <span class="ident">title</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.MusicShare.title"><code class="name">var <span class="ident">title</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.MusicShare.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.MusicShare.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1505,14 +1619,14 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Plain"><code class="flex name class">
+<dt id="ariadne.message.element.Plain"><code class="flex name class">
 <span>class <span class="ident">Plain</span></span>
 <span>(</span><span>text: str, **kwargs)</span>
 </code></dt>
@@ -1546,26 +1660,26 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Plain.text"><code class="name">var <span class="ident">text</span> : str</code></dt>
+<dt id="ariadne.message.element.Plain.text"><code class="name">var <span class="ident">text</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Plain.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.Plain.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Plain.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Plain.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1581,20 +1695,19 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Poke"><code class="flex name class">
+<dt id="ariadne.message.element.Poke"><code class="flex name class">
 <span>class <span class="ident">Poke</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>表示消息中戳一戳消息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -1602,6 +1715,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Poke(Element):
+    &#34;表示消息中戳一戳消息元素&#34;
     type = &#34;Poke&#34;
     name: PokeMethods
 
@@ -1610,22 +1724,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Poke.name"><code class="name">var <span class="ident">name</span> : <a title="graia.ariadne.message.element.PokeMethods" href="#graia.ariadne.message.element.PokeMethods">PokeMethods</a></code></dt>
+<dt id="ariadne.message.element.Poke.name"><code class="name">var <span class="ident">name</span> : <a title="ariadne.message.element.PokeMethods" href="#ariadne.message.element.PokeMethods">PokeMethods</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Poke.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Poke.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1641,24 +1755,25 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods"><code class="flex name class">
+<dt id="ariadne.message.element.PokeMethods"><code class="flex name class">
 <span>class <span class="ident">PokeMethods</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>戳一戳可用方法</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class PokeMethods(Enum):
+    &#34;戳一戳可用方法&#34;
     ChuoYiChuo = &#34;ChuoYiChuo&#34;
     BiXin = &#34;BiXin&#34;
     DianZan = &#34;DianZan&#34;
@@ -1682,73 +1797,73 @@ type (str): 元素类型</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.PokeMethods.BaoBeiQiu"><code class="name">var <span class="ident">BaoBeiQiu</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.BaoBeiQiu"><code class="name">var <span class="ident">BaoBeiQiu</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.BiXin"><code class="name">var <span class="ident">BiXin</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.BiXin"><code class="name">var <span class="ident">BiXin</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.ChuoYiChuo"><code class="name">var <span class="ident">ChuoYiChuo</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.ChuoYiChuo"><code class="name">var <span class="ident">ChuoYiChuo</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.DianZan"><code class="name">var <span class="ident">DianZan</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.DianZan"><code class="name">var <span class="ident">DianZan</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.FangDaZhao"><code class="name">var <span class="ident">FangDaZhao</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.FangDaZhao"><code class="name">var <span class="ident">FangDaZhao</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.GouYin"><code class="name">var <span class="ident">GouYin</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.GouYin"><code class="name">var <span class="ident">GouYin</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.JeiYin"><code class="name">var <span class="ident">JeiYin</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.JeiYin"><code class="name">var <span class="ident">JeiYin</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.LiuLiuLiu"><code class="name">var <span class="ident">LiuLiuLiu</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.LiuLiuLiu"><code class="name">var <span class="ident">LiuLiuLiu</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.QiaoMen"><code class="name">var <span class="ident">QiaoMen</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.QiaoMen"><code class="name">var <span class="ident">QiaoMen</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.RangNiPi"><code class="name">var <span class="ident">RangNiPi</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.RangNiPi"><code class="name">var <span class="ident">RangNiPi</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.Rose"><code class="name">var <span class="ident">Rose</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.Rose"><code class="name">var <span class="ident">Rose</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.ShouLei"><code class="name">var <span class="ident">ShouLei</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.ShouLei"><code class="name">var <span class="ident">ShouLei</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.SuiPing"><code class="name">var <span class="ident">SuiPing</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.SuiPing"><code class="name">var <span class="ident">SuiPing</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.XinSui"><code class="name">var <span class="ident">XinSui</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.XinSui"><code class="name">var <span class="ident">XinSui</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.ZhaoHuanShu"><code class="name">var <span class="ident">ZhaoHuanShu</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.ZhaoHuanShu"><code class="name">var <span class="ident">ZhaoHuanShu</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.PokeMethods.ZhuaYiXia"><code class="name">var <span class="ident">ZhuaYiXia</span></code></dt>
+<dt id="ariadne.message.element.PokeMethods.ZhuaYiXia"><code class="name">var <span class="ident">ZhuaYiXia</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="graia.ariadne.message.element.Quote"><code class="flex name class">
+<dt id="ariadne.message.element.Quote"><code class="flex name class">
 <span>class <span class="ident">Quote</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
@@ -1777,49 +1892,49 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Quote.groupId"><code class="name">var <span class="ident">groupId</span> : int</code></dt>
+<dt id="ariadne.message.element.Quote.groupId"><code class="name">var <span class="ident">groupId</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Quote.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dt id="ariadne.message.element.Quote.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Quote.origin"><code class="name">var <span class="ident">origin</span> : MessageChain</code></dt>
+<dt id="ariadne.message.element.Quote.origin"><code class="name">var <span class="ident">origin</span> : MessageChain</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Quote.senderId"><code class="name">var <span class="ident">senderId</span> : int</code></dt>
+<dt id="ariadne.message.element.Quote.senderId"><code class="name">var <span class="ident">senderId</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Quote.targetId"><code class="name">var <span class="ident">targetId</span> : int</code></dt>
+<dt id="ariadne.message.element.Quote.targetId"><code class="name">var <span class="ident">targetId</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Quote.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.Quote.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Source"><code class="flex name class">
+<dt id="ariadne.message.element.Source"><code class="flex name class">
 <span>class <span class="ident">Source</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
@@ -1839,52 +1954,51 @@ type (str): 元素类型</p>
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Source.Config"><code class="name">var <span class="ident">Config</span></code></dt>
+<dt id="ariadne.message.element.Source.Config"><code class="name">var <span class="ident">Config</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Source.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dt id="ariadne.message.element.Source.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Source.time"><code class="name">var <span class="ident">time</span> : datetime.datetime</code></dt>
+<dt id="ariadne.message.element.Source.time"><code class="name">var <span class="ident">time</span> : datetime.datetime</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Source.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="ariadne.message.element.Source.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Voice"><code class="flex name class">
+<dt id="ariadne.message.element.Voice"><code class="flex name class">
 <span>class <span class="ident">Voice</span></span>
 <span>(</span><span>voiceId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>指示消息中的语音元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -1892,6 +2006,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Voice(Element):
+    &#34;指示消息中的语音元素&#34;
     type = &#34;Voice&#34;
     voiceId: Optional[str]
     url: Optional[str]
@@ -1924,46 +2039,65 @@ type (str): 元素类型</p>
         super().__init__(**data, **kwargs)
 
     def asDisplay(self) -&gt; str:
-        return &#34;[语音]&#34;</code></pre>
+        return &#34;[语音]&#34;
+
+    async def get_bytes(self, url: str = None) -&gt; bytes:
+        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        &#34;&#34;&#34;
+        if not (self.url or url):
+            raise ValueError(&#34;you should offer a url.&#34;)
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            return await response.read()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Voice.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Voice.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Voice.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
+<dt id="ariadne.message.element.Voice.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Voice.length"><code class="name">var <span class="ident">length</span> : Optional[int]</code></dt>
+<dt id="ariadne.message.element.Voice.length"><code class="name">var <span class="ident">length</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Voice.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
+<dt id="ariadne.message.element.Voice.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Voice.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Voice.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="graia.ariadne.message.element.Voice.voiceId"><code class="name">var <span class="ident">voiceId</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Voice.voiceId"><code class="name">var <span class="ident">voiceId</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Voice.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Voice.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1976,23 +2110,66 @@ type (str): 元素类型</p>
     return &#34;[语音]&#34;</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.element.Voice.get_bytes"><code class="name flex">
+<span>async def <span class="ident">get_bytes</span></span>(<span>self, url: str = None) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>如果提供, 则从本参数获取 bytes. 默认为 None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>你尝试获取并不包含 url 属性的本元素的 bytes.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bytes</code></dt>
+<dd>元素原始数据</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_bytes(self, url: str = None) -&gt; bytes:
+    &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+    Args:
+        url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+    Raises:
+        ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+    Returns:
+        bytes: 元素原始数据
+    &#34;&#34;&#34;
+    if not (self.url or url):
+        raise ValueError(&#34;you should offer a url.&#34;)
+    session = adapter_ctx.get().session
+    async with session.get(self.url or url) as response:
+        response.raise_for_status()
+        return await response.read()</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
 </dd>
-<dt id="graia.ariadne.message.element.Xml"><code class="flex name class">
+<dt id="ariadne.message.element.Xml"><code class="flex name class">
 <span>class <span class="ident">Xml</span></span>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
-type (str): 元素类型</p>
+<div class="desc"><p>表示消息中的 XML 消息元素</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -2000,6 +2177,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Xml(Element):
+    &#34;表示消息中的 XML 消息元素&#34;
     type = &#34;Xml&#34;
     xml: str
 
@@ -2008,22 +2186,22 @@ type (str): 元素类型</p>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></li>
-<li><a title="graia.ariadne.model.AriadneBaseModel" href="../model.html#graia.ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Xml.xml"><code class="name">var <span class="ident">xml</span> : str</code></dt>
+<dt id="ariadne.message.element.Xml.xml"><code class="name">var <span class="ident">xml</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.element.Xml.asDisplay"><code class="name flex">
+<dt id="ariadne.message.element.Xml.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -2039,9 +2217,9 @@ type (str): 元素类型</p>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
@@ -2057,212 +2235,214 @@ type (str): 元素类型</p>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="graia.ariadne.message" href="index.html">graia.ariadne.message</a></code></li>
+<li><code><a title="ariadne.message" href="index.html">ariadne.message</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="graia.ariadne.message.element.App" href="#graia.ariadne.message.element.App">App</a></code></h4>
+<h4><code><a title="ariadne.message.element.App" href="#ariadne.message.element.App">App</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.App.asDisplay" href="#graia.ariadne.message.element.App.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.App.content" href="#graia.ariadne.message.element.App.content">content</a></code></li>
+<li><code><a title="ariadne.message.element.App.asDisplay" href="#ariadne.message.element.App.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.App.content" href="#ariadne.message.element.App.content">content</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.At" href="#graia.ariadne.message.element.At">At</a></code></h4>
+<h4><code><a title="ariadne.message.element.At" href="#ariadne.message.element.At">At</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.At.asDisplay" href="#graia.ariadne.message.element.At.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.At.display" href="#graia.ariadne.message.element.At.display">display</a></code></li>
-<li><code><a title="graia.ariadne.message.element.At.target" href="#graia.ariadne.message.element.At.target">target</a></code></li>
-<li><code><a title="graia.ariadne.message.element.At.type" href="#graia.ariadne.message.element.At.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.At.asDisplay" href="#ariadne.message.element.At.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.At.display" href="#ariadne.message.element.At.display">display</a></code></li>
+<li><code><a title="ariadne.message.element.At.target" href="#ariadne.message.element.At.target">target</a></code></li>
+<li><code><a title="ariadne.message.element.At.type" href="#ariadne.message.element.At.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.AtAll" href="#graia.ariadne.message.element.AtAll">AtAll</a></code></h4>
+<h4><code><a title="ariadne.message.element.AtAll" href="#ariadne.message.element.AtAll">AtAll</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.AtAll.asDisplay" href="#graia.ariadne.message.element.AtAll.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.AtAll.type" href="#graia.ariadne.message.element.AtAll.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.AtAll.asDisplay" href="#ariadne.message.element.AtAll.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.AtAll.type" href="#ariadne.message.element.AtAll.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Dice" href="#graia.ariadne.message.element.Dice">Dice</a></code></h4>
+<h4><code><a title="ariadne.message.element.Dice" href="#ariadne.message.element.Dice">Dice</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Dice.asDisplay" href="#graia.ariadne.message.element.Dice.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Dice.value" href="#graia.ariadne.message.element.Dice.value">value</a></code></li>
+<li><code><a title="ariadne.message.element.Dice.asDisplay" href="#ariadne.message.element.Dice.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Dice.value" href="#ariadne.message.element.Dice.value">value</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Element" href="#graia.ariadne.message.element.Element">Element</a></code></h4>
+<h4><code><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Element.asDisplay" href="#graia.ariadne.message.element.Element.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Element.prepare" href="#graia.ariadne.message.element.Element.prepare">prepare</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Element.type" href="#graia.ariadne.message.element.Element.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.Element.asDisplay" href="#ariadne.message.element.Element.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.Element.type" href="#ariadne.message.element.Element.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Face" href="#graia.ariadne.message.element.Face">Face</a></code></h4>
+<h4><code><a title="ariadne.message.element.Face" href="#ariadne.message.element.Face">Face</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Face.asDisplay" href="#graia.ariadne.message.element.Face.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Face.faceId" href="#graia.ariadne.message.element.Face.faceId">faceId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Face.name" href="#graia.ariadne.message.element.Face.name">name</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Face.type" href="#graia.ariadne.message.element.Face.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.Face.asDisplay" href="#ariadne.message.element.Face.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Face.faceId" href="#ariadne.message.element.Face.faceId">faceId</a></code></li>
+<li><code><a title="ariadne.message.element.Face.name" href="#ariadne.message.element.Face.name">name</a></code></li>
+<li><code><a title="ariadne.message.element.Face.type" href="#ariadne.message.element.Face.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.File" href="#graia.ariadne.message.element.File">File</a></code></h4>
+<h4><code><a title="ariadne.message.element.File" href="#ariadne.message.element.File">File</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.File.asDisplay" href="#graia.ariadne.message.element.File.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.File.id" href="#graia.ariadne.message.element.File.id">id</a></code></li>
-<li><code><a title="graia.ariadne.message.element.File.name" href="#graia.ariadne.message.element.File.name">name</a></code></li>
-<li><code><a title="graia.ariadne.message.element.File.size" href="#graia.ariadne.message.element.File.size">size</a></code></li>
+<li><code><a title="ariadne.message.element.File.asDisplay" href="#ariadne.message.element.File.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.File.id" href="#ariadne.message.element.File.id">id</a></code></li>
+<li><code><a title="ariadne.message.element.File.name" href="#ariadne.message.element.File.name">name</a></code></li>
+<li><code><a title="ariadne.message.element.File.size" href="#ariadne.message.element.File.size">size</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.FlashImage" href="#graia.ariadne.message.element.FlashImage">FlashImage</a></code></h4>
+<h4><code><a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.FlashImage.asDisplay" href="#graia.ariadne.message.element.FlashImage.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.FlashImage.base64" href="#graia.ariadne.message.element.FlashImage.base64">base64</a></code></li>
-<li><code><a title="graia.ariadne.message.element.FlashImage.data_bytes" href="#graia.ariadne.message.element.FlashImage.data_bytes">data_bytes</a></code></li>
-<li><code><a title="graia.ariadne.message.element.FlashImage.imageId" href="#graia.ariadne.message.element.FlashImage.imageId">imageId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.FlashImage.path" href="#graia.ariadne.message.element.FlashImage.path">path</a></code></li>
-<li><code><a title="graia.ariadne.message.element.FlashImage.ready" href="#graia.ariadne.message.element.FlashImage.ready">ready</a></code></li>
-<li><code><a title="graia.ariadne.message.element.FlashImage.url" href="#graia.ariadne.message.element.FlashImage.url">url</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.asDisplay" href="#ariadne.message.element.FlashImage.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.base64" href="#ariadne.message.element.FlashImage.base64">base64</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.data_bytes" href="#ariadne.message.element.FlashImage.data_bytes">data_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.imageId" href="#ariadne.message.element.FlashImage.imageId">imageId</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.path" href="#ariadne.message.element.FlashImage.path">path</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.ready" href="#ariadne.message.element.FlashImage.ready">ready</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.url" href="#ariadne.message.element.FlashImage.url">url</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Forward" href="#graia.ariadne.message.element.Forward">Forward</a></code></h4>
+<h4><code><a title="ariadne.message.element.Forward" href="#ariadne.message.element.Forward">Forward</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Forward.asDisplay" href="#graia.ariadne.message.element.Forward.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Forward.nodeList" href="#graia.ariadne.message.element.Forward.nodeList">nodeList</a></code></li>
+<li><code><a title="ariadne.message.element.Forward.asDisplay" href="#ariadne.message.element.Forward.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Forward.nodeList" href="#ariadne.message.element.Forward.nodeList">nodeList</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.ForwardNode" href="#graia.ariadne.message.element.ForwardNode">ForwardNode</a></code></h4>
+<h4><code><a title="ariadne.message.element.ForwardNode" href="#ariadne.message.element.ForwardNode">ForwardNode</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.ForwardNode.Config" href="#graia.ariadne.message.element.ForwardNode.Config">Config</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ForwardNode.messageChain" href="#graia.ariadne.message.element.ForwardNode.messageChain">messageChain</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ForwardNode.messageId" href="#graia.ariadne.message.element.ForwardNode.messageId">messageId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ForwardNode.senderId" href="#graia.ariadne.message.element.ForwardNode.senderId">senderId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ForwardNode.senderName" href="#graia.ariadne.message.element.ForwardNode.senderName">senderName</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ForwardNode.time" href="#graia.ariadne.message.element.ForwardNode.time">time</a></code></li>
+<li><code><a title="ariadne.message.element.ForwardNode.Config" href="#ariadne.message.element.ForwardNode.Config">Config</a></code></li>
+<li><code><a title="ariadne.message.element.ForwardNode.messageChain" href="#ariadne.message.element.ForwardNode.messageChain">messageChain</a></code></li>
+<li><code><a title="ariadne.message.element.ForwardNode.messageId" href="#ariadne.message.element.ForwardNode.messageId">messageId</a></code></li>
+<li><code><a title="ariadne.message.element.ForwardNode.senderId" href="#ariadne.message.element.ForwardNode.senderId">senderId</a></code></li>
+<li><code><a title="ariadne.message.element.ForwardNode.senderName" href="#ariadne.message.element.ForwardNode.senderName">senderName</a></code></li>
+<li><code><a title="ariadne.message.element.ForwardNode.time" href="#ariadne.message.element.ForwardNode.time">time</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Image" href="#graia.ariadne.message.element.Image">Image</a></code></h4>
+<h4><code><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.Image.asDisplay" href="#graia.ariadne.message.element.Image.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Image.base64" href="#graia.ariadne.message.element.Image.base64">base64</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Image.data_bytes" href="#graia.ariadne.message.element.Image.data_bytes">data_bytes</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Image.imageId" href="#graia.ariadne.message.element.Image.imageId">imageId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Image.path" href="#graia.ariadne.message.element.Image.path">path</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Image.ready" href="#graia.ariadne.message.element.Image.ready">ready</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Image.url" href="#graia.ariadne.message.element.Image.url">url</a></code></li>
+<li><code><a title="ariadne.message.element.Image.asDisplay" href="#ariadne.message.element.Image.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Image.base64" href="#ariadne.message.element.Image.base64">base64</a></code></li>
+<li><code><a title="ariadne.message.element.Image.data_bytes" href="#ariadne.message.element.Image.data_bytes">data_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Image.get_bytes" href="#ariadne.message.element.Image.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Image.imageId" href="#ariadne.message.element.Image.imageId">imageId</a></code></li>
+<li><code><a title="ariadne.message.element.Image.path" href="#ariadne.message.element.Image.path">path</a></code></li>
+<li><code><a title="ariadne.message.element.Image.ready" href="#ariadne.message.element.Image.ready">ready</a></code></li>
+<li><code><a title="ariadne.message.element.Image.url" href="#ariadne.message.element.Image.url">url</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.ImageType" href="#graia.ariadne.message.element.ImageType">ImageType</a></code></h4>
+<h4><code><a title="ariadne.message.element.ImageType" href="#ariadne.message.element.ImageType">ImageType</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.ImageType.Friend" href="#graia.ariadne.message.element.ImageType.Friend">Friend</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ImageType.Group" href="#graia.ariadne.message.element.ImageType.Group">Group</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ImageType.Temp" href="#graia.ariadne.message.element.ImageType.Temp">Temp</a></code></li>
-<li><code><a title="graia.ariadne.message.element.ImageType.Unknown" href="#graia.ariadne.message.element.ImageType.Unknown">Unknown</a></code></li>
+<li><code><a title="ariadne.message.element.ImageType.Friend" href="#ariadne.message.element.ImageType.Friend">Friend</a></code></li>
+<li><code><a title="ariadne.message.element.ImageType.Group" href="#ariadne.message.element.ImageType.Group">Group</a></code></li>
+<li><code><a title="ariadne.message.element.ImageType.Temp" href="#ariadne.message.element.ImageType.Temp">Temp</a></code></li>
+<li><code><a title="ariadne.message.element.ImageType.Unknown" href="#ariadne.message.element.ImageType.Unknown">Unknown</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Json" href="#graia.ariadne.message.element.Json">Json</a></code></h4>
+<h4><code><a title="ariadne.message.element.Json" href="#ariadne.message.element.Json">Json</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Json.Json" href="#graia.ariadne.message.element.Json.Json">Json</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Json.asDisplay" href="#graia.ariadne.message.element.Json.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Json.dict" href="#graia.ariadne.message.element.Json.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.Json.Json" href="#ariadne.message.element.Json.Json">Json</a></code></li>
+<li><code><a title="ariadne.message.element.Json.asDisplay" href="#ariadne.message.element.Json.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Json.dict" href="#ariadne.message.element.Json.dict">dict</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.MusicShare" href="#graia.ariadne.message.element.MusicShare">MusicShare</a></code></h4>
+<h4><code><a title="ariadne.message.element.MusicShare" href="#ariadne.message.element.MusicShare">MusicShare</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.MusicShare.asDisplay" href="#graia.ariadne.message.element.MusicShare.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.brief" href="#graia.ariadne.message.element.MusicShare.brief">brief</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.jumpUrl" href="#graia.ariadne.message.element.MusicShare.jumpUrl">jumpUrl</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.kind" href="#graia.ariadne.message.element.MusicShare.kind">kind</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.musicUrl" href="#graia.ariadne.message.element.MusicShare.musicUrl">musicUrl</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.pictureUrl" href="#graia.ariadne.message.element.MusicShare.pictureUrl">pictureUrl</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.summary" href="#graia.ariadne.message.element.MusicShare.summary">summary</a></code></li>
-<li><code><a title="graia.ariadne.message.element.MusicShare.title" href="#graia.ariadne.message.element.MusicShare.title">title</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.asDisplay" href="#ariadne.message.element.MusicShare.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.brief" href="#ariadne.message.element.MusicShare.brief">brief</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.jumpUrl" href="#ariadne.message.element.MusicShare.jumpUrl">jumpUrl</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.kind" href="#ariadne.message.element.MusicShare.kind">kind</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.musicUrl" href="#ariadne.message.element.MusicShare.musicUrl">musicUrl</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.pictureUrl" href="#ariadne.message.element.MusicShare.pictureUrl">pictureUrl</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.summary" href="#ariadne.message.element.MusicShare.summary">summary</a></code></li>
+<li><code><a title="ariadne.message.element.MusicShare.title" href="#ariadne.message.element.MusicShare.title">title</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Plain" href="#graia.ariadne.message.element.Plain">Plain</a></code></h4>
+<h4><code><a title="ariadne.message.element.Plain" href="#ariadne.message.element.Plain">Plain</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Plain.asDisplay" href="#graia.ariadne.message.element.Plain.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Plain.text" href="#graia.ariadne.message.element.Plain.text">text</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Plain.type" href="#graia.ariadne.message.element.Plain.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.Plain.asDisplay" href="#ariadne.message.element.Plain.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Plain.text" href="#ariadne.message.element.Plain.text">text</a></code></li>
+<li><code><a title="ariadne.message.element.Plain.type" href="#ariadne.message.element.Plain.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Poke" href="#graia.ariadne.message.element.Poke">Poke</a></code></h4>
+<h4><code><a title="ariadne.message.element.Poke" href="#ariadne.message.element.Poke">Poke</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Poke.asDisplay" href="#graia.ariadne.message.element.Poke.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Poke.name" href="#graia.ariadne.message.element.Poke.name">name</a></code></li>
+<li><code><a title="ariadne.message.element.Poke.asDisplay" href="#ariadne.message.element.Poke.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Poke.name" href="#ariadne.message.element.Poke.name">name</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.PokeMethods" href="#graia.ariadne.message.element.PokeMethods">PokeMethods</a></code></h4>
+<h4><code><a title="ariadne.message.element.PokeMethods" href="#ariadne.message.element.PokeMethods">PokeMethods</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.PokeMethods.BaoBeiQiu" href="#graia.ariadne.message.element.PokeMethods.BaoBeiQiu">BaoBeiQiu</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.BiXin" href="#graia.ariadne.message.element.PokeMethods.BiXin">BiXin</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.ChuoYiChuo" href="#graia.ariadne.message.element.PokeMethods.ChuoYiChuo">ChuoYiChuo</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.DianZan" href="#graia.ariadne.message.element.PokeMethods.DianZan">DianZan</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.FangDaZhao" href="#graia.ariadne.message.element.PokeMethods.FangDaZhao">FangDaZhao</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.GouYin" href="#graia.ariadne.message.element.PokeMethods.GouYin">GouYin</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.JeiYin" href="#graia.ariadne.message.element.PokeMethods.JeiYin">JeiYin</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.LiuLiuLiu" href="#graia.ariadne.message.element.PokeMethods.LiuLiuLiu">LiuLiuLiu</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.QiaoMen" href="#graia.ariadne.message.element.PokeMethods.QiaoMen">QiaoMen</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.RangNiPi" href="#graia.ariadne.message.element.PokeMethods.RangNiPi">RangNiPi</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.Rose" href="#graia.ariadne.message.element.PokeMethods.Rose">Rose</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.ShouLei" href="#graia.ariadne.message.element.PokeMethods.ShouLei">ShouLei</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.SuiPing" href="#graia.ariadne.message.element.PokeMethods.SuiPing">SuiPing</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.XinSui" href="#graia.ariadne.message.element.PokeMethods.XinSui">XinSui</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.ZhaoHuanShu" href="#graia.ariadne.message.element.PokeMethods.ZhaoHuanShu">ZhaoHuanShu</a></code></li>
-<li><code><a title="graia.ariadne.message.element.PokeMethods.ZhuaYiXia" href="#graia.ariadne.message.element.PokeMethods.ZhuaYiXia">ZhuaYiXia</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.BaoBeiQiu" href="#ariadne.message.element.PokeMethods.BaoBeiQiu">BaoBeiQiu</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.BiXin" href="#ariadne.message.element.PokeMethods.BiXin">BiXin</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.ChuoYiChuo" href="#ariadne.message.element.PokeMethods.ChuoYiChuo">ChuoYiChuo</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.DianZan" href="#ariadne.message.element.PokeMethods.DianZan">DianZan</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.FangDaZhao" href="#ariadne.message.element.PokeMethods.FangDaZhao">FangDaZhao</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.GouYin" href="#ariadne.message.element.PokeMethods.GouYin">GouYin</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.JeiYin" href="#ariadne.message.element.PokeMethods.JeiYin">JeiYin</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.LiuLiuLiu" href="#ariadne.message.element.PokeMethods.LiuLiuLiu">LiuLiuLiu</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.QiaoMen" href="#ariadne.message.element.PokeMethods.QiaoMen">QiaoMen</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.RangNiPi" href="#ariadne.message.element.PokeMethods.RangNiPi">RangNiPi</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.Rose" href="#ariadne.message.element.PokeMethods.Rose">Rose</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.ShouLei" href="#ariadne.message.element.PokeMethods.ShouLei">ShouLei</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.SuiPing" href="#ariadne.message.element.PokeMethods.SuiPing">SuiPing</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.XinSui" href="#ariadne.message.element.PokeMethods.XinSui">XinSui</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.ZhaoHuanShu" href="#ariadne.message.element.PokeMethods.ZhaoHuanShu">ZhaoHuanShu</a></code></li>
+<li><code><a title="ariadne.message.element.PokeMethods.ZhuaYiXia" href="#ariadne.message.element.PokeMethods.ZhuaYiXia">ZhuaYiXia</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Quote" href="#graia.ariadne.message.element.Quote">Quote</a></code></h4>
+<h4><code><a title="ariadne.message.element.Quote" href="#ariadne.message.element.Quote">Quote</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.Quote.groupId" href="#graia.ariadne.message.element.Quote.groupId">groupId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Quote.id" href="#graia.ariadne.message.element.Quote.id">id</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Quote.origin" href="#graia.ariadne.message.element.Quote.origin">origin</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Quote.senderId" href="#graia.ariadne.message.element.Quote.senderId">senderId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Quote.targetId" href="#graia.ariadne.message.element.Quote.targetId">targetId</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Quote.type" href="#graia.ariadne.message.element.Quote.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.Quote.groupId" href="#ariadne.message.element.Quote.groupId">groupId</a></code></li>
+<li><code><a title="ariadne.message.element.Quote.id" href="#ariadne.message.element.Quote.id">id</a></code></li>
+<li><code><a title="ariadne.message.element.Quote.origin" href="#ariadne.message.element.Quote.origin">origin</a></code></li>
+<li><code><a title="ariadne.message.element.Quote.senderId" href="#ariadne.message.element.Quote.senderId">senderId</a></code></li>
+<li><code><a title="ariadne.message.element.Quote.targetId" href="#ariadne.message.element.Quote.targetId">targetId</a></code></li>
+<li><code><a title="ariadne.message.element.Quote.type" href="#ariadne.message.element.Quote.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Source" href="#graia.ariadne.message.element.Source">Source</a></code></h4>
+<h4><code><a title="ariadne.message.element.Source" href="#ariadne.message.element.Source">Source</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Source.Config" href="#graia.ariadne.message.element.Source.Config">Config</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Source.id" href="#graia.ariadne.message.element.Source.id">id</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Source.time" href="#graia.ariadne.message.element.Source.time">time</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Source.type" href="#graia.ariadne.message.element.Source.type">type</a></code></li>
+<li><code><a title="ariadne.message.element.Source.Config" href="#ariadne.message.element.Source.Config">Config</a></code></li>
+<li><code><a title="ariadne.message.element.Source.id" href="#ariadne.message.element.Source.id">id</a></code></li>
+<li><code><a title="ariadne.message.element.Source.time" href="#ariadne.message.element.Source.time">time</a></code></li>
+<li><code><a title="ariadne.message.element.Source.type" href="#ariadne.message.element.Source.type">type</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Voice" href="#graia.ariadne.message.element.Voice">Voice</a></code></h4>
+<h4><code><a title="ariadne.message.element.Voice" href="#ariadne.message.element.Voice">Voice</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.element.Voice.asDisplay" href="#graia.ariadne.message.element.Voice.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Voice.base64" href="#graia.ariadne.message.element.Voice.base64">base64</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Voice.data_bytes" href="#graia.ariadne.message.element.Voice.data_bytes">data_bytes</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Voice.length" href="#graia.ariadne.message.element.Voice.length">length</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Voice.path" href="#graia.ariadne.message.element.Voice.path">path</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Voice.url" href="#graia.ariadne.message.element.Voice.url">url</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Voice.voiceId" href="#graia.ariadne.message.element.Voice.voiceId">voiceId</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.asDisplay" href="#ariadne.message.element.Voice.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.base64" href="#ariadne.message.element.Voice.base64">base64</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.data_bytes" href="#ariadne.message.element.Voice.data_bytes">data_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.get_bytes" href="#ariadne.message.element.Voice.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.length" href="#ariadne.message.element.Voice.length">length</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.path" href="#ariadne.message.element.Voice.path">path</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.url" href="#ariadne.message.element.Voice.url">url</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.voiceId" href="#ariadne.message.element.Voice.voiceId">voiceId</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="graia.ariadne.message.element.Xml" href="#graia.ariadne.message.element.Xml">Xml</a></code></h4>
+<h4><code><a title="ariadne.message.element.Xml" href="#ariadne.message.element.Xml">Xml</a></code></h4>
 <ul class="">
-<li><code><a title="graia.ariadne.message.element.Xml.asDisplay" href="#graia.ariadne.message.element.Xml.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.element.Xml.xml" href="#graia.ariadne.message.element.Xml.xml">xml</a></code></li>
+<li><code><a title="ariadne.message.element.Xml.asDisplay" href="#ariadne.message.element.Xml.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Xml.xml" href="#ariadne.message.element.Xml.xml">xml</a></code></li>
 </ul>
 </li>
 </ul>

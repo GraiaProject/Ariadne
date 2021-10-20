@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>graia.ariadne.message.chain API documentation</title>
+<title>ariadne.message.chain API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>graia.ariadne.message.chain</code></h1>
+<h1 class="title">Module <code>ariadne.message.chain</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -502,7 +502,7 @@ _update_forward_refs()</code></pre>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="graia.ariadne.message.chain.MessageChain"><code class="flex name class">
+<dt id="ariadne.message.chain.MessageChain"><code class="flex name class">
 <span>class <span class="ident">MessageChain</span></span>
 <span>(</span><span>__root__: Iterable[Element])</span>
 </code></dt>
@@ -969,8 +969,8 @@ _update_forward_refs()</code></pre>
 </ul>
 <h3>Static methods</h3>
 <dl>
-<dt id="graia.ariadne.message.chain.MessageChain.build_chain"><code class="name flex">
-<span>def <span class="ident">build_chain</span></span>(<span>obj: List[Union[dict, Element]]) ‑> List[<a title="graia.ariadne.message.element.Element" href="element.html#graia.ariadne.message.element.Element">Element</a>]</span>
+<dt id="ariadne.message.chain.MessageChain.build_chain"><code class="name flex">
+<span>def <span class="ident">build_chain</span></span>(<span>obj: List[Union[dict, Element]]) ‑> List[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>内部接口, 会自动反序列化对象并生成.</p>
@@ -1010,8 +1010,8 @@ def build_chain(obj: List[Union[dict, Element]]) -&gt; List[Element]:
     return element_list</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.create"><code class="name flex">
-<span>def <span class="ident">create</span></span>(<span>*elements: Union[Iterable[Element], Element, str]) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+<dt id="ariadne.message.chain.MessageChain.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>*elements: Union[Iterable[Element], Element, str]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>创建消息链。
@@ -1048,8 +1048,8 @@ def create(
     return cls(__root__=element_list)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.parse_obj"><code class="name flex">
-<span>def <span class="ident">parse_obj</span></span>(<span>obj: List[Union[dict, Element]]) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+<dt id="ariadne.message.chain.MessageChain.parse_obj"><code class="name flex">
+<span>def <span class="ident">parse_obj</span></span>(<span>obj: List[Union[dict, Element]]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>内部接口, 会自动将作为外部态的消息元素转为内部态.</p>
@@ -1060,7 +1060,7 @@ def create(
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>内部承载有尽量有效的消息元素的消息链</dd>
 </dl></div>
 <details class="source">
@@ -1085,7 +1085,7 @@ def parse_obj(
 </dl>
 <h3>Instance variables</h3>
 <dl>
-<dt id="graia.ariadne.message.chain.MessageChain.require_prepare"><code class="name">var <span class="ident">require_prepare</span> : bool</code></dt>
+<dt id="ariadne.message.chain.MessageChain.require_prepare"><code class="name">var <span class="ident">require_prepare</span> : bool</code></dt>
 <dd>
 <div class="desc"><p>判断消息链是否需要经过处理才能被发送.</p>
 <h2 id="returns">Returns</h2>
@@ -1110,7 +1110,7 @@ def require_prepare(self) -&gt; bool:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="graia.ariadne.message.chain.MessageChain.append"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.append"><code class="name flex">
 <span>def <span class="ident">append</span></span>(<span>self, element: Element) ‑> None</span>
 </code></dt>
 <dd>
@@ -1126,7 +1126,7 @@ def require_prepare(self) -&gt; bool:
     self.__root__.append(element)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.asDisplay"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.asDisplay"><code class="name flex">
 <span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
@@ -1150,14 +1150,14 @@ def require_prepare(self) -&gt; bool:
     return &#34;&#34;.join(i.asDisplay() for i in self.__root__)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.copy"><code class="name flex">
-<span>def <span class="ident">copy</span></span>(<span>self) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+<dt id="ariadne.message.chain.MessageChain.copy"><code class="name flex">
+<span>def <span class="ident">copy</span></span>(<span>self) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>拷贝本消息链。</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>拷贝的副本。</dd>
 </dl></div>
 <details class="source">
@@ -1173,7 +1173,7 @@ def require_prepare(self) -&gt; bool:
     return MessageChain(list(self.__root__))</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.count"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.count"><code class="name flex">
 <span>def <span class="ident">count</span></span>(<span>self, element_type: Type[Element_T]) ‑> int</span>
 </code></dt>
 <dd>
@@ -1193,7 +1193,7 @@ def require_prepare(self) -&gt; bool:
     return cnt</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.endswith"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.endswith"><code class="name flex">
 <span>def <span class="ident">endswith</span></span>(<span>self, string: str) ‑> bool</span>
 </code></dt>
 <dd>
@@ -1230,8 +1230,8 @@ def require_prepare(self) -&gt; bool:
     return last_element.text.endswith(string)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.exclude"><code class="name flex">
-<span>def <span class="ident">exclude</span></span>(<span>self, *types: Type[Element]) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+<dt id="ariadne.message.chain.MessageChain.exclude"><code class="name flex">
+<span>def <span class="ident">exclude</span></span>(<span>self, *types: Type[Element]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>将除了在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链</p>
@@ -1242,7 +1242,7 @@ def require_prepare(self) -&gt; bool:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>返回的消息链中不包含参数中给出的消息元素类型</dd>
 </dl></div>
 <details class="source">
@@ -1261,8 +1261,8 @@ def require_prepare(self) -&gt; bool:
     return MessageChain([i for i in self.__root__ if type(i) not in types])</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.extend"><code class="name flex">
-<span>def <span class="ident">extend</span></span>(<span>self, *content: Union[<a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a>, Element, List[Element]], copy: bool = False) ‑> Optional[None]</span>
+<dt id="ariadne.message.chain.MessageChain.extend"><code class="name flex">
+<span>def <span class="ident">extend</span></span>(<span>self, *content: Union[<a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a>, Element, List[Element]], copy: bool = False) ‑> Optional[None]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>向消息链最后添加元素/元素列表/消息链</p>
@@ -1274,7 +1274,7 @@ def require_prepare(self) -&gt; bool:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Union[None, <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a>]</code></dt>
+<dt><code>Union[None, <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a>]</code></dt>
 <dd>copy = True 时返回副本</dd>
 </dl></div>
 <details class="source">
@@ -1307,7 +1307,7 @@ def require_prepare(self) -&gt; bool:
         self.__root__ = result</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.get"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.get"><code class="name flex">
 <span>def <span class="ident">get</span></span>(<span>self, element_class: Type[Element_T]) ‑> List[~Element_T]</span>
 </code></dt>
 <dd>
@@ -1339,7 +1339,7 @@ def require_prepare(self) -&gt; bool:
     return [i for i in self.__root__ if isinstance(i, element_class)]</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.getFirst"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.getFirst"><code class="name flex">
 <span>def <span class="ident">getFirst</span></span>(<span>self, element_class: Type[Element_T]) ‑> ~Element_T</span>
 </code></dt>
 <dd>
@@ -1371,7 +1371,7 @@ def require_prepare(self) -&gt; bool:
     return self.getOne(element_class, 0)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.getOne"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.getOne"><code class="name flex">
 <span>def <span class="ident">getOne</span></span>(<span>self, element_class: Type[Element_T], index: int) ‑> ~Element_T</span>
 </code></dt>
 <dd>
@@ -1406,7 +1406,7 @@ def require_prepare(self) -&gt; bool:
     return self.get(element_class)[index]</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.has"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.has"><code class="name flex">
 <span>def <span class="ident">has</span></span>(<span>self, element_class: Type[Element_T]) ‑> bool</span>
 </code></dt>
 <dd>
@@ -1438,7 +1438,7 @@ def require_prepare(self) -&gt; bool:
     return element_class in [type(i) for i in self.__root__]</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.hasText"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.hasText"><code class="name flex">
 <span>def <span class="ident">hasText</span></span>(<span>self, string: str) ‑> bool</span>
 </code></dt>
 <dd>
@@ -1476,8 +1476,8 @@ def require_prepare(self) -&gt; bool:
     return False</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.include"><code class="name flex">
-<span>def <span class="ident">include</span></span>(<span>self, *types: Type[Element]) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+<dt id="ariadne.message.chain.MessageChain.include"><code class="name flex">
+<span>def <span class="ident">include</span></span>(<span>self, *types: Type[Element]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>将只在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链</p>
@@ -1488,7 +1488,7 @@ def require_prepare(self) -&gt; bool:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>返回的消息链中只包含参数中给出的消息元素类型</dd>
 </dl></div>
 <details class="source">
@@ -1507,7 +1507,7 @@ def require_prepare(self) -&gt; bool:
     return MessageChain([i for i in self.__root__ if type(i) in types])</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.index"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.index"><code class="name flex">
 <span>def <span class="ident">index</span></span>(<span>self, element_type: Type[Element_T]) ‑> Optional[int]</span>
 </code></dt>
 <dd>
@@ -1525,7 +1525,7 @@ def require_prepare(self) -&gt; bool:
             return i</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.merge"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.merge"><code class="name flex">
 <span>def <span class="ident">merge</span></span>(<span>self, copy: bool = False) ‑> Optional[None]</span>
 </code></dt>
 <dd>
@@ -1533,7 +1533,7 @@ def require_prepare(self) -&gt; bool:
 <p>copy (bool): 是否要在副本上修改。</p>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>Union[None, <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a>]</code></dt>
+<dt><code>Union[None, <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a>]</code></dt>
 <dd>copy = True 时返回副本</dd>
 </dl></div>
 <details class="source">
@@ -1571,7 +1571,7 @@ def require_prepare(self) -&gt; bool:
         self.__root__ = result</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.prepare"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.prepare"><code class="name flex">
 <span>async def <span class="ident">prepare</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
@@ -1589,8 +1589,8 @@ def require_prepare(self) -&gt; bool:
         await run_always_await(i.prepare)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.split"><code class="name flex">
-<span>def <span class="ident">split</span></span>(<span>self, pattern: str, raw_string: bool = False) ‑> List[<a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a>]</span>
+<dt id="ariadne.message.chain.MessageChain.split"><code class="name flex">
+<span>def <span class="ident">split</span></span>(<span>self, pattern: str, raw_string: bool = False) ‑> List[<a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>和 <code>str.split</code> 差不多, 提供一个字符串, 然后返回分割结果.</p>
@@ -1628,7 +1628,7 @@ def require_prepare(self) -&gt; bool:
     return result</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.startswith"><code class="name flex">
+<dt id="ariadne.message.chain.MessageChain.startswith"><code class="name flex">
 <span>def <span class="ident">startswith</span></span>(<span>self, string: str) ‑> bool</span>
 </code></dt>
 <dd>
@@ -1664,8 +1664,8 @@ def require_prepare(self) -&gt; bool:
     return self.__root__[0].text.startswith(string)</code></pre>
 </details>
 </dd>
-<dt id="graia.ariadne.message.chain.MessageChain.subchain"><code class="name flex">
-<span>def <span class="ident">subchain</span></span>(<span>self, item: slice, ignore_text_index: bool = False) ‑> <a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></span>
+<dt id="ariadne.message.chain.MessageChain.subchain"><code class="name flex">
+<span>def <span class="ident">subchain</span></span>(<span>self, item: slice, ignore_text_index: bool = False) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>对消息链执行分片操作</p>
@@ -1681,7 +1681,7 @@ def require_prepare(self) -&gt; bool:
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code><a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>分片后得到的新消息链, 绝对是原消息链的子集.</dd>
 </dl></div>
 <details class="source">
@@ -1755,37 +1755,37 @@ def require_prepare(self) -&gt; bool:
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="graia.ariadne.message" href="index.html">graia.ariadne.message</a></code></li>
+<li><code><a title="ariadne.message" href="index.html">ariadne.message</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="graia.ariadne.message.chain.MessageChain" href="#graia.ariadne.message.chain.MessageChain">MessageChain</a></code></h4>
+<h4><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></h4>
 <ul class="two-column">
-<li><code><a title="graia.ariadne.message.chain.MessageChain.append" href="#graia.ariadne.message.chain.MessageChain.append">append</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.asDisplay" href="#graia.ariadne.message.chain.MessageChain.asDisplay">asDisplay</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.build_chain" href="#graia.ariadne.message.chain.MessageChain.build_chain">build_chain</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.copy" href="#graia.ariadne.message.chain.MessageChain.copy">copy</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.count" href="#graia.ariadne.message.chain.MessageChain.count">count</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.create" href="#graia.ariadne.message.chain.MessageChain.create">create</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.endswith" href="#graia.ariadne.message.chain.MessageChain.endswith">endswith</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.exclude" href="#graia.ariadne.message.chain.MessageChain.exclude">exclude</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.extend" href="#graia.ariadne.message.chain.MessageChain.extend">extend</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.get" href="#graia.ariadne.message.chain.MessageChain.get">get</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.getFirst" href="#graia.ariadne.message.chain.MessageChain.getFirst">getFirst</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.getOne" href="#graia.ariadne.message.chain.MessageChain.getOne">getOne</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.has" href="#graia.ariadne.message.chain.MessageChain.has">has</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.hasText" href="#graia.ariadne.message.chain.MessageChain.hasText">hasText</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.include" href="#graia.ariadne.message.chain.MessageChain.include">include</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.index" href="#graia.ariadne.message.chain.MessageChain.index">index</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.merge" href="#graia.ariadne.message.chain.MessageChain.merge">merge</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.parse_obj" href="#graia.ariadne.message.chain.MessageChain.parse_obj">parse_obj</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.prepare" href="#graia.ariadne.message.chain.MessageChain.prepare">prepare</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.require_prepare" href="#graia.ariadne.message.chain.MessageChain.require_prepare">require_prepare</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.split" href="#graia.ariadne.message.chain.MessageChain.split">split</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.startswith" href="#graia.ariadne.message.chain.MessageChain.startswith">startswith</a></code></li>
-<li><code><a title="graia.ariadne.message.chain.MessageChain.subchain" href="#graia.ariadne.message.chain.MessageChain.subchain">subchain</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.append" href="#ariadne.message.chain.MessageChain.append">append</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.asDisplay" href="#ariadne.message.chain.MessageChain.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.build_chain" href="#ariadne.message.chain.MessageChain.build_chain">build_chain</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.copy" href="#ariadne.message.chain.MessageChain.copy">copy</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.count" href="#ariadne.message.chain.MessageChain.count">count</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.create" href="#ariadne.message.chain.MessageChain.create">create</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.endswith" href="#ariadne.message.chain.MessageChain.endswith">endswith</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.exclude" href="#ariadne.message.chain.MessageChain.exclude">exclude</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.extend" href="#ariadne.message.chain.MessageChain.extend">extend</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.get" href="#ariadne.message.chain.MessageChain.get">get</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.getFirst" href="#ariadne.message.chain.MessageChain.getFirst">getFirst</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.getOne" href="#ariadne.message.chain.MessageChain.getOne">getOne</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.has" href="#ariadne.message.chain.MessageChain.has">has</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.hasText" href="#ariadne.message.chain.MessageChain.hasText">hasText</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.include" href="#ariadne.message.chain.MessageChain.include">include</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.index" href="#ariadne.message.chain.MessageChain.index">index</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.merge" href="#ariadne.message.chain.MessageChain.merge">merge</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.parse_obj" href="#ariadne.message.chain.MessageChain.parse_obj">parse_obj</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.prepare" href="#ariadne.message.chain.MessageChain.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.require_prepare" href="#ariadne.message.chain.MessageChain.require_prepare">require_prepare</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.split" href="#ariadne.message.chain.MessageChain.split">split</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.startswith" href="#ariadne.message.chain.MessageChain.startswith">startswith</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.subchain" href="#ariadne.message.chain.MessageChain.subchain">subchain</a></code></li>
 </ul>
 </li>
 </ul>

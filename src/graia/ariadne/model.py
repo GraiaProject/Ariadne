@@ -9,10 +9,12 @@ from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
 
-from graia.ariadne.util import datetime_encoder
-
 if TYPE_CHECKING:
     from graia.ariadne.app import Ariadne
+
+
+def datetime_encoder(v: datetime):
+    return v.timestamp()
 
 
 class AriadneBaseModel(BaseModel):

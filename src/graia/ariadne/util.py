@@ -1,5 +1,4 @@
 import functools
-from datetime import datetime
 from typing import Callable, ContextManager, TypeVar, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -76,7 +75,3 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
             return await func(self, *args, **kwargs)
 
     return wrapper
-
-
-def datetime_encoder(v: datetime):
-    return v.timestamp()

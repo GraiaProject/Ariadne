@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>graia.ariadne.event.lifecycle API documentation</title>
+<title>ariadne.message API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,143 +19,32 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>graia.ariadne.event.lifecycle</code></h1>
+<h1 class="title">Module <code>ariadne.message</code></h1>
 </header>
 <section id="section-intro">
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">import typing
-
-from graia.broadcast.entities.dispatcher import BaseDispatcher
-from graia.broadcast.entities.event import Dispatchable
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-
-if typing.TYPE_CHECKING:
-    from graia.ariadne.app import Ariadne
-
-
-class ApplicationLaunched(Dispatchable):
-    app: &#34;Ariadne&#34;
-
-    def __init__(self, app) -&gt; None:
-        self.app = app
-
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: &#34;DispatcherInterface[ApplicationLaunched]&#34;):
-            from .. import GraiaMiraiApplication
-
-            if interface.annotation is GraiaMiraiApplication:
-                return interface.event.app
-
-
-class ApplicationShutdowned(Dispatchable):
-    app: &#34;Ariadne&#34;
-
-    def __init__(self, app) -&gt; None:
-        self.app = app
-
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: &#34;DispatcherInterface[ApplicationShutdowned]&#34;):
-            from .. import GraiaMiraiApplication
-
-            if interface.annotation is GraiaMiraiApplication:
-                return interface.event.app</code></pre>
-</details>
 </section>
 <section>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-classes">Classes</h2>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
 <dl>
-<dt id="graia.ariadne.event.lifecycle.ApplicationLaunched"><code class="flex name class">
-<span>class <span class="ident">ApplicationLaunched</span></span>
-<span>(</span><span>app)</span>
-</code></dt>
+<dt><code class="name"><a title="ariadne.message.chain" href="chain.html">ariadne.message.chain</a></code></dt>
 <dd>
 <div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class ApplicationLaunched(Dispatchable):
-    app: &#34;Ariadne&#34;
-
-    def __init__(self, app) -&gt; None:
-        self.app = app
-
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: &#34;DispatcherInterface[ApplicationLaunched]&#34;):
-            from .. import GraiaMiraiApplication
-
-            if interface.annotation is GraiaMiraiApplication:
-                return interface.event.app</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>graia.broadcast.entities.event.Dispatchable</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="graia.ariadne.event.lifecycle.ApplicationLaunched.Dispatcher"><code class="name">var <span class="ident">Dispatcher</span></code></dt>
-<dd>
-<div class="desc"><p>所有非单函数型 Dispatcher 的基类, 用于为参数解析提供可扩展的支持.</p></div>
 </dd>
-<dt id="graia.ariadne.event.lifecycle.ApplicationLaunched.app"><code class="name">var <span class="ident">app</span> : Ariadne</code></dt>
+<dt><code class="name"><a title="ariadne.message.element" href="element.html">ariadne.message.element</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="ariadne.message.parser" href="parser/index.html">ariadne.message.parser</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
-</dd>
-<dt id="graia.ariadne.event.lifecycle.ApplicationShutdowned"><code class="flex name class">
-<span>class <span class="ident">ApplicationShutdowned</span></span>
-<span>(</span><span>app)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class ApplicationShutdowned(Dispatchable):
-    app: &#34;Ariadne&#34;
-
-    def __init__(self, app) -&gt; None:
-        self.app = app
-
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: &#34;DispatcherInterface[ApplicationShutdowned]&#34;):
-            from .. import GraiaMiraiApplication
-
-            if interface.annotation is GraiaMiraiApplication:
-                return interface.event.app</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>graia.broadcast.entities.event.Dispatchable</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="graia.ariadne.event.lifecycle.ApplicationShutdowned.Dispatcher"><code class="name">var <span class="ident">Dispatcher</span></code></dt>
-<dd>
-<div class="desc"><p>所有非单函数型 Dispatcher 的基类, 用于为参数解析提供可扩展的支持.</p></div>
-</dd>
-<dt id="graia.ariadne.event.lifecycle.ApplicationShutdowned.app"><code class="name">var <span class="ident">app</span> : Ariadne</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
 </section>
 </article>
 <nav id="sidebar">
@@ -166,25 +55,14 @@ class ApplicationShutdowned(Dispatchable):
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="graia.ariadne.event" href="index.html">graia.ariadne.event</a></code></li>
+<li><code><a title="ariadne" href="../index.html">ariadne</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-classes">Classes</a></h3>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
-<li>
-<h4><code><a title="graia.ariadne.event.lifecycle.ApplicationLaunched" href="#graia.ariadne.event.lifecycle.ApplicationLaunched">ApplicationLaunched</a></code></h4>
-<ul class="">
-<li><code><a title="graia.ariadne.event.lifecycle.ApplicationLaunched.Dispatcher" href="#graia.ariadne.event.lifecycle.ApplicationLaunched.Dispatcher">Dispatcher</a></code></li>
-<li><code><a title="graia.ariadne.event.lifecycle.ApplicationLaunched.app" href="#graia.ariadne.event.lifecycle.ApplicationLaunched.app">app</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="graia.ariadne.event.lifecycle.ApplicationShutdowned" href="#graia.ariadne.event.lifecycle.ApplicationShutdowned">ApplicationShutdowned</a></code></h4>
-<ul class="">
-<li><code><a title="graia.ariadne.event.lifecycle.ApplicationShutdowned.Dispatcher" href="#graia.ariadne.event.lifecycle.ApplicationShutdowned.Dispatcher">Dispatcher</a></code></li>
-<li><code><a title="graia.ariadne.event.lifecycle.ApplicationShutdowned.app" href="#graia.ariadne.event.lifecycle.ApplicationShutdowned.app">app</a></code></li>
-</ul>
-</li>
+<li><code><a title="ariadne.message.chain" href="chain.html">ariadne.message.chain</a></code></li>
+<li><code><a title="ariadne.message.element" href="element.html">ariadne.message.element</a></code></li>
+<li><code><a title="ariadne.message.parser" href="parser/index.html">ariadne.message.parser</a></code></li>
 </ul>
 </li>
 </ul>

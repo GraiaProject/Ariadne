@@ -7,12 +7,11 @@ from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
-import aiohttp
-from aiohttp import ClientSession
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
 
-from graia.ariadne.context import application_ctx, upload_method_ctx
+from graia.ariadne.context import application_ctx, upload_method_ctx, adapter_ctx
+from graia.ariadne.util import datetime_encoder
 from graia.ariadne.exception import InvalidArgument
 from graia.ariadne.model import AriadneBaseModel, UploadMethod
 
@@ -66,7 +65,7 @@ class Source(Element):
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }
 
 
@@ -146,6 +145,7 @@ class Face(Element):
 
 
 class Xml(Element):
+    "表示消息中的 XML 消息元素"
     type = "Xml"
     xml: str
 
@@ -154,6 +154,7 @@ class Xml(Element):
 
 
 class Json(Element):
+    "表示消息中的 JSON 消息元素"
     type = "Json"
     Json: str = Field(..., alias="json")
 
@@ -170,6 +171,7 @@ class Json(Element):
 
 
 class App(Element):
+    "表示消息中自带的 App 消息元素"
     type = "App"
     content: str
 
@@ -178,6 +180,7 @@ class App(Element):
 
 
 class PokeMethods(Enum):
+    "戳一戳可用方法"
     ChuoYiChuo = "ChuoYiChuo"
     BiXin = "BiXin"
     DianZan = "DianZan"
@@ -197,6 +200,7 @@ class PokeMethods(Enum):
 
 
 class Poke(Element):
+    "表示消息中戳一戳消息元素"
     type = "Poke"
     name: PokeMethods
 
@@ -205,6 +209,7 @@ class Poke(Element):
 
 
 class Dice(Element):
+    "表示消息中骰子消息元素"
     type = "Dice"
     value: int
 
@@ -213,6 +218,7 @@ class Dice(Element):
 
 
 class MusicShare(Element):
+    "表示消息中音乐分享消息元素"
     type = "MusicShare"
     kind: Optional[str]
     title: Optional[str]
@@ -227,6 +233,7 @@ class MusicShare(Element):
 
 
 class ForwardNode(BaseModel):
+    "表示合并转发中的一个节点"
     senderId: int
     time: datetime
     senderName: str
@@ -235,7 +242,7 @@ class ForwardNode(BaseModel):
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }
 
 
@@ -254,6 +261,7 @@ class Forward(Element):
 
 
 class File(Element):
+    "指示一个文件信息元素"
     type = "File"
     id: str
     name: str
@@ -278,6 +286,7 @@ image_upload_method_type_map = {
 
 
 class Image(Element):
+    "指示消息中的图片元素"
     type = "Image"
     ready: bool = True
     imageId: Optional[str] = None
@@ -315,8 +324,28 @@ class Image(Element):
     def asDisplay(self) -> str:
         return "[图片]"
 
+    async def get_bytes(self, url: str = None) -> bytes:
+        """从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        """
+        if not (self.url or url):
+            raise ValueError("you should offer a url.")
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            return await response.read()
+
 
 class FlashImage(Image):
+    "指示消息中的闪照元素"
     type = "FlashImage"
 
     def __init__(
@@ -350,6 +379,7 @@ class FlashImage(Image):
 
 
 class Voice(Element):
+    "指示消息中的语音元素"
     type = "Voice"
     voiceId: Optional[str]
     url: Optional[str]
@@ -383,6 +413,25 @@ class Voice(Element):
 
     def asDisplay(self) -> str:
         return "[语音]"
+
+    async def get_bytes(self, url: str = None) -> bytes:
+        """从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        """
+        if not (self.url or url):
+            raise ValueError("you should offer a url.")
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            return await response.read()
 
 
 def _update_forward_refs():

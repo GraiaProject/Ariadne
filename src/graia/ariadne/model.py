@@ -9,16 +9,28 @@ from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
 
+from graia.ariadne.util import datetime_encoder
+
 if TYPE_CHECKING:
     from graia.ariadne.app import Ariadne
 
 
 class AriadneBaseModel(BaseModel):
+    """
+    Ariadne 一切数据模型的基类.
+    """
+
     class Config(BaseConfig):
         extra = Extra.allow
 
 
 class ChatLogConfig(BaseModel):
+    """配置日志如何记录 QQ 消息与事件.
+
+    Args:
+        BaseModel ([type]): [description]
+    """
+
     enabled: bool = True
     log_level: str = "INFO"
     group_message_log_format: str = "{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -> {message_string}"
@@ -217,6 +229,8 @@ class MemberInfo(AriadneBaseModel):
 
 
 class DownloadInfo(AriadneBaseModel):
+    """描述一个文件的下载信息."""
+
     sha: str = ""
     md5: str = ""
     download_times: int = Field(..., alias="downloadTimes")
@@ -227,7 +241,7 @@ class DownloadInfo(AriadneBaseModel):
 
     class Config:
         json_encoders = {
-            datetime: lambda v: int(v.timestamp()),
+            datetime: datetime_encoder,
         }
 
 
@@ -258,7 +272,7 @@ FileInfo.update_forward_refs(FileInfo=FileInfo)
 
 
 class UploadMethod(Enum):
-    """用于向 `uploadImage` 或 `uploadVoice` 方法描述图片的上传类型"""
+    """用于向 `upload` 系列方法描述上传类型"""
 
     Friend = "friend"
     Group = "group"
@@ -266,6 +280,10 @@ class UploadMethod(Enum):
 
 
 class CallMethod(Enum):
+    """
+    用于向 `Adapter.call_api` 指示操作类型.
+    """
+
     GET = "GET"
     POST = "POST"
     RESTGET = "get"
@@ -296,4 +314,8 @@ class Profile(AriadneBaseModel):
 
 
 class BotMessage(AriadneBaseModel):
+    """
+    指示 Bot 发出的消息.
+    """
+
     messageId: int

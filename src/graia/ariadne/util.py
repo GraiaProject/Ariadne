@@ -1,3 +1,4 @@
+from datetime import datetime
 import functools
 from typing import Callable, ContextManager, TypeVar, Union
 
@@ -75,3 +76,7 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
             return await func(self, *args, **kwargs)
 
     return wrapper
+
+
+def datetime_encoder(v: datetime):
+    return v.timestamp()

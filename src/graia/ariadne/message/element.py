@@ -1,11 +1,11 @@
 import abc
 import sys
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, NoReturn, Optional, Union
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
@@ -16,6 +16,12 @@ from graia.ariadne.model import AriadneBaseModel, UploadMethod, datetime_encoder
 
 if TYPE_CHECKING:
     from graia.ariadne.message.chain import MessageChain
+
+
+class NotSendableElement(Exception):
+    """
+    指示一个元素是不可发送的.
+    """
 
 
 class Element(AriadneBaseModel, abc.ABC):
@@ -34,9 +40,12 @@ class Element(AriadneBaseModel, abc.ABC):
 
     def prepare(self) -> None:
         """
-        为元素被发送进行准备
+        为元素被发送进行准备,
         若无异常被引发，则完成本方法后元素应可被发送。
+
         保留空实现以允许不需要 `prepare`的元素类型存在。
+
+        若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
         """
 
 
@@ -67,6 +76,9 @@ class Source(Element):
             datetime: datetime_encoder,
         }
 
+    def prepare(self) -> NoReturn:
+        raise NotSendableElement
+
 
 class Quote(Element):
     "表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"
@@ -83,6 +95,9 @@ class Quote(Element):
 
         return MessageChain(v)  # no need to parse objects, they are universal!
 
+    def prepare(self) -> NoReturn:
+        raise NotSendableElement
+
 
 class At(Element):
     """该消息元素用于承载消息中用于提醒/呼唤特定用户的部分."""
@@ -98,6 +113,9 @@ class At(Element):
             target (int): 需要提醒/呼唤的特定用户的 QQ 号(或者说 id.)
         """
         super().__init__(target=target, **kwargs)
+
+    def __eq__(self, other: "At"):
+        return isinstance(other, At) and self.target == other.target
 
     def prepare(self) -> None:
         try:
@@ -140,7 +158,12 @@ class Face(Element):
     name: Optional[str] = None
 
     def asDisplay(self) -> str:
-        return f"[表情:{self.faceId}]"
+        return f"[表情:{self.faceId}{f'({self.name})' if self.name else ''}]"
+
+    def __eq__(self, other: "Face") -> bool:
+        return isinstance(other, Face) and (
+            self.faceId == other.faceId or self.name == other.name
+        )
 
 
 class Xml(Element):
@@ -284,15 +307,63 @@ image_upload_method_type_map = {
 }
 
 
-class Image(Element):
-    "指示消息中的图片元素"
-    type = "Image"
-    ready: bool = True
-    imageId: Optional[str] = None
+class MultimediaElement(Element):
+    """指示多媒体消息元素."""
+
     url: Optional[str] = None
     path: Optional[Path] = None
     base64: Optional[str] = None
-    data_bytes: Optional[bytes] = None
+
+    def dict(self, *args, **kwargs):
+        return super().dict(*args, **({**kwargs, "by_alias": True}))
+
+    async def get_bytes(self, url: str = None) -> bytes:
+        """尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        """
+        if self.base64:
+            return b64decode(self.base64)
+        if not (self.url or url):
+            raise ValueError("you should offer a url.")
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            data = await response.read()
+            self.base64 = b64encode(data)
+            return data
+
+    @property
+    def uuid(self):
+        if self.id:
+            return self.id.split(".")[0].strip("/{}").lower()
+        return ""
+
+    def __eq__(self, other: "MultimediaElement"):
+        if self.type != other.type:
+            return False
+        if self.uuid and self.uuid == other.uuid:
+            return True
+        elif self.url and self.url == other.url:
+            return True
+        elif self.path and self.path == other.path:
+            return True
+        elif self.base64 and self.base64 == other.base64:
+            return True
+        return False
+
+
+class Image(MultimediaElement):
+    "指示消息中的图片元素"
+    type = "Image"
+    id: Optional[str] = Field(None, alias="imageId")
 
     def __init__(
         self,
@@ -322,25 +393,6 @@ class Image(Element):
 
     def asDisplay(self) -> str:
         return "[图片]"
-
-    async def get_bytes(self, url: str = None) -> bytes:
-        """从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-        Raises:
-            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-        Returns:
-            bytes: 元素原始数据
-        """
-        if not (self.url or url):
-            raise ValueError("you should offer a url.")
-        session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
-            response.raise_for_status()
-            return await response.read()
 
 
 class FlashImage(Image):
@@ -377,15 +429,11 @@ class FlashImage(Image):
         return "[闪照]"
 
 
-class Voice(Element):
+class Voice(MultimediaElement):
     "指示消息中的语音元素"
     type = "Voice"
-    voiceId: Optional[str]
-    url: Optional[str]
-    path: Optional[Path]
-    base64: Optional[str]
+    id: Optional[str] = Field(..., alias="voiceId")
     length: Optional[int]
-    data_bytes: Optional[bytes]
 
     def __init__(
         self,
@@ -412,25 +460,6 @@ class Voice(Element):
 
     def asDisplay(self) -> str:
         return "[语音]"
-
-    async def get_bytes(self, url: str = None) -> bytes:
-        """从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-        Raises:
-            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-        Returns:
-            bytes: 元素原始数据
-        """
-        if not (self.url or url):
-            raise ValueError("you should offer a url.")
-        session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
-            response.raise_for_status()
-            return await response.read()
 
 
 def _update_forward_refs():

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import copy
-from typing import Iterable, List, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
-from .element import Element, _update_forward_refs
+from .element import Element, NotSendableElement, _update_forward_refs
 
 MessageIndex = Tuple[int, Optional[int]]
 
@@ -82,22 +82,19 @@ class MessageChain(BaseModel):
                 element_list.extend(list(i))
         return cls(__root__=element_list)
 
-    @property
-    def require_prepare(self) -> bool:
-        """判断消息链是否需要经过处理才能被发送.
-
-        Returns:
-            bool: 判断的结果, True 为需要, False 则反之.
-        """
-        return all(i.prepare is Element.prepare for i in self.__root__)
-
-    async def prepare(self) -> None:
+    def prepare(self, copy: bool = False) -> Optional["MessageChain"]:
         """
         对消息链中所有元素进行处理。
         """
-        self.merge()
-        for i in self.__root__:
-            await run_always_await(i.prepare)
+        chain_ref = self.copy() if copy else self
+        chain_ref.merge()
+        for i in chain_ref.__root__[:]:
+            try:
+                i.prepare()
+            except NotSendableElement:
+                chain_ref.__root__.remove(i)
+        if copy:
+            return chain_ref
 
     def has(self, element_class: Type[Element_T]) -> bool:
         """
@@ -355,6 +352,9 @@ class MessageChain(BaseModel):
                 return True
         return False
 
+    def onlyHas(self, *types: Type[Element]) -> bool:
+        return all(isinstance(i, types) for i in self.__root__)
+
     def merge(self, copy: bool = False) -> Union[None, "MessageChain"]:
         """
         在实例内合并相邻的 Plain 项
@@ -422,7 +422,7 @@ class MessageChain(BaseModel):
         Returns:
             MessageChain: 拷贝的副本。
         """
-        return MessageChain(list(self.__root__))
+        return MessageChain(self.__root__)
 
     def index(self, element_type: Type[Element_T]) -> Union[int, None]:
         """

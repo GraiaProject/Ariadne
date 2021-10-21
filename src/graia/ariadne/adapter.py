@@ -18,11 +18,11 @@ from loguru import logger
 from typing_extensions import ParamSpec
 from yarl import URL
 
-from graia.ariadne.event import MiraiEvent
-from graia.ariadne.event.network import RemoteException
-from graia.ariadne.exception import InvalidArgument, InvalidSession, NotSupportedAction
-from graia.ariadne.model import CallMethod, MiraiSession
-from graia.ariadne.util import validate_response
+from .event import MiraiEvent
+from .event.network import RemoteException
+from .exception import InvalidArgument, InvalidSession, NotSupportedAction
+from .model import CallMethod, MiraiSession
+from .util import validate_response
 
 P = ParamSpec("P")
 R = TypeVar("R")

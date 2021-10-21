@@ -5,7 +5,7 @@ from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 if typing.TYPE_CHECKING:
-    from graia.ariadne.app import Ariadne
+    from ..app import Ariadne
 
 
 class ApplicationLifecycleEvent(Dispatchable):

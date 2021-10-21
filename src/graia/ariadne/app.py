@@ -8,23 +8,23 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.adapter import Adapter
-from graia.ariadne.context import enter_message_send_context
-from graia.ariadne.event import MiraiEvent
-from graia.ariadne.event.lifecycle import ApplicationLaunched, ApplicationShutdowned
-from graia.ariadne.event.message import (
+from .adapter import Adapter
+from .context import enter_message_send_context
+from .event import MiraiEvent
+from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+from .event.message import (
     FriendMessage,
     GroupMessage,
     MessageEvent,
     TempMessage,
 )
-from graia.ariadne.message.element import Source
+from .message.element import Source
 
 if TYPE_CHECKING:
-    from graia.ariadne.message.element import Image, Voice
+    from .message.element import Image, Voice
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.model import (
+from .message.chain import MessageChain
+from .model import (
     BotMessage,
     CallMethod,
     ChatLogConfig,
@@ -38,7 +38,7 @@ from graia.ariadne.model import (
     Profile,
     UploadMethod,
 )
-from graia.ariadne.util import ApplicationMiddlewareDispatcher, app_ctx_manager
+from .util import ApplicationMiddlewareDispatcher, app_ctx_manager
 
 
 class Ariadne:
@@ -1140,7 +1140,7 @@ class Ariadne:
         Returns:
             Image: 生成的图片消息元素
         """
-        from graia.ariadne.message.element import Image
+        from .message.element import Image
 
         result = await self.adapter.call_api(
             "uploadImage",
@@ -1163,7 +1163,7 @@ class Ariadne:
         Returns:
             Voice: 生成的语音消息元素
         """
-        from graia.ariadne.message.element import Voice
+        from .message.element import Voice
 
         result = await self.adapter.call_api(
             "uploadVoice",

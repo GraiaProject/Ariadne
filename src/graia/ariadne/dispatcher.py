@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from graia.ariadne.context import application_ctx
+from .context import application_ctx
 
 if TYPE_CHECKING:
-    from graia.ariadne.event.message import MessageEvent
+    from .event.message import MessageEvent
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import Source
+from .message.chain import MessageChain
+from .message.element import Source
 
 
 class MessageChainDispatcher(BaseDispatcher):

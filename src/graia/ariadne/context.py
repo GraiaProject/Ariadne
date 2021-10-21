@@ -2,16 +2,16 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
-from graia.ariadne.model import UploadMethod
+from .model import UploadMethod
 
 if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
     from graia.broadcast import Broadcast
 
-    from graia.ariadne.adapter import Adapter
-    from graia.ariadne.app import Ariadne
-    from graia.ariadne.event import MiraiEvent
+    from .adapter import Adapter
+    from .app import Ariadne
+    from .event import MiraiEvent
 
 
 application_ctx: ContextVar["Ariadne"] = ContextVar("application")

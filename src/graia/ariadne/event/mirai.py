@@ -7,12 +7,12 @@ from pydantic import Field
 from pydantic.class_validators import validator
 from typing_extensions import Literal
 
-from graia.ariadne.context import adapter_ctx
-from graia.ariadne.dispatcher import ApplicationDispatcher
-from graia.ariadne.exception import InvalidSession
-from graia.ariadne.message.element import Element
-from graia.ariadne.model import CallMethod, Client, Friend, Group, Member, MemberPerm
-from graia.ariadne.util import validate_response
+from ..context import adapter_ctx
+from ..dispatcher import ApplicationDispatcher
+from ..exception import InvalidSession
+from ..message.element import Element
+from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
+from ..util import validate_response
 
 from . import MiraiEvent
 

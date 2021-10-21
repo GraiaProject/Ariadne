@@ -10,7 +10,7 @@ from typing_extensions import Literal
 from yarl import URL
 
 if TYPE_CHECKING:
-    from graia.ariadne.app import Ariadne
+    from .app import Ariadne
 
 
 def datetime_encoder(v: datetime):
@@ -48,7 +48,7 @@ class ChatLogConfig(BaseModel):
     )
 
     def initialize(self, app: "Ariadne"):
-        from graia.ariadne.event.message import (
+        from .event.message import (
             FriendMessage,
             GroupMessage,
             OtherClientMessage,

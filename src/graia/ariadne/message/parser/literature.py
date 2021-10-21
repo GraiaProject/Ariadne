@@ -10,8 +10,8 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.utilles import printer
 
-from graia.ariadne.message.chain import MessageChain, MessageIndex
-from graia.ariadne.message.element import (
+from ..chain import MessageChain, MessageIndex
+from ..element import (
     App,
     At,
     Element,
@@ -24,7 +24,7 @@ from graia.ariadne.message.element import (
     Voice,
     Xml,
 )
-from graia.ariadne.message.parser.pattern import (
+from .pattern import (
     BoxParameter,
     ParamPattern,
     SwitchParameter,
@@ -229,31 +229,3 @@ class Literature(BaseDispatcher):
                     return raw_argument
                 elif match_value is not None:
                     return match_value
-
-
-if __name__ == "__main__":
-    from graia.ariadne.message.element import At, AtAll
-
-    mc = MessageChain.create(
-        [
-            Plain('test n --f3 "1 2 tsthd thsd ydj re7u  '),
-            At(351453455),
-            Plain(' " --f34 "arg arega er ae aghr ae rtyh'),
-            # At(656735757),
-            Plain(' "'),
-        ]
-    )
-
-    l = Literature(
-        "test",
-        "n",
-        arguments={
-            "a": BoxParameter(["test_f1", "f23"], "f"),
-            "b": SwitchParameter(["f34"], "d"),
-        },
-    )
-    from devtools import debug
-
-    # debug(l.prefix_match(mc))
-    debug(l.parse_message(l.prefix_match(mc)))
-    print(mc.asDisplay())

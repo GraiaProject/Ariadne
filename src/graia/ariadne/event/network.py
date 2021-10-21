@@ -1,6 +1,6 @@
 from graia.broadcast.entities.event import Dispatchable
 
-from graia.ariadne.dispatcher import ApplicationDispatcher
+from ..dispatcher import ApplicationDispatcher
 
 
 class RemoteException(Dispatchable):

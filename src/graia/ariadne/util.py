@@ -5,12 +5,12 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from typing_extensions import ParamSpec
 
-from graia.ariadne.context import enter_context
+from .context import enter_context
 
 P = ParamSpec("P")
 R = TypeVar("R")
 
-from graia.ariadne.exception import (
+from .exception import (
     AccountMuted,
     AccountNotFound,
     InvalidArgument,
@@ -62,7 +62,7 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         self.context.__exit__(exception.__class__ if exception else None, exception, tb)
 
     async def catch(self, interface: "DispatcherInterface"):
-        from graia.ariadne.app import Ariadne
+        from .app import Ariadne
 
         if interface.annotation is Ariadne:
             return self.app

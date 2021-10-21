@@ -1,8 +1,8 @@
 from graia.broadcast import Dispatchable
 from pydantic import BaseModel, validator
 
-from graia.ariadne.dispatcher import ApplicationDispatcher
-from graia.ariadne.exception import InvalidEventTypeDefinition
+from ..dispatcher import ApplicationDispatcher
+from ..exception import InvalidEventTypeDefinition
 
 
 class MiraiEvent(Dispatchable, BaseModel):

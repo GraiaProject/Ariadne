@@ -4,13 +4,13 @@ from typing import List, Union
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from graia.ariadne.dispatcher import (
+from ..dispatcher import (
     ApplicationDispatcher,
     MessageChainDispatcher,
     SourceDispatcher,
 )
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.model import Client, Friend, Group, Member
+from ..message.chain import MessageChain
+from ..model import Client, Friend, Group, Member
 
 from . import MiraiEvent
 

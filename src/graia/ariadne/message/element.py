@@ -1,5 +1,4 @@
 import abc
-import sys
 from base64 import b64encode, b64decode
 from datetime import datetime
 from enum import Enum
@@ -10,12 +9,12 @@ from typing import TYPE_CHECKING, List, NoReturn, Optional, Union
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
 
-from graia.ariadne.context import adapter_ctx, application_ctx, upload_method_ctx
-from graia.ariadne.exception import InvalidArgument
-from graia.ariadne.model import AriadneBaseModel, UploadMethod, datetime_encoder
+from ..context import adapter_ctx, upload_method_ctx
+from ..exception import InvalidArgument
+from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
 
 if TYPE_CHECKING:
-    from graia.ariadne.message.chain import MessageChain
+    from .chain import MessageChain
 
 
 class NotSendableElement(Exception):
@@ -391,6 +390,13 @@ class Image(MultimediaElement):
             data["base64"] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
+    def toFlashImage(self) -> "FlashImage":
+        return FlashImage.parse_obj(self.dict() | {"type": "FlashImage"})
+
+    @classmethod
+    def fromFlashImage(cls, flash: "FlashImage") -> "Image":
+        return cls.parse_obj(flash.dict() | {"type": "Image"})
+
     def asDisplay(self) -> str:
         return "[图片]"
 
@@ -407,11 +413,11 @@ class FlashImage(Image):
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
-        normal: Optional["Image"] = None,
+        image: Optional["Image"] = None,
         **kwargs,
     ) -> None:
-        if normal:
-            super().__init__(**normal.dict() | {"type": "FlashImage"})
+        if image:
+            super().__init__(**image.dict() | {"type": "FlashImage"})
         data = {}
         data["type"] = type
         data["imageId"] = imageId
@@ -424,6 +430,13 @@ class FlashImage(Image):
         if data_bytes:
             data["base64"] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
+
+    def toImage(self) -> "Image":
+        return Image.parse_obj(self.dict() | {"type": "Image"})
+
+    @classmethod
+    def fromImage(cls, image: "Image") -> "FlashImage":
+        return cls.parse_obj(image.dict() | {"type": "FlashImage"})
 
     def asDisplay(self):
         return "[闪照]"

@@ -33,12 +33,12 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from typing_extensions import ParamSpec
 
-from graia.ariadne.context import enter_context
+from .context import enter_context
 
 P = ParamSpec(&#34;P&#34;)
 R = TypeVar(&#34;R&#34;)
 
-from graia.ariadne.exception import (
+from .exception import (
     AccountMuted,
     AccountNotFound,
     InvalidArgument,
@@ -90,7 +90,7 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         self.context.__exit__(exception.__class__ if exception else None, exception, tb)
 
     async def catch(self, interface: &#34;DispatcherInterface&#34;):
-        from graia.ariadne.app import Ariadne
+        from .app import Ariadne
 
         if interface.annotation is Ariadne:
             return self.app
@@ -181,7 +181,7 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
         self.context.__exit__(exception.__class__ if exception else None, exception, tb)
 
     async def catch(self, interface: &#34;DispatcherInterface&#34;):
-        from graia.ariadne.app import Ariadne
+        from .app import Ariadne
 
         if interface.annotation is Ariadne:
             return self.app</code></pre>
@@ -278,7 +278,7 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def catch(self, interface: &#34;DispatcherInterface&#34;):
-    from graia.ariadne.app import Ariadne
+    from .app import Ariadne
 
     if interface.annotation is Ariadne:
         return self.app</code></pre>

@@ -27,23 +27,28 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import abc
-import sys
-from base64 import b64encode
+from base64 import b64encode, b64decode
 from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, NoReturn, Optional, Union
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
 
-from graia.ariadne.context import adapter_ctx, application_ctx, upload_method_ctx
-from graia.ariadne.exception import InvalidArgument
-from graia.ariadne.model import AriadneBaseModel, UploadMethod, datetime_encoder
+from ..context import adapter_ctx, upload_method_ctx
+from ..exception import InvalidArgument
+from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
 
 if TYPE_CHECKING:
-    from graia.ariadne.message.chain import MessageChain
+    from .chain import MessageChain
+
+
+class NotSendableElement(Exception):
+    &#34;&#34;&#34;
+    指示一个元素是不可发送的.
+    &#34;&#34;&#34;
 
 
 class Element(AriadneBaseModel, abc.ABC):
@@ -62,9 +67,12 @@ class Element(AriadneBaseModel, abc.ABC):
 
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
-        为元素被发送进行准备
+        为元素被发送进行准备,
         若无异常被引发，则完成本方法后元素应可被发送。
+
         保留空实现以允许不需要 `prepare`的元素类型存在。
+
+        若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
         &#34;&#34;&#34;
 
 
@@ -95,6 +103,9 @@ class Source(Element):
             datetime: datetime_encoder,
         }
 
+    def prepare(self) -&gt; NoReturn:
+        raise NotSendableElement
+
 
 class Quote(Element):
     &#34;表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)&#34;
@@ -111,6 +122,9 @@ class Quote(Element):
 
         return MessageChain(v)  # no need to parse objects, they are universal!
 
+    def prepare(self) -&gt; NoReturn:
+        raise NotSendableElement
+
 
 class At(Element):
     &#34;&#34;&#34;该消息元素用于承载消息中用于提醒/呼唤特定用户的部分.&#34;&#34;&#34;
@@ -126,6 +140,9 @@ class At(Element):
             target (int): 需要提醒/呼唤的特定用户的 QQ 号(或者说 id.)
         &#34;&#34;&#34;
         super().__init__(target=target, **kwargs)
+
+    def __eq__(self, other: &#34;At&#34;):
+        return isinstance(other, At) and self.target == other.target
 
     def prepare(self) -&gt; None:
         try:
@@ -168,7 +185,12 @@ class Face(Element):
     name: Optional[str] = None
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[表情:{self.faceId}]&#34;
+        return f&#34;[表情:{self.faceId}{f&#39;({self.name})&#39; if self.name else &#39;&#39;}]&#34;
+
+    def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
+        return isinstance(other, Face) and (
+            self.faceId == other.faceId or self.name == other.name
+        )
 
 
 class Xml(Element):
@@ -312,15 +334,63 @@ image_upload_method_type_map = {
 }
 
 
-class Image(Element):
-    &#34;指示消息中的图片元素&#34;
-    type = &#34;Image&#34;
-    ready: bool = True
-    imageId: Optional[str] = None
+class MultimediaElement(Element):
+    &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
+
     url: Optional[str] = None
     path: Optional[Path] = None
     base64: Optional[str] = None
-    data_bytes: Optional[bytes] = None
+
+    def dict(self, *args, **kwargs):
+        return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))
+
+    async def get_bytes(self, url: str = None) -&gt; bytes:
+        &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        &#34;&#34;&#34;
+        if self.base64:
+            return b64decode(self.base64)
+        if not (self.url or url):
+            raise ValueError(&#34;you should offer a url.&#34;)
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            data = await response.read()
+            self.base64 = b64encode(data)
+            return data
+
+    @property
+    def uuid(self):
+        if self.id:
+            return self.id.split(&#34;.&#34;)[0].strip(&#34;/{}&#34;).lower()
+        return &#34;&#34;
+
+    def __eq__(self, other: &#34;MultimediaElement&#34;):
+        if self.type != other.type:
+            return False
+        if self.uuid and self.uuid == other.uuid:
+            return True
+        elif self.url and self.url == other.url:
+            return True
+        elif self.path and self.path == other.path:
+            return True
+        elif self.base64 and self.base64 == other.base64:
+            return True
+        return False
+
+
+class Image(MultimediaElement):
+    &#34;指示消息中的图片元素&#34;
+    type = &#34;Image&#34;
+    id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
     def __init__(
         self,
@@ -348,27 +418,15 @@ class Image(Element):
             data[&#34;base64&#34;] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
+    def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
+        return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+
+    @classmethod
+    def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
+        return cls.parse_obj(flash.dict() | {&#34;type&#34;: &#34;Image&#34;})
+
     def asDisplay(self) -&gt; str:
         return &#34;[图片]&#34;
-
-    async def get_bytes(self, url: str = None) -&gt; bytes:
-        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-        Raises:
-            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-        Returns:
-            bytes: 元素原始数据
-        &#34;&#34;&#34;
-        if not (self.url or url):
-            raise ValueError(&#34;you should offer a url.&#34;)
-        session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
-            response.raise_for_status()
-            return await response.read()
 
 
 class FlashImage(Image):
@@ -383,11 +441,11 @@ class FlashImage(Image):
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
-        normal: Optional[&#34;Image&#34;] = None,
+        image: Optional[&#34;Image&#34;] = None,
         **kwargs,
     ) -&gt; None:
-        if normal:
-            super().__init__(**normal.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+        if image:
+            super().__init__(**image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
         data = {}
         data[&#34;type&#34;] = type
         data[&#34;imageId&#34;] = imageId
@@ -401,19 +459,22 @@ class FlashImage(Image):
             data[&#34;base64&#34;] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
+    def toImage(self) -&gt; &#34;Image&#34;:
+        return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})
+
+    @classmethod
+    def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
+        return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+
     def asDisplay(self):
         return &#34;[闪照]&#34;
 
 
-class Voice(Element):
+class Voice(MultimediaElement):
     &#34;指示消息中的语音元素&#34;
     type = &#34;Voice&#34;
-    voiceId: Optional[str]
-    url: Optional[str]
-    path: Optional[Path]
-    base64: Optional[str]
+    id: Optional[str] = Field(..., alias=&#34;voiceId&#34;)
     length: Optional[int]
-    data_bytes: Optional[bytes]
 
     def __init__(
         self,
@@ -440,25 +501,6 @@ class Voice(Element):
 
     def asDisplay(self) -&gt; str:
         return &#34;[语音]&#34;
-
-    async def get_bytes(self, url: str = None) -&gt; bytes:
-        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-        Raises:
-            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-        Returns:
-            bytes: 元素原始数据
-        &#34;&#34;&#34;
-        if not (self.url or url):
-            raise ValueError(&#34;you should offer a url.&#34;)
-        session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
-            response.raise_for_status()
-            return await response.read()
 
 
 def _update_forward_refs():
@@ -504,7 +546,7 @@ def _update_forward_refs():
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -572,6 +614,9 @@ def _update_forward_refs():
         &#34;&#34;&#34;
         super().__init__(target=target, **kwargs)
 
+    def __eq__(self, other: &#34;At&#34;):
+        return isinstance(other, At) and self.target == other.target
+
     def prepare(self) -&gt; None:
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
@@ -589,7 +634,7 @@ def _update_forward_refs():
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -667,7 +712,7 @@ def _update_forward_refs():
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -727,7 +772,7 @@ def _update_forward_refs():
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -793,14 +838,17 @@ type (str): 元素类型</p>
 
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
-        为元素被发送进行准备
+        为元素被发送进行准备,
         若无异常被引发，则完成本方法后元素应可被发送。
+
         保留空实现以允许不需要 `prepare`的元素类型存在。
+
+        若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
         &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -814,14 +862,13 @@ type (str): 元素类型</p>
 <li><a title="ariadne.message.element.Face" href="#ariadne.message.element.Face">Face</a></li>
 <li><a title="ariadne.message.element.File" href="#ariadne.message.element.File">File</a></li>
 <li><a title="ariadne.message.element.Forward" href="#ariadne.message.element.Forward">Forward</a></li>
-<li><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></li>
 <li><a title="ariadne.message.element.Json" href="#ariadne.message.element.Json">Json</a></li>
+<li><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></li>
 <li><a title="ariadne.message.element.MusicShare" href="#ariadne.message.element.MusicShare">MusicShare</a></li>
 <li><a title="ariadne.message.element.Plain" href="#ariadne.message.element.Plain">Plain</a></li>
 <li><a title="ariadne.message.element.Poke" href="#ariadne.message.element.Poke">Poke</a></li>
 <li><a title="ariadne.message.element.Quote" href="#ariadne.message.element.Quote">Quote</a></li>
 <li><a title="ariadne.message.element.Source" href="#ariadne.message.element.Source">Source</a></li>
-<li><a title="ariadne.message.element.Voice" href="#ariadne.message.element.Voice">Voice</a></li>
 <li><a title="ariadne.message.element.Xml" href="#ariadne.message.element.Xml">Xml</a></li>
 </ul>
 <h3>Class variables</h3>
@@ -850,18 +897,22 @@ type (str): 元素类型</p>
 <span>def <span class="ident">prepare</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>为元素被发送进行准备
-若无异常被引发，则完成本方法后元素应可被发送。
-保留空实现以允许不需要 <code>prepare</code>的元素类型存在。</p></div>
+<div class="desc"><p>为元素被发送进行准备,
+若无异常被引发，则完成本方法后元素应可被发送。</p>
+<p>保留空实现以允许不需要 <code>prepare</code>的元素类型存在。</p>
+<p>若本元素设计时便不可被发送，请引发 <code><a title="ariadne.message.element.NotSendableElement" href="#ariadne.message.element.NotSendableElement">NotSendableElement</a></code> 异常.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def prepare(self) -&gt; None:
     &#34;&#34;&#34;
-    为元素被发送进行准备
+    为元素被发送进行准备,
     若无异常被引发，则完成本方法后元素应可被发送。
+
     保留空实现以允许不需要 `prepare`的元素类型存在。
+
+    若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
@@ -886,12 +937,17 @@ type (str): 元素类型</p>
     name: Optional[str] = None
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[表情:{self.faceId}]&#34;</code></pre>
+        return f&#34;[表情:{self.faceId}{f&#39;({self.name})&#39; if self.name else &#39;&#39;}]&#34;
+
+    def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
+        return isinstance(other, Face) and (
+            self.faceId == other.faceId or self.name == other.name
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -923,7 +979,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
-    return f&#34;[表情:{self.faceId}]&#34;</code></pre>
+    return f&#34;[表情:{self.faceId}{f&#39;({self.name})&#39; if self.name else &#39;&#39;}]&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -961,7 +1017,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1008,7 +1064,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.FlashImage"><code class="flex name class">
 <span>class <span class="ident">FlashImage</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, normal: Optional[ForwardRef('<a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
+<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, image: Optional[ForwardRef('<a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的闪照元素</p>
@@ -1030,11 +1086,11 @@ type (str): 元素类型</p>
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
-        normal: Optional[&#34;Image&#34;] = None,
+        image: Optional[&#34;Image&#34;] = None,
         **kwargs,
     ) -&gt; None:
-        if normal:
-            super().__init__(**normal.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+        if image:
+            super().__init__(**image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
         data = {}
         data[&#34;type&#34;] = type
         data[&#34;imageId&#34;] = imageId
@@ -1048,43 +1104,48 @@ type (str): 元素类型</p>
             data[&#34;base64&#34;] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
+    def toImage(self) -&gt; &#34;Image&#34;:
+        return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})
+
+    @classmethod
+    def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
+        return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+
     def asDisplay(self):
         return &#34;[闪照]&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></li>
+<li><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></li>
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.element.FlashImage.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.FlashImage.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.element.FlashImage.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="ariadne.message.element.FlashImage.fromImage"><code class="name flex">
+<span>def <span class="ident">fromImage</span></span>(<span>image: <a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>) ‑> <a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a></span>
+</code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.FlashImage.imageId"><code class="name">var <span class="ident">imageId</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.FlashImage.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.FlashImage.ready"><code class="name">var <span class="ident">ready</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.FlashImage.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
+    return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -1102,12 +1163,26 @@ type (str): 元素类型</p>
     return &#34;[闪照]&#34;</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.element.FlashImage.toImage"><code class="name flex">
+<span>def <span class="ident">toImage</span></span>(<span>self) ‑> <a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def toImage(self) -&gt; &#34;Image&#34;:
+    return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})</code></pre>
+</details>
+</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></b></code>:
 <ul class="hlist">
-<li><code><a title="ariadne.message.element.Image.get_bytes" href="#ariadne.message.element.Image.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Image.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.Image.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
 <li><code><a title="ariadne.message.element.Image.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -1142,7 +1217,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1249,15 +1324,10 @@ type (str): 元素类型</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Image(Element):
+<pre><code class="python">class Image(MultimediaElement):
     &#34;指示消息中的图片元素&#34;
     type = &#34;Image&#34;
-    ready: bool = True
-    imageId: Optional[str] = None
-    url: Optional[str] = None
-    path: Optional[Path] = None
-    base64: Optional[str] = None
-    data_bytes: Optional[bytes] = None
+    id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
     def __init__(
         self,
@@ -1285,32 +1355,21 @@ type (str): 元素类型</p>
             data[&#34;base64&#34;] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
+    def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
+        return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+
+    @classmethod
+    def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
+        return cls.parse_obj(flash.dict() | {&#34;type&#34;: &#34;Image&#34;})
+
     def asDisplay(self) -&gt; str:
-        return &#34;[图片]&#34;
-
-    async def get_bytes(self, url: str = None) -&gt; bytes:
-        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-        Raises:
-            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-        Returns:
-            bytes: 元素原始数据
-        &#34;&#34;&#34;
-        if not (self.url or url):
-            raise ValueError(&#34;you should offer a url.&#34;)
-        session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
-            response.raise_for_status()
-            return await response.read()</code></pre>
+        return &#34;[图片]&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></li>
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1321,29 +1380,26 @@ type (str): 元素类型</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.element.Image.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.element.Image.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.element.Image.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="ariadne.message.element.Image.fromFlashImage"><code class="name flex">
+<span>def <span class="ident">fromFlashImage</span></span>(<span>flash: <a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a>) ‑> <a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></span>
+</code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Image.imageId"><code class="name">var <span class="ident">imageId</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Image.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Image.ready"><code class="name">var <span class="ident">ready</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Image.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
+    return cls.parse_obj(flash.dict() | {&#34;type&#34;: &#34;Image&#34;})</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -1361,56 +1417,27 @@ type (str): 元素类型</p>
     return &#34;[图片]&#34;</code></pre>
 </details>
 </dd>
-<dt id="ariadne.message.element.Image.get_bytes"><code class="name flex">
-<span>async def <span class="ident">get_bytes</span></span>(<span>self, url: str = None) ‑> bytes</span>
+<dt id="ariadne.message.element.Image.toFlashImage"><code class="name flex">
+<span>def <span class="ident">toFlashImage</span></span>(<span>self) ‑> <a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>url</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>如果提供, 则从本参数获取 bytes. 默认为 None.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>ValueError</code></dt>
-<dd>你尝试获取并不包含 url 属性的本元素的 bytes.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bytes</code></dt>
-<dd>元素原始数据</dd>
-</dl></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def get_bytes(self, url: str = None) -&gt; bytes:
-    &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-    Args:
-        url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-    Raises:
-        ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-    Returns:
-        bytes: 元素原始数据
-    &#34;&#34;&#34;
-    if not (self.url or url):
-        raise ValueError(&#34;you should offer a url.&#34;)
-    session = adapter_ctx.get().session
-    async with session.get(self.url or url) as response:
-        response.raise_for_status()
-        return await response.read()</code></pre>
+<pre><code class="python">def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
+    return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})</code></pre>
 </details>
 </dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></b></code>:
 <ul class="hlist">
-<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
@@ -1486,7 +1513,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1536,6 +1563,188 @@ type (str): 元素类型</p>
 </li>
 </ul>
 </dd>
+<dt id="ariadne.message.element.MultimediaElement"><code class="flex name class">
+<span>class <span class="ident">MultimediaElement</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>指示多媒体消息元素.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MultimediaElement(Element):
+    &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
+
+    url: Optional[str] = None
+    path: Optional[Path] = None
+    base64: Optional[str] = None
+
+    def dict(self, *args, **kwargs):
+        return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))
+
+    async def get_bytes(self, url: str = None) -&gt; bytes:
+        &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+
+        Args:
+            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+        Raises:
+            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+        Returns:
+            bytes: 元素原始数据
+        &#34;&#34;&#34;
+        if self.base64:
+            return b64decode(self.base64)
+        if not (self.url or url):
+            raise ValueError(&#34;you should offer a url.&#34;)
+        session = adapter_ctx.get().session
+        async with session.get(self.url or url) as response:
+            response.raise_for_status()
+            data = await response.read()
+            self.base64 = b64encode(data)
+            return data
+
+    @property
+    def uuid(self):
+        if self.id:
+            return self.id.split(&#34;.&#34;)[0].strip(&#34;/{}&#34;).lower()
+        return &#34;&#34;
+
+    def __eq__(self, other: &#34;MultimediaElement&#34;):
+        if self.type != other.type:
+            return False
+        if self.uuid and self.uuid == other.uuid:
+            return True
+        elif self.url and self.url == other.url:
+            return True
+        elif self.path and self.path == other.path:
+            return True
+        elif self.base64 and self.base64 == other.base64:
+            return True
+        return False</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></li>
+<li><a title="ariadne.message.element.Voice" href="#ariadne.message.element.Voice">Voice</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.element.MultimediaElement.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.element.MultimediaElement.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.element.MultimediaElement.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="ariadne.message.element.MultimediaElement.uuid"><code class="name">var <span class="ident">uuid</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def uuid(self):
+    if self.id:
+        return self.id.split(&#34;.&#34;)[0].strip(&#34;/{}&#34;).lower()
+    return &#34;&#34;</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.element.MultimediaElement.dict"><code class="name flex">
+<span>def <span class="ident">dict</span></span>(<span>self, *args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dict(self, *args, **kwargs):
+    return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.element.MultimediaElement.get_bytes"><code class="name flex">
+<span>async def <span class="ident">get_bytes</span></span>(<span>self, url: str = None) ‑> bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>url</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>如果提供, 则从本参数获取 bytes. 默认为 None.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>你尝试获取并不包含 url 属性的本元素的 bytes.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bytes</code></dt>
+<dd>元素原始数据</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def get_bytes(self, url: str = None) -&gt; bytes:
+    &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+
+    Args:
+        url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+
+    Raises:
+        ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
+
+    Returns:
+        bytes: 元素原始数据
+    &#34;&#34;&#34;
+    if self.base64:
+        return b64decode(self.base64)
+    if not (self.url or url):
+        raise ValueError(&#34;you should offer a url.&#34;)
+    session = adapter_ctx.get().session
+    async with session.get(self.url or url) as response:
+        response.raise_for_status()
+        data = await response.read()
+        self.base64 = b64encode(data)
+        return data</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="ariadne.message.element.MusicShare"><code class="flex name class">
 <span>class <span class="ident">MusicShare</span></span>
 <span>(</span><span>**data: Any)</span>
@@ -1565,7 +1774,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1626,6 +1835,27 @@ type (str): 元素类型</p>
 </li>
 </ul>
 </dd>
+<dt id="ariadne.message.element.NotSendableElement"><code class="flex name class">
+<span>class <span class="ident">NotSendableElement</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>指示一个元素是不可发送的.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class NotSendableElement(Exception):
+    &#34;&#34;&#34;
+    指示一个元素是不可发送的.
+    &#34;&#34;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 <dt id="ariadne.message.element.Plain"><code class="flex name class">
 <span>class <span class="ident">Plain</span></span>
 <span>(</span><span>text: str, **kwargs)</span>
@@ -1661,7 +1891,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1725,7 +1955,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1888,12 +2118,15 @@ type (str): 元素类型</p>
     def _(cls, v):
         from .chain import MessageChain
 
-        return MessageChain(v)  # no need to parse objects, they are universal!</code></pre>
+        return MessageChain(v)  # no need to parse objects, they are universal!
+
+    def prepare(self) -&gt; NoReturn:
+        raise NotSendableElement</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -1955,12 +2188,15 @@ type (str): 元素类型</p>
     class Config:
         json_encoders = {
             datetime: datetime_encoder,
-        }</code></pre>
+        }
+
+    def prepare(self) -&gt; NoReturn:
+        raise NotSendableElement</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -2005,15 +2241,11 @@ type (str): 元素类型</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Voice(Element):
+<pre><code class="python">class Voice(MultimediaElement):
     &#34;指示消息中的语音元素&#34;
     type = &#34;Voice&#34;
-    voiceId: Optional[str]
-    url: Optional[str]
-    path: Optional[Path]
-    base64: Optional[str]
+    id: Optional[str] = Field(..., alias=&#34;voiceId&#34;)
     length: Optional[int]
-    data_bytes: Optional[bytes]
 
     def __init__(
         self,
@@ -2039,58 +2271,24 @@ type (str): 元素类型</p>
         super().__init__(**data, **kwargs)
 
     def asDisplay(self) -&gt; str:
-        return &#34;[语音]&#34;
-
-    async def get_bytes(self, url: str = None) -&gt; bytes:
-        &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-        Raises:
-            ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-        Returns:
-            bytes: 元素原始数据
-        &#34;&#34;&#34;
-        if not (self.url or url):
-            raise ValueError(&#34;you should offer a url.&#34;)
-        session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
-            response.raise_for_status()
-            return await response.read()</code></pre>
+        return &#34;[语音]&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></li>
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.element.Voice.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Voice.data_bytes"><code class="name">var <span class="ident">data_bytes</span> : Optional[bytes]</code></dt>
+<dt id="ariadne.message.element.Voice.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 <dt id="ariadne.message.element.Voice.length"><code class="name">var <span class="ident">length</span> : Optional[int]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Voice.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Voice.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.Voice.voiceId"><code class="name">var <span class="ident">voiceId</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2110,56 +2308,14 @@ type (str): 元素类型</p>
     return &#34;[语音]&#34;</code></pre>
 </details>
 </dd>
-<dt id="ariadne.message.element.Voice.get_bytes"><code class="name flex">
-<span>async def <span class="ident">get_bytes</span></span>(<span>self, url: str = None) ‑> bytes</span>
-</code></dt>
-<dd>
-<div class="desc"><p>从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>url</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>如果提供, 则从本参数获取 bytes. 默认为 None.</dd>
-</dl>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>ValueError</code></dt>
-<dd>你尝试获取并不包含 url 属性的本元素的 bytes.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bytes</code></dt>
-<dd>元素原始数据</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">async def get_bytes(self, url: str = None) -&gt; bytes:
-    &#34;&#34;&#34;从远端服务器获取消息元素的 bytes, 注意, 你无法获取并不包含 url 属性的本元素的 bytes.
-
-    Args:
-        url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
-
-    Raises:
-        ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
-
-    Returns:
-        bytes: 元素原始数据
-    &#34;&#34;&#34;
-    if not (self.url or url):
-        raise ValueError(&#34;you should offer a url.&#34;)
-    session = adapter_ctx.get().session
-    async with session.get(self.url or url) as response:
-        response.raise_for_status()
-        return await response.read()</code></pre>
-</details>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
-<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
+<li><code><b><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></b></code>:
 <ul class="hlist">
-<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
 </ul>
@@ -2187,7 +2343,7 @@ type (str): 元素类型</p>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 <li>abc.ABC</li>
@@ -2298,14 +2454,11 @@ type (str): 元素类型</p>
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="ariadne.message.element.FlashImage.asDisplay" href="#ariadne.message.element.FlashImage.asDisplay">asDisplay</a></code></li>
-<li><code><a title="ariadne.message.element.FlashImage.base64" href="#ariadne.message.element.FlashImage.base64">base64</a></code></li>
-<li><code><a title="ariadne.message.element.FlashImage.data_bytes" href="#ariadne.message.element.FlashImage.data_bytes">data_bytes</a></code></li>
-<li><code><a title="ariadne.message.element.FlashImage.imageId" href="#ariadne.message.element.FlashImage.imageId">imageId</a></code></li>
-<li><code><a title="ariadne.message.element.FlashImage.path" href="#ariadne.message.element.FlashImage.path">path</a></code></li>
-<li><code><a title="ariadne.message.element.FlashImage.ready" href="#ariadne.message.element.FlashImage.ready">ready</a></code></li>
-<li><code><a title="ariadne.message.element.FlashImage.url" href="#ariadne.message.element.FlashImage.url">url</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.fromImage" href="#ariadne.message.element.FlashImage.fromImage">fromImage</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.id" href="#ariadne.message.element.FlashImage.id">id</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.toImage" href="#ariadne.message.element.FlashImage.toImage">toImage</a></code></li>
 </ul>
 </li>
 <li>
@@ -2328,15 +2481,11 @@ type (str): 元素类型</p>
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="ariadne.message.element.Image.asDisplay" href="#ariadne.message.element.Image.asDisplay">asDisplay</a></code></li>
-<li><code><a title="ariadne.message.element.Image.base64" href="#ariadne.message.element.Image.base64">base64</a></code></li>
-<li><code><a title="ariadne.message.element.Image.data_bytes" href="#ariadne.message.element.Image.data_bytes">data_bytes</a></code></li>
-<li><code><a title="ariadne.message.element.Image.get_bytes" href="#ariadne.message.element.Image.get_bytes">get_bytes</a></code></li>
-<li><code><a title="ariadne.message.element.Image.imageId" href="#ariadne.message.element.Image.imageId">imageId</a></code></li>
-<li><code><a title="ariadne.message.element.Image.path" href="#ariadne.message.element.Image.path">path</a></code></li>
-<li><code><a title="ariadne.message.element.Image.ready" href="#ariadne.message.element.Image.ready">ready</a></code></li>
-<li><code><a title="ariadne.message.element.Image.url" href="#ariadne.message.element.Image.url">url</a></code></li>
+<li><code><a title="ariadne.message.element.Image.fromFlashImage" href="#ariadne.message.element.Image.fromFlashImage">fromFlashImage</a></code></li>
+<li><code><a title="ariadne.message.element.Image.id" href="#ariadne.message.element.Image.id">id</a></code></li>
+<li><code><a title="ariadne.message.element.Image.toFlashImage" href="#ariadne.message.element.Image.toFlashImage">toFlashImage</a></code></li>
 </ul>
 </li>
 <li>
@@ -2357,6 +2506,17 @@ type (str): 元素类型</p>
 </ul>
 </li>
 <li>
+<h4><code><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></code></h4>
+<ul class="two-column">
+<li><code><a title="ariadne.message.element.MultimediaElement.base64" href="#ariadne.message.element.MultimediaElement.base64">base64</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.path" href="#ariadne.message.element.MultimediaElement.path">path</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.url" href="#ariadne.message.element.MultimediaElement.url">url</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.uuid" href="#ariadne.message.element.MultimediaElement.uuid">uuid</a></code></li>
+</ul>
+</li>
+<li>
 <h4><code><a title="ariadne.message.element.MusicShare" href="#ariadne.message.element.MusicShare">MusicShare</a></code></h4>
 <ul class="two-column">
 <li><code><a title="ariadne.message.element.MusicShare.asDisplay" href="#ariadne.message.element.MusicShare.asDisplay">asDisplay</a></code></li>
@@ -2368,6 +2528,9 @@ type (str): 元素类型</p>
 <li><code><a title="ariadne.message.element.MusicShare.summary" href="#ariadne.message.element.MusicShare.summary">summary</a></code></li>
 <li><code><a title="ariadne.message.element.MusicShare.title" href="#ariadne.message.element.MusicShare.title">title</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.element.NotSendableElement" href="#ariadne.message.element.NotSendableElement">NotSendableElement</a></code></h4>
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.Plain" href="#ariadne.message.element.Plain">Plain</a></code></h4>
@@ -2427,15 +2590,10 @@ type (str): 元素类型</p>
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.Voice" href="#ariadne.message.element.Voice">Voice</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="ariadne.message.element.Voice.asDisplay" href="#ariadne.message.element.Voice.asDisplay">asDisplay</a></code></li>
-<li><code><a title="ariadne.message.element.Voice.base64" href="#ariadne.message.element.Voice.base64">base64</a></code></li>
-<li><code><a title="ariadne.message.element.Voice.data_bytes" href="#ariadne.message.element.Voice.data_bytes">data_bytes</a></code></li>
-<li><code><a title="ariadne.message.element.Voice.get_bytes" href="#ariadne.message.element.Voice.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.Voice.id" href="#ariadne.message.element.Voice.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.Voice.length" href="#ariadne.message.element.Voice.length">length</a></code></li>
-<li><code><a title="ariadne.message.element.Voice.path" href="#ariadne.message.element.Voice.path">path</a></code></li>
-<li><code><a title="ariadne.message.element.Voice.url" href="#ariadne.message.element.Voice.url">url</a></code></li>
-<li><code><a title="ariadne.message.element.Voice.voiceId" href="#ariadne.message.element.Voice.voiceId">voiceId</a></code></li>
 </ul>
 </li>
 <li>

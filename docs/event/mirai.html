@@ -35,12 +35,12 @@ from pydantic import Field
 from pydantic.class_validators import validator
 from typing_extensions import Literal
 
-from graia.ariadne.context import adapter_ctx
-from graia.ariadne.dispatcher import ApplicationDispatcher
-from graia.ariadne.exception import InvalidSession
-from graia.ariadne.message.element import Element
-from graia.ariadne.model import CallMethod, Client, Friend, Group, Member, MemberPerm
-from graia.ariadne.util import validate_response
+from ..context import adapter_ctx
+from ..dispatcher import ApplicationDispatcher
+from ..exception import InvalidSession
+from ..message.element import Element
+from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
+from ..util import validate_response
 
 from . import MiraiEvent
 
@@ -1225,15 +1225,15 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.BotGroupPermissionChangeEvent.current"><code class="name">var <span class="ident">current</span> : graia.ariadne.model.MemberPerm</code></dt>
+<dt id="ariadne.event.mirai.BotGroupPermissionChangeEvent.current"><code class="name">var <span class="ident">current</span> : <a title="ariadne.model.MemberPerm" href="../model.html#ariadne.model.MemberPerm">MemberPerm</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.BotGroupPermissionChangeEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.BotGroupPermissionChangeEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.BotGroupPermissionChangeEvent.origin"><code class="name">var <span class="ident">origin</span> : graia.ariadne.model.MemberPerm</code></dt>
+<dt id="ariadne.event.mirai.BotGroupPermissionChangeEvent.origin"><code class="name">var <span class="ident">origin</span> : <a title="ariadne.model.MemberPerm" href="../model.html#ariadne.model.MemberPerm">MemberPerm</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1515,11 +1515,11 @@ Group (annotation, optional = None): 发生该事件的群组</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.BotJoinGroupEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.BotJoinGroupEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.BotJoinGroupEvent.inviter"><code class="name">var <span class="ident">inviter</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.BotJoinGroupEvent.inviter"><code class="name">var <span class="ident">inviter</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1581,7 +1581,7 @@ Group (annotation, optional = None): 发生该事件的群组</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.BotLeaveEventActive.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.BotLeaveEventActive.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1647,7 +1647,7 @@ Group (annotation, optional = None): 发生该事件的群组</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.BotLeaveEventKick.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.BotLeaveEventKick.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1723,11 +1723,11 @@ Group (annotation, optional = None): 发生该事件的群组</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.BotMuteEvent.group"><code class="name">var <span class="ident">group</span> : Optional[graia.ariadne.model.Group]</code></dt>
+<dt id="ariadne.event.mirai.BotMuteEvent.group"><code class="name">var <span class="ident">group</span> : Optional[<a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.BotMuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.BotMuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2049,11 +2049,11 @@ Group (annotation, optional = None): 发生该事件的群组</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.BotUnmuteEvent.group"><code class="name">var <span class="ident">group</span> : Optional[graia.ariadne.model.Group]</code></dt>
+<dt id="ariadne.event.mirai.BotUnmuteEvent.group"><code class="name">var <span class="ident">group</span> : Optional[<a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.BotUnmuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.BotUnmuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2106,7 +2106,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.CommandExecutedEvent.args"><code class="name">var <span class="ident">args</span> : List[graia.ariadne.message.element.Element]</code></dt>
+<dt id="ariadne.event.mirai.CommandExecutedEvent.args"><code class="name">var <span class="ident">args</span> : List[<a title="ariadne.message.element.Element" href="../message/element.html#ariadne.message.element.Element">Element</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2114,11 +2114,11 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.CommandExecutedEvent.friend"><code class="name">var <span class="ident">friend</span> : Optional[graia.ariadne.model.Friend]</code></dt>
+<dt id="ariadne.event.mirai.CommandExecutedEvent.friend"><code class="name">var <span class="ident">friend</span> : Optional[<a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.CommandExecutedEvent.member"><code class="name">var <span class="ident">member</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.CommandExecutedEvent.member"><code class="name">var <span class="ident">member</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2220,7 +2220,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.FriendInputStatusChangedEvent.friend"><code class="name">var <span class="ident">friend</span> : graia.ariadne.model.Friend</code></dt>
+<dt id="ariadne.event.mirai.FriendInputStatusChangedEvent.friend"><code class="name">var <span class="ident">friend</span> : <a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2277,7 +2277,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.FriendNickChangedEvent.friend"><code class="name">var <span class="ident">friend</span> : graia.ariadne.model.Friend</code></dt>
+<dt id="ariadne.event.mirai.FriendNickChangedEvent.friend"><code class="name">var <span class="ident">friend</span> : <a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2423,11 +2423,11 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupAllowAnonymousChatEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupAllowAnonymousChatEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupAllowAnonymousChatEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupAllowAnonymousChatEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2503,11 +2503,11 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupAllowConfessTalkEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupAllowConfessTalkEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupAllowConfessTalkEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupAllowConfessTalkEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2583,11 +2583,11 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupAllowMemberInviteEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupAllowMemberInviteEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupAllowMemberInviteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupAllowMemberInviteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2665,11 +2665,11 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupEntranceAnnouncementChangeEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupEntranceAnnouncementChangeEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupEntranceAnnouncementChangeEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupEntranceAnnouncementChangeEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2809,11 +2809,11 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupMuteAllEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupMuteAllEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupMuteAllEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupMuteAllEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2889,11 +2889,11 @@ Member (annotation): 更改群名称的成员, 权限必定为管理员或是群
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupNameChangeEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupNameChangeEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupNameChangeEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupNameChangeEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2970,7 +2970,7 @@ Group (annotation): 发生该事件的群组</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupRecallEvent.group"><code class="name">var <span class="ident">group</span> : graia.ariadne.model.Group</code></dt>
+<dt id="ariadne.event.mirai.GroupRecallEvent.group"><code class="name">var <span class="ident">group</span> : <a title="ariadne.model.Group" href="../model.html#ariadne.model.Group">Group</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2978,7 +2978,7 @@ Group (annotation): 发生该事件的群组</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.GroupRecallEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.GroupRecallEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3059,11 +3059,11 @@ Member (annotation):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberCardChangeEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberCardChangeEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberCardChangeEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.MemberCardChangeEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3142,7 +3142,7 @@ Member (annotation): 获得/失去荣誉的成员</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberHonorChangeEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberHonorChangeEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3208,11 +3208,11 @@ Member (annotation): 关于该用户的成员实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.MemberJoinEvent.inviter"><code class="name">var <span class="ident">inviter</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.MemberJoinEvent.inviter"><code class="name">var <span class="ident">inviter</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberJoinEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberJoinEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3681,11 +3681,11 @@ Member (annotation):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.MemberLeaveEventKick.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberLeaveEventKick.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberLeaveEventKick.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.MemberLeaveEventKick.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3750,7 +3750,7 @@ Member (annotation): 主动退出群组的成员</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.MemberLeaveEventQuit.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberLeaveEventQuit.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3827,11 +3827,11 @@ Member (annotation):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberMuteEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberMuteEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberMuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.MemberMuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3902,7 +3902,7 @@ Member (annotation): 被调整权限的群组成员</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberPermissionChangeEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberPermissionChangeEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -3979,7 +3979,7 @@ Member (annotation): 被更改群头衔的群组成员</p>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberSpecialTitleChangeEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberSpecialTitleChangeEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4056,11 +4056,11 @@ Member (annotation):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.MemberUnmuteEvent.member"><code class="name">var <span class="ident">member</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.mirai.MemberUnmuteEvent.member"><code class="name">var <span class="ident">member</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.mirai.MemberUnmuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[graia.ariadne.model.Member]</code></dt>
+<dt id="ariadne.event.mirai.MemberUnmuteEvent.operator"><code class="name">var <span class="ident">operator</span> : Optional[<a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4533,7 +4533,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.OtherClientOfflineEvent.client"><code class="name">var <span class="ident">client</span> : graia.ariadne.model.Client</code></dt>
+<dt id="ariadne.event.mirai.OtherClientOfflineEvent.client"><code class="name">var <span class="ident">client</span> : <a title="ariadne.model.Client" href="../model.html#ariadne.model.Client">Client</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -4584,7 +4584,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.OtherClientOnlineEvent.client"><code class="name">var <span class="ident">client</span> : graia.ariadne.model.Client</code></dt>
+<dt id="ariadne.event.mirai.OtherClientOnlineEvent.client"><code class="name">var <span class="ident">client</span> : <a title="ariadne.model.Client" href="../model.html#ariadne.model.Client">Client</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

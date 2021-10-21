@@ -38,8 +38,8 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.utilles import printer
 
-from graia.ariadne.message.chain import MessageChain, MessageIndex
-from graia.ariadne.message.element import (
+from ..chain import MessageChain, MessageIndex
+from ..element import (
     App,
     At,
     Element,
@@ -52,7 +52,7 @@ from graia.ariadne.message.element import (
     Voice,
     Xml,
 )
-from graia.ariadne.message.parser.pattern import (
+from .pattern import (
     BoxParameter,
     ParamPattern,
     SwitchParameter,
@@ -256,35 +256,7 @@ class Literature(BaseDispatcher):
                 elif interface.annotation is ParamPattern:
                     return raw_argument
                 elif match_value is not None:
-                    return match_value
-
-
-if __name__ == &#34;__main__&#34;:
-    from graia.ariadne.message.element import At, AtAll
-
-    mc = MessageChain.create(
-        [
-            Plain(&#39;test n --f3 &#34;1 2 tsthd thsd ydj re7u  &#39;),
-            At(351453455),
-            Plain(&#39; &#34; --f34 &#34;arg arega er ae aghr ae rtyh&#39;),
-            # At(656735757),
-            Plain(&#39; &#34;&#39;),
-        ]
-    )
-
-    l = Literature(
-        &#34;test&#34;,
-        &#34;n&#34;,
-        arguments={
-            &#34;a&#34;: BoxParameter([&#34;test_f1&#34;, &#34;f23&#34;], &#34;f&#34;),
-            &#34;b&#34;: SwitchParameter([&#34;f34&#34;], &#34;d&#34;),
-        },
-    )
-    from devtools import debug
-
-    # debug(l.prefix_match(mc))
-    debug(l.parse_message(l.prefix_match(mc)))
-    print(mc.asDisplay())</code></pre>
+                    return match_value</code></pre>
 </details>
 </section>
 <section>
@@ -298,7 +270,7 @@ if __name__ == &#34;__main__&#34;:
 <dl>
 <dt id="ariadne.message.parser.literature.Literature"><code class="flex name class">
 <span>class <span class="ident">Literature</span></span>
-<span>(</span><span>*prefixs, arguments: Dict[str, graia.ariadne.message.parser.pattern.ParamPattern] = None, allow_quote: bool = False, skip_one_at_in_quote: bool = False)</span>
+<span>(</span><span>*prefixs, arguments: Dict[str, <a title="ariadne.message.parser.pattern.ParamPattern" href="pattern.html#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a>] = None, allow_quote: bool = False, skip_one_at_in_quote: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>旅途的浪漫</p></div>
@@ -517,7 +489,7 @@ if __name__ == &#34;__main__&#34;:
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.literature.Literature.arguments"><code class="name">var <span class="ident">arguments</span> : Dict[str, graia.ariadne.message.parser.pattern.ParamPattern]</code></dt>
+<dt id="ariadne.message.parser.literature.Literature.arguments"><code class="name">var <span class="ident">arguments</span> : Dict[str, <a title="ariadne.message.parser.pattern.ParamPattern" href="pattern.html#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -671,7 +643,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ariadne.message.parser.literature.Literature.parse_message"><code class="name flex">
-<span>def <span class="ident">parse_message</span></span>(<span>self, message_chain: graia.ariadne.message.chain.MessageChain)</span>
+<span>def <span class="ident">parse_message</span></span>(<span>self, message_chain: <a title="ariadne.message.chain.MessageChain" href="../chain.html#ariadne.message.chain.MessageChain">MessageChain</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -743,7 +715,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ariadne.message.parser.literature.Literature.prefix_match"><code class="name flex">
-<span>def <span class="ident">prefix_match</span></span>(<span>self, target_chain: graia.ariadne.message.chain.MessageChain)</span>
+<span>def <span class="ident">prefix_match</span></span>(<span>self, target_chain: <a title="ariadne.message.chain.MessageChain" href="../chain.html#ariadne.message.chain.MessageChain">MessageChain</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -778,7 +750,7 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="ariadne.message.parser.literature.Literature.trans_to_map"><code class="name flex">
-<span>def <span class="ident">trans_to_map</span></span>(<span>self, message_chain: graia.ariadne.message.chain.MessageChain)</span>
+<span>def <span class="ident">trans_to_map</span></span>(<span>self, message_chain: <a title="ariadne.message.chain.MessageChain" href="../chain.html#ariadne.message.chain.MessageChain">MessageChain</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

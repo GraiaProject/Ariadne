@@ -36,23 +36,23 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.adapter import Adapter
-from graia.ariadne.context import enter_message_send_context
-from graia.ariadne.event import MiraiEvent
-from graia.ariadne.event.lifecycle import ApplicationLaunched, ApplicationShutdowned
-from graia.ariadne.event.message import (
+from .adapter import Adapter
+from .context import enter_message_send_context
+from .event import MiraiEvent
+from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+from .event.message import (
     FriendMessage,
     GroupMessage,
     MessageEvent,
     TempMessage,
 )
-from graia.ariadne.message.element import Source
+from .message.element import Source
 
 if TYPE_CHECKING:
-    from graia.ariadne.message.element import Image, Voice
+    from .message.element import Image, Voice
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.model import (
+from .message.chain import MessageChain
+from .model import (
     BotMessage,
     CallMethod,
     ChatLogConfig,
@@ -66,7 +66,7 @@ from graia.ariadne.model import (
     Profile,
     UploadMethod,
 )
-from graia.ariadne.util import ApplicationMiddlewareDispatcher, app_ctx_manager
+from .util import ApplicationMiddlewareDispatcher, app_ctx_manager
 
 
 class Ariadne:
@@ -1168,7 +1168,7 @@ class Ariadne:
         Returns:
             Image: 生成的图片消息元素
         &#34;&#34;&#34;
-        from graia.ariadne.message.element import Image
+        from .message.element import Image
 
         result = await self.adapter.call_api(
             &#34;uploadImage&#34;,
@@ -1191,7 +1191,7 @@ class Ariadne:
         Returns:
             Voice: 生成的语音消息元素
         &#34;&#34;&#34;
-        from graia.ariadne.message.element import Voice
+        from .message.element import Voice
 
         result = await self.adapter.call_api(
             &#34;uploadVoice&#34;,
@@ -1217,7 +1217,7 @@ class Ariadne:
 <dl>
 <dt id="ariadne.app.Ariadne"><code class="flex name class">
 <span>class <span class="ident">Ariadne</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, adapter: graia.ariadne.adapter.Adapter, *, chat_log_config: Optional[graia.ariadne.model.ChatLogConfig] = None)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, adapter: <a title="ariadne.adapter.Adapter" href="adapter.html#ariadne.adapter.Adapter">Adapter</a>, *, chat_log_config: Optional[<a title="ariadne.model.ChatLogConfig" href="model.html#ariadne.model.ChatLogConfig">ChatLogConfig</a>] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>艾莉亚德妮 (Ariadne).</p>
@@ -2344,7 +2344,7 @@ class Ariadne:
         Returns:
             Image: 生成的图片消息元素
         &#34;&#34;&#34;
-        from graia.ariadne.message.element import Image
+        from .message.element import Image
 
         result = await self.adapter.call_api(
             &#34;uploadImage&#34;,
@@ -2367,7 +2367,7 @@ class Ariadne:
         Returns:
             Voice: 生成的语音消息元素
         &#34;&#34;&#34;
-        from graia.ariadne.message.element import Voice
+        from .message.element import Voice
 
         result = await self.adapter.call_api(
             &#34;uploadVoice&#34;,
@@ -2427,7 +2427,7 @@ def session_key(self) -&gt; Optional[str]:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.deleteFile"><code class="name flex">
-<span>async def <span class="ident">deleteFile</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], id: str = '')</span>
+<span>async def <span class="ident">deleteFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>删除指定文件.</p>
@@ -2483,7 +2483,7 @@ async def deleteFile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.deleteFriend"><code class="name flex">
-<span>async def <span class="ident">deleteFriend</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, int])</span>
+<span>async def <span class="ident">deleteFriend</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>删除指定好友。</p>
@@ -2526,7 +2526,7 @@ async def deleteFriend(self, target: Union[Friend, int]):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getBotProfile"><code class="name flex">
-<span>async def <span class="ident">getBotProfile</span></span>(<span>self) ‑> graia.ariadne.model.Profile</span>
+<span>async def <span class="ident">getBotProfile</span></span>(<span>self) ‑> <a title="ariadne.model.Profile" href="model.html#ariadne.model.Profile">Profile</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2545,7 +2545,7 @@ async def getBotProfile(self) -&gt; Profile:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getFileInfo"><code class="name flex">
-<span>async def <span class="ident">getFileInfo</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], id: str = '', with_download_info: bool = False) ‑> graia.ariadne.model.FileInfo</span>
+<span>async def <span class="ident">getFileInfo</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', with_download_info: bool = False) ‑> <a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>获取指定文件的信息.</p>
@@ -2610,7 +2610,7 @@ async def getFileInfo(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getFriend"><code class="name flex">
-<span>async def <span class="ident">getFriend</span></span>(<span>self, friend_id: int) ‑> Optional[graia.ariadne.model.Friend]</span>
+<span>async def <span class="ident">getFriend</span></span>(<span>self, friend_id: int) ‑> Optional[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>从已知的可能的好友 ID, 获取 Friend 实例.</p>
@@ -2648,7 +2648,7 @@ async def getFriend(self, friend_id: int) -&gt; Optional[Friend]:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getFriendList"><code class="name flex">
-<span>async def <span class="ident">getFriendList</span></span>(<span>self) ‑> List[graia.ariadne.model.Friend]</span>
+<span>async def <span class="ident">getFriendList</span></span>(<span>self) ‑> List[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2667,7 +2667,7 @@ async def getFriendList(self) -&gt; List[Friend]:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getFriendProfile"><code class="name flex">
-<span>async def <span class="ident">getFriendProfile</span></span>(<span>self, friend: Union[graia.ariadne.model.Friend, int]) ‑> graia.ariadne.model.Profile</span>
+<span>async def <span class="ident">getFriendProfile</span></span>(<span>self, friend: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, int]) ‑> <a title="ariadne.model.Profile" href="model.html#ariadne.model.Profile">Profile</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2689,7 +2689,7 @@ async def getFriendProfile(self, friend: Union[Friend, int]) -&gt; Profile:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getGroup"><code class="name flex">
-<span>async def <span class="ident">getGroup</span></span>(<span>self, group_id: int) ‑> Optional[graia.ariadne.model.Group]</span>
+<span>async def <span class="ident">getGroup</span></span>(<span>self, group_id: int) ‑> Optional[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.</p>
@@ -2727,7 +2727,7 @@ async def getGroup(self, group_id: int) -&gt; Optional[Group]:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getGroupConfig"><code class="name flex">
-<span>async def <span class="ident">getGroupConfig</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int]) ‑> graia.ariadne.model.GroupConfig</span>
+<span>async def <span class="ident">getGroupConfig</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int]) ‑> <a title="ariadne.model.GroupConfig" href="model.html#ariadne.model.GroupConfig">GroupConfig</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>获取指定群组的群设置</p>
@@ -2769,7 +2769,7 @@ async def getGroupConfig(self, group: Union[Group, int]) -&gt; GroupConfig:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getGroupList"><code class="name flex">
-<span>async def <span class="ident">getGroupList</span></span>(<span>self) ‑> List[graia.ariadne.model.Group]</span>
+<span>async def <span class="ident">getGroupList</span></span>(<span>self) ‑> List[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2788,7 +2788,7 @@ async def getGroupList(self) -&gt; List[Group]:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getMember"><code class="name flex">
-<span>async def <span class="ident">getMember</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int], member_id: int) ‑> Optional[graia.ariadne.model.Member]</span>
+<span>async def <span class="ident">getMember</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], member_id: int) ‑> Optional[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.</p>
@@ -2831,7 +2831,7 @@ async def getMember(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getMemberInfo"><code class="name flex">
-<span>async def <span class="ident">getMemberInfo</span></span>(<span>self, member: Union[graia.ariadne.model.Member, int], group: Union[graia.ariadne.model.Group, int, ForwardRef(None)] = None) ‑> graia.ariadne.model.MemberInfo</span>
+<span>async def <span class="ident">getMemberInfo</span></span>(<span>self, member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.MemberInfo" href="model.html#ariadne.model.MemberInfo">MemberInfo</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>获取指定群组成员的可修改状态.</p>
@@ -2893,7 +2893,7 @@ async def getMemberInfo(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getMemberList"><code class="name flex">
-<span>async def <span class="ident">getMemberList</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int]) ‑> List[graia.ariadne.model.Member]</span>
+<span>async def <span class="ident">getMemberList</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int]) ‑> List[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2915,7 +2915,7 @@ async def getMemberList(self, group: Union[Group, int]) -&gt; List[Member]:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getMemberProfile"><code class="name flex">
-<span>async def <span class="ident">getMemberProfile</span></span>(<span>self, member: Union[graia.ariadne.model.Member, int], group: Union[graia.ariadne.model.Group, int, ForwardRef(None)] = None) ‑> graia.ariadne.model.Profile</span>
+<span>async def <span class="ident">getMemberProfile</span></span>(<span>self, member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.Profile" href="model.html#ariadne.model.Profile">Profile</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2941,7 +2941,7 @@ async def getMemberProfile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.getMessageFromId"><code class="name flex">
-<span>async def <span class="ident">getMessageFromId</span></span>(<span>self, messageId: int) ‑> graia.ariadne.message.chain.MessageChain</span>
+<span>async def <span class="ident">getMessageFromId</span></span>(<span>self, messageId: int) ‑> <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2982,7 +2982,7 @@ async def getVersion(self, auto_set: bool = True):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.kickMember"><code class="name flex">
-<span>async def <span class="ident">kickMember</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int], member: Union[graia.ariadne.model.Member, int], message: str = '')</span>
+<span>async def <span class="ident">kickMember</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], message: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)</p>
@@ -3079,7 +3079,7 @@ async def kickMember(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.listFile"><code class="name flex">
-<span>async def <span class="ident">listFile</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[graia.ariadne.model.FileInfo]</span>
+<span>async def <span class="ident">listFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[<a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>列出指定文件夹下的所有文件.</p>
@@ -3153,7 +3153,7 @@ async def listFile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.makeDirectory"><code class="name flex">
-<span>async def <span class="ident">makeDirectory</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], name: str, id: str = '') ‑> graia.ariadne.model.FileInfo</span>
+<span>async def <span class="ident">makeDirectory</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], name: str, id: str = '') ‑> <a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>在指定位置创建新文件夹.</p>
@@ -3216,7 +3216,7 @@ async def makeDirectory(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.modifyGroupConfig"><code class="name flex">
-<span>async def <span class="ident">modifyGroupConfig</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int], config: graia.ariadne.model.GroupConfig)</span>
+<span>async def <span class="ident">modifyGroupConfig</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], config: <a title="ariadne.model.GroupConfig" href="model.html#ariadne.model.GroupConfig">GroupConfig</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>修改指定群组的群设置; 需要具有相应权限(管理员/群主).</p>
@@ -3259,7 +3259,7 @@ async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig)
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.modifyMemberAdmin"><code class="name flex">
-<span>async def <span class="ident">modifyMemberAdmin</span></span>(<span>self, assign: bool, member: Union[graia.ariadne.model.Member, int], group: Union[graia.ariadne.model.Group, int, ForwardRef(None)] = None)</span>
+<span>async def <span class="ident">modifyMemberAdmin</span></span>(<span>self, assign: bool, member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>修改一位群组成员管理员权限; 需要有相应权限(群主)</p>
@@ -3330,7 +3330,7 @@ async def modifyMemberAdmin(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.modifyMemberInfo"><code class="name flex">
-<span>async def <span class="ident">modifyMemberInfo</span></span>(<span>self, member: Union[graia.ariadne.model.Member, int], info: graia.ariadne.model.MemberInfo, group: Union[graia.ariadne.model.Group, int, ForwardRef(None)] = None)</span>
+<span>async def <span class="ident">modifyMemberInfo</span></span>(<span>self, member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], info: <a title="ariadne.model.MemberInfo" href="model.html#ariadne.model.MemberInfo">MemberInfo</a>, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).</p>
@@ -3397,7 +3397,7 @@ async def modifyMemberInfo(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.moveFile"><code class="name flex">
-<span>async def <span class="ident">moveFile</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], id: str = '', dest_id: str = '')</span>
+<span>async def <span class="ident">moveFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', dest_id: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>移动指定文件.</p>
@@ -3458,7 +3458,7 @@ async def moveFile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.msg_logger"><code class="name flex">
-<span>async def <span class="ident">msg_logger</span></span>(<span>self, event: graia.ariadne.event.MiraiEvent)</span>
+<span>async def <span class="ident">msg_logger</span></span>(<span>self, event: <a title="ariadne.event.MiraiEvent" href="event/index.html#ariadne.event.MiraiEvent">MiraiEvent</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -3471,7 +3471,7 @@ async def moveFile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.muteAll"><code class="name flex">
-<span>async def <span class="ident">muteAll</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int])</span>
+<span>async def <span class="ident">muteAll</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)</p>
@@ -3510,7 +3510,7 @@ async def muteAll(self, group: Union[Group, int]):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.muteMember"><code class="name flex">
-<span>async def <span class="ident">muteMember</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int], member: Union[graia.ariadne.model.Member, int], time: int)</span>
+<span>async def <span class="ident">muteMember</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], time: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); <code>time</code> 不得大于 <code>30*24*60*60=2592000</code> 或小于 <code>0</code>, 否则会自动修正;
@@ -3573,7 +3573,7 @@ async def muteMember(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.quitGroup"><code class="name flex">
-<span>async def <span class="ident">quitGroup</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int])</span>
+<span>async def <span class="ident">quitGroup</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>主动从指定群组退出</p>
@@ -3613,7 +3613,7 @@ async def quitGroup(self, group: Union[Group, int]):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.recallMessage"><code class="name flex">
-<span>async def <span class="ident">recallMessage</span></span>(<span>self, target: Union[graia.ariadne.message.element.Source, graia.ariadne.model.BotMessage, int])</span>
+<span>async def <span class="ident">recallMessage</span></span>(<span>self, target: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.</p>
@@ -3654,7 +3654,7 @@ async def recallMessage(self, target: Union[Source, BotMessage, int]):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.renameFile"><code class="name flex">
-<span>async def <span class="ident">renameFile</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], id: str = '', dest_name: str = '')</span>
+<span>async def <span class="ident">renameFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', dest_name: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>重命名指定文件.</p>
@@ -3715,7 +3715,7 @@ async def renameFile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.sendFriendMessage"><code class="name flex">
-<span>async def <span class="ident">sendFriendMessage</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, int], message: graia.ariadne.message.chain.MessageChain, *, quote: Union[graia.ariadne.message.element.Source, int, ForwardRef(None)] = None) ‑> graia.ariadne.model.BotMessage</span>
+<span>async def <span class="ident">sendFriendMessage</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, int], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>发送消息给好友, 可以指定回复的消息.</p>
@@ -3787,7 +3787,7 @@ async def sendFriendMessage(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.sendGroupMessage"><code class="name flex">
-<span>async def <span class="ident">sendGroupMessage</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int], message: graia.ariadne.message.chain.MessageChain, *, quote: Union[graia.ariadne.message.element.Source, int, ForwardRef(None)] = None) ‑> graia.ariadne.model.BotMessage</span>
+<span>async def <span class="ident">sendGroupMessage</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>发送消息到群组内, 可以指定回复的消息.</p>
@@ -3857,7 +3857,7 @@ async def sendGroupMessage(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.sendMessage"><code class="name flex">
-<span>async def <span class="ident">sendMessage</span></span>(<span>self, target: Union[graia.ariadne.event.message.MessageEvent, graia.ariadne.model.Group, graia.ariadne.model.Friend, graia.ariadne.model.Member], message: graia.ariadne.message.chain.MessageChain, *, quote: Union[bool, int, graia.ariadne.message.element.Source] = False) ‑> graia.ariadne.model.BotMessage</span>
+<span>async def <span class="ident">sendMessage</span></span>(<span>self, target: Union[<a title="ariadne.event.message.MessageEvent" href="event/message.html#ariadne.event.message.MessageEvent">MessageEvent</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, <a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[bool, int, <a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>] = False) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>依据传入的 <code>target</code> 自动发送消息。
@@ -3924,7 +3924,7 @@ async def sendMessage(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.sendNudge"><code class="name flex">
-<span>async def <span class="ident">sendNudge</span></span>(<span>self, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Member]) ‑> None</span>
+<span>async def <span class="ident">sendNudge</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>]) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>向指定的群组成员或好友发送戳一戳消息。</p>
@@ -3966,7 +3966,7 @@ async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.sendTempMessage"><code class="name flex">
-<span>async def <span class="ident">sendTempMessage</span></span>(<span>self, target: Union[graia.ariadne.model.Member, int], message: graia.ariadne.message.chain.MessageChain, group: Union[graia.ariadne.model.Group, int, ForwardRef(None)] = None, *, quote: Union[graia.ariadne.message.element.Source, int, ForwardRef(None)] = None) ‑> graia.ariadne.model.BotMessage</span>
+<span>async def <span class="ident">sendTempMessage</span></span>(<span>self, target: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None, *, quote: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>发送临时会话给群组中的特定成员, 可指定回复的消息.</p>
@@ -4047,7 +4047,7 @@ async def sendTempMessage(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.setEssence"><code class="name flex">
-<span>async def <span class="ident">setEssence</span></span>(<span>self, target: Union[graia.ariadne.message.element.Source, graia.ariadne.model.BotMessage, int])</span>
+<span>async def <span class="ident">setEssence</span></span>(<span>self, target: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
@@ -4117,7 +4117,7 @@ async def setEssence(self, target: Union[Source, BotMessage, int]):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.unmuteAll"><code class="name flex">
-<span>async def <span class="ident">unmuteAll</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int])</span>
+<span>async def <span class="ident">unmuteAll</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)</p>
@@ -4156,7 +4156,7 @@ async def unmuteAll(self, group: Union[Group, int]):
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.unmuteMember"><code class="name flex">
-<span>async def <span class="ident">unmuteMember</span></span>(<span>self, group: Union[graia.ariadne.model.Group, int], member: Union[graia.ariadne.model.Member, int])</span>
+<span>async def <span class="ident">unmuteMember</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], member: Union[<a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 <code>PermissionError</code>, 在这之前请对其进行判断!</p>
@@ -4208,7 +4208,7 @@ async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.uploadFile"><code class="name flex">
-<span>async def <span class="ident">uploadFile</span></span>(<span>self, data: bytes, method: graia.ariadne.model.UploadMethod, target: Union[graia.ariadne.model.Friend, graia.ariadne.model.Group, int], path: str = '') ‑> graia.ariadne.model.FileInfo</span>
+<span>async def <span class="ident">uploadFile</span></span>(<span>self, data: bytes, method: <a title="ariadne.model.UploadMethod" href="model.html#ariadne.model.UploadMethod">UploadMethod</a>, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], path: str = '') ‑> <a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
@@ -4269,7 +4269,7 @@ async def uploadFile(
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.uploadImage"><code class="name flex">
-<span>async def <span class="ident">uploadImage</span></span>(<span>self, data: bytes, method: graia.ariadne.model.UploadMethod) ‑> Image</span>
+<span>async def <span class="ident">uploadImage</span></span>(<span>self, data: bytes, method: <a title="ariadne.model.UploadMethod" href="model.html#ariadne.model.UploadMethod">UploadMethod</a>) ‑> Image</span>
 </code></dt>
 <dd>
 <div class="desc"><p>上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。</p>
@@ -4298,7 +4298,7 @@ async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&
     Returns:
         Image: 生成的图片消息元素
     &#34;&#34;&#34;
-    from graia.ariadne.message.element import Image
+    from .message.element import Image
 
     result = await self.adapter.call_api(
         &#34;uploadImage&#34;,
@@ -4314,7 +4314,7 @@ async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.uploadVoice"><code class="name flex">
-<span>async def <span class="ident">uploadVoice</span></span>(<span>self, data: bytes, method: graia.ariadne.model.UploadMethod) ‑> Voice</span>
+<span>async def <span class="ident">uploadVoice</span></span>(<span>self, data: bytes, method: <a title="ariadne.model.UploadMethod" href="model.html#ariadne.model.UploadMethod">UploadMethod</a>) ‑> Voice</span>
 </code></dt>
 <dd>
 <div class="desc"><p>上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。</p>
@@ -4343,7 +4343,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
     Returns:
         Voice: 生成的语音消息元素
     &#34;&#34;&#34;
-    from graia.ariadne.message.element import Voice
+    from .message.element import Voice
 
     result = await self.adapter.call_api(
         &#34;uploadVoice&#34;,

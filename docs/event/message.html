@@ -32,13 +32,13 @@ from typing import List, Union
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from graia.ariadne.dispatcher import (
+from ..dispatcher import (
     ApplicationDispatcher,
     MessageChainDispatcher,
     SourceDispatcher,
 )
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.model import Client, Friend, Group, Member
+from ..message.chain import MessageChain
+from ..model import Client, Friend, Group, Member
 
 from . import MiraiEvent
 
@@ -177,11 +177,11 @@ class StrangerMessage(MessageEvent):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.message.FriendMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : graia.ariadne.message.chain.MessageChain</code></dt>
+<dt id="ariadne.event.message.FriendMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : <a title="ariadne.message.chain.MessageChain" href="../message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.FriendMessage.sender"><code class="name">var <span class="ident">sender</span> : graia.ariadne.model.Friend</code></dt>
+<dt id="ariadne.event.message.FriendMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -235,11 +235,11 @@ class StrangerMessage(MessageEvent):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.message.GroupMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : graia.ariadne.message.chain.MessageChain</code></dt>
+<dt id="ariadne.event.message.GroupMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : <a title="ariadne.message.chain.MessageChain" href="../message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.GroupMessage.sender"><code class="name">var <span class="ident">sender</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.message.GroupMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -297,11 +297,11 @@ class StrangerMessage(MessageEvent):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.message.MessageEvent.messageChain"><code class="name">var <span class="ident">messageChain</span> : graia.ariadne.message.chain.MessageChain</code></dt>
+<dt id="ariadne.event.message.MessageEvent.messageChain"><code class="name">var <span class="ident">messageChain</span> : <a title="ariadne.message.chain.MessageChain" href="../message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.MessageEvent.sender"><code class="name">var <span class="ident">sender</span> : Union[graia.ariadne.model.Friend, graia.ariadne.model.Member, graia.ariadne.model.Client]</code></dt>
+<dt id="ariadne.event.message.MessageEvent.sender"><code class="name">var <span class="ident">sender</span> : Union[<a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>, <a title="ariadne.model.Client" href="../model.html#ariadne.model.Client">Client</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -353,11 +353,11 @@ class StrangerMessage(MessageEvent):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.message.OtherClientMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : graia.ariadne.message.chain.MessageChain</code></dt>
+<dt id="ariadne.event.message.OtherClientMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : <a title="ariadne.message.chain.MessageChain" href="../message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.OtherClientMessage.sender"><code class="name">var <span class="ident">sender</span> : graia.ariadne.model.Client</code></dt>
+<dt id="ariadne.event.message.OtherClientMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Client" href="../model.html#ariadne.model.Client">Client</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -409,11 +409,11 @@ class StrangerMessage(MessageEvent):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.message.StrangerMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : graia.ariadne.message.chain.MessageChain</code></dt>
+<dt id="ariadne.event.message.StrangerMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : <a title="ariadne.message.chain.MessageChain" href="../message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.StrangerMessage.sender"><code class="name">var <span class="ident">sender</span> : graia.ariadne.model.Friend</code></dt>
+<dt id="ariadne.event.message.StrangerMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -471,11 +471,11 @@ class StrangerMessage(MessageEvent):
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.message.TempMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : graia.ariadne.message.chain.MessageChain</code></dt>
+<dt id="ariadne.event.message.TempMessage.messageChain"><code class="name">var <span class="ident">messageChain</span> : <a title="ariadne.message.chain.MessageChain" href="../message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.TempMessage.sender"><code class="name">var <span class="ident">sender</span> : graia.ariadne.model.Member</code></dt>
+<dt id="ariadne.event.message.TempMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

@@ -29,12 +29,12 @@
 <pre><code class="python">from __future__ import annotations
 
 import copy
-from typing import Iterable, List, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
-from .element import Element, _update_forward_refs
+from .element import Element, NotSendableElement, _update_forward_refs
 
 MessageIndex = Tuple[int, Optional[int]]
 
@@ -110,22 +110,19 @@ class MessageChain(BaseModel):
                 element_list.extend(list(i))
         return cls(__root__=element_list)
 
-    @property
-    def require_prepare(self) -&gt; bool:
-        &#34;&#34;&#34;判断消息链是否需要经过处理才能被发送.
-
-        Returns:
-            bool: 判断的结果, True 为需要, False 则反之.
-        &#34;&#34;&#34;
-        return all(i.prepare is Element.prepare for i in self.__root__)
-
-    async def prepare(self) -&gt; None:
+    def prepare(self, copy: bool = False) -&gt; Optional[&#34;MessageChain&#34;]:
         &#34;&#34;&#34;
         对消息链中所有元素进行处理。
         &#34;&#34;&#34;
-        self.merge()
-        for i in self.__root__:
-            await run_always_await(i.prepare)
+        chain_ref = self.copy() if copy else self
+        chain_ref.merge()
+        for i in chain_ref.__root__[:]:
+            try:
+                i.prepare()
+            except NotSendableElement:
+                chain_ref.__root__.remove(i)
+        if copy:
+            return chain_ref
 
     def has(self, element_class: Type[Element_T]) -&gt; bool:
         &#34;&#34;&#34;
@@ -383,6 +380,9 @@ class MessageChain(BaseModel):
                 return True
         return False
 
+    def onlyHas(self, *types: Type[Element]) -&gt; bool:
+        return all(isinstance(i, types) for i in self.__root__)
+
     def merge(self, copy: bool = False) -&gt; Union[None, &#34;MessageChain&#34;]:
         &#34;&#34;&#34;
         在实例内合并相邻的 Plain 项
@@ -450,7 +450,7 @@ class MessageChain(BaseModel):
         Returns:
             MessageChain: 拷贝的副本。
         &#34;&#34;&#34;
-        return MessageChain(list(self.__root__))
+        return MessageChain(self.__root__)
 
     def index(self, element_type: Type[Element_T]) -&gt; Union[int, None]:
         &#34;&#34;&#34;
@@ -583,22 +583,19 @@ _update_forward_refs()</code></pre>
                 element_list.extend(list(i))
         return cls(__root__=element_list)
 
-    @property
-    def require_prepare(self) -&gt; bool:
-        &#34;&#34;&#34;判断消息链是否需要经过处理才能被发送.
-
-        Returns:
-            bool: 判断的结果, True 为需要, False 则反之.
-        &#34;&#34;&#34;
-        return all(i.prepare is Element.prepare for i in self.__root__)
-
-    async def prepare(self) -&gt; None:
+    def prepare(self, copy: bool = False) -&gt; Optional[&#34;MessageChain&#34;]:
         &#34;&#34;&#34;
         对消息链中所有元素进行处理。
         &#34;&#34;&#34;
-        self.merge()
-        for i in self.__root__:
-            await run_always_await(i.prepare)
+        chain_ref = self.copy() if copy else self
+        chain_ref.merge()
+        for i in chain_ref.__root__[:]:
+            try:
+                i.prepare()
+            except NotSendableElement:
+                chain_ref.__root__.remove(i)
+        if copy:
+            return chain_ref
 
     def has(self, element_class: Type[Element_T]) -&gt; bool:
         &#34;&#34;&#34;
@@ -856,6 +853,9 @@ _update_forward_refs()</code></pre>
                 return True
         return False
 
+    def onlyHas(self, *types: Type[Element]) -&gt; bool:
+        return all(isinstance(i, types) for i in self.__root__)
+
     def merge(self, copy: bool = False) -&gt; Union[None, &#34;MessageChain&#34;]:
         &#34;&#34;&#34;
         在实例内合并相邻的 Plain 项
@@ -923,7 +923,7 @@ _update_forward_refs()</code></pre>
         Returns:
             MessageChain: 拷贝的副本。
         &#34;&#34;&#34;
-        return MessageChain(list(self.__root__))
+        return MessageChain(self.__root__)
 
     def index(self, element_type: Type[Element_T]) -&gt; Union[int, None]:
         &#34;&#34;&#34;
@@ -1083,31 +1083,6 @@ def parse_obj(
 </details>
 </dd>
 </dl>
-<h3>Instance variables</h3>
-<dl>
-<dt id="ariadne.message.chain.MessageChain.require_prepare"><code class="name">var <span class="ident">require_prepare</span> : bool</code></dt>
-<dd>
-<div class="desc"><p>判断消息链是否需要经过处理才能被发送.</p>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bool</code></dt>
-<dd>判断的结果, True 为需要, False 则反之.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@property
-def require_prepare(self) -&gt; bool:
-    &#34;&#34;&#34;判断消息链是否需要经过处理才能被发送.
-
-    Returns:
-        bool: 判断的结果, True 为需要, False 则反之.
-    &#34;&#34;&#34;
-    return all(i.prepare is Element.prepare for i in self.__root__)</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.message.chain.MessageChain.append"><code class="name flex">
@@ -1170,7 +1145,7 @@ def require_prepare(self) -&gt; bool:
     Returns:
         MessageChain: 拷贝的副本。
     &#34;&#34;&#34;
-    return MessageChain(list(self.__root__))</code></pre>
+    return MessageChain(self.__root__)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.count"><code class="name flex">
@@ -1571,8 +1546,21 @@ def require_prepare(self) -&gt; bool:
         self.__root__ = result</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.chain.MessageChain.onlyHas"><code class="name flex">
+<span>def <span class="ident">onlyHas</span></span>(<span>self, *types: Type[Element]) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def onlyHas(self, *types: Type[Element]) -&gt; bool:
+    return all(isinstance(i, types) for i in self.__root__)</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.chain.MessageChain.prepare"><code class="name flex">
-<span>async def <span class="ident">prepare</span></span>(<span>self) ‑> None</span>
+<span>def <span class="ident">prepare</span></span>(<span>self, copy: bool = False) ‑> Optional[None]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>对消息链中所有元素进行处理。</p></div>
@@ -1580,13 +1568,19 @@ def require_prepare(self) -&gt; bool:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def prepare(self) -&gt; None:
+<pre><code class="python">def prepare(self, copy: bool = False) -&gt; Optional[&#34;MessageChain&#34;]:
     &#34;&#34;&#34;
     对消息链中所有元素进行处理。
     &#34;&#34;&#34;
-    self.merge()
-    for i in self.__root__:
-        await run_always_await(i.prepare)</code></pre>
+    chain_ref = self.copy() if copy else self
+    chain_ref.merge()
+    for i in chain_ref.__root__[:]:
+        try:
+            i.prepare()
+        except NotSendableElement:
+            chain_ref.__root__.remove(i)
+    if copy:
+        return chain_ref</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.split"><code class="name flex">
@@ -1780,9 +1774,9 @@ def require_prepare(self) -&gt; bool:
 <li><code><a title="ariadne.message.chain.MessageChain.include" href="#ariadne.message.chain.MessageChain.include">include</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.index" href="#ariadne.message.chain.MessageChain.index">index</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.merge" href="#ariadne.message.chain.MessageChain.merge">merge</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.onlyHas" href="#ariadne.message.chain.MessageChain.onlyHas">onlyHas</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.parse_obj" href="#ariadne.message.chain.MessageChain.parse_obj">parse_obj</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.prepare" href="#ariadne.message.chain.MessageChain.prepare">prepare</a></code></li>
-<li><code><a title="ariadne.message.chain.MessageChain.require_prepare" href="#ariadne.message.chain.MessageChain.require_prepare">require_prepare</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.split" href="#ariadne.message.chain.MessageChain.split">split</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.startswith" href="#ariadne.message.chain.MessageChain.startswith">startswith</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.subchain" href="#ariadne.message.chain.MessageChain.subchain">subchain</a></code></li>

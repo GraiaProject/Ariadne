@@ -46,11 +46,11 @@ from loguru import logger
 from typing_extensions import ParamSpec
 from yarl import URL
 
-from graia.ariadne.event import MiraiEvent
-from graia.ariadne.event.network import RemoteException
-from graia.ariadne.exception import InvalidArgument, InvalidSession, NotSupportedAction
-from graia.ariadne.model import CallMethod, MiraiSession
-from graia.ariadne.util import validate_response
+from .event import MiraiEvent
+from .event.network import RemoteException
+from .exception import InvalidArgument, InvalidSession, NotSupportedAction
+from .model import CallMethod, MiraiSession
+from .util import validate_response
 
 P = ParamSpec(&#34;P&#34;)
 R = TypeVar(&#34;R&#34;)
@@ -566,7 +566,7 @@ class DebugAdapter(DefaultAdapter):
 <dl>
 <dt id="ariadne.adapter.Adapter"><code class="flex name class">
 <span>class <span class="ident">Adapter</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: graia.ariadne.model.MiraiSession)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>适配器抽象基类。</p>
@@ -700,7 +700,7 @@ def session_activated(self) -&gt; bool:
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.adapter.Adapter.build_event"><code class="name flex">
-<span>async def <span class="ident">build_event</span></span>(<span>self, data: dict) ‑> graia.ariadne.event.MiraiEvent</span>
+<span>async def <span class="ident">build_event</span></span>(<span>self, data: dict) ‑> <a title="ariadne.event.MiraiEvent" href="event/index.html#ariadne.event.MiraiEvent">MiraiEvent</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>从尚未明确指定事件类型的对象中获取事件的定义, 并进行解析</p>
@@ -754,7 +754,7 @@ def session_activated(self) -&gt; bool:
 </details>
 </dd>
 <dt id="ariadne.adapter.Adapter.call_api"><code class="name flex">
-<span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: graia.ariadne.model.CallMethod, data: Optional[dict] = None) ‑> Union[dict, list]</span>
+<span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: <a title="ariadne.model.CallMethod" href="model.html#ariadne.model.CallMethod">CallMethod</a>, data: Optional[dict] = None) ‑> Union[dict, list]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>向Mirai端发送数据。
@@ -856,7 +856,7 @@ async def fetch_cycle(self) -&gt; None:
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">CombinedAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: graia.ariadne.model.MiraiSession, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
@@ -922,7 +922,7 @@ async def fetch_cycle(self) -&gt; None:
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.adapter.CombinedAdapter.call_api"><code class="name flex">
-<span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: graia.ariadne.model.CallMethod, data: Optional[dict] = {}) ‑> Union[dict, list]</span>
+<span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: <a title="ariadne.model.CallMethod" href="model.html#ariadne.model.CallMethod">CallMethod</a>, data: Optional[dict] = {}) ‑> Union[dict, list]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1058,7 +1058,7 @@ async def call_api(
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">DefaultAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: graia.ariadne.model.MiraiSession, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
@@ -1183,7 +1183,7 @@ async def call_api(
 </dd>
 <dt id="ariadne.adapter.DebugAdapter"><code class="flex name class">
 <span>class <span class="ident">DebugAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: graia.ariadne.model.MiraiSession, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Debugging adapter</p></div>
@@ -1243,7 +1243,7 @@ async def call_api(
 </dd>
 <dt id="ariadne.adapter.HttpAdapter"><code class="flex name class">
 <span>class <span class="ident">HttpAdapter</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: graia.ariadne.model.MiraiSession, fetch_interval: float = 0.5)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, fetch_interval: float = 0.5)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>仅使用正向 HTTP 的适配器，采用短轮询接收事件/消息。
@@ -1325,7 +1325,7 @@ Note: Working In Progress</p></div>
 </dd>
 <dt id="ariadne.adapter.WebsocketAdapter"><code class="flex name class">
 <span>class <span class="ident">WebsocketAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: graia.ariadne.model.MiraiSession, ping: bool = True)</span>
+<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>仅使用正向 Websocket 的适配器。

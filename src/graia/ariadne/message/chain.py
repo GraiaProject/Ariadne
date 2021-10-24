@@ -442,6 +442,10 @@ class MessageChain(BaseModel):
                 cnt += 1
         return cnt
 
+    def asSendable(self):
+        from .element import Source, Quote, File
+        return self.exclude(Source, Quote, File)
+
     def __add__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__

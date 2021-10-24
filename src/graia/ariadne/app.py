@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from .adapter import Adapter
+from .adapter import Adapter, DefaultAdapter
 from .context import enter_message_send_context
 from .event import MiraiEvent
 from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
@@ -76,6 +76,14 @@ class Ariadne:
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config if chat_log_config else ChatLogConfig()
         )
+
+    @classmethod
+    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
+        if not broadcast:
+            loop = asyncio.new_event_loop()
+            broadcast = Broadcast(loop=loop)
+        adapter = DefaultAdapter(broadcast=broadcast, session=session)
+        return cls(broadcast, adapter)
 
     @property
     def session_key(self) -> Optional[str]:
@@ -1172,3 +1180,17 @@ class Ariadne:
         )
 
         return Voice.parse_obj(result)
+
+    async def __aenter__(self) -> "Ariadne":
+        await self.launch()
+
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        try:
+            await self.stop()
+        except:
+            pass
+
+        if tb is not None:
+            raise exc

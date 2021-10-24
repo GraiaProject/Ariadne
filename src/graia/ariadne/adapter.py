@@ -6,7 +6,7 @@ from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.locks import Event
 from asyncio.tasks import Task
-from typing import Callable, Dict, Optional, Set, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Set, TypeVar, Union
 
 import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
@@ -18,11 +18,15 @@ from loguru import logger
 from typing_extensions import ParamSpec
 from yarl import URL
 
+from .context import enter_context
 from .event import MiraiEvent
 from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
 from .model import CallMethod, MiraiSession
 from .util import validate_response
+
+if TYPE_CHECKING:
+    from .app import Ariadne
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -102,6 +106,7 @@ class Adapter(abc.ABC):
         self.session: Optional[ClientSession] = None
         self.running: bool = False
         self.fetch_task: Optional[Task] = None
+        self.app: Optional["Ariadne"] = None
 
     @abc.abstractmethod
     async def fetch_cycle(self) -> None:
@@ -333,7 +338,8 @@ class WebsocketAdapter(Adapter):
             return
         if sync_id not in self.SyncIdManager.allocated:
             event = await self.build_event(received_data)
-            self.broadcast.postEvent(event)
+            with enter_context(app=self.app, event=event):
+                self.broadcast.postEvent(event)
         else:
             if sync_id in self.sync_event:
                 response = self.sync_event[sync_id]
@@ -411,7 +417,8 @@ class CombinedAdapter(Adapter):
                 self.mirai_session.session_key = session_key
             return
         event = await self.build_event(received_data)
-        self.broadcast.postEvent(event)
+        with enter_context(app=self.app, event=event):
+            self.broadcast.postEvent(event)
 
     fetch_cycle = WebsocketAdapter.fetch_cycle
 

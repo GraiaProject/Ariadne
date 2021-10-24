@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
     from graia.broadcast import Broadcast
+    from graia.broadcast.entities.event import Dispatchable
 
     from .adapter import Adapter
     from .app import Ariadne
@@ -30,7 +31,7 @@ def enter_message_send_context(method: UploadMethod):
 
 
 @contextmanager
-def enter_context(app=None, event=None):
+def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
     token_app = None
     token_event = None
     token_loop = None

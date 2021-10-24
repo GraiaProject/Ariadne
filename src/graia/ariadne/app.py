@@ -72,6 +72,7 @@ class Ariadne:
         """
         self.broadcast: Broadcast = broadcast
         self.adapter: Adapter = adapter
+        self.adapter.app = self
         self.mirai_session: MiraiSession = adapter.mirai_session
         self.loop: AbstractEventLoop = broadcast.loop
         self.daemon_task: Optional[Task] = None

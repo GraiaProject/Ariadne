@@ -683,7 +683,7 @@ reference = "tuna-tsinghua"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "4fe8daacdd198abaf31bc641312c959f8407a9373d9022d2b82fc70a57552b07"
+content-hash = "ba303624453c20dc9355b708c64aafea6cf0c3c39433e41daacdbc930fe7564b"
 
 [metadata.files]
 aiohttp = [

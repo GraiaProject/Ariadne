@@ -36,6 +36,7 @@ if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
     from graia.broadcast import Broadcast
+    from graia.broadcast.entities.event import Dispatchable
 
     from .adapter import Adapter
     from .app import Ariadne
@@ -58,7 +59,7 @@ def enter_message_send_context(method: UploadMethod):
 
 
 @contextmanager
-def enter_context(app=None, event=None):
+def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; = None):
     token_app = None
     token_event = None
     token_loop = None
@@ -96,7 +97,7 @@ def enter_context(app=None, event=None):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="ariadne.context.enter_context"><code class="name flex">
-<span>def <span class="ident">enter_context</span></span>(<span>app=None, event=None)</span>
+<span>def <span class="ident">enter_context</span></span>(<span>app: Ariadne = None, event: Dispatchable = None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -105,7 +106,7 @@ def enter_context(app=None, event=None):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@contextmanager
-def enter_context(app=None, event=None):
+def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; = None):
     token_app = None
     token_event = None
     token_loop = None

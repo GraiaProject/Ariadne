@@ -24,11 +24,7 @@ from ..element import (
     Voice,
     Xml,
 )
-from .pattern import (
-    BoxParameter,
-    ParamPattern,
-    SwitchParameter,
-)
+from .pattern import BoxParameter, ParamPattern, SwitchParameter
 
 BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
 

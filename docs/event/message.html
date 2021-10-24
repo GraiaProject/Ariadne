@@ -32,14 +32,9 @@ from typing import List, Union
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ..dispatcher import (
-    ApplicationDispatcher,
-    MessageChainDispatcher,
-    SourceDispatcher,
-)
+from ..dispatcher import ApplicationDispatcher, MessageChainDispatcher, SourceDispatcher
 from ..message.chain import MessageChain
 from ..model import Client, Friend, Group, Member
-
 from . import MiraiEvent
 
 

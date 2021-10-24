@@ -12,12 +12,7 @@ from .adapter import Adapter
 from .context import enter_message_send_context
 from .event import MiraiEvent
 from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
-from .event.message import (
-    FriendMessage,
-    GroupMessage,
-    MessageEvent,
-    TempMessage,
-)
+from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
 
 if TYPE_CHECKING:

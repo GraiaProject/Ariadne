@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import copy
-from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
+import json
+import re
+from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
@@ -443,7 +445,8 @@ class MessageChain(BaseModel):
         return cnt
 
     def asSendable(self):
-        from .element import Source, Quote, File
+        from .element import File, Quote, Source
+
         return self.exclude(Source, Quote, File)
 
     def __add__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
@@ -464,6 +467,62 @@ class MessageChain(BaseModel):
 
     def __len__(self) -> int:
         return len(self.__root__)
+
+    def asSerializedString(self) -> str:
+        """将消息链对象转为序列化后字符串. 为了保证可逆，纯文本中的'['用'[_'替代
+
+        Returns:
+            str: 序列化后字符串
+        """
+        from .element import Plain
+
+        result = []
+        for e in self.__root__:
+            if isinstance(e, Plain):
+                result.append(e.asDisplay().replace("[", "[_"))
+            else:
+                result.append(e.asDisplay(verbose=True))
+        return "".join(result)
+
+    def fromSerializedString(cls, string: str) -> "MessageChain":
+        """将序列化后字符串转为消息链对象
+
+        Returns:
+            MessageChain: 转换后得到的消息链, 所包含的信息可能不完整.
+        """
+        from .element import (
+            At,
+            AtAll,
+            Element,
+            Face,
+            FlashImage,
+            Image,
+            MusicShare,
+            Plain,
+            Poke,
+            Voice,
+        )
+
+        element_cls_mapping: Dict[str, Element] = {
+            "AtAll": AtAll,
+            "At": At,
+            "Face": Face,
+            "Poke": Poke,
+            "Image": Image,
+            "FlashImage": FlashImage,
+            "Voice": Voice,
+            "MusicShare": MusicShare,
+        }
+        result = []
+        for match in re.split(r"(\[.+?\])", string):
+            mirai = re.fullmatch(r"\[(.+?)(:(.+?))\]", match)
+            if mirai and mirai.group(1) in element_cls_mapping:
+                json_string = mirai.group(3)
+                j_data = json.loads(json_string)
+                result.append(element_cls_mapping[mirai.group(1)].parse_obj(j_data))
+            elif match:
+                result.append(Plain(match.replace("[_", "[")))
+        return MessageChain.create(result)
 
 
 _update_forward_refs()

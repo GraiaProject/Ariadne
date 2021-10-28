@@ -34,7 +34,7 @@ class Element(AriadneBaseModel, abc.ABC):
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return ""
 
     def prepare(self) -> None:
@@ -60,7 +60,7 @@ class Plain(Element):
         """
         super().__init__(text=text, **kwargs)
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return self.text
 
 
@@ -127,15 +127,19 @@ class At(Element):
         except LookupError:
             pass
 
-    def asDisplay(self) -> str:
-        return f"[At:{self.display}({self.target})]"
+    def asDisplay(self, *, verbose: bool = False) -> str:
+        return (
+            f"[At:{self.display}({self.target})]"
+            if not verbose
+            else f"[At:{j_dump(self.dict(exclude='type'))}]"
+        )
 
 
 class AtAll(Element):
     "该消息元素用于群组中的管理员提醒群组中的所有成员"
     type: str = "AtAll"
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return "[AtAll]"
 
     def prepare(self) -> None:
@@ -156,8 +160,12 @@ class Face(Element):
     faceId: int
     name: Optional[str] = None
 
-    def asDisplay(self) -> str:
-        return f"[表情:{self.faceId}{f'({self.name})' if self.name else ''}]"
+    def asDisplay(self, *, verbose: bool = False) -> str:
+        return (
+            f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
+            if not verbose
+            else f"[Face:{j_dump(self.dict(exclude='type'))}]"
+        )
 
     def __eq__(self, other: "Face") -> bool:
         return isinstance(other, Face) and (
@@ -170,7 +178,7 @@ class Xml(Element):
     type = "Xml"
     xml: str
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return "[XML消息]"
 
 
@@ -187,7 +195,7 @@ class Json(Element):
     def dict(self, *args, **kwargs):
         return super().dict(*args, **({**kwargs, "by_alias": True}))
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return "[JSON消息]"
 
 
@@ -196,7 +204,7 @@ class App(Element):
     type = "App"
     content: str
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return "[APP消息]"
 
 
@@ -225,8 +233,8 @@ class Poke(Element):
     type = "Poke"
     name: PokeMethods
 
-    def asDisplay(self) -> str:
-        return f"[戳一戳:{self.name}]"
+    def asDisplay(self, *, verbose: bool = False) -> str:
+        return f"[戳一戳:{self.name}]" if not verbose else f"[Poke:{self.name}]"
 
 
 class Dice(Element):
@@ -234,8 +242,8 @@ class Dice(Element):
     type = "Dice"
     value: int
 
-    def asDisplay(self) -> str:
-        return f"[骰子:{self.value}]"
+    def asDisplay(self, *, verbose: bool = False) -> str:
+        return f"[骰子:{self.value}]" if not verbose else f"[Dice:{self.value}]"
 
 
 class MusicShare(Element):
@@ -249,8 +257,12 @@ class MusicShare(Element):
     musicUrl: Optional[str]
     brief: Optional[str]
 
-    def asDisplay(self) -> str:
-        return f"[音乐分享:{self.title}]"
+    def asDisplay(self, *, verbose: bool = False) -> str:
+        return (
+            f"[音乐分享:{self.title}]"
+            if not verbose
+            else f"[MusicShare:{j_dump(self.dict(exclude='type'))}]"
+        )
 
 
 class ForwardNode(BaseModel):
@@ -277,7 +289,7 @@ class Forward(Element):
     type = "Forward"
     nodeList: List[ForwardNode]
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return f"[合并转发:共{len(self.nodeList)}条]"
 
 
@@ -288,7 +300,7 @@ class File(Element):
     name: str
     size: int
 
-    def asDisplay(self) -> str:
+    def asDisplay(self, *, verbose: bool = False) -> str:
         return f"[文件:{self.name}]"
 
 
@@ -397,8 +409,8 @@ class Image(MultimediaElement):
     def fromFlashImage(cls, flash: "FlashImage") -> "Image":
         return cls.parse_obj(flash.dict() | {"type": "Image"})
 
-    def asDisplay(self) -> str:
-        return "[图片]"
+    def asDisplay(self, *, verbose: bool = False) -> str:
+        return "[图片]" if not verbose else f"[Image:{j_dump(self.dict(exclude='type'))}]"
 
 
 class FlashImage(Image):
@@ -438,8 +450,12 @@ class FlashImage(Image):
     def fromImage(cls, image: "Image") -> "FlashImage":
         return cls.parse_obj(image.dict() | {"type": "FlashImage"})
 
-    def asDisplay(self):
-        return "[闪照]"
+    def asDisplay(self, *, verbose: bool = True) -> str:
+        return (
+            "[闪照]"
+            if not verbose
+            else f"[FlashImage:{j_dump(self.dict(exclude='type'))}]"
+        )
 
 
 class Voice(MultimediaElement):
@@ -471,8 +487,12 @@ class Voice(MultimediaElement):
             data["base64"] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
-    def asDisplay(self) -> str:
-        return "[语音]"
+    def asDisplay(self, *, verbose: bool = True) -> str:
+        return (
+            "[语音]"
+            if not verbose
+            else f"[Voice:{j_dump(j_dump(self.dict(exclude='type')))}]"
+        )
 
 
 def _update_forward_refs():

@@ -8,7 +8,7 @@ from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
-from .element import Element, NotSendableElement, _update_forward_refs
+from .element import Element, MultimediaElement, NotSendableElement, File, Quote, Source, Plain, _update_forward_refs
 
 MessageIndex = Tuple[int, Optional[int]]
 
@@ -72,7 +72,6 @@ class MessageChain(BaseModel):
             *elements(Union[Iterable[Element], Element, str]): 元素的容器，为承载元素的可迭代对象/单元素实例，
             字符串会被自动不可逆的转换为 `Plain`
         """
-        from .element import Plain
 
         element_list = []
         for i in elements:
@@ -207,7 +206,6 @@ class MessageChain(BaseModel):
         Returns:
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         """
-        from .element import Plain
 
         result = copy.copy(self.__root__)
         if item.start:
@@ -276,7 +274,6 @@ class MessageChain(BaseModel):
         Returns:
             List["MessageChain"]: 分割结果, 行为和 `str.split` 差不多.
         """
-        from .element import Plain
 
         result: List["MessageChain"] = []
         tmp = []
@@ -313,7 +310,6 @@ class MessageChain(BaseModel):
         Returns:
             bool: 是否以此字符串开头
         """
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[0]) is not Plain:
             return False
@@ -329,7 +325,6 @@ class MessageChain(BaseModel):
         Returns:
             bool: 是否以此字符串结尾
         """
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[-1]) is not Plain:
             return False
@@ -347,7 +342,6 @@ class MessageChain(BaseModel):
             bool: 是否包括
         """
 
-        from .element import Plain
 
         for i in self.merge(copy=True).get(Plain):
             if string in i.text:
@@ -365,7 +359,6 @@ class MessageChain(BaseModel):
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         """
-        from .element import Plain
 
         result = []
 
@@ -445,8 +438,6 @@ class MessageChain(BaseModel):
         return cnt
 
     def asSendable(self):
-        from .element import File, Quote, Source
-
         return self.exclude(Source, Quote, File)
 
     def __add__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
@@ -468,61 +459,36 @@ class MessageChain(BaseModel):
     def __len__(self) -> int:
         return len(self.__root__)
 
-    def asSerializedString(self) -> str:
-        """将消息链对象转为序列化后字符串. 为了保证可逆，纯文本中的'['用'[_'替代
+    def asPersistentString(self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) -> str:
+        string_list = []
+        include = tuple(include)
+        exclude = tuple(exclude)
+        if include and exclude:
+            raise ValueError("Can not present include and exclude at same time!")
+        for i in self.__root__:
+            if (include and isinstance(i, include)) or (exclude and isinstance(i, exclude)) or not (include or exclude):
+                if isinstance(i, Plain):
+                    string_list.append(i.asPersistentString().replace("[", "[_"))
+                elif not isinstance(i, MultimediaElement) or binary:
+                    string_list.append(i.asPersistentString())
+                else:
+                    string_list.append(i.asPersistentString(binary=False))
+        return "".join(string_list)
 
-        Returns:
-            str: 序列化后字符串
-        """
-        from .element import Plain
-
+    @classmethod
+    def fromPersistentString(cls, string) -> "MessageChain":
+        element_mapping = {i.type: i for i in Element.__subclasses__()}
         result = []
-        for e in self.__root__:
-            if isinstance(e, Plain):
-                result.append(e.asDisplay().replace("[", "[_"))
-            else:
-                result.append(e.asDisplay(verbose=True))
-        return "".join(result)
-
-    def fromSerializedString(cls, string: str) -> "MessageChain":
-        """将序列化后字符串转为消息链对象
-
-        Returns:
-            MessageChain: 转换后得到的消息链, 所包含的信息可能不完整.
-        """
-        from .element import (
-            At,
-            AtAll,
-            Element,
-            Face,
-            FlashImage,
-            Image,
-            MusicShare,
-            Plain,
-            Poke,
-            Voice,
-        )
-
-        element_cls_mapping: Dict[str, Element] = {
-            "AtAll": AtAll,
-            "At": At,
-            "Face": Face,
-            "Poke": Poke,
-            "Image": Image,
-            "FlashImage": FlashImage,
-            "Voice": Voice,
-            "MusicShare": MusicShare,
-        }
-        result = []
-        for match in re.split(r"(\[.+?\])", string):
-            mirai = re.fullmatch(r"\[(.+?)(:(.+?))\]", match)
-            if mirai and mirai.group(1) in element_cls_mapping:
-                json_string = mirai.group(3)
-                j_data = json.loads(json_string)
-                result.append(element_cls_mapping[mirai.group(1)].parse_obj(j_data))
+        for match in re.split(r"(\[mirai:.+?\])", string):
+            mirai = re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match)
+            if mirai:
+                j_string = mirai.group(3)
+                element_cls = element_mapping[mirai.group(1)]
+                result.append(element_cls.parse_obj(json.loads(j_string)))
             elif match:
                 result.append(Plain(match.replace("[_", "[")))
         return MessageChain.create(result)
+
 
 
 _update_forward_refs()

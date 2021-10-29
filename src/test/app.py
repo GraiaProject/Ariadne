@@ -11,6 +11,7 @@ from loguru import logger
 from graia.ariadne.adapter import DebugAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage
+from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.model import Friend, MiraiSession
 
@@ -18,7 +19,7 @@ if __name__ == "__main__":
     url, account, verify_key = (
         open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     )
-    ALL_FLAG = False
+    ALL_FLAG = True
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
     bcc = Broadcast(loop=loop)
@@ -28,6 +29,10 @@ if __name__ == "__main__":
     @bcc.receiver(FriendMessage)
     async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
         await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
+
+    @bcc.receiver(NewFriendRequestEvent)
+    async def _(event: NewFriendRequestEvent):
+        await event.accept("Welcome!")
 
     async def main():
         await app.launch()
@@ -43,10 +48,6 @@ if __name__ == "__main__":
             logger.debug(await app.getFriendProfile(friend_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0]))
-            logger.debug(
-                await app.listFile(group_list[0], size=1024, with_download_info=True)
-                # Fetching file info is VERY time consuming
-            )
         await app.lifecycle()
 
     try:

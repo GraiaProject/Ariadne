@@ -26,7 +26,7 @@ app = Ariadne(
 
 @bcc.receiver("FriendMessage")
 async def friend_message_listener(app: Ariadne, friend: Friend):
-    await app.send_message(friend, MessageChain.create([Plain("Hello, World!")]))
+    await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
 
 
 loop.run_until_complete(app.lifecycle())

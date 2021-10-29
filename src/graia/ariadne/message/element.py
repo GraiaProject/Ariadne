@@ -4,10 +4,13 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
+from typing_extensions import ParamSpec
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
+if TYPE_CHECKING:
+    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny,DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -34,8 +37,11 @@ class Element(AriadneBaseModel, abc.ABC):
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return ""
+
+    def asPersistentString(self) -> str:
+        return f"[mirai:{self.type}:{j_dump(self.dict(exclude='type'))}]"
 
     def prepare(self) -> None:
         """
@@ -60,7 +66,10 @@ class Plain(Element):
         """
         super().__init__(text=text, **kwargs)
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
+        return self.text
+
+    def asPersistentString(self) -> str:
         return self.text
 
 
@@ -78,6 +87,8 @@ class Source(Element):
     def prepare(self) -> NoReturn:
         raise NotSendableElement
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class Quote(Element):
     "表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"
@@ -96,6 +107,9 @@ class Quote(Element):
 
     def prepare(self) -> NoReturn:
         raise NotSendableElement
+    
+    def asPersistentString(self) -> str:
+        return ""
 
 
 class At(Element):
@@ -127,19 +141,15 @@ class At(Element):
         except LookupError:
             pass
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
-        return (
-            f"[At:{self.display}({self.target})]"
-            if not verbose
-            else f"[At:{j_dump(self.dict(exclude='type'))}]"
-        )
+    def asDisplay(self) -> str:
+        return f"[At:{self.display}({self.target})]"
 
 
 class AtAll(Element):
     "该消息元素用于群组中的管理员提醒群组中的所有成员"
     type: str = "AtAll"
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return "[AtAll]"
 
     def prepare(self) -> None:
@@ -160,12 +170,9 @@ class Face(Element):
     faceId: int
     name: Optional[str] = None
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
-        return (
-            f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
-            if not verbose
-            else f"[Face:{j_dump(self.dict(exclude='type'))}]"
-        )
+    def asDisplay(self) -> str:
+        return f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
+
 
     def __eq__(self, other: "Face") -> bool:
         return isinstance(other, Face) and (
@@ -178,7 +185,7 @@ class Xml(Element):
     type = "Xml"
     xml: str
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return "[XML消息]"
 
 
@@ -195,7 +202,7 @@ class Json(Element):
     def dict(self, *args, **kwargs):
         return super().dict(*args, **({**kwargs, "by_alias": True}))
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return "[JSON消息]"
 
 
@@ -204,9 +211,11 @@ class App(Element):
     type = "App"
     content: str
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return "[APP消息]"
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class PokeMethods(Enum):
     "戳一戳可用方法"
@@ -233,8 +242,8 @@ class Poke(Element):
     type = "Poke"
     name: PokeMethods
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
-        return f"[戳一戳:{self.name}]" if not verbose else f"[Poke:{self.name}]"
+    def asDisplay(self) -> str:
+        return f"[戳一戳:{self.name}]"
 
 
 class Dice(Element):
@@ -242,8 +251,8 @@ class Dice(Element):
     type = "Dice"
     value: int
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
-        return f"[骰子:{self.value}]" if not verbose else f"[Dice:{self.value}]"
+    def asDisplay(self) -> str:
+        return f"[骰子:{self.value}]"
 
 
 class MusicShare(Element):
@@ -257,12 +266,8 @@ class MusicShare(Element):
     musicUrl: Optional[str]
     brief: Optional[str]
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
-        return (
-            f"[音乐分享:{self.title}]"
-            if not verbose
-            else f"[MusicShare:{j_dump(self.dict(exclude='type'))}]"
-        )
+    def asDisplay(self) -> str:
+        return f"[音乐分享:{self.title}]"
 
 
 class ForwardNode(BaseModel):
@@ -289,9 +294,11 @@ class Forward(Element):
     type = "Forward"
     nodeList: List[ForwardNode]
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return f"[合并转发:共{len(self.nodeList)}条]"
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class File(Element):
     "指示一个文件信息元素"
@@ -300,9 +307,11 @@ class File(Element):
     name: str
     size: int
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
+    def asDisplay(self) -> str:
         return f"[文件:{self.name}]"
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class ImageType(Enum):
     Friend = "Friend"
@@ -317,6 +326,7 @@ image_upload_method_type_map = {
     UploadMethod.Temp: ImageType.Temp,
 }
 
+P = ParamSpec("P")
 
 class MultimediaElement(Element):
     """指示多媒体消息元素."""
@@ -324,9 +334,6 @@ class MultimediaElement(Element):
     url: Optional[str] = None
     path: Optional[Path] = None
     base64: Optional[str] = None
-
-    def dict(self, *args, **kwargs):
-        return super().dict(*args, **({**kwargs, "by_alias": True}))
 
     async def get_bytes(self, url: str = None) -> bytes:
         """尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
@@ -350,6 +357,12 @@ class MultimediaElement(Element):
             data = await response.read()
             self.base64 = b64encode(data)
             return data
+
+    def dict(self, *, include: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, exclude: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -> 'DictStrAny':
+        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+
+    def asPersistentString(self, *, binary: bool = True) -> str:
+        return f"[{self.type}:{j_dump(self.dict(exclude='type'))}]" if binary else f"[{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
 
     @property
     def uuid(self):
@@ -409,8 +422,8 @@ class Image(MultimediaElement):
     def fromFlashImage(cls, flash: "FlashImage") -> "Image":
         return cls.parse_obj(flash.dict() | {"type": "Image"})
 
-    def asDisplay(self, *, verbose: bool = False) -> str:
-        return "[图片]" if not verbose else f"[Image:{j_dump(self.dict(exclude='type'))}]"
+    def asDisplay(self) -> str:
+        return "[图片]"
 
 
 class FlashImage(Image):
@@ -450,12 +463,8 @@ class FlashImage(Image):
     def fromImage(cls, image: "Image") -> "FlashImage":
         return cls.parse_obj(image.dict() | {"type": "FlashImage"})
 
-    def asDisplay(self, *, verbose: bool = True) -> str:
-        return (
-            "[闪照]"
-            if not verbose
-            else f"[FlashImage:{j_dump(self.dict(exclude='type'))}]"
-        )
+    def asDisplay(self) -> str:
+        return "[闪照]"
 
 
 class Voice(MultimediaElement):
@@ -487,13 +496,8 @@ class Voice(MultimediaElement):
             data["base64"] = b64encode(data_bytes)
         super().__init__(**data, **kwargs)
 
-    def asDisplay(self, *, verbose: bool = True) -> str:
-        return (
-            "[语音]"
-            if not verbose
-            else f"[Voice:{j_dump(j_dump(self.dict(exclude='type')))}]"
-        )
-
+    def asDisplay(self) -> str:
+        return "[语音]"
 
 def _update_forward_refs():
     """

@@ -820,8 +820,9 @@ class RequestEvent(MiraiEvent):
         adapter = adapter_ctx.get()
         if not adapter.mirai_session.session_key:
             raise InvalidSession(&#34;you must authenticate before this.&#34;)
+        api_route = (self.type)[0].lower() + self.type[1:]
         await adapter.call_api(
-            f&#34;resp/{self.type}&#34;,
+            f&#34;resp/{api_route}&#34;,
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: adapter.mirai_session.session_key,
@@ -4631,8 +4632,9 @@ Ariadne (annotation): 发布事件的应用实例</p>
         adapter = adapter_ctx.get()
         if not adapter.mirai_session.session_key:
             raise InvalidSession(&#34;you must authenticate before this.&#34;)
+        api_route = (self.type)[0].lower() + self.type[1:]
         await adapter.call_api(
-            f&#34;resp/{self.type}&#34;,
+            f&#34;resp/{api_route}&#34;,
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: adapter.mirai_session.session_key,

@@ -29,12 +29,14 @@
 <pre><code class="python">from __future__ import annotations
 
 import copy
-from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
+import json
+import re
+from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
-from .element import Element, NotSendableElement, _update_forward_refs
+from .element import Element, MultimediaElement, NotSendableElement, File, Quote, Source, Plain, _update_forward_refs
 
 MessageIndex = Tuple[int, Optional[int]]
 
@@ -98,7 +100,6 @@ class MessageChain(BaseModel):
             *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
         &#34;&#34;&#34;
-        from .element import Plain
 
         element_list = []
         for i in elements:
@@ -233,7 +234,6 @@ class MessageChain(BaseModel):
         Returns:
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         &#34;&#34;&#34;
-        from .element import Plain
 
         result = copy.copy(self.__root__)
         if item.start:
@@ -302,7 +302,6 @@ class MessageChain(BaseModel):
         Returns:
             List[&#34;MessageChain&#34;]: 分割结果, 行为和 `str.split` 差不多.
         &#34;&#34;&#34;
-        from .element import Plain
 
         result: List[&#34;MessageChain&#34;] = []
         tmp = []
@@ -339,7 +338,6 @@ class MessageChain(BaseModel):
         Returns:
             bool: 是否以此字符串开头
         &#34;&#34;&#34;
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[0]) is not Plain:
             return False
@@ -355,7 +353,6 @@ class MessageChain(BaseModel):
         Returns:
             bool: 是否以此字符串结尾
         &#34;&#34;&#34;
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[-1]) is not Plain:
             return False
@@ -373,7 +370,6 @@ class MessageChain(BaseModel):
             bool: 是否包括
         &#34;&#34;&#34;
 
-        from .element import Plain
 
         for i in self.merge(copy=True).get(Plain):
             if string in i.text:
@@ -391,7 +387,6 @@ class MessageChain(BaseModel):
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         &#34;&#34;&#34;
-        from .element import Plain
 
         result = []
 
@@ -470,6 +465,9 @@ class MessageChain(BaseModel):
                 cnt += 1
         return cnt
 
+    def asSendable(self):
+        return self.exclude(Source, Quote, File)
+
     def __add__(self, content: Union[MessageChain, List[Element]]) -&gt; &#34;MessageChain&#34;:
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
@@ -488,6 +486,37 @@ class MessageChain(BaseModel):
 
     def __len__(self) -&gt; int:
         return len(self.__root__)
+
+    def asPersistentString(self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) -&gt; str:
+        string_list = []
+        include = tuple(include)
+        exclude = tuple(exclude)
+        if include and exclude:
+            raise ValueError(&#34;Can not present include and exclude at same time!&#34;)
+        for i in self.__root__:
+            if (include and isinstance(i, include)) or (exclude and isinstance(i, exclude)) or not (include or exclude):
+                if isinstance(i, Plain):
+                    string_list.append(i.asPersistentString().replace(&#34;[&#34;, &#34;[_&#34;))
+                elif not isinstance(i, MultimediaElement) or binary:
+                    string_list.append(i.asPersistentString())
+                else:
+                    string_list.append(i.asPersistentString(binary=False))
+        return &#34;&#34;.join(string_list)
+
+    @classmethod
+    def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
+        element_mapping = {i.type: i for i in Element.__subclasses__()}
+        result = []
+        for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
+            mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
+            if mirai:
+                j_string = mirai.group(3)
+                element_cls = element_mapping[mirai.group(1)]
+                result.append(element_cls.parse_obj(json.loads(j_string)))
+            elif match:
+                result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
+        return MessageChain.create(result)
+
 
 
 _update_forward_refs()</code></pre>
@@ -571,7 +600,6 @@ _update_forward_refs()</code></pre>
             *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
         &#34;&#34;&#34;
-        from .element import Plain
 
         element_list = []
         for i in elements:
@@ -706,7 +734,6 @@ _update_forward_refs()</code></pre>
         Returns:
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         &#34;&#34;&#34;
-        from .element import Plain
 
         result = copy.copy(self.__root__)
         if item.start:
@@ -775,7 +802,6 @@ _update_forward_refs()</code></pre>
         Returns:
             List[&#34;MessageChain&#34;]: 分割结果, 行为和 `str.split` 差不多.
         &#34;&#34;&#34;
-        from .element import Plain
 
         result: List[&#34;MessageChain&#34;] = []
         tmp = []
@@ -812,7 +838,6 @@ _update_forward_refs()</code></pre>
         Returns:
             bool: 是否以此字符串开头
         &#34;&#34;&#34;
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[0]) is not Plain:
             return False
@@ -828,7 +853,6 @@ _update_forward_refs()</code></pre>
         Returns:
             bool: 是否以此字符串结尾
         &#34;&#34;&#34;
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[-1]) is not Plain:
             return False
@@ -846,7 +870,6 @@ _update_forward_refs()</code></pre>
             bool: 是否包括
         &#34;&#34;&#34;
 
-        from .element import Plain
 
         for i in self.merge(copy=True).get(Plain):
             if string in i.text:
@@ -864,7 +887,6 @@ _update_forward_refs()</code></pre>
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         &#34;&#34;&#34;
-        from .element import Plain
 
         result = []
 
@@ -943,6 +965,9 @@ _update_forward_refs()</code></pre>
                 cnt += 1
         return cnt
 
+    def asSendable(self):
+        return self.exclude(Source, Quote, File)
+
     def __add__(self, content: Union[MessageChain, List[Element]]) -&gt; &#34;MessageChain&#34;:
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
@@ -960,7 +985,37 @@ _update_forward_refs()</code></pre>
         self.__root__ *= time
 
     def __len__(self) -&gt; int:
-        return len(self.__root__)</code></pre>
+        return len(self.__root__)
+
+    def asPersistentString(self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) -&gt; str:
+        string_list = []
+        include = tuple(include)
+        exclude = tuple(exclude)
+        if include and exclude:
+            raise ValueError(&#34;Can not present include and exclude at same time!&#34;)
+        for i in self.__root__:
+            if (include and isinstance(i, include)) or (exclude and isinstance(i, exclude)) or not (include or exclude):
+                if isinstance(i, Plain):
+                    string_list.append(i.asPersistentString().replace(&#34;[&#34;, &#34;[_&#34;))
+                elif not isinstance(i, MultimediaElement) or binary:
+                    string_list.append(i.asPersistentString())
+                else:
+                    string_list.append(i.asPersistentString(binary=False))
+        return &#34;&#34;.join(string_list)
+
+    @classmethod
+    def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
+        element_mapping = {i.type: i for i in Element.__subclasses__()}
+        result = []
+        for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
+            mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
+            if mirai:
+                j_string = mirai.group(3)
+                element_cls = element_mapping[mirai.group(1)]
+                result.append(element_cls.parse_obj(json.loads(j_string)))
+            elif match:
+                result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
+        return MessageChain.create(result)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1035,7 +1090,6 @@ def create(
         *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
         字符串会被自动不可逆的转换为 `Plain`
     &#34;&#34;&#34;
-    from .element import Plain
 
     element_list = []
     for i in elements:
@@ -1046,6 +1100,30 @@ def create(
         else:
             element_list.extend(list(i))
     return cls(__root__=element_list)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.chain.MessageChain.fromPersistentString"><code class="name flex">
+<span>def <span class="ident">fromPersistentString</span></span>(<span>string) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
+    element_mapping = {i.type: i for i in Element.__subclasses__()}
+    result = []
+    for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
+        mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
+        if mirai:
+            j_string = mirai.group(3)
+            element_cls = element_mapping[mirai.group(1)]
+            result.append(element_cls.parse_obj(json.loads(j_string)))
+        elif match:
+            result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
+    return MessageChain.create(result)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.parse_obj"><code class="name flex">
@@ -1125,6 +1203,45 @@ def parse_obj(
     return &#34;&#34;.join(i.asDisplay() for i in self.__root__)</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.chain.MessageChain.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) -&gt; str:
+    string_list = []
+    include = tuple(include)
+    exclude = tuple(exclude)
+    if include and exclude:
+        raise ValueError(&#34;Can not present include and exclude at same time!&#34;)
+    for i in self.__root__:
+        if (include and isinstance(i, include)) or (exclude and isinstance(i, exclude)) or not (include or exclude):
+            if isinstance(i, Plain):
+                string_list.append(i.asPersistentString().replace(&#34;[&#34;, &#34;[_&#34;))
+            elif not isinstance(i, MultimediaElement) or binary:
+                string_list.append(i.asPersistentString())
+            else:
+                string_list.append(i.asPersistentString(binary=False))
+    return &#34;&#34;.join(string_list)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.chain.MessageChain.asSendable"><code class="name flex">
+<span>def <span class="ident">asSendable</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asSendable(self):
+    return self.exclude(Source, Quote, File)</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.chain.MessageChain.copy"><code class="name flex">
 <span>def <span class="ident">copy</span></span>(<span>self) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
@@ -1197,7 +1314,6 @@ def parse_obj(
     Returns:
         bool: 是否以此字符串结尾
     &#34;&#34;&#34;
-    from .element import Plain
 
     if not self.__root__ or type(self.__root__[-1]) is not Plain:
         return False
@@ -1443,7 +1559,6 @@ def parse_obj(
         bool: 是否包括
     &#34;&#34;&#34;
 
-    from .element import Plain
 
     for i in self.merge(copy=True).get(Plain):
         if string in i.text:
@@ -1523,7 +1638,6 @@ def parse_obj(
     Returns:
         Union[None, MessageChain]: copy = True 时返回副本
     &#34;&#34;&#34;
-    from .element import Plain
 
     result = []
 
@@ -1600,7 +1714,6 @@ def parse_obj(
     Returns:
         List[&#34;MessageChain&#34;]: 分割结果, 行为和 `str.split` 差不多.
     &#34;&#34;&#34;
-    from .element import Plain
 
     result: List[&#34;MessageChain&#34;] = []
     tmp = []
@@ -1651,7 +1764,6 @@ def parse_obj(
     Returns:
         bool: 是否以此字符串开头
     &#34;&#34;&#34;
-    from .element import Plain
 
     if not self.__root__ or type(self.__root__[0]) is not Plain:
         return False
@@ -1694,7 +1806,6 @@ def parse_obj(
     Returns:
         MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
     &#34;&#34;&#34;
-    from .element import Plain
 
     result = copy.copy(self.__root__)
     if item.start:
@@ -1756,9 +1867,11 @@ def parse_obj(
 <ul>
 <li>
 <h4><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="ariadne.message.chain.MessageChain.append" href="#ariadne.message.chain.MessageChain.append">append</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.asDisplay" href="#ariadne.message.chain.MessageChain.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.asPersistentString" href="#ariadne.message.chain.MessageChain.asPersistentString">asPersistentString</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.asSendable" href="#ariadne.message.chain.MessageChain.asSendable">asSendable</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.build_chain" href="#ariadne.message.chain.MessageChain.build_chain">build_chain</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.copy" href="#ariadne.message.chain.MessageChain.copy">copy</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.count" href="#ariadne.message.chain.MessageChain.count">count</a></code></li>
@@ -1766,6 +1879,7 @@ def parse_obj(
 <li><code><a title="ariadne.message.chain.MessageChain.endswith" href="#ariadne.message.chain.MessageChain.endswith">endswith</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.exclude" href="#ariadne.message.chain.MessageChain.exclude">exclude</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.extend" href="#ariadne.message.chain.MessageChain.extend">extend</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.fromPersistentString" href="#ariadne.message.chain.MessageChain.fromPersistentString">fromPersistentString</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.get" href="#ariadne.message.chain.MessageChain.get">get</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getFirst" href="#ariadne.message.chain.MessageChain.getFirst">getFirst</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getOne" href="#ariadne.message.chain.MessageChain.getOne">getOne</a></code></li>

@@ -32,10 +32,13 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
+from typing_extensions import ParamSpec
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
+if TYPE_CHECKING:
+    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny,DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -65,6 +68,9 @@ class Element(AriadneBaseModel, abc.ABC):
     def asDisplay(self) -&gt; str:
         return &#34;&#34;
 
+    def asPersistentString(self) -&gt; str:
+        return f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
         为元素被发送进行准备,
@@ -91,6 +97,9 @@ class Plain(Element):
     def asDisplay(self) -&gt; str:
         return self.text
 
+    def asPersistentString(self) -&gt; str:
+        return self.text
+
 
 class Source(Element):
     &#34;表示消息在一个特定聊天区域内的唯一标识&#34;
@@ -106,6 +115,8 @@ class Source(Element):
     def prepare(self) -&gt; NoReturn:
         raise NotSendableElement
 
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;
 
 class Quote(Element):
     &#34;表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)&#34;
@@ -124,6 +135,9 @@ class Quote(Element):
 
     def prepare(self) -&gt; NoReturn:
         raise NotSendableElement
+    
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;
 
 
 class At(Element):
@@ -185,7 +199,8 @@ class Face(Element):
     name: Optional[str] = None
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[表情:{self.faceId}{f&#39;({self.name})&#39; if self.name else &#39;&#39;}]&#34;
+        return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
+
 
     def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
         return isinstance(other, Face) and (
@@ -227,6 +242,8 @@ class App(Element):
     def asDisplay(self) -&gt; str:
         return &#34;[APP消息]&#34;
 
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;
 
 class PokeMethods(Enum):
     &#34;戳一戳可用方法&#34;
@@ -308,6 +325,8 @@ class Forward(Element):
     def asDisplay(self) -&gt; str:
         return f&#34;[合并转发:共{len(self.nodeList)}条]&#34;
 
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;
 
 class File(Element):
     &#34;指示一个文件信息元素&#34;
@@ -319,6 +338,8 @@ class File(Element):
     def asDisplay(self) -&gt; str:
         return f&#34;[文件:{self.name}]&#34;
 
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;
 
 class ImageType(Enum):
     Friend = &#34;Friend&#34;
@@ -333,6 +354,7 @@ image_upload_method_type_map = {
     UploadMethod.Temp: ImageType.Temp,
 }
 
+P = ParamSpec(&#34;P&#34;)
 
 class MultimediaElement(Element):
     &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
@@ -340,9 +362,6 @@ class MultimediaElement(Element):
     url: Optional[str] = None
     path: Optional[Path] = None
     base64: Optional[str] = None
-
-    def dict(self, *args, **kwargs):
-        return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))
 
     async def get_bytes(self, url: str = None) -&gt; bytes:
         &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
@@ -366,6 +385,12 @@ class MultimediaElement(Element):
             data = await response.read()
             self.base64 = b64encode(data)
             return data
+
+    def dict(self, *, include: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, exclude: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -&gt; &#39;DictStrAny&#39;:
+        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+
+    def asPersistentString(self, *, binary: bool = True) -&gt; str:
+        return f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34; if binary else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
 
     @property
     def uuid(self):
@@ -466,7 +491,7 @@ class FlashImage(Image):
     def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
         return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
 
-    def asDisplay(self):
+    def asDisplay(self) -&gt; str:
         return &#34;[闪照]&#34;
 
 
@@ -501,7 +526,6 @@ class Voice(MultimediaElement):
 
     def asDisplay(self) -&gt; str:
         return &#34;[语音]&#34;
-
 
 def _update_forward_refs():
     &#34;&#34;&#34;
@@ -541,7 +565,10 @@ def _update_forward_refs():
     content: str
 
     def asDisplay(self) -&gt; str:
-        return &#34;[APP消息]&#34;</code></pre>
+        return &#34;[APP消息]&#34;
+
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -571,6 +598,19 @@ def _update_forward_refs():
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
     return &#34;[APP消息]&#34;</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.element.App.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
+    return &#34;&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -836,6 +876,9 @@ type (str): 元素类型</p>
     def asDisplay(self) -&gt; str:
         return &#34;&#34;
 
+    def asPersistentString(self) -&gt; str:
+        return f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
         为元素被发送进行准备,
@@ -893,6 +936,19 @@ type (str): 元素类型</p>
     return &#34;&#34;</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.element.Element.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
+    return f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.element.Element.prepare"><code class="name flex">
 <span>def <span class="ident">prepare</span></span>(<span>self) ‑> None</span>
 </code></dt>
@@ -937,7 +993,8 @@ type (str): 元素类型</p>
     name: Optional[str] = None
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[表情:{self.faceId}{f&#39;({self.name})&#39; if self.name else &#39;&#39;}]&#34;
+        return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
+
 
     def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
         return isinstance(other, Face) and (
@@ -979,7 +1036,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
-    return f&#34;[表情:{self.faceId}{f&#39;({self.name})&#39; if self.name else &#39;&#39;}]&#34;</code></pre>
+    return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -1012,7 +1069,10 @@ type (str): 元素类型</p>
     size: int
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[文件:{self.name}]&#34;</code></pre>
+        return f&#34;[文件:{self.name}]&#34;
+
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1050,6 +1110,19 @@ type (str): 元素类型</p>
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
     return f&#34;[文件:{self.name}]&#34;</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.element.File.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
+    return &#34;&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -1111,7 +1184,7 @@ type (str): 元素类型</p>
     def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
         return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
 
-    def asDisplay(self):
+    def asDisplay(self) -&gt; str:
         return &#34;[闪照]&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1151,7 +1224,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.message.element.FlashImage.asDisplay"><code class="name flex">
-<span>def <span class="ident">asDisplay</span></span>(<span>self)</span>
+<span>def <span class="ident">asDisplay</span></span>(<span>self) ‑> str</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -1159,7 +1232,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def asDisplay(self):
+<pre><code class="python">def asDisplay(self) -&gt; str:
     return &#34;[闪照]&#34;</code></pre>
 </details>
 </dd>
@@ -1212,7 +1285,10 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
     nodeList: List[ForwardNode]
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[合并转发:共{len(self.nodeList)}条]&#34;</code></pre>
+        return f&#34;[合并转发:共{len(self.nodeList)}条]&#34;
+
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1242,6 +1318,19 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
     return f&#34;[合并转发:共{len(self.nodeList)}条]&#34;</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.element.Forward.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
+    return &#34;&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -1582,9 +1671,6 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
     path: Optional[Path] = None
     base64: Optional[str] = None
 
-    def dict(self, *args, **kwargs):
-        return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))
-
     async def get_bytes(self, url: str = None) -&gt; bytes:
         &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
 
@@ -1607,6 +1693,12 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
             data = await response.read()
             self.base64 = b64encode(data)
             return data
+
+    def dict(self, *, include: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, exclude: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -&gt; &#39;DictStrAny&#39;:
+        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+
+    def asPersistentString(self, *, binary: bool = True) -&gt; str:
+        return f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34; if binary else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
 
     @property
     def uuid(self):
@@ -1674,8 +1766,21 @@ def uuid(self):
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="ariadne.message.element.MultimediaElement.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self, *, binary: bool = True) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self, *, binary: bool = True) -&gt; str:
+    return f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34; if binary else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.element.MultimediaElement.dict"><code class="name flex">
-<span>def <span class="ident">dict</span></span>(<span>self, *args, **kwargs)</span>
+<span>def <span class="ident">dict</span></span>(<span>self, *, include: Union[ForwardRef('AbstractSetIntStr'), ForwardRef('MappingIntStrAny')] = None, exclude: Union[ForwardRef('AbstractSetIntStr'), ForwardRef('MappingIntStrAny')] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) ‑> DictStrAny</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></div>
@@ -1683,8 +1788,8 @@ def uuid(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dict(self, *args, **kwargs):
-    return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))</code></pre>
+<pre><code class="python">def dict(self, *, include: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, exclude: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -&gt; &#39;DictStrAny&#39;:
+    return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.element.MultimediaElement.get_bytes"><code class="name flex">
@@ -1886,6 +1991,9 @@ type (str): 元素类型</p>
         super().__init__(text=text, **kwargs)
 
     def asDisplay(self) -&gt; str:
+        return self.text
+
+    def asPersistentString(self) -&gt; str:
         return self.text</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -1919,6 +2027,19 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
+    return self.text</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.element.Plain.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
     return self.text</code></pre>
 </details>
 </dd>
@@ -2121,7 +2242,10 @@ type (str): 元素类型</p>
         return MessageChain(v)  # no need to parse objects, they are universal!
 
     def prepare(self) -&gt; NoReturn:
-        raise NotSendableElement</code></pre>
+        raise NotSendableElement
+    
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2158,6 +2282,22 @@ type (str): 元素类型</p>
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.element.Quote.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
+    return &#34;&#34;</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
@@ -2191,7 +2331,10 @@ type (str): 元素类型</p>
         }
 
     def prepare(self) -&gt; NoReturn:
-        raise NotSendableElement</code></pre>
+        raise NotSendableElement
+
+    def asPersistentString(self) -&gt; str:
+        return &#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2218,6 +2361,22 @@ type (str): 元素类型</p>
 <dt id="ariadne.message.element.Source.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.element.Source.asPersistentString"><code class="name flex">
+<span>def <span class="ident">asPersistentString</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asPersistentString(self) -&gt; str:
+    return &#34;&#34;</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Inherited members</h3>
@@ -2400,6 +2559,7 @@ type (str): 元素类型</p>
 <h4><code><a title="ariadne.message.element.App" href="#ariadne.message.element.App">App</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.element.App.asDisplay" href="#ariadne.message.element.App.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.App.asPersistentString" href="#ariadne.message.element.App.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.App.content" href="#ariadne.message.element.App.content">content</a></code></li>
 </ul>
 </li>
@@ -2430,6 +2590,7 @@ type (str): 元素类型</p>
 <h4><code><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.element.Element.asDisplay" href="#ariadne.message.element.Element.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Element.asPersistentString" href="#ariadne.message.element.Element.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 <li><code><a title="ariadne.message.element.Element.type" href="#ariadne.message.element.Element.type">type</a></code></li>
 </ul>
@@ -2447,6 +2608,7 @@ type (str): 元素类型</p>
 <h4><code><a title="ariadne.message.element.File" href="#ariadne.message.element.File">File</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.element.File.asDisplay" href="#ariadne.message.element.File.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.File.asPersistentString" href="#ariadne.message.element.File.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.File.id" href="#ariadne.message.element.File.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.File.name" href="#ariadne.message.element.File.name">name</a></code></li>
 <li><code><a title="ariadne.message.element.File.size" href="#ariadne.message.element.File.size">size</a></code></li>
@@ -2465,6 +2627,7 @@ type (str): 元素类型</p>
 <h4><code><a title="ariadne.message.element.Forward" href="#ariadne.message.element.Forward">Forward</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.element.Forward.asDisplay" href="#ariadne.message.element.Forward.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Forward.asPersistentString" href="#ariadne.message.element.Forward.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.Forward.nodeList" href="#ariadne.message.element.Forward.nodeList">nodeList</a></code></li>
 </ul>
 </li>
@@ -2508,6 +2671,7 @@ type (str): 元素类型</p>
 <li>
 <h4><code><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></code></h4>
 <ul class="two-column">
+<li><code><a title="ariadne.message.element.MultimediaElement.asPersistentString" href="#ariadne.message.element.MultimediaElement.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.base64" href="#ariadne.message.element.MultimediaElement.base64">base64</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
@@ -2536,6 +2700,7 @@ type (str): 元素类型</p>
 <h4><code><a title="ariadne.message.element.Plain" href="#ariadne.message.element.Plain">Plain</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.element.Plain.asDisplay" href="#ariadne.message.element.Plain.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Plain.asPersistentString" href="#ariadne.message.element.Plain.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.Plain.text" href="#ariadne.message.element.Plain.text">text</a></code></li>
 <li><code><a title="ariadne.message.element.Plain.type" href="#ariadne.message.element.Plain.type">type</a></code></li>
 </ul>
@@ -2571,6 +2736,7 @@ type (str): 元素类型</p>
 <li>
 <h4><code><a title="ariadne.message.element.Quote" href="#ariadne.message.element.Quote">Quote</a></code></h4>
 <ul class="two-column">
+<li><code><a title="ariadne.message.element.Quote.asPersistentString" href="#ariadne.message.element.Quote.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.Quote.groupId" href="#ariadne.message.element.Quote.groupId">groupId</a></code></li>
 <li><code><a title="ariadne.message.element.Quote.id" href="#ariadne.message.element.Quote.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.Quote.origin" href="#ariadne.message.element.Quote.origin">origin</a></code></li>
@@ -2583,6 +2749,7 @@ type (str): 元素类型</p>
 <h4><code><a title="ariadne.message.element.Source" href="#ariadne.message.element.Source">Source</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.element.Source.Config" href="#ariadne.message.element.Source.Config">Config</a></code></li>
+<li><code><a title="ariadne.message.element.Source.asPersistentString" href="#ariadne.message.element.Source.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.Source.id" href="#ariadne.message.element.Source.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.Source.time" href="#ariadne.message.element.Source.time">time</a></code></li>
 <li><code><a title="ariadne.message.element.Source.type" href="#ariadne.message.element.Source.type">type</a></code></li>

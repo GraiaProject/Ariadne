@@ -1,8 +1,11 @@
 import functools
+import sys
+import traceback
 from typing import Callable, ContextManager, TypeVar, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from loguru import logger
 from typing_extensions import ParamSpec
 
 from .context import enter_context
@@ -45,6 +48,14 @@ def validate_response(code: Union[dict, int]):
         exception_code = code_exceptions_mapping.get(code)
         if exception_code:
             raise exception_code
+
+
+def loguru_tb(limit=None, file=None, chain=True):
+    logger.exception(sys.exc_info()[1])
+
+
+def inject_loguru_traceback():
+    traceback.print_exc = loguru_tb
 
 
 class ApplicationMiddlewareDispatcher(BaseDispatcher):

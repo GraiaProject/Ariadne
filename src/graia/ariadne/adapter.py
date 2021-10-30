@@ -92,11 +92,11 @@ def error_wrapper(network_action_callable: Callable[P, R]) -> Callable[P, R]:
 
 class Adapter(abc.ABC):
     """
-    适配器抽象基类。
+    适配器抽象基类.
 
     Args:
         broadcast(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
+        session: Session 实例, 存储了连接信息
     """
 
     def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -> None:
@@ -111,7 +111,7 @@ class Adapter(abc.ABC):
     @abc.abstractmethod
     async def fetch_cycle(self) -> None:
         """
-        负责接收并处理数据，广播事件。
+        负责接收并处理数据, 广播事件.
         """
 
     @abc.abstractmethod
@@ -121,15 +121,15 @@ class Adapter(abc.ABC):
         self, action: str, method: CallMethod, data: Optional[dict] = None
     ) -> Union[dict, list]:
         """
-        向Mirai端发送数据。
-        如有回复则应一并返回。
+        向Mirai端发送数据.
+        如有回复则应一并返回.
 
         Args:
-            action (str): 要执行的操作。
-            method (CallMethod): 指示对 mirai-api-http 端发送数据的方式。
-            data (dict): 要发送的数据。
+            action (str): 要执行的操作.
+            method (CallMethod): 指示对 mirai-api-http 端发送数据的方式.
+            data (dict): 要发送的数据.
         Returns:
-            dict: 响应字典。
+            dict: 响应字典.
         """
 
     async def build_event(self, data: dict) -> MiraiEvent:
@@ -172,7 +172,7 @@ class Adapter(abc.ABC):
 
     async def stop(self):
         """
-        停止适配器，并等待 `fetch_cycle` 方法完成。
+        停止适配器, 并等待 `fetch_cycle` 方法完成.
         """
         self.running = False
         if self.fetch_task and not self.fetch_task.done():
@@ -186,8 +186,8 @@ class Adapter(abc.ABC):
 
 class HttpAdapter(Adapter):
     """
-    仅使用正向 HTTP 的适配器，采用短轮询接收事件/消息。
-    不推荐。
+    仅使用正向 HTTP 的适配器, 采用短轮询接收事件/消息.
+    不推荐.
     Note: Working In Progress
     """
 
@@ -240,8 +240,8 @@ class HttpAdapter(Adapter):
 
 class WebsocketAdapter(Adapter):
     """
-    仅使用正向 Websocket 的适配器。
-    因 Mirai API HTTP 的实现，部分功能不可用。
+    仅使用正向 Websocket 的适配器.
+    因 Mirai API HTTP 的实现, 部分功能不可用.
     """
 
     class SyncIdManager:
@@ -385,13 +385,13 @@ class WebsocketAdapter(Adapter):
 
 class CombinedAdapter(Adapter):
     """
-    使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
-    稳定与性能的平衡，但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器。
+    使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
+    稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器.
 
     Args:
         bcc(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
-        ping(bool): 是否启用 ping 功能。
+        session: Session 实例, 存储了连接信息
+        ping(bool): 是否启用 ping 功能.
     """
 
     def __init__(

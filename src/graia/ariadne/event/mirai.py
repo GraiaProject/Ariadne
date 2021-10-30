@@ -99,7 +99,7 @@ class BotReloginEvent(BotEvent):
 
 
 class FriendInputStatusChangedEvent(FriendEvent):
-    """当该事件发生时, 应用实例所辖账号的某一好友输入状态改变。
+    """当该事件发生时, 应用实例所辖账号的某一好友输入状态改变.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -113,7 +113,7 @@ class FriendInputStatusChangedEvent(FriendEvent):
 
 
 class FriendNickChangedEvent(FriendEvent):
-    """当该事件发生时, 应用实例所辖账号的某一好友更改了昵称。
+    """当该事件发生时, 应用实例所辖账号的某一好友更改了昵称.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -747,7 +747,7 @@ class MemberUnmuteEvent(GroupEvent):
 
 
 class MemberHonorChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组成员获得/失去了某个荣誉。
+    """该事件发生时, 有一群组成员获得/失去了某个荣誉.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -775,7 +775,7 @@ class MemberHonorChangeEvent(GroupEvent):
 
 class RequestEvent(MiraiEvent):
     """
-    各种申请事件的基类。
+    各种申请事件的基类.
     """
 
     type: str
@@ -787,7 +787,7 @@ class RequestEvent(MiraiEvent):
 
     async def _operate(self, operation: int, msg: str = "") -> None:
         """
-        内部接口，用于内部便捷发送相应操作。
+        内部接口, 用于内部便捷发送相应操作.
         """
         adapter = adapter_ctx.get()
         if not adapter.mirai_session.session_key:
@@ -1050,7 +1050,7 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent):
 
 
 class OtherClientOnlineEvent(MiraiEvent):
-    """当该事件发生时, 应用实例所辖账号在其他客户端上线。
+    """当该事件发生时, 应用实例所辖账号在其他客户端上线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
@@ -1064,7 +1064,7 @@ class OtherClientOnlineEvent(MiraiEvent):
 
 
 class OtherClientOfflineEvent(MiraiEvent):
-    """当该事件发生时, 应用实例所辖账号在其他客户端下线。
+    """当该事件发生时, 应用实例所辖账号在其他客户端下线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 

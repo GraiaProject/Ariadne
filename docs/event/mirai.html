@@ -127,7 +127,7 @@ class BotReloginEvent(BotEvent):
 
 
 class FriendInputStatusChangedEvent(FriendEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友输入状态改变。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友输入状态改变.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -141,7 +141,7 @@ class FriendInputStatusChangedEvent(FriendEvent):
 
 
 class FriendNickChangedEvent(FriendEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友更改了昵称。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友更改了昵称.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -775,7 +775,7 @@ class MemberUnmuteEvent(GroupEvent):
 
 
 class MemberHonorChangeEvent(GroupEvent):
-    &#34;&#34;&#34;该事件发生时, 有一群组成员获得/失去了某个荣誉。
+    &#34;&#34;&#34;该事件发生时, 有一群组成员获得/失去了某个荣誉.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -803,7 +803,7 @@ class MemberHonorChangeEvent(GroupEvent):
 
 class RequestEvent(MiraiEvent):
     &#34;&#34;&#34;
-    各种申请事件的基类。
+    各种申请事件的基类.
     &#34;&#34;&#34;
 
     type: str
@@ -815,7 +815,7 @@ class RequestEvent(MiraiEvent):
 
     async def _operate(self, operation: int, msg: str = &#34;&#34;) -&gt; None:
         &#34;&#34;&#34;
-        内部接口，用于内部便捷发送相应操作。
+        内部接口, 用于内部便捷发送相应操作.
         &#34;&#34;&#34;
         adapter = adapter_ctx.get()
         if not adapter.mirai_session.session_key:
@@ -1078,7 +1078,7 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent):
 
 
 class OtherClientOnlineEvent(MiraiEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端上线。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端上线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
@@ -1092,7 +1092,7 @@ class OtherClientOnlineEvent(MiraiEvent):
 
 
 class OtherClientOfflineEvent(MiraiEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端下线。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端下线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
@@ -2185,7 +2185,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>当该事件发生时, 应用实例所辖账号的某一好友输入状态改变。</p>
+<div class="desc"><p>当该事件发生时, 应用实例所辖账号的某一好友输入状态改变.</p>
 <p><strong> 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! </strong></p>
 <p>Allowed Extra Parameters(提供的额外注解支持):
 Ariadne (annotation): 发布事件的应用实例</p>
@@ -2196,7 +2196,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FriendInputStatusChangedEvent(FriendEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友输入状态改变。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友输入状态改变.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -2241,7 +2241,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>当该事件发生时, 应用实例所辖账号的某一好友更改了昵称。</p>
+<div class="desc"><p>当该事件发生时, 应用实例所辖账号的某一好友更改了昵称.</p>
 <p><strong> 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! </strong></p>
 <p>Allowed Extra Parameters(提供的额外注解支持):
 Ariadne (annotation): 发布事件的应用实例</p>
@@ -2252,7 +2252,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FriendNickChangedEvent(FriendEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友更改了昵称。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号的某一好友更改了昵称.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -3084,7 +3084,7 @@ Member (annotation):
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>该事件发生时, 有一群组成员获得/失去了某个荣誉。</p>
+<div class="desc"><p>该事件发生时, 有一群组成员获得/失去了某个荣誉.</p>
 <p><strong> 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! </strong></p>
 <p>Allowed Extra Parameters(提供的额外注解支持):
 Ariadne (annotation): 发布事件的应用实例
@@ -3097,7 +3097,7 @@ Member (annotation): 获得/失去荣誉的成员</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MemberHonorChangeEvent(GroupEvent):
-    &#34;&#34;&#34;该事件发生时, 有一群组成员获得/失去了某个荣誉。
+    &#34;&#34;&#34;该事件发生时, 有一群组成员获得/失去了某个荣誉.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
@@ -4500,7 +4500,7 @@ def subject_handle_group_id(cls, v, values):
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>当该事件发生时, 应用实例所辖账号在其他客户端下线。</p>
+<div class="desc"><p>当该事件发生时, 应用实例所辖账号在其他客户端下线.</p>
 <p><strong> 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. </strong></p>
 <p>Allowed Extra Parameters(提供的额外注解支持):
 Ariadne (annotation): 发布事件的应用实例</p>
@@ -4511,7 +4511,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class OtherClientOfflineEvent(MiraiEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端下线。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端下线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
@@ -4550,7 +4550,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>当该事件发生时, 应用实例所辖账号在其他客户端上线。</p>
+<div class="desc"><p>当该事件发生时, 应用实例所辖账号在其他客户端上线.</p>
 <p><strong> 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. </strong></p>
 <p>Allowed Extra Parameters(提供的额外注解支持):
 Ariadne (annotation): 发布事件的应用实例</p>
@@ -4561,7 +4561,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class OtherClientOnlineEvent(MiraiEvent):
-    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端上线。
+    &#34;&#34;&#34;当该事件发生时, 应用实例所辖账号在其他客户端上线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
@@ -4605,7 +4605,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>各种申请事件的基类。</p>
+<div class="desc"><p>各种申请事件的基类.</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -4614,7 +4614,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </summary>
 <pre><code class="python">class RequestEvent(MiraiEvent):
     &#34;&#34;&#34;
-    各种申请事件的基类。
+    各种申请事件的基类.
     &#34;&#34;&#34;
 
     type: str
@@ -4626,7 +4626,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 
     async def _operate(self, operation: int, msg: str = &#34;&#34;) -&gt; None:
         &#34;&#34;&#34;
-        内部接口，用于内部便捷发送相应操作。
+        内部接口, 用于内部便捷发送相应操作.
         &#34;&#34;&#34;
         adapter = adapter_ctx.get()
         if not adapter.mirai_session.session_key:

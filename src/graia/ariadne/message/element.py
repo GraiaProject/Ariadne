@@ -25,7 +25,7 @@ class NotSendableElement(Exception):
 
 class Element(AriadneBaseModel, abc.ABC):
     """
-    指示一个消息中的元素。
+    指示一个消息中的元素.
     type (str): 元素类型
     """
 
@@ -40,11 +40,11 @@ class Element(AriadneBaseModel, abc.ABC):
     def prepare(self) -> None:
         """
         为元素被发送进行准备,
-        若无异常被引发，则完成本方法后元素应可被发送。
+        若无异常被引发, 则完成本方法后元素应可被发送.
 
-        保留空实现以允许不需要 `prepare`的元素类型存在。
+        保留空实现以允许不需要 `prepare`的元素类型存在.
 
-        若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
+        若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
         """
 
 

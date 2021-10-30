@@ -36,12 +36,13 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from .adapter import Adapter
+from .adapter import Adapter, DefaultAdapter
 from .context import enter_message_send_context
 from .event import MiraiEvent
 from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
+from .util import inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -75,7 +76,7 @@ class Ariadne:
     Attributes:
         broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
             通常你不需要干涉该属性;
-        adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+        adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
     &#34;&#34;&#34;
 
     def __init__(
@@ -84,14 +85,16 @@ class Ariadne:
         adapter: Adapter,
         *,
         chat_log_config: Optional[ChatLogConfig] = None,
+        use_loguru_traceback: Optional[bool] = True,
     ):
         &#34;&#34;&#34;
         初始化 Ariadne.
 
         Args:
             broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
-            chat_log_config (ChatLogConfig): 聊天日志的配置，请移步 `ChatLogConfig` 查看使用方法。
+            adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
+            chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exc() 即 Graia 其它库大多使用的异常处理函数.
         &#34;&#34;&#34;
         self.broadcast: Broadcast = broadcast
         self.adapter: Adapter = adapter
@@ -104,6 +107,25 @@ class Ariadne:
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config if chat_log_config else ChatLogConfig()
         )
+        if use_loguru_traceback:
+            inject_loguru_traceback()
+
+    @classmethod
+    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
+        &#34;&#34;&#34;快速创建一个 `Ariadne` 实例.
+
+        Args:
+            session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
+            broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+
+        Returns:
+            [type]: [description]
+        &#34;&#34;&#34;
+        if not broadcast:
+            loop = asyncio.new_event_loop()
+            broadcast = Broadcast(loop=loop)
+        adapter = DefaultAdapter(broadcast=broadcast, session=session)
+        return cls(broadcast, adapter)
 
     @property
     def session_key(self) -&gt; Optional[str]:
@@ -332,7 +354,7 @@ class Ariadne:
         &#34;&#34;&#34;
         with enter_message_send_context(UploadMethod.Friend):
             new_msg = message.copy()
-            await new_msg.prepare()
+            new_msg.prepare()
             result = await self.adapter.call_api(
                 &#34;sendFriendMessage&#34;,
                 CallMethod.POST,
@@ -380,7 +402,7 @@ class Ariadne:
         &#34;&#34;&#34;
         with enter_message_send_context(UploadMethod.Group):
             new_msg = message.copy()
-            await new_msg.prepare()
+            new_msg.prepare()
             result = await self.adapter.call_api(
                 &#34;sendGroupMessage&#34;,
                 CallMethod.POST,
@@ -427,7 +449,7 @@ class Ariadne:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         &#34;&#34;&#34;
         new_msg = message.copy()
-        await new_msg.prepare()
+        new_msg.prepare()
         group = target.group if (isinstance(target, Member) and not group) else group
         if not group:
             raise ValueError(&#34;Missing necessary argument: group&#34;)
@@ -470,14 +492,14 @@ class Ariadne:
         quote: Union[bool, int, Source] = False,
     ) -&gt; BotMessage:
         &#34;&#34;&#34;
-        依据传入的 `target` 自动发送消息。
-        请注意发送给群成员时会自动作为临时消息发送。
+        依据传入的 `target` 自动发送消息.
+        请注意发送给群成员时会自动作为临时消息发送.
 
         Args:
-            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标。
-            message (MessageChain): 要发送的消息链。
-            quote (Union[bool, int, Source]): 若为布尔类型，则会尝试通过传入对象解析要回复的消息，
-            否则会视为 `messageId` 处理。
+            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
+            message (MessageChain): 要发送的消息链.
+            quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息,
+            否则会视为 `messageId` 处理.
 
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
@@ -505,13 +527,13 @@ class Ariadne:
     @app_ctx_manager
     async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
         &#34;&#34;&#34;
-        向指定的群组成员或好友发送戳一戳消息。
+        向指定的群组成员或好友发送戳一戳消息.
 
         Args:
-            target (Union[Friend, Member]): 发送戳一戳的目标。
+            target (Union[Friend, Member]): 发送戳一戳的目标.
 
         Returns:
-            None: 没有返回。
+            None: 没有返回.
         &#34;&#34;&#34;
         await self.adapter.call_api(
             &#34;sendNudge&#34;,
@@ -548,13 +570,13 @@ class Ariadne:
     @app_ctx_manager
     async def deleteFriend(self, target: Union[Friend, int]):
         &#34;&#34;&#34;
-        删除指定好友。
+        删除指定好友.
 
         Args:
-            target (Union[Friend, int]): 好友对象或QQ号。
+            target (Union[Friend, int]): 好友对象或QQ号.
 
         Returns:
-            None: 没有返回。
+            None: 没有返回.
         &#34;&#34;&#34;
 
         friend_id = target.id if isinstance(target, Friend) else target
@@ -902,12 +924,12 @@ class Ariadne:
         列出指定文件夹下的所有文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 文件夹ID, 空串为根目录
             offset (int): 分页偏移
             size (int): 分页大小
-            with_download_info (bool): 是否携带下载信息，无必要不要携带
+            with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
         Returns:
             List[FileInfo]: 返回的文件信息列表.
@@ -945,10 +967,10 @@ class Ariadne:
         获取指定文件的信息.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 文件ID, 空串为根目录
-            with_download_info (bool): 是否携带下载信息，无必要不要携带
+            with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
         Returns:
             FileInfo: 返回的文件信息.
@@ -985,7 +1007,7 @@ class Ariadne:
         在指定位置创建新文件夹.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             name (str): 要创建的文件夹名称.
             id (str): 上级文件夹ID, 空串为根目录
@@ -1022,7 +1044,7 @@ class Ariadne:
         删除指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 文件ID
 
@@ -1056,7 +1078,7 @@ class Ariadne:
         移动指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 源文件ID
             dest_id (str): 目标文件夹ID
@@ -1092,7 +1114,7 @@ class Ariadne:
         重命名指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 源文件ID
             dest_name (str): 目标文件新名称.
@@ -1157,7 +1179,7 @@ class Ariadne:
 
     @app_ctx_manager
     async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&#34;:
-        &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。
+        &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
         Args:
             image_bytes (bytes): 图片的原始数据
             method (UploadMethod): 图片的上传类型
@@ -1180,7 +1202,7 @@ class Ariadne:
 
     @app_ctx_manager
     async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&#34;:
-        &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。
+        &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
         Args:
             data (bytes): 语音的原始数据
             method (UploadMethod): 语音的上传类型
@@ -1199,7 +1221,21 @@ class Ariadne:
             },
         )
 
-        return Voice.parse_obj(result)</code></pre>
+        return Voice.parse_obj(result)
+
+    async def __aenter__(self) -&gt; &#34;Ariadne&#34;:
+        await self.launch()
+
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        try:
+            await self.stop()
+        except:
+            pass
+
+        if tb is not None:
+            raise exc</code></pre>
 </details>
 </section>
 <section>
@@ -1213,7 +1249,7 @@ class Ariadne:
 <dl>
 <dt id="ariadne.app.Ariadne"><code class="flex name class">
 <span>class <span class="ident">Ariadne</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, adapter: <a title="ariadne.adapter.Adapter" href="adapter.html#ariadne.adapter.Adapter">Adapter</a>, *, chat_log_config: Optional[<a title="ariadne.model.ChatLogConfig" href="model.html#ariadne.model.ChatLogConfig">ChatLogConfig</a>] = None)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, adapter: <a title="ariadne.adapter.Adapter" href="adapter.html#ariadne.adapter.Adapter">Adapter</a>, *, chat_log_config: Optional[<a title="ariadne.model.ChatLogConfig" href="model.html#ariadne.model.ChatLogConfig">ChatLogConfig</a>] = None, use_loguru_traceback: Optional[bool] = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>艾莉亚德妮 (Ariadne).</p>
@@ -1225,7 +1261,7 @@ class Ariadne:
 <dd>被指定的, 外置的事件系统, 即 <code>Broadcast Control</code>,
 通常你不需要干涉该属性;</dd>
 <dt><strong><code>adapter</code></strong> :&ensp;<code>Adapter</code></dt>
-<dd>后端适配器，负责实际与 <code>mirai-api-http</code> 进行交互.</dd>
+<dd>后端适配器, 负责实际与 <code>mirai-api-http</code> 进行交互.</dd>
 </dl>
 <p>初始化 Ariadne.</p>
 <h2 id="args">Args</h2>
@@ -1233,9 +1269,11 @@ class Ariadne:
 <dt><strong><code>broadcast</code></strong> :&ensp;<code>Broadcast</code></dt>
 <dd>被指定的, 外置的事件系统, 即 <code>Broadcast Control</code> 实例.</dd>
 <dt><strong><code>adapter</code></strong> :&ensp;<code>Adapter</code></dt>
-<dd>后端适配器，负责实际与 <code>mirai-api-http</code> 进行交互.</dd>
+<dd>后端适配器, 负责实际与 <code>mirai-api-http</code> 进行交互.</dd>
 <dt><strong><code>chat_log_config</code></strong> :&ensp;<code>ChatLogConfig</code></dt>
-<dd>聊天日志的配置，请移步 <code>ChatLogConfig</code> 查看使用方法。</dd>
+<dd>聊天日志的配置, 请移步 <code>ChatLogConfig</code> 查看使用方法.</dd>
+<dt><strong><code>use_loguru_traceback</code></strong> :&ensp;<code>bool</code></dt>
+<dd>是否注入 loguru 以获得对 traceback.print_exc() 即 Graia 其它库大多使用的异常处理函数.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1252,7 +1290,7 @@ class Ariadne:
     Attributes:
         broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
             通常你不需要干涉该属性;
-        adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
+        adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
     &#34;&#34;&#34;
 
     def __init__(
@@ -1261,14 +1299,16 @@ class Ariadne:
         adapter: Adapter,
         *,
         chat_log_config: Optional[ChatLogConfig] = None,
+        use_loguru_traceback: Optional[bool] = True,
     ):
         &#34;&#34;&#34;
         初始化 Ariadne.
 
         Args:
             broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            adapter (Adapter): 后端适配器，负责实际与 `mirai-api-http` 进行交互.
-            chat_log_config (ChatLogConfig): 聊天日志的配置，请移步 `ChatLogConfig` 查看使用方法。
+            adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
+            chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exc() 即 Graia 其它库大多使用的异常处理函数.
         &#34;&#34;&#34;
         self.broadcast: Broadcast = broadcast
         self.adapter: Adapter = adapter
@@ -1281,6 +1321,25 @@ class Ariadne:
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config if chat_log_config else ChatLogConfig()
         )
+        if use_loguru_traceback:
+            inject_loguru_traceback()
+
+    @classmethod
+    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
+        &#34;&#34;&#34;快速创建一个 `Ariadne` 实例.
+
+        Args:
+            session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
+            broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+
+        Returns:
+            [type]: [description]
+        &#34;&#34;&#34;
+        if not broadcast:
+            loop = asyncio.new_event_loop()
+            broadcast = Broadcast(loop=loop)
+        adapter = DefaultAdapter(broadcast=broadcast, session=session)
+        return cls(broadcast, adapter)
 
     @property
     def session_key(self) -&gt; Optional[str]:
@@ -1509,7 +1568,7 @@ class Ariadne:
         &#34;&#34;&#34;
         with enter_message_send_context(UploadMethod.Friend):
             new_msg = message.copy()
-            await new_msg.prepare()
+            new_msg.prepare()
             result = await self.adapter.call_api(
                 &#34;sendFriendMessage&#34;,
                 CallMethod.POST,
@@ -1557,7 +1616,7 @@ class Ariadne:
         &#34;&#34;&#34;
         with enter_message_send_context(UploadMethod.Group):
             new_msg = message.copy()
-            await new_msg.prepare()
+            new_msg.prepare()
             result = await self.adapter.call_api(
                 &#34;sendGroupMessage&#34;,
                 CallMethod.POST,
@@ -1604,7 +1663,7 @@ class Ariadne:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         &#34;&#34;&#34;
         new_msg = message.copy()
-        await new_msg.prepare()
+        new_msg.prepare()
         group = target.group if (isinstance(target, Member) and not group) else group
         if not group:
             raise ValueError(&#34;Missing necessary argument: group&#34;)
@@ -1647,14 +1706,14 @@ class Ariadne:
         quote: Union[bool, int, Source] = False,
     ) -&gt; BotMessage:
         &#34;&#34;&#34;
-        依据传入的 `target` 自动发送消息。
-        请注意发送给群成员时会自动作为临时消息发送。
+        依据传入的 `target` 自动发送消息.
+        请注意发送给群成员时会自动作为临时消息发送.
 
         Args:
-            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标。
-            message (MessageChain): 要发送的消息链。
-            quote (Union[bool, int, Source]): 若为布尔类型，则会尝试通过传入对象解析要回复的消息，
-            否则会视为 `messageId` 处理。
+            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
+            message (MessageChain): 要发送的消息链.
+            quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息,
+            否则会视为 `messageId` 处理.
 
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
@@ -1682,13 +1741,13 @@ class Ariadne:
     @app_ctx_manager
     async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
         &#34;&#34;&#34;
-        向指定的群组成员或好友发送戳一戳消息。
+        向指定的群组成员或好友发送戳一戳消息.
 
         Args:
-            target (Union[Friend, Member]): 发送戳一戳的目标。
+            target (Union[Friend, Member]): 发送戳一戳的目标.
 
         Returns:
-            None: 没有返回。
+            None: 没有返回.
         &#34;&#34;&#34;
         await self.adapter.call_api(
             &#34;sendNudge&#34;,
@@ -1725,13 +1784,13 @@ class Ariadne:
     @app_ctx_manager
     async def deleteFriend(self, target: Union[Friend, int]):
         &#34;&#34;&#34;
-        删除指定好友。
+        删除指定好友.
 
         Args:
-            target (Union[Friend, int]): 好友对象或QQ号。
+            target (Union[Friend, int]): 好友对象或QQ号.
 
         Returns:
-            None: 没有返回。
+            None: 没有返回.
         &#34;&#34;&#34;
 
         friend_id = target.id if isinstance(target, Friend) else target
@@ -2079,12 +2138,12 @@ class Ariadne:
         列出指定文件夹下的所有文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 文件夹ID, 空串为根目录
             offset (int): 分页偏移
             size (int): 分页大小
-            with_download_info (bool): 是否携带下载信息，无必要不要携带
+            with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
         Returns:
             List[FileInfo]: 返回的文件信息列表.
@@ -2122,10 +2181,10 @@ class Ariadne:
         获取指定文件的信息.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 文件ID, 空串为根目录
-            with_download_info (bool): 是否携带下载信息，无必要不要携带
+            with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
         Returns:
             FileInfo: 返回的文件信息.
@@ -2162,7 +2221,7 @@ class Ariadne:
         在指定位置创建新文件夹.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             name (str): 要创建的文件夹名称.
             id (str): 上级文件夹ID, 空串为根目录
@@ -2199,7 +2258,7 @@ class Ariadne:
         删除指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 文件ID
 
@@ -2233,7 +2292,7 @@ class Ariadne:
         移动指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 源文件ID
             dest_id (str): 目标文件夹ID
@@ -2269,7 +2328,7 @@ class Ariadne:
         重命名指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置，
+            target (Union[Friend, Group, int]): 要列出文件的根位置,
             为群组或好友或QQ号（当前仅支持群组）
             id (str): 源文件ID
             dest_name (str): 目标文件新名称.
@@ -2334,7 +2393,7 @@ class Ariadne:
 
     @app_ctx_manager
     async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&#34;:
-        &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。
+        &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
         Args:
             image_bytes (bytes): 图片的原始数据
             method (UploadMethod): 图片的上传类型
@@ -2357,7 +2416,7 @@ class Ariadne:
 
     @app_ctx_manager
     async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&#34;:
-        &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。
+        &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
         Args:
             data (bytes): 语音的原始数据
             method (UploadMethod): 语音的上传类型
@@ -2376,8 +2435,64 @@ class Ariadne:
             },
         )
 
-        return Voice.parse_obj(result)</code></pre>
+        return Voice.parse_obj(result)
+
+    async def __aenter__(self) -&gt; &#34;Ariadne&#34;:
+        await self.launch()
+
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        try:
+            await self.stop()
+        except:
+            pass
+
+        if tb is not None:
+            raise exc</code></pre>
 </details>
+<h3>Static methods</h3>
+<dl>
+<dt id="ariadne.app.Ariadne.create"><code class="name flex">
+<span>def <span class="ident">create</span></span>(<span>*, session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, broadcast: Optional[graia.broadcast.Broadcast])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>快速创建一个 <code><a title="ariadne.app.Ariadne" href="#ariadne.app.Ariadne">Ariadne</a></code> 实例.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>session</code></strong> :&ensp;<code>MiraiSession</code></dt>
+<dd>连接信息, 如账号和 verifyKey 等.</dd>
+<dt><strong><code>broadcast</code></strong> :&ensp;<code>Optional[Broadcast]</code></dt>
+<dd>被指定的, 外置的事件系统, 即 <code>Broadcast Control</code> 实例.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>[type]</code></dt>
+<dd>[description]</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
+    &#34;&#34;&#34;快速创建一个 `Ariadne` 实例.
+
+    Args:
+        session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
+        broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+
+    Returns:
+        [type]: [description]
+    &#34;&#34;&#34;
+    if not broadcast:
+        loop = asyncio.new_event_loop()
+        broadcast = Broadcast(loop=loop)
+    adapter = DefaultAdapter(broadcast=broadcast, session=session)
+    return cls(broadcast, adapter)</code></pre>
+</details>
+</dd>
+</dl>
 <h3>Instance variables</h3>
 <dl>
 <dt id="ariadne.app.Ariadne.session_key"><code class="name">var <span class="ident">session_key</span> : Optional[str]</code></dt>
@@ -2431,7 +2546,7 @@ def session_key(self) -&gt; Optional[str]:
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
-<dd>要列出文件的根位置，</dd>
+<dd>要列出文件的根位置,</dd>
 <dt>为群组或好友或QQ号（当前仅支持群组）</dt>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>文件ID</dd>
@@ -2455,7 +2570,7 @@ async def deleteFile(
     删除指定文件.
 
     Args:
-        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        target (Union[Friend, Group, int]): 要列出文件的根位置,
         为群组或好友或QQ号（当前仅支持群组）
         id (str): 文件ID
 
@@ -2483,16 +2598,16 @@ async def deleteFile(
 <span>async def <span class="ident">deleteFriend</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, int])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>删除指定好友。</p>
+<div class="desc"><p>删除指定好友.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, int]</code></dt>
-<dd>好友对象或QQ号。</dd>
+<dd>好友对象或QQ号.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>None</code></dt>
-<dd>没有返回。</dd>
+<dd>没有返回.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -2501,13 +2616,13 @@ async def deleteFile(
 <pre><code class="python">@app_ctx_manager
 async def deleteFriend(self, target: Union[Friend, int]):
     &#34;&#34;&#34;
-    删除指定好友。
+    删除指定好友.
 
     Args:
-        target (Union[Friend, int]): 好友对象或QQ号。
+        target (Union[Friend, int]): 好友对象或QQ号.
 
     Returns:
-        None: 没有返回。
+        None: 没有返回.
     &#34;&#34;&#34;
 
     friend_id = target.id if isinstance(target, Friend) else target
@@ -2549,12 +2664,12 @@ async def getBotProfile(self) -&gt; Profile:
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
-<dd>要列出文件的根位置，</dd>
+<dd>要列出文件的根位置,</dd>
 <dt>为群组或好友或QQ号（当前仅支持群组）</dt>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>文件ID, 空串为根目录</dd>
 <dt><strong><code>with_download_info</code></strong> :&ensp;<code>bool</code></dt>
-<dd>是否携带下载信息，无必要不要携带</dd>
+<dd>是否携带下载信息, 无必要不要携带</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2576,10 +2691,10 @@ async def getFileInfo(
     获取指定文件的信息.
 
     Args:
-        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        target (Union[Friend, Group, int]): 要列出文件的根位置,
         为群组或好友或QQ号（当前仅支持群组）
         id (str): 文件ID, 空串为根目录
-        with_download_info (bool): 是否携带下载信息，无必要不要携带
+        with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
     Returns:
         FileInfo: 返回的文件信息.
@@ -3083,7 +3198,7 @@ async def kickMember(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
-<dd>要列出文件的根位置，</dd>
+<dd>要列出文件的根位置,</dd>
 <dt>为群组或好友或QQ号（当前仅支持群组）</dt>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>文件夹ID, 空串为根目录</dd>
@@ -3092,7 +3207,7 @@ async def kickMember(
 <dt><strong><code>size</code></strong> :&ensp;<code>int</code></dt>
 <dd>分页大小</dd>
 <dt><strong><code>with_download_info</code></strong> :&ensp;<code>bool</code></dt>
-<dd>是否携带下载信息，无必要不要携带</dd>
+<dd>是否携带下载信息, 无必要不要携带</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -3116,12 +3231,12 @@ async def listFile(
     列出指定文件夹下的所有文件.
 
     Args:
-        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        target (Union[Friend, Group, int]): 要列出文件的根位置,
         为群组或好友或QQ号（当前仅支持群组）
         id (str): 文件夹ID, 空串为根目录
         offset (int): 分页偏移
         size (int): 分页大小
-        with_download_info (bool): 是否携带下载信息，无必要不要携带
+        with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
     Returns:
         List[FileInfo]: 返回的文件信息列表.
@@ -3157,7 +3272,7 @@ async def listFile(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
-<dd>要列出文件的根位置，</dd>
+<dd>要列出文件的根位置,</dd>
 <dt>为群组或好友或QQ号（当前仅支持群组）</dt>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>要创建的文件夹名称.</dd>
@@ -3184,7 +3299,7 @@ async def makeDirectory(
     在指定位置创建新文件夹.
 
     Args:
-        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        target (Union[Friend, Group, int]): 要列出文件的根位置,
         为群组或好友或QQ号（当前仅支持群组）
         name (str): 要创建的文件夹名称.
         id (str): 上级文件夹ID, 空串为根目录
@@ -3401,7 +3516,7 @@ async def modifyMemberInfo(
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
-<dd>要列出文件的根位置，</dd>
+<dd>要列出文件的根位置,</dd>
 <dt>为群组或好友或QQ号（当前仅支持群组）</dt>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>源文件ID</dd>
@@ -3428,7 +3543,7 @@ async def moveFile(
     移动指定文件.
 
     Args:
-        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        target (Union[Friend, Group, int]): 要列出文件的根位置,
         为群组或好友或QQ号（当前仅支持群组）
         id (str): 源文件ID
         dest_id (str): 目标文件夹ID
@@ -3658,7 +3773,7 @@ async def recallMessage(self, target: Union[Source, BotMessage, int]):
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Group, int]</code></dt>
-<dd>要列出文件的根位置，</dd>
+<dd>要列出文件的根位置,</dd>
 <dt>为群组或好友或QQ号（当前仅支持群组）</dt>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>源文件ID</dd>
@@ -3685,7 +3800,7 @@ async def renameFile(
     重命名指定文件.
 
     Args:
-        target (Union[Friend, Group, int]): 要列出文件的根位置，
+        target (Union[Friend, Group, int]): 要列出文件的根位置,
         为群组或好友或QQ号（当前仅支持群组）
         id (str): 源文件ID
         dest_name (str): 目标文件新名称.
@@ -3754,7 +3869,7 @@ async def sendFriendMessage(
     &#34;&#34;&#34;
     with enter_message_send_context(UploadMethod.Friend):
         new_msg = message.copy()
-        await new_msg.prepare()
+        new_msg.prepare()
         result = await self.adapter.call_api(
             &#34;sendFriendMessage&#34;,
             CallMethod.POST,
@@ -3826,7 +3941,7 @@ async def sendGroupMessage(
     &#34;&#34;&#34;
     with enter_message_send_context(UploadMethod.Group):
         new_msg = message.copy()
-        await new_msg.prepare()
+        new_msg.prepare()
         result = await self.adapter.call_api(
             &#34;sendGroupMessage&#34;,
             CallMethod.POST,
@@ -3857,18 +3972,18 @@ async def sendGroupMessage(
 <span>async def <span class="ident">sendMessage</span></span>(<span>self, target: Union[<a title="ariadne.event.message.MessageEvent" href="event/message.html#ariadne.event.message.MessageEvent">MessageEvent</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, <a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[bool, int, <a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>] = False) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>依据传入的 <code>target</code> 自动发送消息。
-请注意发送给群成员时会自动作为临时消息发送。</p>
+<div class="desc"><p>依据传入的 <code>target</code> 自动发送消息.
+请注意发送给群成员时会自动作为临时消息发送.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[MessageEvent, Group, Friend, Member]</code></dt>
-<dd>消息发送目标。</dd>
+<dd>消息发送目标.</dd>
 <dt><strong><code>message</code></strong> :&ensp;<code>MessageChain</code></dt>
-<dd>要发送的消息链。</dd>
+<dd>要发送的消息链.</dd>
 <dt><strong><code>quote</code></strong> :&ensp;<code>Union[bool, int, Source]</code></dt>
-<dd>若为布尔类型，则会尝试通过传入对象解析要回复的消息，</dd>
+<dd>若为布尔类型, 则会尝试通过传入对象解析要回复的消息,</dd>
 </dl>
-<p>否则会视为 <code>messageId</code> 处理。</p>
+<p>否则会视为 <code>messageId</code> 处理.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>BotMessage</code></dt>
@@ -3887,14 +4002,14 @@ async def sendMessage(
     quote: Union[bool, int, Source] = False,
 ) -&gt; BotMessage:
     &#34;&#34;&#34;
-    依据传入的 `target` 自动发送消息。
-    请注意发送给群成员时会自动作为临时消息发送。
+    依据传入的 `target` 自动发送消息.
+    请注意发送给群成员时会自动作为临时消息发送.
 
     Args:
-        target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标。
-        message (MessageChain): 要发送的消息链。
-        quote (Union[bool, int, Source]): 若为布尔类型，则会尝试通过传入对象解析要回复的消息，
-        否则会视为 `messageId` 处理。
+        target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
+        message (MessageChain): 要发送的消息链.
+        quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息,
+        否则会视为 `messageId` 处理.
 
     Returns:
         BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
@@ -3924,16 +4039,16 @@ async def sendMessage(
 <span>async def <span class="ident">sendNudge</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>]) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>向指定的群组成员或好友发送戳一戳消息。</p>
+<div class="desc"><p>向指定的群组成员或好友发送戳一戳消息.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Member]</code></dt>
-<dd>发送戳一戳的目标。</dd>
+<dd>发送戳一戳的目标.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>None</code></dt>
-<dd>没有返回。</dd>
+<dd>没有返回.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -3942,13 +4057,13 @@ async def sendMessage(
 <pre><code class="python">@app_ctx_manager
 async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
     &#34;&#34;&#34;
-    向指定的群组成员或好友发送戳一戳消息。
+    向指定的群组成员或好友发送戳一戳消息.
 
     Args:
-        target (Union[Friend, Member]): 发送戳一戳的目标。
+        target (Union[Friend, Member]): 发送戳一戳的目标.
 
     Returns:
-        None: 没有返回。
+        None: 没有返回.
     &#34;&#34;&#34;
     await self.adapter.call_api(
         &#34;sendNudge&#34;,
@@ -4008,7 +4123,7 @@ async def sendTempMessage(
         BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
     &#34;&#34;&#34;
     new_msg = message.copy()
-    await new_msg.prepare()
+    new_msg.prepare()
     group = target.group if (isinstance(target, Member) and not group) else group
     if not group:
         raise ValueError(&#34;Missing necessary argument: group&#34;)
@@ -4269,7 +4384,7 @@ async def uploadFile(
 <span>async def <span class="ident">uploadImage</span></span>(<span>self, data: bytes, method: <a title="ariadne.model.UploadMethod" href="model.html#ariadne.model.UploadMethod">UploadMethod</a>) ‑> Image</span>
 </code></dt>
 <dd>
-<div class="desc"><p>上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。</p>
+<div class="desc"><p>上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>image_bytes</code></strong> :&ensp;<code>bytes</code></dt>
@@ -4288,7 +4403,7 @@ async def uploadFile(
 </summary>
 <pre><code class="python">@app_ctx_manager
 async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&#34;:
-    &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型。
+    &#34;&#34;&#34;上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
     Args:
         image_bytes (bytes): 图片的原始数据
         method (UploadMethod): 图片的上传类型
@@ -4314,7 +4429,7 @@ async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&
 <span>async def <span class="ident">uploadVoice</span></span>(<span>self, data: bytes, method: <a title="ariadne.model.UploadMethod" href="model.html#ariadne.model.UploadMethod">UploadMethod</a>) ‑> Voice</span>
 </code></dt>
 <dd>
-<div class="desc"><p>上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。</p>
+<div class="desc"><p>上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>data</code></strong> :&ensp;<code>bytes</code></dt>
@@ -4333,7 +4448,7 @@ async def uploadImage(self, data: bytes, method: UploadMethod) -&gt; &#34;Image&
 </summary>
 <pre><code class="python">@app_ctx_manager
 async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&#34;:
-    &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型。
+    &#34;&#34;&#34;上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
     Args:
         data (bytes): 语音的原始数据
         method (UploadMethod): 语音的上传类型
@@ -4376,6 +4491,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
 <li>
 <h4><code><a title="ariadne.app.Ariadne" href="#ariadne.app.Ariadne">Ariadne</a></code></h4>
 <ul class="two-column">
+<li><code><a title="ariadne.app.Ariadne.create" href="#ariadne.app.Ariadne.create">create</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.daemon" href="#ariadne.app.Ariadne.daemon">daemon</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.deleteFile" href="#ariadne.app.Ariadne.deleteFile">deleteFile</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.deleteFriend" href="#ariadne.app.Ariadne.deleteFriend">deleteFriend</a></code></li>

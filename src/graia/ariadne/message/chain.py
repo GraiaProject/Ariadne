@@ -63,11 +63,11 @@ class MessageChain(BaseModel):
         cls, *elements: Union[Iterable[Element], Element, str]
     ) -> "MessageChain":
         """
-        创建消息链。
-        比起直接实例化，本方法拥有更丰富的输入实例类型支持。
+        创建消息链.
+        比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
         Args:
-            *elements(Union[Iterable[Element], Element, str]): 元素的容器，为承载元素的可迭代对象/单元素实例，
+            *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
         """
         from .element import Plain
@@ -84,7 +84,7 @@ class MessageChain(BaseModel):
 
     def prepare(self, copy: bool = False) -> Optional["MessageChain"]:
         """
-        对消息链中所有元素进行处理。
+        对消息链中所有元素进行处理.
         """
         chain_ref = self.copy() if copy else self
         chain_ref.merge()
@@ -167,18 +167,18 @@ class MessageChain(BaseModel):
         self, item: Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]
     ) -> Union[List[Element_T], "MessageChain", Element]:
         """
-        可通过切片取出子消息链，或元素。
+        可通过切片取出子消息链, 或元素.
 
         通过 `type, count` 型元组取出前 `count` 个 `type` 元素组成的列表
 
         通过 `type` 取出属于 `type` 的元素列表
 
-        通过 `int` 取出对应位置元素。
+        通过 `int` 取出对应位置元素.
 
         Args:
             item (Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]): 索引项
         Returns:
-            Union[List[Element_T], "MessageChain", Element]: 索引结果。
+            Union[List[Element_T], "MessageChain", Element]: 索引结果.
         """
         if isinstance(item, slice):
             return self.subchain(item)
@@ -359,7 +359,7 @@ class MessageChain(BaseModel):
         """
         在实例内合并相邻的 Plain 项
 
-        copy (bool): 是否要在副本上修改。
+        copy (bool): 是否要在副本上修改.
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         """
@@ -397,8 +397,8 @@ class MessageChain(BaseModel):
         """
         向消息链最后添加元素/元素列表/消息链
         Args:
-            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器。
-            copy (bool): 是否要在副本上修改。
+            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器.
+            copy (bool): 是否要在副本上修改.
 
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
@@ -418,15 +418,15 @@ class MessageChain(BaseModel):
 
     def copy(self) -> "MessageChain":
         """
-        拷贝本消息链。
+        拷贝本消息链.
         Returns:
-            MessageChain: 拷贝的副本。
+            MessageChain: 拷贝的副本.
         """
         return MessageChain(self.__root__)
 
     def index(self, element_type: Type[Element_T]) -> Union[int, None]:
         """
-        寻找第一个特定类型的元素，并返回其下标。
+        寻找第一个特定类型的元素, 并返回其下标.
         """
         for i, e in enumerate(self.__root__):
             if isinstance(e, element_type):

@@ -91,11 +91,11 @@ class MessageChain(BaseModel):
         cls, *elements: Union[Iterable[Element], Element, str]
     ) -&gt; &#34;MessageChain&#34;:
         &#34;&#34;&#34;
-        创建消息链。
-        比起直接实例化，本方法拥有更丰富的输入实例类型支持。
+        创建消息链.
+        比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
         Args:
-            *elements(Union[Iterable[Element], Element, str]): 元素的容器，为承载元素的可迭代对象/单元素实例，
+            *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
         &#34;&#34;&#34;
         from .element import Plain
@@ -112,7 +112,7 @@ class MessageChain(BaseModel):
 
     def prepare(self, copy: bool = False) -&gt; Optional[&#34;MessageChain&#34;]:
         &#34;&#34;&#34;
-        对消息链中所有元素进行处理。
+        对消息链中所有元素进行处理.
         &#34;&#34;&#34;
         chain_ref = self.copy() if copy else self
         chain_ref.merge()
@@ -195,18 +195,18 @@ class MessageChain(BaseModel):
         self, item: Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]
     ) -&gt; Union[List[Element_T], &#34;MessageChain&#34;, Element]:
         &#34;&#34;&#34;
-        可通过切片取出子消息链，或元素。
+        可通过切片取出子消息链, 或元素.
 
         通过 `type, count` 型元组取出前 `count` 个 `type` 元素组成的列表
 
         通过 `type` 取出属于 `type` 的元素列表
 
-        通过 `int` 取出对应位置元素。
+        通过 `int` 取出对应位置元素.
 
         Args:
             item (Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]): 索引项
         Returns:
-            Union[List[Element_T], &#34;MessageChain&#34;, Element]: 索引结果。
+            Union[List[Element_T], &#34;MessageChain&#34;, Element]: 索引结果.
         &#34;&#34;&#34;
         if isinstance(item, slice):
             return self.subchain(item)
@@ -387,7 +387,7 @@ class MessageChain(BaseModel):
         &#34;&#34;&#34;
         在实例内合并相邻的 Plain 项
 
-        copy (bool): 是否要在副本上修改。
+        copy (bool): 是否要在副本上修改.
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         &#34;&#34;&#34;
@@ -425,8 +425,8 @@ class MessageChain(BaseModel):
         &#34;&#34;&#34;
         向消息链最后添加元素/元素列表/消息链
         Args:
-            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器。
-            copy (bool): 是否要在副本上修改。
+            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器.
+            copy (bool): 是否要在副本上修改.
 
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
@@ -446,15 +446,15 @@ class MessageChain(BaseModel):
 
     def copy(self) -&gt; &#34;MessageChain&#34;:
         &#34;&#34;&#34;
-        拷贝本消息链。
+        拷贝本消息链.
         Returns:
-            MessageChain: 拷贝的副本。
+            MessageChain: 拷贝的副本.
         &#34;&#34;&#34;
         return MessageChain(self.__root__)
 
     def index(self, element_type: Type[Element_T]) -&gt; Union[int, None]:
         &#34;&#34;&#34;
-        寻找第一个特定类型的元素，并返回其下标。
+        寻找第一个特定类型的元素, 并返回其下标.
         &#34;&#34;&#34;
         for i, e in enumerate(self.__root__):
             if isinstance(e, element_type):
@@ -564,11 +564,11 @@ _update_forward_refs()</code></pre>
         cls, *elements: Union[Iterable[Element], Element, str]
     ) -&gt; &#34;MessageChain&#34;:
         &#34;&#34;&#34;
-        创建消息链。
-        比起直接实例化，本方法拥有更丰富的输入实例类型支持。
+        创建消息链.
+        比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
         Args:
-            *elements(Union[Iterable[Element], Element, str]): 元素的容器，为承载元素的可迭代对象/单元素实例，
+            *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
         &#34;&#34;&#34;
         from .element import Plain
@@ -585,7 +585,7 @@ _update_forward_refs()</code></pre>
 
     def prepare(self, copy: bool = False) -&gt; Optional[&#34;MessageChain&#34;]:
         &#34;&#34;&#34;
-        对消息链中所有元素进行处理。
+        对消息链中所有元素进行处理.
         &#34;&#34;&#34;
         chain_ref = self.copy() if copy else self
         chain_ref.merge()
@@ -668,18 +668,18 @@ _update_forward_refs()</code></pre>
         self, item: Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]
     ) -&gt; Union[List[Element_T], &#34;MessageChain&#34;, Element]:
         &#34;&#34;&#34;
-        可通过切片取出子消息链，或元素。
+        可通过切片取出子消息链, 或元素.
 
         通过 `type, count` 型元组取出前 `count` 个 `type` 元素组成的列表
 
         通过 `type` 取出属于 `type` 的元素列表
 
-        通过 `int` 取出对应位置元素。
+        通过 `int` 取出对应位置元素.
 
         Args:
             item (Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]): 索引项
         Returns:
-            Union[List[Element_T], &#34;MessageChain&#34;, Element]: 索引结果。
+            Union[List[Element_T], &#34;MessageChain&#34;, Element]: 索引结果.
         &#34;&#34;&#34;
         if isinstance(item, slice):
             return self.subchain(item)
@@ -860,7 +860,7 @@ _update_forward_refs()</code></pre>
         &#34;&#34;&#34;
         在实例内合并相邻的 Plain 项
 
-        copy (bool): 是否要在副本上修改。
+        copy (bool): 是否要在副本上修改.
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         &#34;&#34;&#34;
@@ -898,8 +898,8 @@ _update_forward_refs()</code></pre>
         &#34;&#34;&#34;
         向消息链最后添加元素/元素列表/消息链
         Args:
-            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器。
-            copy (bool): 是否要在副本上修改。
+            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器.
+            copy (bool): 是否要在副本上修改.
 
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
@@ -919,15 +919,15 @@ _update_forward_refs()</code></pre>
 
     def copy(self) -&gt; &#34;MessageChain&#34;:
         &#34;&#34;&#34;
-        拷贝本消息链。
+        拷贝本消息链.
         Returns:
-            MessageChain: 拷贝的副本。
+            MessageChain: 拷贝的副本.
         &#34;&#34;&#34;
         return MessageChain(self.__root__)
 
     def index(self, element_type: Type[Element_T]) -&gt; Union[int, None]:
         &#34;&#34;&#34;
-        寻找第一个特定类型的元素，并返回其下标。
+        寻找第一个特定类型的元素, 并返回其下标.
         &#34;&#34;&#34;
         for i, e in enumerate(self.__root__):
             if isinstance(e, element_type):
@@ -1014,10 +1014,10 @@ def build_chain(obj: List[Union[dict, Element]]) -&gt; List[Element]:
 <span>def <span class="ident">create</span></span>(<span>*elements: Union[Iterable[Element], Element, str]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>创建消息链。
-比起直接实例化，本方法拥有更丰富的输入实例类型支持。</p>
+<div class="desc"><p>创建消息链.
+比起直接实例化, 本方法拥有更丰富的输入实例类型支持.</p>
 <h2 id="args">Args</h2>
-<p>*elements(Union[Iterable[Element], Element, str]): 元素的容器，为承载元素的可迭代对象/单元素实例，
+<p>*elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
 字符串会被自动不可逆的转换为 <code>Plain</code></p></div>
 <details class="source">
 <summary>
@@ -1028,11 +1028,11 @@ def create(
     cls, *elements: Union[Iterable[Element], Element, str]
 ) -&gt; &#34;MessageChain&#34;:
     &#34;&#34;&#34;
-    创建消息链。
-    比起直接实例化，本方法拥有更丰富的输入实例类型支持。
+    创建消息链.
+    比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
     Args:
-        *elements(Union[Iterable[Element], Element, str]): 元素的容器，为承载元素的可迭代对象/单元素实例，
+        *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
         字符串会被自动不可逆的转换为 `Plain`
     &#34;&#34;&#34;
     from .element import Plain
@@ -1129,11 +1129,11 @@ def parse_obj(
 <span>def <span class="ident">copy</span></span>(<span>self) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
-<div class="desc"><p>拷贝本消息链。</p>
+<div class="desc"><p>拷贝本消息链.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
-<dd>拷贝的副本。</dd>
+<dd>拷贝的副本.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1141,9 +1141,9 @@ def parse_obj(
 </summary>
 <pre><code class="python">def copy(self) -&gt; &#34;MessageChain&#34;:
     &#34;&#34;&#34;
-    拷贝本消息链。
+    拷贝本消息链.
     Returns:
-        MessageChain: 拷贝的副本。
+        MessageChain: 拷贝的副本.
     &#34;&#34;&#34;
     return MessageChain(self.__root__)</code></pre>
 </details>
@@ -1243,9 +1243,9 @@ def parse_obj(
 <div class="desc"><p>向消息链最后添加元素/元素列表/消息链</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt>*content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器。</dt>
+<dt>*content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器.</dt>
 <dt><strong><code>copy</code></strong> :&ensp;<code>bool</code></dt>
-<dd>是否要在副本上修改。</dd>
+<dd>是否要在副本上修改.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1262,8 +1262,8 @@ def parse_obj(
     &#34;&#34;&#34;
     向消息链最后添加元素/元素列表/消息链
     Args:
-        *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器。
-        copy (bool): 是否要在副本上修改。
+        *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器.
+        copy (bool): 是否要在副本上修改.
 
     Returns:
         Union[None, MessageChain]: copy = True 时返回副本
@@ -1486,14 +1486,14 @@ def parse_obj(
 <span>def <span class="ident">index</span></span>(<span>self, element_type: Type[Element_T]) ‑> Optional[int]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>寻找第一个特定类型的元素，并返回其下标。</p></div>
+<div class="desc"><p>寻找第一个特定类型的元素, 并返回其下标.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def index(self, element_type: Type[Element_T]) -&gt; Union[int, None]:
     &#34;&#34;&#34;
-    寻找第一个特定类型的元素，并返回其下标。
+    寻找第一个特定类型的元素, 并返回其下标.
     &#34;&#34;&#34;
     for i, e in enumerate(self.__root__):
         if isinstance(e, element_type):
@@ -1505,7 +1505,7 @@ def parse_obj(
 </code></dt>
 <dd>
 <div class="desc"><p>在实例内合并相邻的 Plain 项</p>
-<p>copy (bool): 是否要在副本上修改。</p>
+<p>copy (bool): 是否要在副本上修改.</p>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>Union[None, <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a>]</code></dt>
@@ -1519,7 +1519,7 @@ def parse_obj(
     &#34;&#34;&#34;
     在实例内合并相邻的 Plain 项
 
-    copy (bool): 是否要在副本上修改。
+    copy (bool): 是否要在副本上修改.
     Returns:
         Union[None, MessageChain]: copy = True 时返回副本
     &#34;&#34;&#34;
@@ -1563,14 +1563,14 @@ def parse_obj(
 <span>def <span class="ident">prepare</span></span>(<span>self, copy: bool = False) ‑> Optional[None]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>对消息链中所有元素进行处理。</p></div>
+<div class="desc"><p>对消息链中所有元素进行处理.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def prepare(self, copy: bool = False) -&gt; Optional[&#34;MessageChain&#34;]:
     &#34;&#34;&#34;
-    对消息链中所有元素进行处理。
+    对消息链中所有元素进行处理.
     &#34;&#34;&#34;
     chain_ref = self.copy() if copy else self
     chain_ref.merge()

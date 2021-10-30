@@ -120,11 +120,11 @@ def error_wrapper(network_action_callable: Callable[P, R]) -&gt; Callable[P, R]:
 
 class Adapter(abc.ABC):
     &#34;&#34;&#34;
-    适配器抽象基类。
+    适配器抽象基类.
 
     Args:
         broadcast(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
+        session: Session 实例, 存储了连接信息
     &#34;&#34;&#34;
 
     def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -&gt; None:
@@ -139,7 +139,7 @@ class Adapter(abc.ABC):
     @abc.abstractmethod
     async def fetch_cycle(self) -&gt; None:
         &#34;&#34;&#34;
-        负责接收并处理数据，广播事件。
+        负责接收并处理数据, 广播事件.
         &#34;&#34;&#34;
 
     @abc.abstractmethod
@@ -149,15 +149,15 @@ class Adapter(abc.ABC):
         self, action: str, method: CallMethod, data: Optional[dict] = None
     ) -&gt; Union[dict, list]:
         &#34;&#34;&#34;
-        向Mirai端发送数据。
-        如有回复则应一并返回。
+        向Mirai端发送数据.
+        如有回复则应一并返回.
 
         Args:
-            action (str): 要执行的操作。
-            method (CallMethod): 指示对 mirai-api-http 端发送数据的方式。
-            data (dict): 要发送的数据。
+            action (str): 要执行的操作.
+            method (CallMethod): 指示对 mirai-api-http 端发送数据的方式.
+            data (dict): 要发送的数据.
         Returns:
-            dict: 响应字典。
+            dict: 响应字典.
         &#34;&#34;&#34;
 
     async def build_event(self, data: dict) -&gt; MiraiEvent:
@@ -200,7 +200,7 @@ class Adapter(abc.ABC):
 
     async def stop(self):
         &#34;&#34;&#34;
-        停止适配器，并等待 `fetch_cycle` 方法完成。
+        停止适配器, 并等待 `fetch_cycle` 方法完成.
         &#34;&#34;&#34;
         self.running = False
         if self.fetch_task and not self.fetch_task.done():
@@ -214,8 +214,8 @@ class Adapter(abc.ABC):
 
 class HttpAdapter(Adapter):
     &#34;&#34;&#34;
-    仅使用正向 HTTP 的适配器，采用短轮询接收事件/消息。
-    不推荐。
+    仅使用正向 HTTP 的适配器, 采用短轮询接收事件/消息.
+    不推荐.
     Note: Working In Progress
     &#34;&#34;&#34;
 
@@ -268,8 +268,8 @@ class HttpAdapter(Adapter):
 
 class WebsocketAdapter(Adapter):
     &#34;&#34;&#34;
-    仅使用正向 Websocket 的适配器。
-    因 Mirai API HTTP 的实现，部分功能不可用。
+    仅使用正向 Websocket 的适配器.
+    因 Mirai API HTTP 的实现, 部分功能不可用.
     &#34;&#34;&#34;
 
     class SyncIdManager:
@@ -413,13 +413,13 @@ class WebsocketAdapter(Adapter):
 
 class CombinedAdapter(Adapter):
     &#34;&#34;&#34;
-    使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
-    稳定与性能的平衡，但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器。
+    使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
+    稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器.
 
     Args:
         bcc(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
-        ping(bool): 是否启用 ping 功能。
+        session: Session 实例, 存储了连接信息
+        ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
     def __init__(
@@ -576,12 +576,12 @@ class DebugAdapter(DefaultAdapter):
 <span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>适配器抽象基类。</p>
+<div class="desc"><p>适配器抽象基类.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt>broadcast(Broadcast): Broadcast 实例</dt>
 <dt><strong><code>session</code></strong></dt>
-<dd>Session 实例，存储了连接信息</dd>
+<dd>Session 实例, 存储了连接信息</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -589,11 +589,11 @@ class DebugAdapter(DefaultAdapter):
 </summary>
 <pre><code class="python">class Adapter(abc.ABC):
     &#34;&#34;&#34;
-    适配器抽象基类。
+    适配器抽象基类.
 
     Args:
         broadcast(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
+        session: Session 实例, 存储了连接信息
     &#34;&#34;&#34;
 
     def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -&gt; None:
@@ -608,7 +608,7 @@ class DebugAdapter(DefaultAdapter):
     @abc.abstractmethod
     async def fetch_cycle(self) -&gt; None:
         &#34;&#34;&#34;
-        负责接收并处理数据，广播事件。
+        负责接收并处理数据, 广播事件.
         &#34;&#34;&#34;
 
     @abc.abstractmethod
@@ -618,15 +618,15 @@ class DebugAdapter(DefaultAdapter):
         self, action: str, method: CallMethod, data: Optional[dict] = None
     ) -&gt; Union[dict, list]:
         &#34;&#34;&#34;
-        向Mirai端发送数据。
-        如有回复则应一并返回。
+        向Mirai端发送数据.
+        如有回复则应一并返回.
 
         Args:
-            action (str): 要执行的操作。
-            method (CallMethod): 指示对 mirai-api-http 端发送数据的方式。
-            data (dict): 要发送的数据。
+            action (str): 要执行的操作.
+            method (CallMethod): 指示对 mirai-api-http 端发送数据的方式.
+            data (dict): 要发送的数据.
         Returns:
-            dict: 响应字典。
+            dict: 响应字典.
         &#34;&#34;&#34;
 
     async def build_event(self, data: dict) -&gt; MiraiEvent:
@@ -669,7 +669,7 @@ class DebugAdapter(DefaultAdapter):
 
     async def stop(self):
         &#34;&#34;&#34;
-        停止适配器，并等待 `fetch_cycle` 方法完成。
+        停止适配器, 并等待 `fetch_cycle` 方法完成.
         &#34;&#34;&#34;
         self.running = False
         if self.fetch_task and not self.fetch_task.done():
@@ -765,21 +765,21 @@ def session_activated(self) -&gt; bool:
 <span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: <a title="ariadne.model.CallMethod" href="model.html#ariadne.model.CallMethod">CallMethod</a>, data: Optional[dict] = None) ‑> Union[dict, list]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>向Mirai端发送数据。
-如有回复则应一并返回。</p>
+<div class="desc"><p>向Mirai端发送数据.
+如有回复则应一并返回.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>action</code></strong> :&ensp;<code>str</code></dt>
-<dd>要执行的操作。</dd>
+<dd>要执行的操作.</dd>
 <dt><strong><code>method</code></strong> :&ensp;<code>CallMethod</code></dt>
-<dd>指示对 mirai-api-http 端发送数据的方式。</dd>
+<dd>指示对 mirai-api-http 端发送数据的方式.</dd>
 <dt><strong><code>data</code></strong> :&ensp;<code>dict</code></dt>
-<dd>要发送的数据。</dd>
+<dd>要发送的数据.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>dict</code></dt>
-<dd>响应字典。</dd>
+<dd>响应字典.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -792,15 +792,15 @@ async def call_api(
     self, action: str, method: CallMethod, data: Optional[dict] = None
 ) -&gt; Union[dict, list]:
     &#34;&#34;&#34;
-    向Mirai端发送数据。
-    如有回复则应一并返回。
+    向Mirai端发送数据.
+    如有回复则应一并返回.
 
     Args:
-        action (str): 要执行的操作。
-        method (CallMethod): 指示对 mirai-api-http 端发送数据的方式。
-        data (dict): 要发送的数据。
+        action (str): 要执行的操作.
+        method (CallMethod): 指示对 mirai-api-http 端发送数据的方式.
+        data (dict): 要发送的数据.
     Returns:
-        dict: 响应字典。
+        dict: 响应字典.
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
@@ -808,7 +808,7 @@ async def call_api(
 <span>async def <span class="ident">fetch_cycle</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>负责接收并处理数据，广播事件。</p></div>
+<div class="desc"><p>负责接收并处理数据, 广播事件.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -816,7 +816,7 @@ async def call_api(
 <pre><code class="python">@abc.abstractmethod
 async def fetch_cycle(self) -&gt; None:
     &#34;&#34;&#34;
-    负责接收并处理数据，广播事件。
+    负责接收并处理数据, 广播事件.
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
@@ -841,14 +841,14 @@ async def fetch_cycle(self) -&gt; None:
 <span>async def <span class="ident">stop</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>停止适配器，并等待 <code>fetch_cycle</code> 方法完成。</p></div>
+<div class="desc"><p>停止适配器, 并等待 <code>fetch_cycle</code> 方法完成.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def stop(self):
     &#34;&#34;&#34;
-    停止适配器，并等待 `fetch_cycle` 方法完成。
+    停止适配器, 并等待 `fetch_cycle` 方法完成.
     &#34;&#34;&#34;
     self.running = False
     if self.fetch_task and not self.fetch_task.done():
@@ -867,28 +867,28 @@ async def fetch_cycle(self) -&gt; None:
 <span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
-稳定与性能的平衡，但需要 Mirai API HTTP 同时启用 <code>http</code> 与 <code>ws</code> 适配器。</p>
+<div class="desc"><p>使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
+稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 <code>http</code> 与 <code>ws</code> 适配器.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt>bcc(Broadcast): Broadcast 实例</dt>
 <dt><strong><code>session</code></strong></dt>
-<dd>Session 实例，存储了连接信息</dd>
+<dd>Session 实例, 存储了连接信息</dd>
 </dl>
-<p>ping(bool): 是否启用 ping 功能。</p></div>
+<p>ping(bool): 是否启用 ping 功能.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CombinedAdapter(Adapter):
     &#34;&#34;&#34;
-    使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
-    稳定与性能的平衡，但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器。
+    使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
+    稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器.
 
     Args:
         bcc(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
-        ping(bool): 是否启用 ping 功能。
+        session: Session 实例, 存储了连接信息
+        ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
     def __init__(
@@ -976,7 +976,7 @@ async def call_api(
 <span>async def <span class="ident">fetch_cycle</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"><p>负责接收并处理数据，广播事件。</p></div>
+<div class="desc"><p>负责接收并处理数据, 广播事件.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1071,28 +1071,28 @@ async def call_api(
 <span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
-稳定与性能的平衡，但需要 Mirai API HTTP 同时启用 <code>http</code> 与 <code>ws</code> 适配器。</p>
+<div class="desc"><p>使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
+稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 <code>http</code> 与 <code>ws</code> 适配器.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt>bcc(Broadcast): Broadcast 实例</dt>
 <dt><strong><code>session</code></strong></dt>
-<dd>Session 实例，存储了连接信息</dd>
+<dd>Session 实例, 存储了连接信息</dd>
 </dl>
-<p>ping(bool): 是否启用 ping 功能。</p></div>
+<p>ping(bool): 是否启用 ping 功能.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class CombinedAdapter(Adapter):
     &#34;&#34;&#34;
-    使用正向Websocket接收事件与消息，用HTTP发送消息/操作的适配器。
-    稳定与性能的平衡，但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器。
+    使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
+    稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器.
 
     Args:
         bcc(Broadcast): Broadcast 实例
-        session: Session 实例，存储了连接信息
-        ping(bool): 是否启用 ping 功能。
+        session: Session 实例, 存储了连接信息
+        ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
     def __init__(
@@ -1258,8 +1258,8 @@ async def call_api(
 <span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, fetch_interval: float = 0.5)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>仅使用正向 HTTP 的适配器，采用短轮询接收事件/消息。
-不推荐。
+<div class="desc"><p>仅使用正向 HTTP 的适配器, 采用短轮询接收事件/消息.
+不推荐.
 Note: Working In Progress</p></div>
 <details class="source">
 <summary>
@@ -1267,8 +1267,8 @@ Note: Working In Progress</p></div>
 </summary>
 <pre><code class="python">class HttpAdapter(Adapter):
     &#34;&#34;&#34;
-    仅使用正向 HTTP 的适配器，采用短轮询接收事件/消息。
-    不推荐。
+    仅使用正向 HTTP 的适配器, 采用短轮询接收事件/消息.
+    不推荐.
     Note: Working In Progress
     &#34;&#34;&#34;
 
@@ -1340,16 +1340,16 @@ Note: Working In Progress</p></div>
 <span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>仅使用正向 Websocket 的适配器。
-因 Mirai API HTTP 的实现，部分功能不可用。</p></div>
+<div class="desc"><p>仅使用正向 Websocket 的适配器.
+因 Mirai API HTTP 的实现, 部分功能不可用.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class WebsocketAdapter(Adapter):
     &#34;&#34;&#34;
-    仅使用正向 Websocket 的适配器。
-    因 Mirai API HTTP 的实现，部分功能不可用。
+    仅使用正向 Websocket 的适配器.
+    因 Mirai API HTTP 的实现, 部分功能不可用.
     &#34;&#34;&#34;
 
     class SyncIdManager:

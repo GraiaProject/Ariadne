@@ -53,7 +53,7 @@ class NotSendableElement(Exception):
 
 class Element(AriadneBaseModel, abc.ABC):
     &#34;&#34;&#34;
-    指示一个消息中的元素。
+    指示一个消息中的元素.
     type (str): 元素类型
     &#34;&#34;&#34;
 
@@ -68,11 +68,11 @@ class Element(AriadneBaseModel, abc.ABC):
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
         为元素被发送进行准备,
-        若无异常被引发，则完成本方法后元素应可被发送。
+        若无异常被引发, 则完成本方法后元素应可被发送.
 
-        保留空实现以允许不需要 `prepare`的元素类型存在。
+        保留空实现以允许不需要 `prepare`的元素类型存在.
 
-        若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
+        若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
         &#34;&#34;&#34;
 
 
@@ -814,7 +814,7 @@ def _update_forward_refs():
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
+<div class="desc"><p>指示一个消息中的元素.
 type (str): 元素类型</p>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
@@ -824,7 +824,7 @@ type (str): 元素类型</p>
 </summary>
 <pre><code class="python">class Element(AriadneBaseModel, abc.ABC):
     &#34;&#34;&#34;
-    指示一个消息中的元素。
+    指示一个消息中的元素.
     type (str): 元素类型
     &#34;&#34;&#34;
 
@@ -839,11 +839,11 @@ type (str): 元素类型</p>
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
         为元素被发送进行准备,
-        若无异常被引发，则完成本方法后元素应可被发送。
+        若无异常被引发, 则完成本方法后元素应可被发送.
 
-        保留空实现以允许不需要 `prepare`的元素类型存在。
+        保留空实现以允许不需要 `prepare`的元素类型存在.
 
-        若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
+        若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
         &#34;&#34;&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -898,9 +898,9 @@ type (str): 元素类型</p>
 </code></dt>
 <dd>
 <div class="desc"><p>为元素被发送进行准备,
-若无异常被引发，则完成本方法后元素应可被发送。</p>
-<p>保留空实现以允许不需要 <code>prepare</code>的元素类型存在。</p>
-<p>若本元素设计时便不可被发送，请引发 <code><a title="ariadne.message.element.NotSendableElement" href="#ariadne.message.element.NotSendableElement">NotSendableElement</a></code> 异常.</p></div>
+若无异常被引发, 则完成本方法后元素应可被发送.</p>
+<p>保留空实现以允许不需要 <code>prepare</code>的元素类型存在.</p>
+<p>若本元素设计时便不可被发送, 请引发 <code><a title="ariadne.message.element.NotSendableElement" href="#ariadne.message.element.NotSendableElement">NotSendableElement</a></code> 异常.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -908,11 +908,11 @@ type (str): 元素类型</p>
 <pre><code class="python">def prepare(self) -&gt; None:
     &#34;&#34;&#34;
     为元素被发送进行准备,
-    若无异常被引发，则完成本方法后元素应可被发送。
+    若无异常被引发, 则完成本方法后元素应可被发送.
 
-    保留空实现以允许不需要 `prepare`的元素类型存在。
+    保留空实现以允许不需要 `prepare`的元素类型存在.
 
-    若本元素设计时便不可被发送，请引发 `NotSendableElement` 异常.
+    若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
     &#34;&#34;&#34;</code></pre>
 </details>
 </dd>
@@ -1861,7 +1861,7 @@ def uuid(self):
 <span>(</span><span>text: str, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>指示一个消息中的元素。
+<div class="desc"><p>指示一个消息中的元素.
 type (str): 元素类型</p>
 <p>实例化一个 Plain 消息元素, 用于承载消息中的文字.</p>
 <h2 id="args">Args</h2>

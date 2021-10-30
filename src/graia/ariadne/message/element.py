@@ -4,10 +4,13 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
+from typing_extensions import ParamSpec
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
+if TYPE_CHECKING:
+    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny,DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -37,6 +40,9 @@ class Element(AriadneBaseModel, abc.ABC):
     def asDisplay(self) -> str:
         return ""
 
+    def asPersistentString(self) -> str:
+        return f"[mirai:{self.type}:{j_dump(self.dict(exclude='type'))}]"
+
     def prepare(self) -> None:
         """
         为元素被发送进行准备,
@@ -63,6 +69,9 @@ class Plain(Element):
     def asDisplay(self) -> str:
         return self.text
 
+    def asPersistentString(self) -> str:
+        return self.text
+
 
 class Source(Element):
     "表示消息在一个特定聊天区域内的唯一标识"
@@ -78,6 +87,8 @@ class Source(Element):
     def prepare(self) -> NoReturn:
         raise NotSendableElement
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class Quote(Element):
     "表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"
@@ -96,6 +107,9 @@ class Quote(Element):
 
     def prepare(self) -> NoReturn:
         raise NotSendableElement
+    
+    def asPersistentString(self) -> str:
+        return ""
 
 
 class At(Element):
@@ -157,7 +171,8 @@ class Face(Element):
     name: Optional[str] = None
 
     def asDisplay(self) -> str:
-        return f"[表情:{self.faceId}{f'({self.name})' if self.name else ''}]"
+        return f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
+
 
     def __eq__(self, other: "Face") -> bool:
         return isinstance(other, Face) and (
@@ -199,6 +214,8 @@ class App(Element):
     def asDisplay(self) -> str:
         return "[APP消息]"
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class PokeMethods(Enum):
     "戳一戳可用方法"
@@ -280,6 +297,8 @@ class Forward(Element):
     def asDisplay(self) -> str:
         return f"[合并转发:共{len(self.nodeList)}条]"
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class File(Element):
     "指示一个文件信息元素"
@@ -291,6 +310,8 @@ class File(Element):
     def asDisplay(self) -> str:
         return f"[文件:{self.name}]"
 
+    def asPersistentString(self) -> str:
+        return ""
 
 class ImageType(Enum):
     Friend = "Friend"
@@ -305,6 +326,7 @@ image_upload_method_type_map = {
     UploadMethod.Temp: ImageType.Temp,
 }
 
+P = ParamSpec("P")
 
 class MultimediaElement(Element):
     """指示多媒体消息元素."""
@@ -312,9 +334,6 @@ class MultimediaElement(Element):
     url: Optional[str] = None
     path: Optional[Path] = None
     base64: Optional[str] = None
-
-    def dict(self, *args, **kwargs):
-        return super().dict(*args, **({**kwargs, "by_alias": True}))
 
     async def get_bytes(self, url: str = None) -> bytes:
         """尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
@@ -338,6 +357,12 @@ class MultimediaElement(Element):
             data = await response.read()
             self.base64 = b64encode(data)
             return data
+
+    def dict(self, *, include: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, exclude: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -> 'DictStrAny':
+        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+
+    def asPersistentString(self, *, binary: bool = True) -> str:
+        return f"[{self.type}:{j_dump(self.dict(exclude='type'))}]" if binary else f"[{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
 
     @property
     def uuid(self):
@@ -438,7 +463,7 @@ class FlashImage(Image):
     def fromImage(cls, image: "Image") -> "FlashImage":
         return cls.parse_obj(image.dict() | {"type": "FlashImage"})
 
-    def asDisplay(self):
+    def asDisplay(self) -> str:
         return "[闪照]"
 
 
@@ -473,7 +498,6 @@ class Voice(MultimediaElement):
 
     def asDisplay(self) -> str:
         return "[语音]"
-
 
 def _update_forward_refs():
     """

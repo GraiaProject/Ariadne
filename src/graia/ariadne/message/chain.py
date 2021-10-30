@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import copy
-from typing import Iterable, List, Optional, Tuple, Type, TypeVar, Union
+import json
+import re
+from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
-from .element import Element, NotSendableElement, _update_forward_refs
+from .element import Element, MultimediaElement, NotSendableElement, File, Quote, Source, Plain, _update_forward_refs
 
 MessageIndex = Tuple[int, Optional[int]]
 
@@ -70,7 +72,6 @@ class MessageChain(BaseModel):
             *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
         """
-        from .element import Plain
 
         element_list = []
         for i in elements:
@@ -205,7 +206,6 @@ class MessageChain(BaseModel):
         Returns:
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         """
-        from .element import Plain
 
         result = copy.copy(self.__root__)
         if item.start:
@@ -274,7 +274,6 @@ class MessageChain(BaseModel):
         Returns:
             List["MessageChain"]: 分割结果, 行为和 `str.split` 差不多.
         """
-        from .element import Plain
 
         result: List["MessageChain"] = []
         tmp = []
@@ -311,7 +310,6 @@ class MessageChain(BaseModel):
         Returns:
             bool: 是否以此字符串开头
         """
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[0]) is not Plain:
             return False
@@ -327,7 +325,6 @@ class MessageChain(BaseModel):
         Returns:
             bool: 是否以此字符串结尾
         """
-        from .element import Plain
 
         if not self.__root__ or type(self.__root__[-1]) is not Plain:
             return False
@@ -345,7 +342,6 @@ class MessageChain(BaseModel):
             bool: 是否包括
         """
 
-        from .element import Plain
 
         for i in self.merge(copy=True).get(Plain):
             if string in i.text:
@@ -363,7 +359,6 @@ class MessageChain(BaseModel):
         Returns:
             Union[None, MessageChain]: copy = True 时返回副本
         """
-        from .element import Plain
 
         result = []
 
@@ -442,6 +437,9 @@ class MessageChain(BaseModel):
                 cnt += 1
         return cnt
 
+    def asSendable(self):
+        return self.exclude(Source, Quote, File)
+
     def __add__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
@@ -460,6 +458,37 @@ class MessageChain(BaseModel):
 
     def __len__(self) -> int:
         return len(self.__root__)
+
+    def asPersistentString(self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) -> str:
+        string_list = []
+        include = tuple(include)
+        exclude = tuple(exclude)
+        if include and exclude:
+            raise ValueError("Can not present include and exclude at same time!")
+        for i in self.__root__:
+            if (include and isinstance(i, include)) or (exclude and isinstance(i, exclude)) or not (include or exclude):
+                if isinstance(i, Plain):
+                    string_list.append(i.asPersistentString().replace("[", "[_"))
+                elif not isinstance(i, MultimediaElement) or binary:
+                    string_list.append(i.asPersistentString())
+                else:
+                    string_list.append(i.asPersistentString(binary=False))
+        return "".join(string_list)
+
+    @classmethod
+    def fromPersistentString(cls, string) -> "MessageChain":
+        element_mapping = {i.type: i for i in Element.__subclasses__()}
+        result = []
+        for match in re.split(r"(\[mirai:.+?\])", string):
+            mirai = re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match)
+            if mirai:
+                j_string = mirai.group(3)
+                element_cls = element_mapping[mirai.group(1)]
+                result.append(element_cls.parse_obj(json.loads(j_string)))
+            elif match:
+                result.append(Plain(match.replace("[_", "[")))
+        return MessageChain.create(result)
+
 
 
 _update_forward_refs()

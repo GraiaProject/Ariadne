@@ -78,12 +78,18 @@ def validate_response(code: Union[dict, int]):
             raise exception_code
 
 
-def loguru_tb(limit=None, file=None, chain=True):
-    logger.exception(sys.exc_info()[1])
+def loguru_print_exception(cls, val, tb, limit, file, chain):
+    logger.opt(exception=(cls, val, tb)).error(f&#34;Caught Exception {val}:&#34;)
+
+
+def loguru_excepthook(cls, val, tb):
+    logger.opt(exception=(cls, val, tb)).error(f&#34;Uncaught Exception:&#34;)
 
 
 def inject_loguru_traceback():
-    traceback.print_exc = loguru_tb
+    &#34;&#34;&#34;使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook&#34;&#34;&#34;
+    traceback.print_exception = loguru_print_exception
+    sys.excepthook = loguru_excepthook
 
 
 class ApplicationMiddlewareDispatcher(BaseDispatcher):
@@ -145,17 +151,19 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <span>def <span class="ident">inject_loguru_traceback</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def inject_loguru_traceback():
-    traceback.print_exc = loguru_tb</code></pre>
+    &#34;&#34;&#34;使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook&#34;&#34;&#34;
+    traceback.print_exception = loguru_print_exception
+    sys.excepthook = loguru_excepthook</code></pre>
 </details>
 </dd>
-<dt id="ariadne.util.loguru_tb"><code class="name flex">
-<span>def <span class="ident">loguru_tb</span></span>(<span>limit=None, file=None, chain=True)</span>
+<dt id="ariadne.util.loguru_excepthook"><code class="name flex">
+<span>def <span class="ident">loguru_excepthook</span></span>(<span>cls, val, tb)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -163,8 +171,21 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def loguru_tb(limit=None, file=None, chain=True):
-    logger.exception(sys.exc_info()[1])</code></pre>
+<pre><code class="python">def loguru_excepthook(cls, val, tb):
+    logger.opt(exception=(cls, val, tb)).error(f&#34;Uncaught Exception:&#34;)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.loguru_print_exception"><code class="name flex">
+<span>def <span class="ident">loguru_print_exception</span></span>(<span>cls, val, tb, limit, file, chain)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loguru_print_exception(cls, val, tb, limit, file, chain):
+    logger.opt(exception=(cls, val, tb)).error(f&#34;Caught Exception {val}:&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.validate_response"><code class="name flex">
@@ -341,7 +362,8 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <ul class="">
 <li><code><a title="ariadne.util.app_ctx_manager" href="#ariadne.util.app_ctx_manager">app_ctx_manager</a></code></li>
 <li><code><a title="ariadne.util.inject_loguru_traceback" href="#ariadne.util.inject_loguru_traceback">inject_loguru_traceback</a></code></li>
-<li><code><a title="ariadne.util.loguru_tb" href="#ariadne.util.loguru_tb">loguru_tb</a></code></li>
+<li><code><a title="ariadne.util.loguru_excepthook" href="#ariadne.util.loguru_excepthook">loguru_excepthook</a></code></li>
+<li><code><a title="ariadne.util.loguru_print_exception" href="#ariadne.util.loguru_print_exception">loguru_print_exception</a></code></li>
 <li><code><a title="ariadne.util.validate_response" href="#ariadne.util.validate_response">validate_response</a></code></li>
 </ul>
 </li>

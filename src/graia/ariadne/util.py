@@ -50,12 +50,18 @@ def validate_response(code: Union[dict, int]):
             raise exception_code
 
 
-def loguru_tb(limit=None, file=None, chain=True):
-    logger.exception(sys.exc_info()[1])
+def loguru_print_exception(cls, val, tb, limit, file, chain):
+    logger.opt(exception=(cls, val, tb)).error(f"Caught Exception {val}:")
+
+
+def loguru_excepthook(cls, val, tb):
+    logger.opt(exception=(cls, val, tb)).error(f"Uncaught Exception:")
 
 
 def inject_loguru_traceback():
-    traceback.print_exc = loguru_tb
+    """使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook"""
+    traceback.print_exception = loguru_print_exception
+    sys.excepthook = loguru_excepthook
 
 
 class ApplicationMiddlewareDispatcher(BaseDispatcher):

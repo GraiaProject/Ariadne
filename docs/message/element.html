@@ -33,12 +33,13 @@ from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
-from typing_extensions import ParamSpec
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
+from typing_extensions import ParamSpec
+
 if TYPE_CHECKING:
-    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny,DictStrAny
+    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny, DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -118,6 +119,7 @@ class Source(Element):
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
 
+
 class Quote(Element):
     &#34;表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)&#34;
     type: str = &#34;Quote&#34;
@@ -135,7 +137,7 @@ class Quote(Element):
 
     def prepare(self) -&gt; NoReturn:
         raise NotSendableElement
-    
+
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
 
@@ -201,7 +203,6 @@ class Face(Element):
     def asDisplay(self) -&gt; str:
         return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
 
-
     def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
         return isinstance(other, Face) and (
             self.faceId == other.faceId or self.name == other.name
@@ -244,6 +245,7 @@ class App(Element):
 
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
+
 
 class PokeMethods(Enum):
     &#34;戳一戳可用方法&#34;
@@ -328,6 +330,7 @@ class Forward(Element):
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
 
+
 class File(Element):
     &#34;指示一个文件信息元素&#34;
     type = &#34;File&#34;
@@ -340,6 +343,7 @@ class File(Element):
 
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
+
 
 class ImageType(Enum):
     Friend = &#34;Friend&#34;
@@ -355,6 +359,7 @@ image_upload_method_type_map = {
 }
 
 P = ParamSpec(&#34;P&#34;)
+
 
 class MultimediaElement(Element):
     &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
@@ -386,11 +391,33 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data)
             return data
 
-    def dict(self, *, include: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, exclude: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -&gt; &#39;DictStrAny&#39;:
-        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+    def dict(
+        self,
+        *,
+        include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        by_alias: bool = False,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -&gt; &#34;DictStrAny&#34;:
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+        )
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
-        return f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34; if binary else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+        return (
+            f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+            if binary
+            else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+        )
 
     @property
     def uuid(self):
@@ -526,6 +553,7 @@ class Voice(MultimediaElement):
 
     def asDisplay(self) -&gt; str:
         return &#34;[语音]&#34;
+
 
 def _update_forward_refs():
     &#34;&#34;&#34;
@@ -994,7 +1022,6 @@ type (str): 元素类型</p>
 
     def asDisplay(self) -&gt; str:
         return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
-
 
     def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
         return isinstance(other, Face) and (
@@ -1694,11 +1721,33 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
             self.base64 = b64encode(data)
             return data
 
-    def dict(self, *, include: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, exclude: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -&gt; &#39;DictStrAny&#39;:
-        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+    def dict(
+        self,
+        *,
+        include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        by_alias: bool = False,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -&gt; &#34;DictStrAny&#34;:
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+        )
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
-        return f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34; if binary else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+        return (
+            f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+            if binary
+            else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+        )
 
     @property
     def uuid(self):
@@ -1776,7 +1825,11 @@ def uuid(self):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asPersistentString(self, *, binary: bool = True) -&gt; str:
-    return f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34; if binary else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;</code></pre>
+    return (
+        f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+        if binary
+        else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+    )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.element.MultimediaElement.dict"><code class="name flex">
@@ -1788,8 +1841,26 @@ def uuid(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def dict(self, *, include: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, exclude: Union[&#39;AbstractSetIntStr&#39;, &#39;MappingIntStrAny&#39;] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -&gt; &#39;DictStrAny&#39;:
-    return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)</code></pre>
+<pre><code class="python">def dict(
+    self,
+    *,
+    include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+    exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+    by_alias: bool = False,
+    skip_defaults: bool = None,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+) -&gt; &#34;DictStrAny&#34;:
+    return super().dict(
+        include=include,
+        exclude=exclude,
+        by_alias=True,
+        skip_defaults=skip_defaults,
+        exclude_unset=exclude_unset,
+        exclude_defaults=exclude_defaults,
+        exclude_none=exclude_none,
+    )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.element.MultimediaElement.get_bytes"><code class="name flex">
@@ -2243,7 +2314,7 @@ type (str): 元素类型</p>
 
     def prepare(self) -&gt; NoReturn:
         raise NotSendableElement
-    
+
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;</code></pre>
 </details>

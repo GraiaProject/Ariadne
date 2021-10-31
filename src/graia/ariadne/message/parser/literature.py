@@ -8,9 +8,8 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from graia.broadcast.utilles import printer
 
-from ..chain import MessageChain, MessageIndex
+from ..chain import MessageChain
 from ..element import (
     App,
     At,

@@ -5,12 +5,13 @@ from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
-from typing_extensions import ParamSpec
 
 from pydantic import BaseModel, validator
 from pydantic.fields import Field
+from typing_extensions import ParamSpec
+
 if TYPE_CHECKING:
-    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny,DictStrAny
+    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny, DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -90,6 +91,7 @@ class Source(Element):
     def asPersistentString(self) -> str:
         return ""
 
+
 class Quote(Element):
     "表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"
     type: str = "Quote"
@@ -107,7 +109,7 @@ class Quote(Element):
 
     def prepare(self) -> NoReturn:
         raise NotSendableElement
-    
+
     def asPersistentString(self) -> str:
         return ""
 
@@ -173,7 +175,6 @@ class Face(Element):
     def asDisplay(self) -> str:
         return f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
 
-
     def __eq__(self, other: "Face") -> bool:
         return isinstance(other, Face) and (
             self.faceId == other.faceId or self.name == other.name
@@ -216,6 +217,7 @@ class App(Element):
 
     def asPersistentString(self) -> str:
         return ""
+
 
 class PokeMethods(Enum):
     "戳一戳可用方法"
@@ -300,6 +302,7 @@ class Forward(Element):
     def asPersistentString(self) -> str:
         return ""
 
+
 class File(Element):
     "指示一个文件信息元素"
     type = "File"
@@ -312,6 +315,7 @@ class File(Element):
 
     def asPersistentString(self) -> str:
         return ""
+
 
 class ImageType(Enum):
     Friend = "Friend"
@@ -327,6 +331,7 @@ image_upload_method_type_map = {
 }
 
 P = ParamSpec("P")
+
 
 class MultimediaElement(Element):
     """指示多媒体消息元素."""
@@ -358,11 +363,33 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data)
             return data
 
-    def dict(self, *, include: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, exclude: Union['AbstractSetIntStr', 'MappingIntStrAny'] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) -> 'DictStrAny':
-        return super().dict(include=include, exclude=exclude, by_alias=True, skip_defaults=skip_defaults, exclude_unset=exclude_unset, exclude_defaults=exclude_defaults, exclude_none=exclude_none)
+    def dict(
+        self,
+        *,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        by_alias: bool = False,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -> "DictStrAny":
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=exclude_none,
+        )
 
     def asPersistentString(self, *, binary: bool = True) -> str:
-        return f"[{self.type}:{j_dump(self.dict(exclude='type'))}]" if binary else f"[{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
+        return (
+            f"[{self.type}:{j_dump(self.dict(exclude='type'))}]"
+            if binary
+            else f"[{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
+        )
 
     @property
     def uuid(self):
@@ -498,6 +525,7 @@ class Voice(MultimediaElement):
 
     def asDisplay(self) -> str:
         return "[语音]"
+
 
 def _update_forward_refs():
     """

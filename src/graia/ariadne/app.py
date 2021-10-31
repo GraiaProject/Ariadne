@@ -37,147 +37,20 @@ from .model import (
 from .util import ApplicationMiddlewareDispatcher, app_ctx_manager
 
 
-class Ariadne:
-    """
-    艾莉亚德妮 (Ariadne).
+class AriadneMixin:
+    """Ariadne 的 Mixin 基类."""
 
-    面向 `mirai-api-http` 接口的实际功能实现.
-
-    你的应用大多都围绕着本类及本类的实例展开.
-
-    Attributes:
-        broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
-            通常你不需要干涉该属性;
-        adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
-    """
-
-    def __init__(
-        self,
-        broadcast: Broadcast,
-        adapter: Adapter,
-        *,
-        chat_log_config: Optional[ChatLogConfig] = None,
-        use_loguru_traceback: Optional[bool] = True,
-    ):
-        """
-        初始化 Ariadne.
-
-        Args:
-            broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
-            chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
-            use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exc() 即 Graia 其它库大多使用的异常处理函数.
-        """
-        self.broadcast: Broadcast = broadcast
-        self.adapter: Adapter = adapter
-        self.adapter.app = self
-        self.mirai_session: MiraiSession = adapter.mirai_session
-        self.loop: AbstractEventLoop = broadcast.loop
-        self.daemon_task: Optional[Task] = None
-        self.running: bool = False
-        self.remote_version: str = ""
-        self.chat_log_cfg: ChatLogConfig = (
-            chat_log_config if chat_log_config else ChatLogConfig()
-        )
-        if use_loguru_traceback:
-            inject_loguru_traceback()
-
-    @classmethod
-    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
-        """快速创建一个 `Ariadne` 实例.
-
-        Args:
-            session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
-            broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-
-        Returns:
-            [type]: [description]
-        """
-        if not broadcast:
-            loop = asyncio.new_event_loop()
-            broadcast = Broadcast(loop=loop)
-        adapter = DefaultAdapter(broadcast=broadcast, session=session)
-        return cls(broadcast, adapter)
+    broadcast: Broadcast
+    adapter: Adapter
+    mirai_session: MiraiSession
 
     @property
     def session_key(self) -> Optional[str]:
         return self.mirai_session.session_key
 
-    async def daemon(self, retry_interval: float = 5.0):
-        logger.debug("Application daemon started.")
-        while self.running:
-            try:
-                await self.adapter.start()
-                try:
-                    if self.adapter.fetch_task:
-                        await self.adapter.fetch_task
-                except Exception as e:
-                    logger.debug(e)
-                await self.adapter.stop()
-                logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
-                await asyncio.sleep(retry_interval)
-                logger.info("daemon: restarting adapter")
-            except CancelledError:
-                await self.adapter.stop()
-        logger.debug("Application daemon stopped.")
 
-    async def msg_logger(self, event: MiraiEvent):
-        logger.info(event)
-
-    async def launch(self):
-        if not self.running:
-            self.running = True
-            start_time = time.time()
-            logger.info("Launching app...")
-            self.broadcast.dispatcher_interface.inject_global_raw(
-                ApplicationMiddlewareDispatcher(self)
-            )
-            if self.chat_log_cfg.enabled:
-                self.chat_log_cfg.initialize(self)
-            self.daemon_task = self.loop.create_task(self.daemon())
-            while not self.adapter.session_activated:
-                await asyncio.sleep(0.001)
-            self.broadcast.postEvent(ApplicationLaunched(self))
-            self.remote_version = await self.getVersion()
-            logger.info(f"Remote version: {self.remote_version}")
-            logger.info(f"Application launched with {time.time() - start_time:.2}s")
-
-    async def stop(self):
-        if self.running:
-            self.broadcast.postEvent(ApplicationShutdowned(self))
-            self.running = False
-            if self.daemon_task:
-                self.daemon_task.cancel()
-                self.daemon_task = None
-            await self.adapter.stop()
-            for t in asyncio.all_tasks(self.loop):
-                if t is not asyncio.current_task(self.loop):
-                    t.cancel()
-                    try:
-                        await t
-                    except asyncio.CancelledError:
-                        pass
-
-    async def lifecycle(self):
-        await self.launch()
-        try:
-            if self.daemon_task:
-                await self.daemon_task
-        except CancelledError:
-            pass
-        await self.stop()
-
-    @app_ctx_manager
-    async def getVersion(self, auto_set: bool = True):
-        if self.mirai_session.version:
-            return self.mirai_session.version
-        result = await self.adapter.call_api.__wrapped__(
-            self.adapter, "about", CallMethod.GET
-        )
-        version = result["version"]
-        if auto_set:
-            self.mirai_session.version = version
-        return version
+class MessageMixin(AriadneMixin):
+    """用于发送, 撤回, 获取消息的 Mixin 类."""
 
     @app_ctx_manager
     async def getMessageFromId(self, messageId: int) -> MessageChain:
@@ -187,124 +60,6 @@ class Ariadne:
             {"sessionKey": self.session_key, "id": messageId},
         )
         return MessageChain.parse_obj(result)
-
-    @app_ctx_manager
-    async def getFriendList(self) -> List[Friend]:
-        result = await self.adapter.call_api(
-            "friendList",
-            CallMethod.GET,
-            {"sessionKey": self.session_key},
-        )
-        return [Friend.parse_obj(i) for i in result]
-
-    @app_ctx_manager
-    async def getFriend(self, friend_id: int) -> Optional[Friend]:
-        """从已知的可能的好友 ID, 获取 Friend 实例.
-
-        Args:
-            friend_id (int): 已知的可能的好友 ID.
-
-        Returns:
-            Friend: 操作成功, 你得到了你应得的.
-            None: 未能获取到.
-        """
-        data = await self.getFriendList()
-        for i in data:
-            if i.id == friend_id:
-                return i
-
-    @app_ctx_manager
-    async def getGroupList(self) -> List[Group]:
-        result = await self.adapter.call_api(
-            "groupList",
-            CallMethod.GET,
-            {"sessionKey": self.session_key},
-        )
-        return [Group.parse_obj(i) for i in result]
-
-    @app_ctx_manager
-    async def getGroup(self, group_id: int) -> Optional[Group]:
-        """尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
-
-        Args:
-            group_id (int): 尝试获取的群组的唯一 ID.
-
-        Returns:
-            Group: 操作成功, 你得到了你应得的.
-            None: 未能获取到.
-        """
-        data = await self.getGroupList()
-        for i in data:
-            if i.id == group_id:
-                return i
-
-    @app_ctx_manager
-    async def getMemberList(self, group: Union[Group, int]) -> List[Member]:
-        result = await self.adapter.call_api(
-            "memberList",
-            CallMethod.GET,
-            {
-                "sessionKey": self.session_key,
-                "target": group.id if isinstance(group, Group) else group,
-            },
-        )
-        return [Member.parse_obj(i) for i in result]
-
-    @app_ctx_manager
-    async def getMember(
-        self, group: Union[Group, int], member_id: int
-    ) -> Optional[Member]:
-        """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
-
-        Args:
-            group_id (Union[Group, int]): 已知的群组唯一 ID
-            member_id (int): 已知的群组成员的 ID
-
-        Returns:
-            Member: 操作成功, 你得到了你应得的.
-            None: 未能获取到.
-        """
-        data = await self.getMemberList(group)
-        for i in data:
-            if i.id == member_id:
-                return i
-
-    @app_ctx_manager
-    async def getBotProfile(self) -> Profile:
-        result = await self.adapter.call_api(
-            "botProfile",
-            CallMethod.GET,
-            {"sessionKey": self.session_key},
-        )
-        return Profile.parse_obj(result)
-
-    @app_ctx_manager
-    async def getFriendProfile(self, friend: Union[Friend, int]) -> Profile:
-        result = await self.adapter.call_api(
-            "friendProfile",
-            CallMethod.GET,
-            {
-                "sessionKey": self.session_key,
-                "target": friend.id if isinstance(friend, Friend) else friend,
-            },
-        )
-        return Profile.parse_obj(result)
-
-    @app_ctx_manager
-    async def getMemberProfile(
-        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
-    ) -> Profile:
-        member_id = member.id if isinstance(member, Member) else member
-        group = group or (member.group if isinstance(member, Member) else None)
-        group_id = group.id if isinstance(group, Group) else group
-        if not group_id:
-            raise ValueError("Missing necessary argument: group")
-        result = await self.adapter.call_api(
-            "memberProfile",
-            CallMethod.GET,
-            {"sessionKey": self.session_key, "target": group_id, "memberId": member_id},
-        )
-        return Profile.parse_obj(result)
 
     @app_ctx_manager
     async def sendFriendMessage(
@@ -519,7 +274,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def recallMessage(self, target: Union[Source, BotMessage, int]):
+    async def recallMessage(self, target: Union[Source, BotMessage, int]) -> None:
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
@@ -538,6 +293,132 @@ class Ariadne:
             CallMethod.POST,
             {"sessionKey": self.session_key, "target": target},
         )
+
+
+class RelationshipMixin(AriadneMixin):
+    """获取各种关系模型的 Mixin 类."""
+
+    @app_ctx_manager
+    async def getFriendList(self) -> List[Friend]:
+        result = await self.adapter.call_api(
+            "friendList",
+            CallMethod.GET,
+            {"sessionKey": self.session_key},
+        )
+        return [Friend.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getFriend(self, friend_id: int) -> Optional[Friend]:
+        """从已知的可能的好友 ID, 获取 Friend 实例.
+
+        Args:
+            friend_id (int): 已知的可能的好友 ID.
+
+        Returns:
+            Friend: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
+        data = await self.getFriendList()
+        for i in data:
+            if i.id == friend_id:
+                return i
+
+    @app_ctx_manager
+    async def getGroupList(self) -> List[Group]:
+        result = await self.adapter.call_api(
+            "groupList",
+            CallMethod.GET,
+            {"sessionKey": self.session_key},
+        )
+        return [Group.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getGroup(self, group_id: int) -> Optional[Group]:
+        """尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
+
+        Args:
+            group_id (int): 尝试获取的群组的唯一 ID.
+
+        Returns:
+            Group: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
+        data = await self.getGroupList()
+        for i in data:
+            if i.id == group_id:
+                return i
+
+    @app_ctx_manager
+    async def getMemberList(self, group: Union[Group, int]) -> List[Member]:
+        result = await self.adapter.call_api(
+            "memberList",
+            CallMethod.GET,
+            {
+                "sessionKey": self.session_key,
+                "target": group.id if isinstance(group, Group) else group,
+            },
+        )
+        return [Member.parse_obj(i) for i in result]
+
+    @app_ctx_manager
+    async def getMember(
+        self, group: Union[Group, int], member_id: int
+    ) -> Optional[Member]:
+        """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
+
+        Args:
+            group_id (Union[Group, int]): 已知的群组唯一 ID
+            member_id (int): 已知的群组成员的 ID
+
+        Returns:
+            Member: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
+        data = await self.getMemberList(group)
+        for i in data:
+            if i.id == member_id:
+                return i
+
+    @app_ctx_manager
+    async def getBotProfile(self) -> Profile:
+        result = await self.adapter.call_api(
+            "botProfile",
+            CallMethod.GET,
+            {"sessionKey": self.session_key},
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def getFriendProfile(self, friend: Union[Friend, int]) -> Profile:
+        result = await self.adapter.call_api(
+            "friendProfile",
+            CallMethod.GET,
+            {
+                "sessionKey": self.session_key,
+                "target": friend.id if isinstance(friend, Friend) else friend,
+            },
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
+    async def getMemberProfile(
+        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
+    ) -> Profile:
+        member_id = member.id if isinstance(member, Member) else member
+        group = group or (member.group if isinstance(member, Member) else None)
+        group_id = group.id if isinstance(group, Group) else group
+        if not group_id:
+            raise ValueError("Missing necessary argument: group")
+        result = await self.adapter.call_api(
+            "memberProfile",
+            CallMethod.GET,
+            {"sessionKey": self.session_key, "target": group_id, "memberId": member_id},
+        )
+        return Profile.parse_obj(result)
+
+
+class OperationMixin(AriadneMixin):
+    """在各种关系模型中进行操作的 Mixin 类."""
 
     @app_ctx_manager
     async def deleteFriend(self, target: Union[Friend, int]):
@@ -883,6 +764,10 @@ class Ariadne:
             },
         )
 
+
+class FileMixin(AriadneMixin):
+    """用于对文件进行各种操作的 Mixin 类."""
+
     @app_ctx_manager
     async def listFile(
         self,
@@ -1149,6 +1034,10 @@ class Ariadne:
 
         return FileInfo.parse_obj(result)
 
+
+class MultimediaMixin(AriadneMixin):
+    """用于与多媒体信息交互的 Mixin 类."""
+
     @app_ctx_manager
     async def uploadImage(self, data: bytes, method: UploadMethod) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
@@ -1194,6 +1083,144 @@ class Ariadne:
         )
 
         return Voice.parse_obj(result)
+
+
+class Ariadne(
+    MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin
+):
+    """
+    艾莉亚德妮 (Ariadne).
+
+    面向 `mirai-api-http` 接口的实际功能实现.
+
+    你的应用大多都围绕着本类及本类的实例展开.
+
+    Attributes:
+        broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control`,
+            通常你不需要干涉该属性;
+        adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
+    """
+
+    def __init__(
+        self,
+        broadcast: Broadcast,
+        adapter: Adapter,
+        *,
+        chat_log_config: Optional[ChatLogConfig] = None,
+        use_loguru_traceback: Optional[bool] = True,
+    ):
+        """
+        初始化 Ariadne.
+
+        Args:
+            broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+            adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
+            chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
+        """
+        self.broadcast: Broadcast = broadcast
+        self.adapter: Adapter = adapter
+        self.adapter.app = self
+        self.mirai_session: MiraiSession = adapter.mirai_session
+        self.loop: AbstractEventLoop = broadcast.loop
+        self.daemon_task: Optional[Task] = None
+        self.running: bool = False
+        self.remote_version: str = ""
+        self.chat_log_cfg: ChatLogConfig = (
+            chat_log_config if chat_log_config else ChatLogConfig()
+        )
+        if use_loguru_traceback:
+            inject_loguru_traceback()
+
+    @classmethod
+    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
+        """快速创建一个 `Ariadne` 实例.
+
+        Args:
+            session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
+            broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+
+        Returns:
+            [type]: [description]
+        """
+        if not broadcast:
+            loop = asyncio.new_event_loop()
+            broadcast = Broadcast(loop=loop)
+        adapter = DefaultAdapter(broadcast=broadcast, session=session)
+        return cls(broadcast, adapter)
+
+    async def daemon(self, retry_interval: float = 5.0):
+        logger.debug("Application daemon started.")
+        while self.running:
+            try:
+                await self.adapter.start()
+                try:
+                    if self.adapter.fetch_task:
+                        await self.adapter.fetch_task
+                except Exception as e:
+                    logger.debug(e)
+                await self.adapter.stop()
+                logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
+                await asyncio.sleep(retry_interval)
+                logger.info("daemon: restarting adapter")
+            except CancelledError:
+                await self.adapter.stop()
+        logger.debug("Application daemon stopped.")
+
+    async def launch(self):
+        if not self.running:
+            self.running = True
+            start_time = time.time()
+            logger.info("Launching app...")
+            self.broadcast.dispatcher_interface.inject_global_raw(
+                ApplicationMiddlewareDispatcher(self)
+            )
+            if self.chat_log_cfg.enabled:
+                self.chat_log_cfg.initialize(self)
+            self.daemon_task = self.loop.create_task(self.daemon())
+            while not self.adapter.session_activated:
+                await asyncio.sleep(0.001)
+            self.broadcast.postEvent(ApplicationLaunched(self))
+            self.remote_version = await self.getVersion()
+            logger.info(f"Remote version: {self.remote_version}")
+            logger.info(f"Application launched with {time.time() - start_time:.2}s")
+
+    async def stop(self):
+        if self.running:
+            self.broadcast.postEvent(ApplicationShutdowned(self))
+            self.running = False
+            if self.daemon_task:
+                self.daemon_task.cancel()
+                self.daemon_task = None
+            await self.adapter.stop()
+            for t in asyncio.all_tasks(self.loop):
+                if t is not asyncio.current_task(self.loop):
+                    t.cancel()
+                    try:
+                        await t
+                    except asyncio.CancelledError:
+                        pass
+
+    async def lifecycle(self):
+        await self.launch()
+        try:
+            if self.daemon_task:
+                await self.daemon_task
+        except CancelledError:
+            pass
+        await self.stop()
+
+    @app_ctx_manager
+    async def getVersion(self, auto_set: bool = True):
+        if self.mirai_session.version:
+            return self.mirai_session.version
+        result = await self.adapter.call_api.__wrapped__(
+            self.adapter, "about", CallMethod.GET
+        )
+        version = result["version"]
+        if auto_set:
+            self.mirai_session.version = version
+        return version
 
     async def __aenter__(self) -> "Ariadne":
         await self.launch()

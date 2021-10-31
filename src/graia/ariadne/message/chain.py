@@ -8,7 +8,16 @@ from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
-from .element import Element, MultimediaElement, NotSendableElement, File, Quote, Source, Plain, _update_forward_refs
+from .element import (
+    Element,
+    File,
+    MultimediaElement,
+    NotSendableElement,
+    Plain,
+    Quote,
+    Source,
+    _update_forward_refs,
+)
 
 MessageIndex = Tuple[int, Optional[int]]
 
@@ -342,7 +351,6 @@ class MessageChain(BaseModel):
             bool: 是否包括
         """
 
-
         for i in self.merge(copy=True).get(Plain):
             if string in i.text:
                 return True
@@ -459,14 +467,24 @@ class MessageChain(BaseModel):
     def __len__(self) -> int:
         return len(self.__root__)
 
-    def asPersistentString(self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) -> str:
+    def asPersistentString(
+        self,
+        *,
+        binary: bool = True,
+        include: Optional[Iterable[Type[Element]]] = (),
+        exclude: Optional[Iterable[Type[Element]]] = (),
+    ) -> str:
         string_list = []
         include = tuple(include)
         exclude = tuple(exclude)
         if include and exclude:
             raise ValueError("Can not present include and exclude at same time!")
         for i in self.__root__:
-            if (include and isinstance(i, include)) or (exclude and isinstance(i, exclude)) or not (include or exclude):
+            if (
+                (include and isinstance(i, include))
+                or (exclude and isinstance(i, exclude))
+                or not (include or exclude)
+            ):
                 if isinstance(i, Plain):
                     string_list.append(i.asPersistentString().replace("[", "[_"))
                 elif not isinstance(i, MultimediaElement) or binary:
@@ -488,7 +506,6 @@ class MessageChain(BaseModel):
             elif match:
                 result.append(Plain(match.replace("[_", "[")))
         return MessageChain.create(result)
-
 
 
 _update_forward_refs()

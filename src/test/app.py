@@ -30,11 +30,13 @@ if __name__ == "__main__":
 
     @bcc.receiver(FriendMessage)
     async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
-        await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
+        if chain.asDisplay() == "Hi!":
+            await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
 
     @bcc.receiver(MessageEvent)
-    async def _(app: Ariadne, dii: DispatcherInterface):
-        await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
+    async def _(app: Ariadne, dii: DispatcherInterface, chain: MessageChain):
+        if chain.asDisplay() == "test":
+            await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
 
     @bcc.receiver(NewFriendRequestEvent)
     async def _(event: NewFriendRequestEvent):

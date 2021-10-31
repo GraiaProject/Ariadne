@@ -365,7 +365,6 @@ class MultimediaElement(Element):
     &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
 
     url: Optional[str] = None
-    path: Optional[Path] = None
     base64: Optional[str] = None
 
     async def get_bytes(self, url: str = None) -&gt; bytes:
@@ -432,8 +431,6 @@ class MultimediaElement(Element):
             return True
         elif self.url and self.url == other.url:
             return True
-        elif self.path and self.path == other.path:
-            return True
         elif self.base64 and self.base64 == other.base64:
             return True
         return False
@@ -448,7 +445,7 @@ class Image(MultimediaElement):
         self,
         imageId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -461,7 +458,9 @@ class Image(MultimediaElement):
         data = {}
         data[&#34;imageId&#34;] = imageId
         data[&#34;url&#34;] = url
-        data[&#34;path&#34;] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
         if base64:
@@ -489,7 +488,7 @@ class FlashImage(Image):
         self,
         imageId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -502,7 +501,9 @@ class FlashImage(Image):
         data[&#34;type&#34;] = type
         data[&#34;imageId&#34;] = imageId
         data[&#34;url&#34;] = url
-        data[&#34;path&#34;] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
         if base64:
@@ -532,7 +533,7 @@ class Voice(MultimediaElement):
         self,
         voiceId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -542,7 +543,9 @@ class Voice(MultimediaElement):
         data[&#34;type&#34;] = type
         data[&#34;voiceId&#34;] = voiceId
         data[&#34;url&#34;] = url
-        data[&#34;path&#34;] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
         if base64:
@@ -1164,7 +1167,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.FlashImage"><code class="flex name class">
 <span>class <span class="ident">FlashImage</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, image: Optional[ForwardRef('<a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
+<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, image: Optional[ForwardRef('<a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的闪照元素</p>
@@ -1182,7 +1185,7 @@ type (str): 元素类型</p>
         self,
         imageId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -1195,7 +1198,9 @@ type (str): 元素类型</p>
         data[&#34;type&#34;] = type
         data[&#34;imageId&#34;] = imageId
         data[&#34;url&#34;] = url
-        data[&#34;path&#34;] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
         if base64:
@@ -1430,7 +1435,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </dd>
 <dt id="ariadne.message.element.Image"><code class="flex name class">
 <span>class <span class="ident">Image</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, flash: Optional[ForwardRef('<a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a>')] = None, **kwargs)</span>
+<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, flash: Optional[ForwardRef('<a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a>')] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的图片元素</p>
@@ -1449,7 +1454,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
         self,
         imageId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -1462,7 +1467,9 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
         data = {}
         data[&#34;imageId&#34;] = imageId
         data[&#34;url&#34;] = url
-        data[&#34;path&#34;] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
         if base64:
@@ -1695,7 +1702,6 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
     &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
 
     url: Optional[str] = None
-    path: Optional[Path] = None
     base64: Optional[str] = None
 
     async def get_bytes(self, url: str = None) -&gt; bytes:
@@ -1762,8 +1768,6 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
             return True
         elif self.url and self.url == other.url:
             return True
-        elif self.path and self.path == other.path:
-            return True
         elif self.base64 and self.base64 == other.base64:
             return True
         return False</code></pre>
@@ -1784,10 +1788,6 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 <h3>Class variables</h3>
 <dl>
 <dt id="ariadne.message.element.MultimediaElement.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.element.MultimediaElement.path"><code class="name">var <span class="ident">path</span> : Optional[pathlib.Path]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -2461,7 +2461,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.Voice"><code class="flex name class">
 <span>class <span class="ident">Voice</span></span>
-<span>(</span><span>voiceId: Optional[str] = None, url: Optional[str] = None, path: Optional[pathlib.Path] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
+<span>(</span><span>voiceId: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的语音元素</p>
@@ -2481,7 +2481,7 @@ type (str): 元素类型</p>
         self,
         voiceId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -2491,7 +2491,9 @@ type (str): 元素类型</p>
         data[&#34;type&#34;] = type
         data[&#34;voiceId&#34;] = voiceId
         data[&#34;url&#34;] = url
-        data[&#34;path&#34;] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
         if base64:
@@ -2746,7 +2748,6 @@ type (str): 元素类型</p>
 <li><code><a title="ariadne.message.element.MultimediaElement.base64" href="#ariadne.message.element.MultimediaElement.base64">base64</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
-<li><code><a title="ariadne.message.element.MultimediaElement.path" href="#ariadne.message.element.MultimediaElement.path">path</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.url" href="#ariadne.message.element.MultimediaElement.url">url</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.uuid" href="#ariadne.message.element.MultimediaElement.uuid">uuid</a></code></li>
 </ul>

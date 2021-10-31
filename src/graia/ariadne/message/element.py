@@ -337,7 +337,6 @@ class MultimediaElement(Element):
     """指示多媒体消息元素."""
 
     url: Optional[str] = None
-    path: Optional[Path] = None
     base64: Optional[str] = None
 
     async def get_bytes(self, url: str = None) -> bytes:
@@ -404,8 +403,6 @@ class MultimediaElement(Element):
             return True
         elif self.url and self.url == other.url:
             return True
-        elif self.path and self.path == other.path:
-            return True
         elif self.base64 and self.base64 == other.base64:
             return True
         return False
@@ -420,7 +417,7 @@ class Image(MultimediaElement):
         self,
         imageId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -433,7 +430,9 @@ class Image(MultimediaElement):
         data = {}
         data["imageId"] = imageId
         data["url"] = url
-        data["path"] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError("Can't present base64 and bytes data at the same time!")
         if base64:
@@ -461,7 +460,7 @@ class FlashImage(Image):
         self,
         imageId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -474,7 +473,9 @@ class FlashImage(Image):
         data["type"] = type
         data["imageId"] = imageId
         data["url"] = url
-        data["path"] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError("Can't present base64 and bytes data at the same time!")
         if base64:
@@ -504,7 +505,7 @@ class Voice(MultimediaElement):
         self,
         voiceId: Optional[str] = None,
         url: Optional[str] = None,
-        path: Optional[Path] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         *,
         data_bytes: Optional[bytes] = None,
@@ -514,7 +515,9 @@ class Voice(MultimediaElement):
         data["type"] = type
         data["voiceId"] = voiceId
         data["url"] = url
-        data["path"] = path
+        if isinstance(path, str):
+            path = Path(path)
+        data_bytes = path.read_bytes()
         if data_bytes and base64:
             raise ValueError("Can't present base64 and bytes data at the same time!")
         if base64:

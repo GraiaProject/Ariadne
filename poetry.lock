@@ -209,6 +209,23 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 reference = "tuna-tsinghua"
 
 [[package]]
+name = "graia-saya"
+version = "0.0.13"
+description = ""
+category = "dev"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.dependencies]
+graia-broadcast = ">=0.12.1"
+loguru = ">=0.5.3,<0.6.0"
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
 name = "graphviz"
 version = "0.17"
 description = "Simple Python interface for Graphviz"
@@ -683,7 +700,7 @@ reference = "tuna-tsinghua"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ba303624453c20dc9355b708c64aafea6cf0c3c39433e41daacdbc930fe7564b"
+content-hash = "307fd735cb39ad244413885f631656ceb58c449f6799a91c1904ba51652d33c4"
 
 [metadata.files]
 aiohttp = [
@@ -768,6 +785,10 @@ executing = [
 graia-broadcast = [
     {file = "graia-broadcast-0.13.1.tar.gz", hash = "sha256:a22d2678a1946f9084a5f29c469c3c631e039e60dbefd52d683294db998cb075"},
     {file = "graia_broadcast-0.13.1-py3-none-any.whl", hash = "sha256:e881570cad8d9de76f3976c15bab1ffd0a7c8e2fe4f81ad39081363d9abba863"},
+]
+graia-saya = [
+    {file = "graia-saya-0.0.13.tar.gz", hash = "sha256:07b4fe4c5e9b82212b63207e6264f5fa296375bdebeb6e972f50eb5825d52547"},
+    {file = "graia_saya-0.0.13-py3-none-any.whl", hash = "sha256:9ffcef9b5ed17c1032d77e199b9718c05b41b76c12888a368a0d234b0771b91c"},
 ]
 graphviz = [
     {file = "graphviz-0.17-py3-none-any.whl", hash = "sha256:5dadec94046d82adaae6019311a30e0487536d9d5a60d85451f0ba32f9fc6559"},

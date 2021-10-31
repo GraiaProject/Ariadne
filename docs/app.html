@@ -145,7 +145,7 @@ class MessageMixin(AriadneMixin):
     @app_ctx_manager
     async def sendGroupMessage(
         self,
-        group: Union[Group, int],
+        target: Union[Group, int],
         message: MessageChain,
         *,
         quote: Optional[Union[Source, int]] = None,
@@ -153,7 +153,7 @@ class MessageMixin(AriadneMixin):
         &#34;&#34;&#34;发送消息到群组内, 可以指定回复的消息.
 
         Args:
-            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            target (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
             message (MessageChain): 有效的, 可发送的(Sendable)消息链.
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
@@ -168,7 +168,7 @@ class MessageMixin(AriadneMixin):
                 CallMethod.POST,
                 {
                     &#34;sessionKey&#34;: self.session_key,
-                    &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;target&#34;: target.id if isinstance(target, Group) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
                     **(
                         {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
@@ -181,7 +181,7 @@ class MessageMixin(AriadneMixin):
                 &#34;[BOT {bot_id}] Group({group_id}) &lt;- {message}&#34;.format_map(
                     {
                         &#34;bot_id&#34;: self.mirai_session.account,
-                        &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                        &#34;group_id&#34;: target.id if isinstance(target, Group) else target,
                         &#34;message&#34;: new_msg.asDisplay(),
                     }
                 )
@@ -269,7 +269,9 @@ class MessageMixin(AriadneMixin):
             data[&#34;quote&#34;] = target.messageChain.getFirst(Source)
         elif isinstance(quote, (int, Source)):
             data[&#34;quote&#34;] = quote
-        if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+        if isinstance(target, GroupMessage):
+            data[&#34;target&#34;] = target.sender.group
+        if isinstance(target, (FriendMessage, TempMessage)):
             data[&#34;target&#34;] = target.sender
         else:
             data[&#34;target&#34;] = target
@@ -2602,7 +2604,7 @@ async def uploadFile(
     @app_ctx_manager
     async def sendGroupMessage(
         self,
-        group: Union[Group, int],
+        target: Union[Group, int],
         message: MessageChain,
         *,
         quote: Optional[Union[Source, int]] = None,
@@ -2610,7 +2612,7 @@ async def uploadFile(
         &#34;&#34;&#34;发送消息到群组内, 可以指定回复的消息.
 
         Args:
-            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            target (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
             message (MessageChain): 有效的, 可发送的(Sendable)消息链.
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
@@ -2625,7 +2627,7 @@ async def uploadFile(
                 CallMethod.POST,
                 {
                     &#34;sessionKey&#34;: self.session_key,
-                    &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;target&#34;: target.id if isinstance(target, Group) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
                     **(
                         {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
@@ -2638,7 +2640,7 @@ async def uploadFile(
                 &#34;[BOT {bot_id}] Group({group_id}) &lt;- {message}&#34;.format_map(
                     {
                         &#34;bot_id&#34;: self.mirai_session.account,
-                        &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                        &#34;group_id&#34;: target.id if isinstance(target, Group) else target,
                         &#34;message&#34;: new_msg.asDisplay(),
                     }
                 )
@@ -2726,7 +2728,9 @@ async def uploadFile(
             data[&#34;quote&#34;] = target.messageChain.getFirst(Source)
         elif isinstance(quote, (int, Source)):
             data[&#34;quote&#34;] = quote
-        if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+        if isinstance(target, GroupMessage):
+            data[&#34;target&#34;] = target.sender.group
+        if isinstance(target, (FriendMessage, TempMessage)):
             data[&#34;target&#34;] = target.sender
         else:
             data[&#34;target&#34;] = target
@@ -2942,13 +2946,13 @@ async def sendFriendMessage(
 </details>
 </dd>
 <dt id="ariadne.app.MessageMixin.sendGroupMessage"><code class="name flex">
-<span>async def <span class="ident">sendGroupMessage</span></span>(<span>self, group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
+<span>async def <span class="ident">sendGroupMessage</span></span>(<span>self, target: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], message: <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, *, quote: Union[<a title="ariadne.message.element.Source" href="message/element.html#ariadne.message.element.Source">Source</a>, int, ForwardRef(None)] = None) ‑> <a title="ariadne.model.BotMessage" href="model.html#ariadne.model.BotMessage">BotMessage</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>发送消息到群组内, 可以指定回复的消息.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
+<dt><strong><code>target</code></strong> :&ensp;<code>Union[Group, int]</code></dt>
 <dd>指定的群组, 可以是群组的 ID 也可以是 Group 实例.</dd>
 <dt><strong><code>message</code></strong> :&ensp;<code>MessageChain</code></dt>
 <dd>有效的, 可发送的(Sendable)消息链.</dd>
@@ -2967,7 +2971,7 @@ async def sendFriendMessage(
 <pre><code class="python">@app_ctx_manager
 async def sendGroupMessage(
     self,
-    group: Union[Group, int],
+    target: Union[Group, int],
     message: MessageChain,
     *,
     quote: Optional[Union[Source, int]] = None,
@@ -2975,7 +2979,7 @@ async def sendGroupMessage(
     &#34;&#34;&#34;发送消息到群组内, 可以指定回复的消息.
 
     Args:
-        group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+        target (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
         message (MessageChain): 有效的, 可发送的(Sendable)消息链.
         quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
@@ -2990,7 +2994,7 @@ async def sendGroupMessage(
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: self.session_key,
-                &#34;target&#34;: group.id if isinstance(group, Group) else group,
+                &#34;target&#34;: target.id if isinstance(target, Group) else target,
                 &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
                 **(
                     {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
@@ -3003,7 +3007,7 @@ async def sendGroupMessage(
             &#34;[BOT {bot_id}] Group({group_id}) &lt;- {message}&#34;.format_map(
                 {
                     &#34;bot_id&#34;: self.mirai_session.account,
-                    &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
+                    &#34;group_id&#34;: target.id if isinstance(target, Group) else target,
                     &#34;message&#34;: new_msg.asDisplay(),
                 }
             )
@@ -3062,7 +3066,9 @@ async def sendMessage(
         data[&#34;quote&#34;] = target.messageChain.getFirst(Source)
     elif isinstance(quote, (int, Source)):
         data[&#34;quote&#34;] = quote
-    if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+    if isinstance(target, GroupMessage):
+        data[&#34;target&#34;] = target.sender.group
+    if isinstance(target, (FriendMessage, TempMessage)):
         data[&#34;target&#34;] = target.sender
     else:
         data[&#34;target&#34;] = target

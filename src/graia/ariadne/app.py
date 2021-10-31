@@ -117,7 +117,7 @@ class MessageMixin(AriadneMixin):
     @app_ctx_manager
     async def sendGroupMessage(
         self,
-        group: Union[Group, int],
+        target: Union[Group, int],
         message: MessageChain,
         *,
         quote: Optional[Union[Source, int]] = None,
@@ -125,7 +125,7 @@ class MessageMixin(AriadneMixin):
         """发送消息到群组内, 可以指定回复的消息.
 
         Args:
-            group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            target (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
             message (MessageChain): 有效的, 可发送的(Sendable)消息链.
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
@@ -140,7 +140,7 @@ class MessageMixin(AriadneMixin):
                 CallMethod.POST,
                 {
                     "sessionKey": self.session_key,
-                    "target": group.id if isinstance(group, Group) else group,
+                    "target": target.id if isinstance(target, Group) else target,
                     "messageChain": new_msg.dict()["__root__"],
                     **(
                         {"quote": quote.id if isinstance(quote, Source) else quote}
@@ -153,7 +153,7 @@ class MessageMixin(AriadneMixin):
                 "[BOT {bot_id}] Group({group_id}) <- {message}".format_map(
                     {
                         "bot_id": self.mirai_session.account,
-                        "group_id": group.id if isinstance(group, Group) else group,
+                        "group_id": target.id if isinstance(target, Group) else target,
                         "message": new_msg.asDisplay(),
                     }
                 )
@@ -241,7 +241,9 @@ class MessageMixin(AriadneMixin):
             data["quote"] = target.messageChain.getFirst(Source)
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
-        if isinstance(target, (GroupMessage, FriendMessage, TempMessage)):
+        if isinstance(target, GroupMessage):
+            data["target"] = target.sender.group
+        if isinstance(target, (FriendMessage, TempMessage)):
             data["target"] = target.sender
         else:
             data["target"] = target

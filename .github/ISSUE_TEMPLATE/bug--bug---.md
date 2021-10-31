@@ -1,5 +1,5 @@
 ---
-name: Bug 报告
+name: 'Bug: Bug 报告'
 about: 有关 bug 的报告
 title: "[Bug]"
 labels: bug, triage

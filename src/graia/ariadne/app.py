@@ -11,10 +11,15 @@ from loguru import logger
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_message_send_context
 from .event import MiraiEvent
-from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+from .event.lifecycle import (
+    AdapterLaunched,
+    AdapterShutdowned,
+    ApplicationLaunched,
+    ApplicationShutdowned,
+)
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import inject_loguru_traceback
+from .util import inject_bypass_listener, inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -1108,6 +1113,7 @@ class Ariadne(
         *,
         chat_log_config: Optional[ChatLogConfig] = None,
         use_loguru_traceback: Optional[bool] = True,
+        use_bypass_listener: Optional[bool] = False,
     ):
         """
         初始化 Ariadne.
@@ -1117,8 +1123,11 @@ class Ariadne(
             adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
             chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
+            use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持 (注意：请使用 dii: DispatcherInterface 获取 dii, 后通过 dii.event 获取事件!)
         """
         self.broadcast: Broadcast = broadcast
+        if use_bypass_listener:
+            inject_bypass_listener(self.broadcast)
         self.adapter: Adapter = adapter
         self.adapter.app = self
         self.mirai_session: MiraiSession = adapter.mirai_session
@@ -1154,12 +1163,14 @@ class Ariadne(
         while self.running:
             try:
                 await self.adapter.start()
+                self.broadcast.postEvent(AdapterLaunched(self))
                 try:
                     if self.adapter.fetch_task:
                         await self.adapter.fetch_task
                 except Exception as e:
                     logger.debug(e)
                 await self.adapter.stop()
+                self.broadcast.postEvent(AdapterShutdowned(self))
                 logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
                 await asyncio.sleep(retry_interval)
                 logger.info("daemon: restarting adapter")

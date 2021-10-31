@@ -2,6 +2,8 @@ import asyncio
 import os
 import sys
 
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
 
@@ -10,7 +12,7 @@ from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter
 from graia.ariadne.app import Ariadne
-from graia.ariadne.event.message import FriendMessage
+from graia.ariadne.event.message import FriendMessage, MessageEvent
 from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.model import Friend, MiraiSession
@@ -24,11 +26,15 @@ if __name__ == "__main__":
     loop.set_debug(True)
     bcc = Broadcast(loop=loop)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    app = Ariadne(bcc, adapter)
+    app = Ariadne(bcc, adapter, use_bypass_listener=True)
 
     @bcc.receiver(FriendMessage)
     async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
         await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
+
+    @bcc.receiver(MessageEvent)
+    async def _(app: Ariadne, dii: DispatcherInterface):
+        await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
 
     @bcc.receiver(NewFriendRequestEvent)
     async def _(event: NewFriendRequestEvent):

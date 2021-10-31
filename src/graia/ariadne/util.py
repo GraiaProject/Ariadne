@@ -1,10 +1,16 @@
 import functools
 import sys
 import traceback
-from typing import Callable, ContextManager, TypeVar, Union
+from typing import Callable, ContextManager, List, Type, TypeVar, Union
 
+from graia.broadcast import Broadcast
+from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
+from graia.broadcast.entities.event import Dispatchable
+from graia.broadcast.entities.listener import Listener
+from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
 from typing_extensions import ParamSpec
 
@@ -62,6 +68,42 @@ def inject_loguru_traceback():
     """使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook"""
     traceback.print_exception = loguru_print_exception
     sys.excepthook = loguru_excepthook
+
+
+def inject_bypass_listener(broadcast: Broadcast):
+    """注入 BypassListener 以享受子事件解析.
+
+    Args:
+        broadcast (Broadcast): 外部事件系统, 提供了 event_class_generator 方法以生成子事件.
+    """
+
+    class BypassListener(Listener):
+        def __init__(
+            self,
+            callable: Callable,
+            namespace: Namespace,
+            listening_events: List[Type[Dispatchable]],
+            inline_dispatchers: List[T_Dispatcher] = None,
+            decorators: List[Decorator] = None,
+            priority: int = 16,
+        ) -> None:
+            events = []
+            for event in listening_events:
+                events.append(event)
+                events.extend(broadcast.event_class_generator(event))
+            super().__init__(
+                callable,
+                namespace,
+                events,
+                inline_dispatchers=inline_dispatchers,
+                decorators=decorators,
+                priority=priority,
+            )
+
+    import graia.broadcast.entities.listener
+
+    graia.broadcast.entities.listener.Listener = BypassListener
+    graia.broadcast.Listener = BypassListener
 
 
 class ApplicationMiddlewareDispatcher(BaseDispatcher):

@@ -64,6 +64,18 @@ class ApplicationLaunched(ApplicationLifecycleEvent):
 class ApplicationShutdowned(ApplicationLifecycleEvent):
     &#34;&#34;&#34;
     指示 Ariadne 关闭.
+    &#34;&#34;&#34;
+
+
+class AdapterShutdowned(ApplicationLifecycleEvent):
+    &#34;&#34;&#34;
+    指示远程适配器关闭了.
+    &#34;&#34;&#34;
+
+
+class AdapterLaunched(ApplicationLifecycleEvent):
+    &#34;&#34;&#34;
+    指示远程适配器启动了.
     &#34;&#34;&#34;</code></pre>
 </details>
 </section>
@@ -76,6 +88,78 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
+<dt id="ariadne.event.lifecycle.AdapterLaunched"><code class="flex name class">
+<span>class <span class="ident">AdapterLaunched</span></span>
+<span>(</span><span>app)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>指示远程适配器启动了.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AdapterLaunched(ApplicationLifecycleEvent):
+    &#34;&#34;&#34;
+    指示远程适配器启动了.
+    &#34;&#34;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></li>
+<li>graia.broadcast.entities.event.Dispatchable</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.event.lifecycle.AdapterLaunched.app"><code class="name">var <span class="ident">app</span> : Ariadne</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher">Dispatcher</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="ariadne.event.lifecycle.AdapterShutdowned"><code class="flex name class">
+<span>class <span class="ident">AdapterShutdowned</span></span>
+<span>(</span><span>app)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>指示远程适配器关闭了.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AdapterShutdowned(ApplicationLifecycleEvent):
+    &#34;&#34;&#34;
+    指示远程适配器关闭了.
+    &#34;&#34;&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></li>
+<li>graia.broadcast.entities.event.Dispatchable</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.event.lifecycle.AdapterShutdowned.app"><code class="name">var <span class="ident">app</span> : Ariadne</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent">ApplicationLifecycleEvent</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher" href="#ariadne.event.lifecycle.ApplicationLifecycleEvent.Dispatcher">Dispatcher</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="ariadne.event.lifecycle.ApplicationLaunched"><code class="flex name class">
 <span>class <span class="ident">ApplicationLaunched</span></span>
 <span>(</span><span>app)</span>
@@ -146,6 +230,8 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="ariadne.event.lifecycle.AdapterLaunched" href="#ariadne.event.lifecycle.AdapterLaunched">AdapterLaunched</a></li>
+<li><a title="ariadne.event.lifecycle.AdapterShutdowned" href="#ariadne.event.lifecycle.AdapterShutdowned">AdapterShutdowned</a></li>
 <li><a title="ariadne.event.lifecycle.ApplicationLaunched" href="#ariadne.event.lifecycle.ApplicationLaunched">ApplicationLaunched</a></li>
 <li><a title="ariadne.event.lifecycle.ApplicationShutdowned" href="#ariadne.event.lifecycle.ApplicationShutdowned">ApplicationShutdowned</a></li>
 </ul>
@@ -213,6 +299,18 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
+<li>
+<h4><code><a title="ariadne.event.lifecycle.AdapterLaunched" href="#ariadne.event.lifecycle.AdapterLaunched">AdapterLaunched</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.event.lifecycle.AdapterLaunched.app" href="#ariadne.event.lifecycle.AdapterLaunched.app">app</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.event.lifecycle.AdapterShutdowned" href="#ariadne.event.lifecycle.AdapterShutdowned">AdapterShutdowned</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.event.lifecycle.AdapterShutdowned.app" href="#ariadne.event.lifecycle.AdapterShutdowned.app">app</a></code></li>
+</ul>
+</li>
 <li>
 <h4><code><a title="ariadne.event.lifecycle.ApplicationLaunched" href="#ariadne.event.lifecycle.ApplicationLaunched">ApplicationLaunched</a></code></h4>
 <ul class="">

@@ -15,6 +15,7 @@ from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, MessageEvent
 from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.parser.literature import Literature
 from graia.ariadne.model import Friend, MiraiSession
 
 if __name__ == "__main__":
@@ -33,14 +34,17 @@ if __name__ == "__main__":
         if chain.asDisplay() == "Hi!":
             await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
 
-    @bcc.receiver(MessageEvent)
-    async def _(app: Ariadne, dii: DispatcherInterface, chain: MessageChain):
-        if chain.asDisplay() == "test":
-            await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
+    @bcc.receiver(MessageEvent, dispatchers=[Literature(".test")])
+    async def _(app: Ariadne, dii: DispatcherInterface):
+        await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
 
     @bcc.receiver(NewFriendRequestEvent)
     async def _(event: NewFriendRequestEvent):
         await event.accept("Welcome!")
+
+    @bcc.receiver(MessageEvent, dispatchers=[Literature("/test")])
+    async def _(app: Ariadne, dii: DispatcherInterface):
+        await app.sendMessage(dii.event, MessageChain.create("Auto reply to /test!"))
 
     async def main():
         await app.launch()

@@ -30,7 +30,7 @@
 import itertools
 import re
 import shlex
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
@@ -57,18 +57,20 @@ BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
 
 
 class Literature(BaseDispatcher):
-    &#34;旅途的浪漫&#34;
+    &#34;&#34;&#34;旅途的浪漫
+    Avilla Migrated&gt; 如果使用中发现任何属因移植过程发生的错误, 提交 issue.
+    &#34;&#34;&#34;
 
     always = False
-    prefixs: Tuple[str]  # 匹配前缀
-    arguments: Dict[str, ParamPattern]
+    prefixs: Sequence[str]  # 匹配前缀
+    arguments: Dict[str, Union[SwitchParameter, BoxParameter]]
 
     allow_quote: bool
     skip_one_at_in_quote: bool
 
     def __init__(
         self,
-        *prefixs,
+        *prefixs: str,
         arguments: Dict[str, ParamPattern] = None,
         allow_quote: bool = False,
         skip_one_at_in_quote: bool = False,
@@ -145,7 +147,7 @@ class Literature(BaseDispatcher):
                 MessageChain.create(
                     [
                         Plain(i)
-                        if not re.match(&#34;^\$\d+$&#34;, i)
+                        if not re.match(r&#34;^\$\d+$&#34;, i)
                         else id_elem_map[int(i[1:])]
                         for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                         if i
@@ -164,7 +166,7 @@ class Literature(BaseDispatcher):
         variables = [
             MessageChain.create(
                 [
-                    Plain(i) if not re.match(&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
+                    Plain(i) if not re.match(r&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
                     for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                     if i
                 ]
@@ -173,6 +175,7 @@ class Literature(BaseDispatcher):
         ]
         for param_name, argument_setting in self.arguments.items():
             if param_name not in parsed_args:
+                print(argument_setting)
                 if argument_setting.default is not None:
                     parsed_args[param_name] = (
                         argument_setting.default,
@@ -184,7 +187,7 @@ class Literature(BaseDispatcher):
         return (parsed_args, variables)
 
     def prefix_match(self, target_chain: MessageChain):
-        target_chain = target_chain.merge(copy=True)
+        target_chain = target_chain.exclude(Source).merge(copy=True)
 
         chain_frames: List[MessageChain] = target_chain.split(&#34; &#34;, raw_string=True)
 
@@ -203,40 +206,34 @@ class Literature(BaseDispatcher):
 
         chain_frames = chain_frames[len(self.prefixs) :]
         return MessageChain.create(
-            list(itertools.chain(*[i.__root__ + [Plain(&#34; &#34;)] for i in chain_frames]))[
+            list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[
                 :-1
             ]
         ).merge(copy=True)
 
-    async def beforeDispatch(self, interface: DispatcherInterface):
-        message_chain: MessageChain = (
-            await interface.lookup_param(
-                &#34;__literature_messagechain__&#34;, MessageChain, None
-            )
-        ).exclude(Source)
+    async def beforeExecution(self, interface: DispatcherInterface):
+        message_chain: MessageChain = await interface.lookup_param(
+            &#34;__literature_messagechain__&#34;, MessageChain, None
+        )
         if set([i.__class__ for i in message_chain.__root__]).intersection(
             BLOCKING_ELEMENTS
         ):
             raise ExecutionStop()
-        if self.allow_quote and message_chain.has(Quote):
-            # 自动忽略自 Quote 后第一个 At
-            message_chain = message_chain[(1, None):]
-            if self.skip_one_at_in_quote and message_chain.__root__:
-                if message_chain.__root__[0].__class__ is At:
-                    message_chain = message_chain[(1, 1):]
         noprefix = self.prefix_match(message_chain)
         if noprefix is None:
             raise ExecutionStop()
 
-        interface.execution_contexts[-1].literature_detect_result = self.parse_message(
-            noprefix
-        )
+        interface.broadcast.decorator_interface.local_storage[
+            &#34;literature_detect_result&#34;
+        ] = self.parse_message(noprefix)
 
     async def catch(self, interface: DispatcherInterface):
         if interface.name == &#34;__literature_messagechain__&#34;:
             return
 
-        result = interface.execution_contexts[-1].literature_detect_result
+        result = interface.broadcast.decorator_interface.local_storage.get(
+            &#34;literature_detect_result&#34;
+        )
         if result:
             match_result, variargs = result
             if interface.default == &#34;__literature_variables__&#34;:
@@ -244,14 +241,22 @@ class Literature(BaseDispatcher):
 
             arg_fetch_result = match_result.get(interface.name)
             if arg_fetch_result:
-
                 match_value, raw_argument = arg_fetch_result
                 if isinstance(raw_argument, SwitchParameter):
                     return Force(match_value)
                 elif interface.annotation is ParamPattern:
                     return raw_argument
                 elif match_value is not None:
-                    return match_value</code></pre>
+                    return match_value
+
+    async def beforeTargetExec(self, interface: &#34;DispatcherInterface&#34;, e, tb):
+        if (
+            &#34;literature_detect_result&#34;
+            in interface.broadcast.decorator_interface.local_storage
+        ):
+            del interface.broadcast.decorator_interface.local_storage[
+                &#34;literature_detect_result&#34;
+            ]</code></pre>
 </details>
 </section>
 <section>
@@ -265,27 +270,30 @@ class Literature(BaseDispatcher):
 <dl>
 <dt id="ariadne.message.parser.literature.Literature"><code class="flex name class">
 <span>class <span class="ident">Literature</span></span>
-<span>(</span><span>*prefixs, arguments: Dict[str, <a title="ariadne.message.parser.pattern.ParamPattern" href="pattern.html#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a>] = None, allow_quote: bool = False, skip_one_at_in_quote: bool = False)</span>
+<span>(</span><span>*prefixs: str, arguments: Dict[str, <a title="ariadne.message.parser.pattern.ParamPattern" href="pattern.html#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a>] = None, allow_quote: bool = False, skip_one_at_in_quote: bool = False)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>旅途的浪漫</p></div>
+<div class="desc"><p>旅途的浪漫
+Avilla Migrated&gt; 如果使用中发现任何属因移植过程发生的错误, 提交 issue.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Literature(BaseDispatcher):
-    &#34;旅途的浪漫&#34;
+    &#34;&#34;&#34;旅途的浪漫
+    Avilla Migrated&gt; 如果使用中发现任何属因移植过程发生的错误, 提交 issue.
+    &#34;&#34;&#34;
 
     always = False
-    prefixs: Tuple[str]  # 匹配前缀
-    arguments: Dict[str, ParamPattern]
+    prefixs: Sequence[str]  # 匹配前缀
+    arguments: Dict[str, Union[SwitchParameter, BoxParameter]]
 
     allow_quote: bool
     skip_one_at_in_quote: bool
 
     def __init__(
         self,
-        *prefixs,
+        *prefixs: str,
         arguments: Dict[str, ParamPattern] = None,
         allow_quote: bool = False,
         skip_one_at_in_quote: bool = False,
@@ -362,7 +370,7 @@ class Literature(BaseDispatcher):
                 MessageChain.create(
                     [
                         Plain(i)
-                        if not re.match(&#34;^\$\d+$&#34;, i)
+                        if not re.match(r&#34;^\$\d+$&#34;, i)
                         else id_elem_map[int(i[1:])]
                         for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                         if i
@@ -381,7 +389,7 @@ class Literature(BaseDispatcher):
         variables = [
             MessageChain.create(
                 [
-                    Plain(i) if not re.match(&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
+                    Plain(i) if not re.match(r&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
                     for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                     if i
                 ]
@@ -390,6 +398,7 @@ class Literature(BaseDispatcher):
         ]
         for param_name, argument_setting in self.arguments.items():
             if param_name not in parsed_args:
+                print(argument_setting)
                 if argument_setting.default is not None:
                     parsed_args[param_name] = (
                         argument_setting.default,
@@ -401,7 +410,7 @@ class Literature(BaseDispatcher):
         return (parsed_args, variables)
 
     def prefix_match(self, target_chain: MessageChain):
-        target_chain = target_chain.merge(copy=True)
+        target_chain = target_chain.exclude(Source).merge(copy=True)
 
         chain_frames: List[MessageChain] = target_chain.split(&#34; &#34;, raw_string=True)
 
@@ -420,40 +429,34 @@ class Literature(BaseDispatcher):
 
         chain_frames = chain_frames[len(self.prefixs) :]
         return MessageChain.create(
-            list(itertools.chain(*[i.__root__ + [Plain(&#34; &#34;)] for i in chain_frames]))[
+            list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[
                 :-1
             ]
         ).merge(copy=True)
 
-    async def beforeDispatch(self, interface: DispatcherInterface):
-        message_chain: MessageChain = (
-            await interface.lookup_param(
-                &#34;__literature_messagechain__&#34;, MessageChain, None
-            )
-        ).exclude(Source)
+    async def beforeExecution(self, interface: DispatcherInterface):
+        message_chain: MessageChain = await interface.lookup_param(
+            &#34;__literature_messagechain__&#34;, MessageChain, None
+        )
         if set([i.__class__ for i in message_chain.__root__]).intersection(
             BLOCKING_ELEMENTS
         ):
             raise ExecutionStop()
-        if self.allow_quote and message_chain.has(Quote):
-            # 自动忽略自 Quote 后第一个 At
-            message_chain = message_chain[(1, None):]
-            if self.skip_one_at_in_quote and message_chain.__root__:
-                if message_chain.__root__[0].__class__ is At:
-                    message_chain = message_chain[(1, 1):]
         noprefix = self.prefix_match(message_chain)
         if noprefix is None:
             raise ExecutionStop()
 
-        interface.execution_contexts[-1].literature_detect_result = self.parse_message(
-            noprefix
-        )
+        interface.broadcast.decorator_interface.local_storage[
+            &#34;literature_detect_result&#34;
+        ] = self.parse_message(noprefix)
 
     async def catch(self, interface: DispatcherInterface):
         if interface.name == &#34;__literature_messagechain__&#34;:
             return
 
-        result = interface.execution_contexts[-1].literature_detect_result
+        result = interface.broadcast.decorator_interface.local_storage.get(
+            &#34;literature_detect_result&#34;
+        )
         if result:
             match_result, variargs = result
             if interface.default == &#34;__literature_variables__&#34;:
@@ -461,14 +464,22 @@ class Literature(BaseDispatcher):
 
             arg_fetch_result = match_result.get(interface.name)
             if arg_fetch_result:
-
                 match_value, raw_argument = arg_fetch_result
                 if isinstance(raw_argument, SwitchParameter):
                     return Force(match_value)
                 elif interface.annotation is ParamPattern:
                     return raw_argument
                 elif match_value is not None:
-                    return match_value</code></pre>
+                    return match_value
+
+    async def beforeTargetExec(self, interface: &#34;DispatcherInterface&#34;, e, tb):
+        if (
+            &#34;literature_detect_result&#34;
+            in interface.broadcast.decorator_interface.local_storage
+        ):
+            del interface.broadcast.decorator_interface.local_storage[
+                &#34;literature_detect_result&#34;
+            ]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -484,11 +495,11 @@ class Literature(BaseDispatcher):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.literature.Literature.arguments"><code class="name">var <span class="ident">arguments</span> : Dict[str, <a title="ariadne.message.parser.pattern.ParamPattern" href="pattern.html#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a>]</code></dt>
+<dt id="ariadne.message.parser.literature.Literature.arguments"><code class="name">var <span class="ident">arguments</span> : Dict[str, Union[<a title="ariadne.message.parser.pattern.SwitchParameter" href="pattern.html#ariadne.message.parser.pattern.SwitchParameter">SwitchParameter</a>, <a title="ariadne.message.parser.pattern.BoxParameter" href="pattern.html#ariadne.message.parser.pattern.BoxParameter">BoxParameter</a>]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.literature.Literature.prefixs"><code class="name">var <span class="ident">prefixs</span> : Tuple[str]</code></dt>
+<dt id="ariadne.message.parser.literature.Literature.prefixs"><code class="name">var <span class="ident">prefixs</span> : Sequence[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -499,8 +510,43 @@ class Literature(BaseDispatcher):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="ariadne.message.parser.literature.Literature.beforeDispatch"><code class="name flex">
-<span>async def <span class="ident">beforeDispatch</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface)</span>
+<dt id="ariadne.message.parser.literature.Literature.beforeExecution"><code class="name flex">
+<span>async def <span class="ident">beforeExecution</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)开始前被调用</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
+<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
+</dl>
+<ul>
+<li>当前解析中的参数的信息;</li>
+<li>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</li>
+</ul></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def beforeExecution(self, interface: DispatcherInterface):
+    message_chain: MessageChain = await interface.lookup_param(
+        &#34;__literature_messagechain__&#34;, MessageChain, None
+    )
+    if set([i.__class__ for i in message_chain.__root__]).intersection(
+        BLOCKING_ELEMENTS
+    ):
+        raise ExecutionStop()
+    noprefix = self.prefix_match(message_chain)
+    if noprefix is None:
+        raise ExecutionStop()
+
+    interface.broadcast.decorator_interface.local_storage[
+        &#34;literature_detect_result&#34;
+    ] = self.parse_message(noprefix)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.literature.Literature.beforeTargetExec"><code class="name flex">
+<span>async def <span class="ident">beforeTargetExec</span></span>(<span>self, interface: DispatcherInterface, e, tb)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -508,29 +554,14 @@ class Literature(BaseDispatcher):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def beforeDispatch(self, interface: DispatcherInterface):
-    message_chain: MessageChain = (
-        await interface.lookup_param(
-            &#34;__literature_messagechain__&#34;, MessageChain, None
-        )
-    ).exclude(Source)
-    if set([i.__class__ for i in message_chain.__root__]).intersection(
-        BLOCKING_ELEMENTS
+<pre><code class="python">async def beforeTargetExec(self, interface: &#34;DispatcherInterface&#34;, e, tb):
+    if (
+        &#34;literature_detect_result&#34;
+        in interface.broadcast.decorator_interface.local_storage
     ):
-        raise ExecutionStop()
-    if self.allow_quote and message_chain.has(Quote):
-        # 自动忽略自 Quote 后第一个 At
-        message_chain = message_chain[(1, None):]
-        if self.skip_one_at_in_quote and message_chain.__root__:
-            if message_chain.__root__[0].__class__ is At:
-                message_chain = message_chain[(1, 1):]
-    noprefix = self.prefix_match(message_chain)
-    if noprefix is None:
-        raise ExecutionStop()
-
-    interface.execution_contexts[-1].literature_detect_result = self.parse_message(
-        noprefix
-    )</code></pre>
+        del interface.broadcast.decorator_interface.local_storage[
+            &#34;literature_detect_result&#34;
+        ]</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.parser.literature.Literature.catch"><code class="name flex">
@@ -556,7 +587,9 @@ class Literature(BaseDispatcher):
     if interface.name == &#34;__literature_messagechain__&#34;:
         return
 
-    result = interface.execution_contexts[-1].literature_detect_result
+    result = interface.broadcast.decorator_interface.local_storage.get(
+        &#34;literature_detect_result&#34;
+    )
     if result:
         match_result, variargs = result
         if interface.default == &#34;__literature_variables__&#34;:
@@ -564,7 +597,6 @@ class Literature(BaseDispatcher):
 
         arg_fetch_result = match_result.get(interface.name)
         if arg_fetch_result:
-
             match_value, raw_argument = arg_fetch_result
             if isinstance(raw_argument, SwitchParameter):
                 return Force(match_value)
@@ -670,7 +702,7 @@ class Literature(BaseDispatcher):
             MessageChain.create(
                 [
                     Plain(i)
-                    if not re.match(&#34;^\$\d+$&#34;, i)
+                    if not re.match(r&#34;^\$\d+$&#34;, i)
                     else id_elem_map[int(i[1:])]
                     for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                     if i
@@ -689,7 +721,7 @@ class Literature(BaseDispatcher):
     variables = [
         MessageChain.create(
             [
-                Plain(i) if not re.match(&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
+                Plain(i) if not re.match(r&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
                 for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                 if i
             ]
@@ -698,6 +730,7 @@ class Literature(BaseDispatcher):
     ]
     for param_name, argument_setting in self.arguments.items():
         if param_name not in parsed_args:
+            print(argument_setting)
             if argument_setting.default is not None:
                 parsed_args[param_name] = (
                     argument_setting.default,
@@ -719,7 +752,7 @@ class Literature(BaseDispatcher):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def prefix_match(self, target_chain: MessageChain):
-    target_chain = target_chain.merge(copy=True)
+    target_chain = target_chain.exclude(Source).merge(copy=True)
 
     chain_frames: List[MessageChain] = target_chain.split(&#34; &#34;, raw_string=True)
 
@@ -738,7 +771,7 @@ class Literature(BaseDispatcher):
 
     chain_frames = chain_frames[len(self.prefixs) :]
     return MessageChain.create(
-        list(itertools.chain(*[i.__root__ + [Plain(&#34; &#34;)] for i in chain_frames]))[
+        list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[
             :-1
         ]
     ).merge(copy=True)</code></pre>
@@ -798,7 +831,8 @@ class Literature(BaseDispatcher):
 <li><code><a title="ariadne.message.parser.literature.Literature.allow_quote" href="#ariadne.message.parser.literature.Literature.allow_quote">allow_quote</a></code></li>
 <li><code><a title="ariadne.message.parser.literature.Literature.always" href="#ariadne.message.parser.literature.Literature.always">always</a></code></li>
 <li><code><a title="ariadne.message.parser.literature.Literature.arguments" href="#ariadne.message.parser.literature.Literature.arguments">arguments</a></code></li>
-<li><code><a title="ariadne.message.parser.literature.Literature.beforeDispatch" href="#ariadne.message.parser.literature.Literature.beforeDispatch">beforeDispatch</a></code></li>
+<li><code><a title="ariadne.message.parser.literature.Literature.beforeExecution" href="#ariadne.message.parser.literature.Literature.beforeExecution">beforeExecution</a></code></li>
+<li><code><a title="ariadne.message.parser.literature.Literature.beforeTargetExec" href="#ariadne.message.parser.literature.Literature.beforeTargetExec">beforeTargetExec</a></code></li>
 <li><code><a title="ariadne.message.parser.literature.Literature.catch" href="#ariadne.message.parser.literature.Literature.catch">catch</a></code></li>
 <li><code><a title="ariadne.message.parser.literature.Literature.gen_long_map" href="#ariadne.message.parser.literature.Literature.gen_long_map">gen_long_map</a></code></li>
 <li><code><a title="ariadne.message.parser.literature.Literature.gen_long_map_with_bar" href="#ariadne.message.parser.literature.Literature.gen_long_map_with_bar">gen_long_map_with_bar</a></code></li>

@@ -92,9 +92,12 @@ class MessageChain(BaseModel):
                 element_list.extend(list(i))
         return cls(__root__=element_list)
 
-    def prepare(self, copy: bool = False) -> Optional["MessageChain"]:
+    def prepare(self, copy: bool = False) -> "MessageChain":
         """
         对消息链中所有元素进行处理.
+
+        Returns:
+            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
         """
         chain_ref = self.copy() if copy else self
         chain_ref.merge()
@@ -105,6 +108,8 @@ class MessageChain(BaseModel):
                 chain_ref.__root__.remove(i)
         if copy:
             return chain_ref
+        else:
+            return self
 
     def has(self, element_class: Type[Element_T]) -> bool:
         """
@@ -359,13 +364,13 @@ class MessageChain(BaseModel):
     def onlyHas(self, *types: Type[Element]) -> bool:
         return all(isinstance(i, types) for i in self.__root__)
 
-    def merge(self, copy: bool = False) -> Union[None, "MessageChain"]:
+    def merge(self, copy: bool = False) -> "MessageChain":
         """
         在实例内合并相邻的 Plain 项
 
         copy (bool): 是否要在副本上修改.
         Returns:
-            Union[None, MessageChain]: copy = True 时返回副本
+            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
         """
 
         result = []
@@ -387,6 +392,7 @@ class MessageChain(BaseModel):
             return MessageChain(result)
         else:
             self.__root__ = result
+            return self
 
     def append(self, element: Element) -> None:
         """
@@ -396,7 +402,7 @@ class MessageChain(BaseModel):
 
     def extend(
         self, *content: Union[MessageChain, Element, List[Element]], copy: bool = False
-    ) -> Union[None, "MessageChain"]:
+    ) -> "MessageChain":
         """
         向消息链最后添加元素/元素列表/消息链
         Args:
@@ -404,7 +410,7 @@ class MessageChain(BaseModel):
             copy (bool): 是否要在副本上修改.
 
         Returns:
-            Union[None, MessageChain]: copy = True 时返回副本
+            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
         """
         result = []
         for i in content:
@@ -418,6 +424,7 @@ class MessageChain(BaseModel):
             return MessageChain(result)
         else:
             self.__root__ = result
+            return self
 
     def copy(self) -> "MessageChain":
         """

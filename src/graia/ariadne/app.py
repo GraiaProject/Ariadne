@@ -237,16 +237,19 @@ class MessageMixin(AriadneMixin):
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         """
         data = {"message": message}
+        # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
             data["quote"] = target.messageChain.getFirst(Source)
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
+        # target: MessageEvent
         if isinstance(target, GroupMessage):
             data["target"] = target.sender.group
-        if isinstance(target, (FriendMessage, TempMessage)):
+        elif isinstance(target, (FriendMessage, TempMessage)):
             data["target"] = target.sender
-        else:
+        else:  # target: sender
             data["target"] = target
+        # send message
         if isinstance(data["target"], Friend):
             return await self.sendFriendMessage(**data)
         if isinstance(data["target"], Group):

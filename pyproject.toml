@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.3.3.1"
+version = "0.3.3.2"
 description = "An elegant mirai-api-http v2 Python SDK."
 authors = ["BlueGlassBlock <blueglassblock@outlook.com>", "GreyElaina <GreyElaina@outlook.com>"]
 packages = [

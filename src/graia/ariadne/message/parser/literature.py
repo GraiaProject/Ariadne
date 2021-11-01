@@ -2,7 +2,7 @@ import getopt
 import itertools
 import re
 import shlex
-from typing import Dict, List, Tuple
+from typing import Dict, List, Sequence, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
@@ -29,18 +29,20 @@ BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
 
 
 class Literature(BaseDispatcher):
-    "旅途的浪漫"
+    """旅途的浪漫
+    Avilla Migrated> 如果使用中发现任何属因移植过程发生的错误, 提交 issue.
+    """
 
     always = False
-    prefixs: Tuple[str]  # 匹配前缀
-    arguments: Dict[str, ParamPattern]
+    prefixs: Sequence[str]  # 匹配前缀
+    arguments: Dict[str, Union[SwitchParameter, BoxParameter]]
 
     allow_quote: bool
     skip_one_at_in_quote: bool
 
     def __init__(
         self,
-        *prefixs,
+        *prefixs: str,
         arguments: Dict[str, ParamPattern] = None,
         allow_quote: bool = False,
         skip_one_at_in_quote: bool = False,
@@ -117,7 +119,7 @@ class Literature(BaseDispatcher):
                 MessageChain.create(
                     [
                         Plain(i)
-                        if not re.match("^\$\d+$", i)
+                        if not re.match(r"^\$\d+$", i)
                         else id_elem_map[int(i[1:])]
                         for i in re.split(r"((?<!\\)\$[0-9]+)", v)
                         if i
@@ -136,7 +138,7 @@ class Literature(BaseDispatcher):
         variables = [
             MessageChain.create(
                 [
-                    Plain(i) if not re.match("^\$\d+$", i) else id_elem_map[int(i[1:])]
+                    Plain(i) if not re.match(r"^\$\d+$", i) else id_elem_map[int(i[1:])]
                     for i in re.split(r"((?<!\\)\$[0-9]+)", v)
                     if i
                 ]
@@ -145,6 +147,7 @@ class Literature(BaseDispatcher):
         ]
         for param_name, argument_setting in self.arguments.items():
             if param_name not in parsed_args:
+                print(argument_setting)
                 if argument_setting.default is not None:
                     parsed_args[param_name] = (
                         argument_setting.default,
@@ -156,7 +159,7 @@ class Literature(BaseDispatcher):
         return (parsed_args, variables)
 
     def prefix_match(self, target_chain: MessageChain):
-        target_chain = target_chain.merge(copy=True)
+        target_chain = target_chain.exclude(Source).merge(copy=True)
 
         chain_frames: List[MessageChain] = target_chain.split(" ", raw_string=True)
 
@@ -175,40 +178,34 @@ class Literature(BaseDispatcher):
 
         chain_frames = chain_frames[len(self.prefixs) :]
         return MessageChain.create(
-            list(itertools.chain(*[i.__root__ + [Plain(" ")] for i in chain_frames]))[
+            list(itertools.chain(*[[*i.__root__, Plain(" ")] for i in chain_frames]))[
                 :-1
             ]
         ).merge(copy=True)
 
-    async def beforeDispatch(self, interface: DispatcherInterface):
-        message_chain: MessageChain = (
-            await interface.lookup_param(
-                "__literature_messagechain__", MessageChain, None
-            )
-        ).exclude(Source)
+    async def beforeExecution(self, interface: DispatcherInterface):
+        message_chain: MessageChain = await interface.lookup_param(
+            "__literature_messagechain__", MessageChain, None
+        )
         if set([i.__class__ for i in message_chain.__root__]).intersection(
             BLOCKING_ELEMENTS
         ):
             raise ExecutionStop()
-        if self.allow_quote and message_chain.has(Quote):
-            # 自动忽略自 Quote 后第一个 At
-            message_chain = message_chain[(1, None):]
-            if self.skip_one_at_in_quote and message_chain.__root__:
-                if message_chain.__root__[0].__class__ is At:
-                    message_chain = message_chain[(1, 1):]
         noprefix = self.prefix_match(message_chain)
         if noprefix is None:
             raise ExecutionStop()
 
-        interface.execution_contexts[-1].literature_detect_result = self.parse_message(
-            noprefix
-        )
+        interface.broadcast.decorator_interface.local_storage[
+            "literature_detect_result"
+        ] = self.parse_message(noprefix)
 
     async def catch(self, interface: DispatcherInterface):
         if interface.name == "__literature_messagechain__":
             return
 
-        result = interface.execution_contexts[-1].literature_detect_result
+        result = interface.broadcast.decorator_interface.local_storage.get(
+            "literature_detect_result"
+        )
         if result:
             match_result, variargs = result
             if interface.default == "__literature_variables__":
@@ -216,7 +213,6 @@ class Literature(BaseDispatcher):
 
             arg_fetch_result = match_result.get(interface.name)
             if arg_fetch_result:
-
                 match_value, raw_argument = arg_fetch_result
                 if isinstance(raw_argument, SwitchParameter):
                     return Force(match_value)
@@ -224,3 +220,12 @@ class Literature(BaseDispatcher):
                     return raw_argument
                 elif match_value is not None:
                     return match_value
+
+    async def beforeTargetExec(self, interface: "DispatcherInterface", e, tb):
+        if (
+            "literature_detect_result"
+            in interface.broadcast.decorator_interface.local_storage
+        ):
+            del interface.broadcast.decorator_interface.local_storage[
+                "literature_detect_result"
+            ]

@@ -375,6 +375,8 @@ class WebsocketAdapter(Adapter):
                                 ws_message.type
                             )
                         )
+            except Exception as e:
+                logger.exception(e)
             finally:
                 if self.ping_task:
                     self.ping_task.cancel()

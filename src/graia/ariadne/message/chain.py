@@ -514,5 +514,50 @@ class MessageChain(BaseModel):
                 result.append(Plain(match.replace("[_", "[")))
         return MessageChain.create(result)
 
+    def to_mapping_str(self) -> Tuple[str, Dict[int, Element]]:
+        elem_mapping: Dict[int, Element] = {}
+        elem_str_list = List[str]
+        for i, elem in enumerate(self.__root__):
+            if not isinstance(elem, Plain):
+                elem_mapping[i] = elem
+                elem_str_list.append("\b" + str(i) + "\b")
+            else:
+                elem_str_list.append(elem.text)
+        return "".join(elem_str_list), elem_mapping
+
+    @classmethod
+    def from_mapping_str(string: str, mapping: Dict[int, Element]) -> "MessageChain":
+        elements: List[Element] = []
+        for x in re.split("(\b(\\d+)\b)", string):
+            if match := re.match("\b(\\d+)\b", x):
+                index = int(match.group(1))
+                elements.append(mapping[index])
+            else:
+                elements.append(Plain(x))
+        return MessageChain.create(elements)
+
+    def removeprefix(self, prefix: str, *, copy: bool = True) -> "MessageChain":
+        elements = self.__root__[:]
+        if not elements or not isinstance(elements[0], Plain):
+            return self if not copy else self.copy()
+        if elements[0].text.startswith(prefix):
+            elements[0].text = elements[0].text[len(prefix) :]
+            if copy:
+                return MessageChain.create(elements)
+            else:
+                self.__root__ = elements
+
+    def removesuffix(self, suffix: str, *, copy: bool = True) -> "MessageChain":
+        elements = self.__root__[:]
+        if not elements or not isinstance(elements[-1], Plain):
+            return self if not copy else self.copy()
+        last_elem: Plain = elements[-1]
+        if last_elem.text.endswith(suffix):
+            last_elem.text = last_elem.text[: -len(suffix)]
+            if copy:
+                return MessageChain.create(elements)
+            else:
+                self.__root__ = elements
+
 
 _update_forward_refs()

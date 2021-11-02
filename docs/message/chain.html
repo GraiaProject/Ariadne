@@ -542,6 +542,51 @@ class MessageChain(BaseModel):
                 result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
         return MessageChain.create(result)
 
+    def to_mapping_str(self) -&gt; Tuple[str, Dict[int, Element]]:
+        elem_mapping: Dict[int, Element] = {}
+        elem_str_list = List[str]
+        for i, elem in enumerate(self.__root__):
+            if not isinstance(elem, Plain):
+                elem_mapping[i] = elem
+                elem_str_list.append(&#34;\b&#34; + str(i) + &#34;\b&#34;)
+            else:
+                elem_str_list.append(elem.text)
+        return &#34;&#34;.join(elem_str_list), elem_mapping
+
+    @classmethod
+    def from_mapping_str(string: str, mapping: Dict[int, Element]) -&gt; &#34;MessageChain&#34;:
+        elements: List[Element] = []
+        for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
+            if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+                index = int(match.group(1))
+                elements.append(mapping[index])
+            else:
+                elements.append(Plain(x))
+        return MessageChain.create(elements)
+
+    def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        elements = self.__root__[:]
+        if not elements or not isinstance(elements[0], Plain):
+            return self if not copy else self.copy()
+        if elements[0].text.startswith(prefix):
+            elements[0].text = elements[0].text[len(prefix) :]
+            if copy:
+                return MessageChain.create(elements)
+            else:
+                self.__root__ = elements
+
+    def removesuffix(self, suffix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        elements = self.__root__[:]
+        if not elements or not isinstance(elements[-1], Plain):
+            return self if not copy else self.copy()
+        last_elem: Plain = elements[-1]
+        if last_elem.text.endswith(suffix):
+            last_elem.text = last_elem.text[: -len(suffix)]
+            if copy:
+                return MessageChain.create(elements)
+            else:
+                self.__root__ = elements
+
 
 _update_forward_refs()</code></pre>
 </details>
@@ -1055,7 +1100,52 @@ _update_forward_refs()</code></pre>
                 result.append(element_cls.parse_obj(json.loads(j_string)))
             elif match:
                 result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
-        return MessageChain.create(result)</code></pre>
+        return MessageChain.create(result)
+
+    def to_mapping_str(self) -&gt; Tuple[str, Dict[int, Element]]:
+        elem_mapping: Dict[int, Element] = {}
+        elem_str_list = List[str]
+        for i, elem in enumerate(self.__root__):
+            if not isinstance(elem, Plain):
+                elem_mapping[i] = elem
+                elem_str_list.append(&#34;\b&#34; + str(i) + &#34;\b&#34;)
+            else:
+                elem_str_list.append(elem.text)
+        return &#34;&#34;.join(elem_str_list), elem_mapping
+
+    @classmethod
+    def from_mapping_str(string: str, mapping: Dict[int, Element]) -&gt; &#34;MessageChain&#34;:
+        elements: List[Element] = []
+        for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
+            if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+                index = int(match.group(1))
+                elements.append(mapping[index])
+            else:
+                elements.append(Plain(x))
+        return MessageChain.create(elements)
+
+    def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        elements = self.__root__[:]
+        if not elements or not isinstance(elements[0], Plain):
+            return self if not copy else self.copy()
+        if elements[0].text.startswith(prefix):
+            elements[0].text = elements[0].text[len(prefix) :]
+            if copy:
+                return MessageChain.create(elements)
+            else:
+                self.__root__ = elements
+
+    def removesuffix(self, suffix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        elements = self.__root__[:]
+        if not elements or not isinstance(elements[-1], Plain):
+            return self if not copy else self.copy()
+        last_elem: Plain = elements[-1]
+        if last_elem.text.endswith(suffix):
+            last_elem.text = last_elem.text[: -len(suffix)]
+            if copy:
+                return MessageChain.create(elements)
+            else:
+                self.__root__ = elements</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1164,6 +1254,27 @@ def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
         elif match:
             result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
     return MessageChain.create(result)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.chain.MessageChain.from_mapping_str"><code class="name flex">
+<span>def <span class="ident">from_mapping_str</span></span>(<span>mapping: Dict[int, Element]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def from_mapping_str(string: str, mapping: Dict[int, Element]) -&gt; &#34;MessageChain&#34;:
+    elements: List[Element] = []
+    for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
+        if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+            index = int(match.group(1))
+            elements.append(mapping[index])
+        else:
+            elements.append(Plain(x))
+    return MessageChain.create(elements)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.parse_obj"><code class="name flex">
@@ -1758,6 +1869,49 @@ def parse_obj(
         return self</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.chain.MessageChain.removeprefix"><code class="name flex">
+<span>def <span class="ident">removeprefix</span></span>(<span>self, prefix: str, *, copy: bool = True) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+    elements = self.__root__[:]
+    if not elements or not isinstance(elements[0], Plain):
+        return self if not copy else self.copy()
+    if elements[0].text.startswith(prefix):
+        elements[0].text = elements[0].text[len(prefix) :]
+        if copy:
+            return MessageChain.create(elements)
+        else:
+            self.__root__ = elements</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.chain.MessageChain.removesuffix"><code class="name flex">
+<span>def <span class="ident">removesuffix</span></span>(<span>self, suffix: str, *, copy: bool = True) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def removesuffix(self, suffix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+    elements = self.__root__[:]
+    if not elements or not isinstance(elements[-1], Plain):
+        return self if not copy else self.copy()
+    last_elem: Plain = elements[-1]
+    if last_elem.text.endswith(suffix):
+        last_elem.text = last_elem.text[: -len(suffix)]
+        if copy:
+            return MessageChain.create(elements)
+        else:
+            self.__root__ = elements</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.chain.MessageChain.split"><code class="name flex">
 <span>def <span class="ident">split</span></span>(<span>self, pattern: str, raw_string: bool = False) ‑> List[<a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a>]</span>
 </code></dt>
@@ -1908,6 +2062,27 @@ def parse_obj(
     return MessageChain(result)</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.chain.MessageChain.to_mapping_str"><code class="name flex">
+<span>def <span class="ident">to_mapping_str</span></span>(<span>self) ‑> Tuple[str, Dict[int, <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_mapping_str(self) -&gt; Tuple[str, Dict[int, Element]]:
+    elem_mapping: Dict[int, Element] = {}
+    elem_str_list = List[str]
+    for i, elem in enumerate(self.__root__):
+        if not isinstance(elem, Plain):
+            elem_mapping[i] = elem
+            elem_str_list.append(&#34;\b&#34; + str(i) + &#34;\b&#34;)
+        else:
+            elem_str_list.append(elem.text)
+    return &#34;&#34;.join(elem_str_list), elem_mapping</code></pre>
+</details>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -1941,6 +2116,7 @@ def parse_obj(
 <li><code><a title="ariadne.message.chain.MessageChain.exclude" href="#ariadne.message.chain.MessageChain.exclude">exclude</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.extend" href="#ariadne.message.chain.MessageChain.extend">extend</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.fromPersistentString" href="#ariadne.message.chain.MessageChain.fromPersistentString">fromPersistentString</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.from_mapping_str" href="#ariadne.message.chain.MessageChain.from_mapping_str">from_mapping_str</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.get" href="#ariadne.message.chain.MessageChain.get">get</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getFirst" href="#ariadne.message.chain.MessageChain.getFirst">getFirst</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getOne" href="#ariadne.message.chain.MessageChain.getOne">getOne</a></code></li>
@@ -1952,9 +2128,12 @@ def parse_obj(
 <li><code><a title="ariadne.message.chain.MessageChain.onlyHas" href="#ariadne.message.chain.MessageChain.onlyHas">onlyHas</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.parse_obj" href="#ariadne.message.chain.MessageChain.parse_obj">parse_obj</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.prepare" href="#ariadne.message.chain.MessageChain.prepare">prepare</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.removeprefix" href="#ariadne.message.chain.MessageChain.removeprefix">removeprefix</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.removesuffix" href="#ariadne.message.chain.MessageChain.removesuffix">removesuffix</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.split" href="#ariadne.message.chain.MessageChain.split">split</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.startswith" href="#ariadne.message.chain.MessageChain.startswith">startswith</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.subchain" href="#ariadne.message.chain.MessageChain.subchain">subchain</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.to_mapping_str" href="#ariadne.message.chain.MessageChain.to_mapping_str">to_mapping_str</a></code></li>
 </ul>
 </li>
 </ul>

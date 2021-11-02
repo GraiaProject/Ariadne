@@ -1173,7 +1173,7 @@ class Ariadne(
                     if self.adapter.fetch_task:
                         await self.adapter.fetch_task
                 except Exception as e:
-                    logger.debug(e)
+                    logger.exception(e)
                 await self.adapter.stop()
                 self.broadcast.postEvent(AdapterShutdowned(self))
                 logger.warning(f"daemon: adapter down, restart in {retry_interval}s")

@@ -1,0 +1,43 @@
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
+
+from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.element import *
+from graia.ariadne.message.parser.pattern import *
+from graia.ariadne.message.parser.twilight import Twilight, Sparkle
+
+import devtools
+
+
+class SparkleTest(Sparkle):
+    arg_a = ArgumentMatch("--foo")
+    arg_b = ArgumentMatch("--bar", action="append", regex="\d+")
+    regex_a = RegexMatch(r"\d+")
+    space = FullMatch(" ")
+    regex_b = RegexMatch(r"\d+")
+    full_non_optional_a = FullMatch("NecessaryTest")
+    full_optional = FullMatch("Universe", optional=True)
+    full_non_optional_b = FullMatch("NecessaryTest_2")
+
+
+if __name__ == "__main__":
+    twilight = Twilight(SparkleTest)
+    devtools.debug(
+        twilight.gen_sparkle(MessageChain.create("80 80NecessaryTestNecessaryTest_2"))
+    )
+    devtools.debug(
+        twilight.gen_sparkle(
+            MessageChain.create(
+                "80 80NecessaryTestUniverseNecessaryTest_2 --foo hey --bar 00121"
+            )
+        )
+    )
+    devtools.debug(
+        twilight.gen_sparkle(
+            MessageChain.create(
+                "80 80NecessaryTestUniverseNecessaryTest_2 --foo hey --bar nope"
+            )
+        )
+    )

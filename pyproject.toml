@@ -1,11 +1,12 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.3.4"
+version = "0.3.5"
 description = "An elegant mirai-api-http v2 Python SDK."
-authors = ["BlueGlassBlock <blueglassblock@outlook.com>", "GreyElaina <GreyElaina@outlook.com>"]
-packages = [
-    { include = "graia", from = "src" }
+authors = [
+    "BlueGlassBlock <blueglassblock@outlook.com>",
+    "GreyElaina <GreyElaina@outlook.com>"
 ]
+packages = [{ include = "graia", from = "src" }]
 
 [[tool.poetry.source]]
 name = "tuna-tsinghua"

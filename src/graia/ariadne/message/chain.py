@@ -9,6 +9,8 @@ from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
 from .element import (
+    At,
+    AtAll,
     Element,
     File,
     MultimediaElement,
@@ -500,6 +502,11 @@ class MessageChain(BaseModel):
                     string_list.append(i.asPersistentString(binary=False))
         return "".join(string_list)
 
+    async def download_binary(self) -> None:
+        for elem in self.__root__:
+            if isinstance(elem, MultimediaElement):
+                await elem.get_bytes()
+
     @classmethod
     def fromPersistentString(cls, string) -> "MessageChain":
         element_mapping = {i.type: i for i in Element.__subclasses__()}
@@ -514,19 +521,53 @@ class MessageChain(BaseModel):
                 result.append(Plain(match.replace("[_", "[")))
         return MessageChain.create(result)
 
-    def to_mapping_str(self) -> Tuple[str, Dict[int, Element]]:
+    def asMappingString(
+        self, *, remove_quote: bool = True, remove_extra_space: bool = False
+    ) -> Tuple[str, Dict[int, Element]]:
+        """转换消息链为映射字符串与映射字典的元组.
+
+        Args:
+            remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
+            remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
+
+        Returns:
+            Tuple[str, Dict[int, Element]]: 生成的映射字符串与映射字典的元组
+        """
         elem_mapping: Dict[int, Element] = {}
-        elem_str_list = List[str]
+        elem_str_list: List[str] = []
         for i, elem in enumerate(self.__root__):
             if not isinstance(elem, Plain):
+                if remove_quote and isinstance(elem, Quote):
+                    continue
                 elem_mapping[i] = elem
-                elem_str_list.append("\b" + str(i) + "\b")
+                elem_str_list.append(f"\b{i}\b")
             else:
-                elem_str_list.append(elem.text)
+                if (
+                    remove_extra_space
+                    and i  # not first element
+                    and isinstance(
+                        self.__root__[i - 1], (Quote, At, AtAll)
+                    )  # following elements which have an dumb trailing space
+                    and elem.text.startswith("  ")  # extra space (count >= 2)
+                ):
+                    elem_str_list.append(elem.text[1:])
+                else:
+                    elem_str_list.append(elem.text)
         return "".join(elem_str_list), elem_mapping
 
     @classmethod
-    def from_mapping_str(string: str, mapping: Dict[int, Element]) -> "MessageChain":
+    def fromMappingString(
+        cls, string: str, mapping: Dict[int, Element]
+    ) -> "MessageChain":
+        """从映射字符串与映射字典的元组还原消息链.
+
+        Args:
+            string (str): 映射字符串
+            mapping (Dict[int, Element]): 映射字典.
+
+        Returns:
+            MessageChain: 构建的消息链
+        """
         elements: List[Element] = []
         for x in re.split("(\b(\\d+)\b)", string):
             if match := re.match("\b(\\d+)\b", x):
@@ -534,7 +575,7 @@ class MessageChain(BaseModel):
                 elements.append(mapping[index])
             else:
                 elements.append(Plain(x))
-        return MessageChain.create(elements)
+        return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -> "MessageChain":
         elements = self.__root__[:]

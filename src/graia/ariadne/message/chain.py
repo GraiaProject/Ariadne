@@ -8,6 +8,8 @@ from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
+from graia.ariadne.util import gen_subclass
+
 from .element import (
     At,
     AtAll,
@@ -48,7 +50,7 @@ class MessageChain(BaseModel):
             if isinstance(i, Element):
                 element_list.append(i)
             elif isinstance(i, dict) and "type" in i:
-                for element_cls in Element.__subclasses__():
+                for element_cls in gen_subclass(Element):
                     if element_cls.__name__ == i["type"]:
                         element_list.append(element_cls.parse_obj(i))
                         break
@@ -509,7 +511,7 @@ class MessageChain(BaseModel):
 
     @classmethod
     def fromPersistentString(cls, string) -> "MessageChain":
-        element_mapping = {i.type: i for i in Element.__subclasses__()}
+        element_mapping = {i.type: i for i in gen_subclass(Element)}
         result = []
         for match in re.split(r"(\[mirai:.+?\])", string):
             mirai = re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match)

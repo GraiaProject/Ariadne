@@ -29,7 +29,7 @@
 <pre><code class="python">import functools
 import sys
 import traceback
-from typing import Callable, ContextManager, List, Type, TypeVar, Union
+from typing import Callable, ContextManager, Generator, List, Type, TypeVar, Union
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -161,7 +161,16 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
         with enter_context(app=self):
             return await func(self, *args, **kwargs)
 
-    return wrapper</code></pre>
+    return wrapper
+
+
+T = TypeVar(&#34;T&#34;)
+
+
+def gen_subclass(cls: Type[T]) -&gt; Generator[Type[T], None, None]:
+    yield cls
+    for sub_cls in cls.__subclasses__():
+        yield from gen_subclass(sub_cls)</code></pre>
 </details>
 </section>
 <section>
@@ -187,6 +196,21 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
             return await func(self, *args, **kwargs)
 
     return wrapper</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.gen_subclass"><code class="name flex">
+<span>def <span class="ident">gen_subclass</span></span>(<span>cls: Type[~T]) ‑> Generator[Type[~T], None, None]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_subclass(cls: Type[T]) -&gt; Generator[Type[T], None, None]:
+    yield cls
+    for sub_cls in cls.__subclasses__():
+        yield from gen_subclass(sub_cls)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.inject_bypass_listener"><code class="name flex">
@@ -453,6 +477,7 @@ def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ariadne.util.app_ctx_manager" href="#ariadne.util.app_ctx_manager">app_ctx_manager</a></code></li>
+<li><code><a title="ariadne.util.gen_subclass" href="#ariadne.util.gen_subclass">gen_subclass</a></code></li>
 <li><code><a title="ariadne.util.inject_bypass_listener" href="#ariadne.util.inject_bypass_listener">inject_bypass_listener</a></code></li>
 <li><code><a title="ariadne.util.inject_loguru_traceback" href="#ariadne.util.inject_loguru_traceback">inject_loguru_traceback</a></code></li>
 <li><code><a title="ariadne.util.loguru_excepthook" href="#ariadne.util.loguru_excepthook">loguru_excepthook</a></code></li>

@@ -1,7 +1,7 @@
 import functools
 import sys
 import traceback
-from typing import Callable, ContextManager, List, Type, TypeVar, Union
+from typing import Callable, ContextManager, Generator, List, Type, TypeVar, Union
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -134,3 +134,12 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
             return await func(self, *args, **kwargs)
 
     return wrapper
+
+
+T = TypeVar("T")
+
+
+def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
+    yield cls
+    for sub_cls in cls.__subclasses__():
+        yield from gen_subclass(sub_cls)

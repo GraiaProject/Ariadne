@@ -3,12 +3,12 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
+import devtools
+
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import *
 from graia.ariadne.message.parser.pattern import *
-from graia.ariadne.message.parser.twilight import Twilight, Sparkle
-
-import devtools
+from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 
 
 class SparkleTest(Sparkle):
@@ -24,9 +24,10 @@ class SparkleTest(Sparkle):
 
 if __name__ == "__main__":
     twilight = Twilight(SparkleTest)
-    devtools.debug(
-        twilight.gen_sparkle(MessageChain.create("80 80NecessaryTestNecessaryTest_2"))
+    tw_1 = twilight.gen_sparkle(
+        MessageChain.create("80 80NecessaryTestNecessaryTest_2")
     )
+    devtools.debug(tw_1)
     devtools.debug(
         twilight.gen_sparkle(
             MessageChain.create(
@@ -34,10 +35,13 @@ if __name__ == "__main__":
             )
         )
     )
-    devtools.debug(
-        twilight.gen_sparkle(
-            MessageChain.create(
-                "80 80NecessaryTestUniverseNecessaryTest_2 --foo hey --bar nope"
+    try:
+        devtools.debug(
+            twilight.gen_sparkle(
+                MessageChain.create(
+                    "80 80NecessaryTestUniverseNecessaryTest_2 --foo hey --bar nope"
+                )
             )
         )
-    )
+    except Exception as e:
+        devtools.debug(e)

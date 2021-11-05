@@ -37,6 +37,8 @@ from graia.broadcast.utilles import run_always_await
 from pydantic import BaseModel
 
 from .element import (
+    At,
+    AtAll,
     Element,
     File,
     MultimediaElement,
@@ -528,6 +530,11 @@ class MessageChain(BaseModel):
                     string_list.append(i.asPersistentString(binary=False))
         return &#34;&#34;.join(string_list)
 
+    async def download_binary(self) -&gt; None:
+        for elem in self.__root__:
+            if isinstance(elem, MultimediaElement):
+                await elem.get_bytes()
+
     @classmethod
     def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
         element_mapping = {i.type: i for i in Element.__subclasses__()}
@@ -542,19 +549,53 @@ class MessageChain(BaseModel):
                 result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
         return MessageChain.create(result)
 
-    def to_mapping_str(self) -&gt; Tuple[str, Dict[int, Element]]:
+    def asMappingString(
+        self, *, remove_quote: bool = True, remove_extra_space: bool = False
+    ) -&gt; Tuple[str, Dict[int, Element]]:
+        &#34;&#34;&#34;转换消息链为映射字符串与映射字典的元组.
+
+        Args:
+            remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
+            remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
+
+        Returns:
+            Tuple[str, Dict[int, Element]]: 生成的映射字符串与映射字典的元组
+        &#34;&#34;&#34;
         elem_mapping: Dict[int, Element] = {}
-        elem_str_list = List[str]
+        elem_str_list: List[str] = []
         for i, elem in enumerate(self.__root__):
             if not isinstance(elem, Plain):
+                if remove_quote and isinstance(elem, Quote):
+                    continue
                 elem_mapping[i] = elem
-                elem_str_list.append(&#34;\b&#34; + str(i) + &#34;\b&#34;)
+                elem_str_list.append(f&#34;\b{i}\b&#34;)
             else:
-                elem_str_list.append(elem.text)
+                if (
+                    remove_extra_space
+                    and i  # not first element
+                    and isinstance(
+                        self.__root__[i - 1], (Quote, At, AtAll)
+                    )  # following elements which have an dumb trailing space
+                    and elem.text.startswith(&#34;  &#34;)  # extra space (count &gt;= 2)
+                ):
+                    elem_str_list.append(elem.text[1:])
+                else:
+                    elem_str_list.append(elem.text)
         return &#34;&#34;.join(elem_str_list), elem_mapping
 
     @classmethod
-    def from_mapping_str(string: str, mapping: Dict[int, Element]) -&gt; &#34;MessageChain&#34;:
+    def fromMappingString(
+        cls, string: str, mapping: Dict[int, Element]
+    ) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;从映射字符串与映射字典的元组还原消息链.
+
+        Args:
+            string (str): 映射字符串
+            mapping (Dict[int, Element]): 映射字典.
+
+        Returns:
+            MessageChain: 构建的消息链
+        &#34;&#34;&#34;
         elements: List[Element] = []
         for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
             if match := re.match(&#34;\b(\\d+)\b&#34;, x):
@@ -562,7 +603,7 @@ class MessageChain(BaseModel):
                 elements.append(mapping[index])
             else:
                 elements.append(Plain(x))
-        return MessageChain.create(elements)
+        return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
         elements = self.__root__[:]
@@ -1088,6 +1129,11 @@ _update_forward_refs()</code></pre>
                     string_list.append(i.asPersistentString(binary=False))
         return &#34;&#34;.join(string_list)
 
+    async def download_binary(self) -&gt; None:
+        for elem in self.__root__:
+            if isinstance(elem, MultimediaElement):
+                await elem.get_bytes()
+
     @classmethod
     def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
         element_mapping = {i.type: i for i in Element.__subclasses__()}
@@ -1102,19 +1148,53 @@ _update_forward_refs()</code></pre>
                 result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
         return MessageChain.create(result)
 
-    def to_mapping_str(self) -&gt; Tuple[str, Dict[int, Element]]:
+    def asMappingString(
+        self, *, remove_quote: bool = True, remove_extra_space: bool = False
+    ) -&gt; Tuple[str, Dict[int, Element]]:
+        &#34;&#34;&#34;转换消息链为映射字符串与映射字典的元组.
+
+        Args:
+            remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
+            remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
+
+        Returns:
+            Tuple[str, Dict[int, Element]]: 生成的映射字符串与映射字典的元组
+        &#34;&#34;&#34;
         elem_mapping: Dict[int, Element] = {}
-        elem_str_list = List[str]
+        elem_str_list: List[str] = []
         for i, elem in enumerate(self.__root__):
             if not isinstance(elem, Plain):
+                if remove_quote and isinstance(elem, Quote):
+                    continue
                 elem_mapping[i] = elem
-                elem_str_list.append(&#34;\b&#34; + str(i) + &#34;\b&#34;)
+                elem_str_list.append(f&#34;\b{i}\b&#34;)
             else:
-                elem_str_list.append(elem.text)
+                if (
+                    remove_extra_space
+                    and i  # not first element
+                    and isinstance(
+                        self.__root__[i - 1], (Quote, At, AtAll)
+                    )  # following elements which have an dumb trailing space
+                    and elem.text.startswith(&#34;  &#34;)  # extra space (count &gt;= 2)
+                ):
+                    elem_str_list.append(elem.text[1:])
+                else:
+                    elem_str_list.append(elem.text)
         return &#34;&#34;.join(elem_str_list), elem_mapping
 
     @classmethod
-    def from_mapping_str(string: str, mapping: Dict[int, Element]) -&gt; &#34;MessageChain&#34;:
+    def fromMappingString(
+        cls, string: str, mapping: Dict[int, Element]
+    ) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;从映射字符串与映射字典的元组还原消息链.
+
+        Args:
+            string (str): 映射字符串
+            mapping (Dict[int, Element]): 映射字典.
+
+        Returns:
+            MessageChain: 构建的消息链
+        &#34;&#34;&#34;
         elements: List[Element] = []
         for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
             if match := re.match(&#34;\b(\\d+)\b&#34;, x):
@@ -1122,7 +1202,7 @@ _update_forward_refs()</code></pre>
                 elements.append(mapping[index])
             else:
                 elements.append(Plain(x))
-        return MessageChain.create(elements)
+        return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
         elements = self.__root__[:]
@@ -1232,6 +1312,50 @@ def create(
     return cls(__root__=element_list)</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.chain.MessageChain.fromMappingString"><code class="name flex">
+<span>def <span class="ident">fromMappingString</span></span>(<span>string: str, mapping: Dict[int, Element]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>从映射字符串与映射字典的元组还原消息链.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
+<dd>映射字符串</dd>
+<dt><strong><code>mapping</code></strong> :&ensp;<code>Dict[int, Element]</code></dt>
+<dd>映射字典.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dd>构建的消息链</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def fromMappingString(
+    cls, string: str, mapping: Dict[int, Element]
+) -&gt; &#34;MessageChain&#34;:
+    &#34;&#34;&#34;从映射字符串与映射字典的元组还原消息链.
+
+    Args:
+        string (str): 映射字符串
+        mapping (Dict[int, Element]): 映射字典.
+
+    Returns:
+        MessageChain: 构建的消息链
+    &#34;&#34;&#34;
+    elements: List[Element] = []
+    for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
+        if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+            index = int(match.group(1))
+            elements.append(mapping[index])
+        else:
+            elements.append(Plain(x))
+    return cls.create(elements)</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.chain.MessageChain.fromPersistentString"><code class="name flex">
 <span>def <span class="ident">fromPersistentString</span></span>(<span>string) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
@@ -1254,27 +1378,6 @@ def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
         elif match:
             result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
     return MessageChain.create(result)</code></pre>
-</details>
-</dd>
-<dt id="ariadne.message.chain.MessageChain.from_mapping_str"><code class="name flex">
-<span>def <span class="ident">from_mapping_str</span></span>(<span>mapping: Dict[int, Element]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@classmethod
-def from_mapping_str(string: str, mapping: Dict[int, Element]) -&gt; &#34;MessageChain&#34;:
-    elements: List[Element] = []
-    for x in re.split(&#34;(\b(\\d+)\b)&#34;, string):
-        if match := re.match(&#34;\b(\\d+)\b&#34;, x):
-            index = int(match.group(1))
-            elements.append(mapping[index])
-        else:
-            elements.append(Plain(x))
-    return MessageChain.create(elements)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.parse_obj"><code class="name flex">
@@ -1352,6 +1455,62 @@ def parse_obj(
         str: 以字符串形式表示的消息链
     &#34;&#34;&#34;
     return &#34;&#34;.join(i.asDisplay() for i in self.__root__)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.chain.MessageChain.asMappingString"><code class="name flex">
+<span>def <span class="ident">asMappingString</span></span>(<span>self, *, remove_quote: bool = True, remove_extra_space: bool = False) ‑> Tuple[str, Dict[int, <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>转换消息链为映射字符串与映射字典的元组.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>remove_quote</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否移除消息链中的 Quote 元素. 默认为 True.</dd>
+<dt><strong><code>remove_extra_space</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否移除 Quote At AtAll 的多余空格. 默认为 False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Tuple[str, Dict[int, Element]]</code></dt>
+<dd>生成的映射字符串与映射字典的元组</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def asMappingString(
+    self, *, remove_quote: bool = True, remove_extra_space: bool = False
+) -&gt; Tuple[str, Dict[int, Element]]:
+    &#34;&#34;&#34;转换消息链为映射字符串与映射字典的元组.
+
+    Args:
+        remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
+        remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
+
+    Returns:
+        Tuple[str, Dict[int, Element]]: 生成的映射字符串与映射字典的元组
+    &#34;&#34;&#34;
+    elem_mapping: Dict[int, Element] = {}
+    elem_str_list: List[str] = []
+    for i, elem in enumerate(self.__root__):
+        if not isinstance(elem, Plain):
+            if remove_quote and isinstance(elem, Quote):
+                continue
+            elem_mapping[i] = elem
+            elem_str_list.append(f&#34;\b{i}\b&#34;)
+        else:
+            if (
+                remove_extra_space
+                and i  # not first element
+                and isinstance(
+                    self.__root__[i - 1], (Quote, At, AtAll)
+                )  # following elements which have an dumb trailing space
+                and elem.text.startswith(&#34;  &#34;)  # extra space (count &gt;= 2)
+            ):
+                elem_str_list.append(elem.text[1:])
+            else:
+                elem_str_list.append(elem.text)
+    return &#34;&#34;.join(elem_str_list), elem_mapping</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.asPersistentString"><code class="name flex">
@@ -1444,6 +1603,21 @@ def parse_obj(
         if isinstance(e, element_type):
             cnt += 1
     return cnt</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.chain.MessageChain.download_binary"><code class="name flex">
+<span>async def <span class="ident">download_binary</span></span>(<span>self) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def download_binary(self) -&gt; None:
+    for elem in self.__root__:
+        if isinstance(elem, MultimediaElement):
+            await elem.get_bytes()</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.endswith"><code class="name flex">
@@ -2062,27 +2236,6 @@ def parse_obj(
     return MessageChain(result)</code></pre>
 </details>
 </dd>
-<dt id="ariadne.message.chain.MessageChain.to_mapping_str"><code class="name flex">
-<span>def <span class="ident">to_mapping_str</span></span>(<span>self) ‑> Tuple[str, Dict[int, <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def to_mapping_str(self) -&gt; Tuple[str, Dict[int, Element]]:
-    elem_mapping: Dict[int, Element] = {}
-    elem_str_list = List[str]
-    for i, elem in enumerate(self.__root__):
-        if not isinstance(elem, Plain):
-            elem_mapping[i] = elem
-            elem_str_list.append(&#34;\b&#34; + str(i) + &#34;\b&#34;)
-        else:
-            elem_str_list.append(elem.text)
-    return &#34;&#34;.join(elem_str_list), elem_mapping</code></pre>
-</details>
-</dd>
 </dl>
 </dd>
 </dl>
@@ -2106,17 +2259,19 @@ def parse_obj(
 <ul class="">
 <li><code><a title="ariadne.message.chain.MessageChain.append" href="#ariadne.message.chain.MessageChain.append">append</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.asDisplay" href="#ariadne.message.chain.MessageChain.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.asMappingString" href="#ariadne.message.chain.MessageChain.asMappingString">asMappingString</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.asPersistentString" href="#ariadne.message.chain.MessageChain.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.asSendable" href="#ariadne.message.chain.MessageChain.asSendable">asSendable</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.build_chain" href="#ariadne.message.chain.MessageChain.build_chain">build_chain</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.copy" href="#ariadne.message.chain.MessageChain.copy">copy</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.count" href="#ariadne.message.chain.MessageChain.count">count</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.create" href="#ariadne.message.chain.MessageChain.create">create</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.download_binary" href="#ariadne.message.chain.MessageChain.download_binary">download_binary</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.endswith" href="#ariadne.message.chain.MessageChain.endswith">endswith</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.exclude" href="#ariadne.message.chain.MessageChain.exclude">exclude</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.extend" href="#ariadne.message.chain.MessageChain.extend">extend</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.fromMappingString" href="#ariadne.message.chain.MessageChain.fromMappingString">fromMappingString</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.fromPersistentString" href="#ariadne.message.chain.MessageChain.fromPersistentString">fromPersistentString</a></code></li>
-<li><code><a title="ariadne.message.chain.MessageChain.from_mapping_str" href="#ariadne.message.chain.MessageChain.from_mapping_str">from_mapping_str</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.get" href="#ariadne.message.chain.MessageChain.get">get</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getFirst" href="#ariadne.message.chain.MessageChain.getFirst">getFirst</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getOne" href="#ariadne.message.chain.MessageChain.getOne">getOne</a></code></li>
@@ -2133,7 +2288,6 @@ def parse_obj(
 <li><code><a title="ariadne.message.chain.MessageChain.split" href="#ariadne.message.chain.MessageChain.split">split</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.startswith" href="#ariadne.message.chain.MessageChain.startswith">startswith</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.subchain" href="#ariadne.message.chain.MessageChain.subchain">subchain</a></code></li>
-<li><code><a title="ariadne.message.chain.MessageChain.to_mapping_str" href="#ariadne.message.chain.MessageChain.to_mapping_str">to_mapping_str</a></code></li>
 </ul>
 </li>
 </ul>

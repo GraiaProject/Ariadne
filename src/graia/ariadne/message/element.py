@@ -336,14 +336,41 @@ P = ParamSpec("P")
 class MultimediaElement(Element):
     """指示多媒体消息元素."""
 
+    id: Optional[str]
     url: Optional[str] = None
     base64: Optional[str] = None
 
-    async def get_bytes(self, url: str = None) -> bytes:
-        """尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+    def __init__(
+        self,
+        id: Optional[str] = None,
+        url: Optional[str] = None,
+        path: Optional[Union[Path, str]] = None,
+        base64: Optional[str] = None,
+        *,
+        data_bytes: Optional[bytes] = None,
+        **kwargs,
+    ) -> None:
+        data = {}
+        if sum([bool(path), bool(path), bool(base64)]) > 1:
+            raise ValueError("Too many binary initializers!")
+        # Web initializer
+        data["id"] = id
+        data["url"] = url
+        # Binary initializer
+        if path:
+            if isinstance(path, str):
+                path = Path(path)
+            if not path.exists():
+                raise FileNotFoundError(f"{path} is not exist!")
+            data_bytes = path.read_bytes()
+        elif base64:
+            data["base64"] = base64
+        elif data_bytes:
+            data["base64"] = b64encode(data_bytes)
+        super().__init__(**data, **kwargs)
 
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+    async def get_bytes(self) -> bytes:
+        """尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
 
         Raises:
             ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
@@ -353,10 +380,10 @@ class MultimediaElement(Element):
         """
         if self.base64:
             return b64decode(self.base64)
-        if not (self.url or url):
+        if not self.url:
             raise ValueError("you should offer a url.")
         session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
+        async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
             self.base64 = b64encode(data)
@@ -375,12 +402,12 @@ class MultimediaElement(Element):
     ) -> "DictStrAny":
         return super().dict(
             include=include,
-            exclude=exclude,
+            exclude={"bytes"},
             by_alias=True,
             skip_defaults=skip_defaults,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
+            exclude_none=True,
         )
 
     def asPersistentString(self, *, binary: bool = True) -> str:
@@ -413,34 +440,6 @@ class Image(MultimediaElement):
     type = "Image"
     id: Optional[str] = Field(None, alias="imageId")
 
-    def __init__(
-        self,
-        imageId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        flash: Optional["FlashImage"] = None,
-        **kwargs,
-    ) -> None:
-        if flash:
-            super().__init__(**flash.dict() | {"type": "Image"})
-            return
-        data = {}
-        data["imageId"] = imageId
-        data["url"] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError("Can't present base64 and bytes data at the same time!")
-        if base64:
-            data["base64"] = base64
-        if data_bytes:
-            data["base64"] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
-
     def toFlashImage(self) -> "FlashImage":
         return FlashImage.parse_obj(self.dict() | {"type": "FlashImage"})
 
@@ -455,34 +454,6 @@ class Image(MultimediaElement):
 class FlashImage(Image):
     "指示消息中的闪照元素"
     type = "FlashImage"
-
-    def __init__(
-        self,
-        imageId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        image: Optional["Image"] = None,
-        **kwargs,
-    ) -> None:
-        if image:
-            super().__init__(**image.dict() | {"type": "FlashImage"})
-        data = {}
-        data["type"] = type
-        data["imageId"] = imageId
-        data["url"] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError("Can't present base64 and bytes data at the same time!")
-        if base64:
-            data["base64"] = base64
-        if data_bytes:
-            data["base64"] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def toImage(self) -> "Image":
         return Image.parse_obj(self.dict() | {"type": "Image"})
@@ -500,31 +471,6 @@ class Voice(MultimediaElement):
     type = "Voice"
     id: Optional[str] = Field(..., alias="voiceId")
     length: Optional[int]
-
-    def __init__(
-        self,
-        voiceId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        **kwargs,
-    ) -> None:
-        data = {}
-        data["type"] = type
-        data["voiceId"] = voiceId
-        data["url"] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError("Can't present base64 and bytes data at the same time!")
-        if base64:
-            data["base64"] = base64
-        if data_bytes:
-            data["base64"] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def asDisplay(self) -> str:
         return "[语音]"

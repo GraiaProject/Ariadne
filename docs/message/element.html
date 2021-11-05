@@ -364,14 +364,41 @@ P = ParamSpec(&#34;P&#34;)
 class MultimediaElement(Element):
     &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
 
+    id: Optional[str]
     url: Optional[str] = None
     base64: Optional[str] = None
 
-    async def get_bytes(self, url: str = None) -&gt; bytes:
-        &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+    def __init__(
+        self,
+        id: Optional[str] = None,
+        url: Optional[str] = None,
+        path: Optional[Union[Path, str]] = None,
+        base64: Optional[str] = None,
+        *,
+        data_bytes: Optional[bytes] = None,
+        **kwargs,
+    ) -&gt; None:
+        data = {}
+        if sum([bool(path), bool(path), bool(base64)]) &gt; 1:
+            raise ValueError(&#34;Too many binary initializers!&#34;)
+        # Web initializer
+        data[&#34;id&#34;] = id
+        data[&#34;url&#34;] = url
+        # Binary initializer
+        if path:
+            if isinstance(path, str):
+                path = Path(path)
+            if not path.exists():
+                raise FileNotFoundError(f&#34;{path} is not exist!&#34;)
+            data_bytes = path.read_bytes()
+        elif base64:
+            data[&#34;base64&#34;] = base64
+        elif data_bytes:
+            data[&#34;base64&#34;] = b64encode(data_bytes)
+        super().__init__(**data, **kwargs)
 
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+    async def get_bytes(self) -&gt; bytes:
+        &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
 
         Raises:
             ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
@@ -381,10 +408,10 @@ class MultimediaElement(Element):
         &#34;&#34;&#34;
         if self.base64:
             return b64decode(self.base64)
-        if not (self.url or url):
+        if not self.url:
             raise ValueError(&#34;you should offer a url.&#34;)
         session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
+        async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
             self.base64 = b64encode(data)
@@ -403,12 +430,12 @@ class MultimediaElement(Element):
     ) -&gt; &#34;DictStrAny&#34;:
         return super().dict(
             include=include,
-            exclude=exclude,
+            exclude={&#34;bytes&#34;},
             by_alias=True,
             skip_defaults=skip_defaults,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
+            exclude_none=True,
         )
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
@@ -441,34 +468,6 @@ class Image(MultimediaElement):
     type = &#34;Image&#34;
     id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
-    def __init__(
-        self,
-        imageId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        flash: Optional[&#34;FlashImage&#34;] = None,
-        **kwargs,
-    ) -&gt; None:
-        if flash:
-            super().__init__(**flash.dict() | {&#34;type&#34;: &#34;Image&#34;})
-            return
-        data = {}
-        data[&#34;imageId&#34;] = imageId
-        data[&#34;url&#34;] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
-        if base64:
-            data[&#34;base64&#34;] = base64
-        if data_bytes:
-            data[&#34;base64&#34;] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
-
     def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
         return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
 
@@ -483,34 +482,6 @@ class Image(MultimediaElement):
 class FlashImage(Image):
     &#34;指示消息中的闪照元素&#34;
     type = &#34;FlashImage&#34;
-
-    def __init__(
-        self,
-        imageId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        image: Optional[&#34;Image&#34;] = None,
-        **kwargs,
-    ) -&gt; None:
-        if image:
-            super().__init__(**image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
-        data = {}
-        data[&#34;type&#34;] = type
-        data[&#34;imageId&#34;] = imageId
-        data[&#34;url&#34;] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
-        if base64:
-            data[&#34;base64&#34;] = base64
-        if data_bytes:
-            data[&#34;base64&#34;] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def toImage(self) -&gt; &#34;Image&#34;:
         return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})
@@ -528,31 +499,6 @@ class Voice(MultimediaElement):
     type = &#34;Voice&#34;
     id: Optional[str] = Field(..., alias=&#34;voiceId&#34;)
     length: Optional[int]
-
-    def __init__(
-        self,
-        voiceId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        **kwargs,
-    ) -&gt; None:
-        data = {}
-        data[&#34;type&#34;] = type
-        data[&#34;voiceId&#34;] = voiceId
-        data[&#34;url&#34;] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
-        if base64:
-            data[&#34;base64&#34;] = base64
-        if data_bytes:
-            data[&#34;base64&#34;] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def asDisplay(self) -&gt; str:
         return &#34;[语音]&#34;
@@ -1167,7 +1113,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.FlashImage"><code class="flex name class">
 <span>class <span class="ident">FlashImage</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, image: Optional[ForwardRef('<a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a>')] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的闪照元素</p>
@@ -1180,34 +1126,6 @@ type (str): 元素类型</p>
 <pre><code class="python">class FlashImage(Image):
     &#34;指示消息中的闪照元素&#34;
     type = &#34;FlashImage&#34;
-
-    def __init__(
-        self,
-        imageId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        image: Optional[&#34;Image&#34;] = None,
-        **kwargs,
-    ) -&gt; None:
-        if image:
-            super().__init__(**image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
-        data = {}
-        data[&#34;type&#34;] = type
-        data[&#34;imageId&#34;] = imageId
-        data[&#34;url&#34;] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
-        if base64:
-            data[&#34;base64&#34;] = base64
-        if data_bytes:
-            data[&#34;base64&#34;] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def toImage(self) -&gt; &#34;Image&#34;:
         return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})
@@ -1435,7 +1353,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </dd>
 <dt id="ariadne.message.element.Image"><code class="flex name class">
 <span>class <span class="ident">Image</span></span>
-<span>(</span><span>imageId: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, flash: Optional[ForwardRef('<a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a>')] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的图片元素</p>
@@ -1449,34 +1367,6 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
     &#34;指示消息中的图片元素&#34;
     type = &#34;Image&#34;
     id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
-
-    def __init__(
-        self,
-        imageId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        flash: Optional[&#34;FlashImage&#34;] = None,
-        **kwargs,
-    ) -&gt; None:
-        if flash:
-            super().__init__(**flash.dict() | {&#34;type&#34;: &#34;Image&#34;})
-            return
-        data = {}
-        data[&#34;imageId&#34;] = imageId
-        data[&#34;url&#34;] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
-        if base64:
-            data[&#34;base64&#34;] = base64
-        if data_bytes:
-            data[&#34;base64&#34;] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
         return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
@@ -1688,7 +1578,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 </dd>
 <dt id="ariadne.message.element.MultimediaElement"><code class="flex name class">
 <span>class <span class="ident">MultimediaElement</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示多媒体消息元素.</p>
@@ -1701,14 +1591,41 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 <pre><code class="python">class MultimediaElement(Element):
     &#34;&#34;&#34;指示多媒体消息元素.&#34;&#34;&#34;
 
+    id: Optional[str]
     url: Optional[str] = None
     base64: Optional[str] = None
 
-    async def get_bytes(self, url: str = None) -&gt; bytes:
-        &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
+    def __init__(
+        self,
+        id: Optional[str] = None,
+        url: Optional[str] = None,
+        path: Optional[Union[Path, str]] = None,
+        base64: Optional[str] = None,
+        *,
+        data_bytes: Optional[bytes] = None,
+        **kwargs,
+    ) -&gt; None:
+        data = {}
+        if sum([bool(path), bool(path), bool(base64)]) &gt; 1:
+            raise ValueError(&#34;Too many binary initializers!&#34;)
+        # Web initializer
+        data[&#34;id&#34;] = id
+        data[&#34;url&#34;] = url
+        # Binary initializer
+        if path:
+            if isinstance(path, str):
+                path = Path(path)
+            if not path.exists():
+                raise FileNotFoundError(f&#34;{path} is not exist!&#34;)
+            data_bytes = path.read_bytes()
+        elif base64:
+            data[&#34;base64&#34;] = base64
+        elif data_bytes:
+            data[&#34;base64&#34;] = b64encode(data_bytes)
+        super().__init__(**data, **kwargs)
 
-        Args:
-            url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
+    async def get_bytes(self) -&gt; bytes:
+        &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
 
         Raises:
             ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
@@ -1718,10 +1635,10 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
         &#34;&#34;&#34;
         if self.base64:
             return b64decode(self.base64)
-        if not (self.url or url):
+        if not self.url:
             raise ValueError(&#34;you should offer a url.&#34;)
         session = adapter_ctx.get().session
-        async with session.get(self.url or url) as response:
+        async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
             self.base64 = b64encode(data)
@@ -1740,12 +1657,12 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
     ) -&gt; &#34;DictStrAny&#34;:
         return super().dict(
             include=include,
-            exclude=exclude,
+            exclude={&#34;bytes&#34;},
             by_alias=True,
             skip_defaults=skip_defaults,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
-            exclude_none=exclude_none,
+            exclude_none=True,
         )
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
@@ -1788,6 +1705,10 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 <h3>Class variables</h3>
 <dl>
 <dt id="ariadne.message.element.MultimediaElement.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.element.MultimediaElement.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1854,25 +1775,20 @@ def uuid(self):
 ) -&gt; &#34;DictStrAny&#34;:
     return super().dict(
         include=include,
-        exclude=exclude,
+        exclude={&#34;bytes&#34;},
         by_alias=True,
         skip_defaults=skip_defaults,
         exclude_unset=exclude_unset,
         exclude_defaults=exclude_defaults,
-        exclude_none=exclude_none,
+        exclude_none=True,
     )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.element.MultimediaElement.get_bytes"><code class="name flex">
-<span>async def <span class="ident">get_bytes</span></span>(<span>self, url: str = None) ‑> bytes</span>
+<span>async def <span class="ident">get_bytes</span></span>(<span>self) ‑> bytes</span>
 </code></dt>
 <dd>
 <div class="desc"><p>尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>url</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>如果提供, 则从本参数获取 bytes. 默认为 None.</dd>
-</dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><code>ValueError</code></dt>
@@ -1887,11 +1803,8 @@ def uuid(self):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def get_bytes(self, url: str = None) -&gt; bytes:
+<pre><code class="python">async def get_bytes(self) -&gt; bytes:
     &#34;&#34;&#34;尝试获取消息元素的 bytes, 注意, 你无法获取并不包含 url 且不包含 base64 属性的本元素的 bytes.
-
-    Args:
-        url (str, optional): 如果提供, 则从本参数获取 bytes. 默认为 None.
 
     Raises:
         ValueError: 你尝试获取并不包含 url 属性的本元素的 bytes.
@@ -1901,10 +1814,10 @@ def uuid(self):
     &#34;&#34;&#34;
     if self.base64:
         return b64decode(self.base64)
-    if not (self.url or url):
+    if not self.url:
         raise ValueError(&#34;you should offer a url.&#34;)
     session = adapter_ctx.get().session
-    async with session.get(self.url or url) as response:
+    async with session.get(self.url) as response:
         response.raise_for_status()
         data = await response.read()
         self.base64 = b64encode(data)
@@ -2461,7 +2374,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.Voice"><code class="flex name class">
 <span>class <span class="ident">Voice</span></span>
-<span>(</span><span>voiceId: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的语音元素</p>
@@ -2476,31 +2389,6 @@ type (str): 元素类型</p>
     type = &#34;Voice&#34;
     id: Optional[str] = Field(..., alias=&#34;voiceId&#34;)
     length: Optional[int]
-
-    def __init__(
-        self,
-        voiceId: Optional[str] = None,
-        url: Optional[str] = None,
-        path: Optional[Union[Path, str]] = None,
-        base64: Optional[str] = None,
-        *,
-        data_bytes: Optional[bytes] = None,
-        **kwargs,
-    ) -&gt; None:
-        data = {}
-        data[&#34;type&#34;] = type
-        data[&#34;voiceId&#34;] = voiceId
-        data[&#34;url&#34;] = url
-        if isinstance(path, str):
-            path = Path(path)
-        data_bytes = path.read_bytes()
-        if data_bytes and base64:
-            raise ValueError(&#34;Can&#39;t present base64 and bytes data at the same time!&#34;)
-        if base64:
-            data[&#34;base64&#34;] = base64
-        if data_bytes:
-            data[&#34;base64&#34;] = b64encode(data_bytes)
-        super().__init__(**data, **kwargs)
 
     def asDisplay(self) -&gt; str:
         return &#34;[语音]&#34;</code></pre>
@@ -2748,6 +2636,7 @@ type (str): 元素类型</p>
 <li><code><a title="ariadne.message.element.MultimediaElement.base64" href="#ariadne.message.element.MultimediaElement.base64">base64</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.id" href="#ariadne.message.element.MultimediaElement.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.url" href="#ariadne.message.element.MultimediaElement.url">url</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.uuid" href="#ariadne.message.element.MultimediaElement.uuid">uuid</a></code></li>
 </ul>

@@ -1,31 +1,34 @@
 import argparse
+import inspect
 import re
 import shlex
-import inspect
+import string
+from copy import deepcopy
 from types import TracebackType
-from copy import Error, deepcopy
 from typing import (
     Dict,
     Generic,
     List,
-    TypedDict,
     NoReturn,
     Optional,
     Tuple,
     Type,
+    TypedDict,
     TypeVar,
     Union,
 )
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import Element
-from .pattern import ArgumentMatch, Match, RegexMatch
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from ..chain import MessageChain
+
+from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.element import Element
+
 from ...event.message import MessageEvent
+from ..chain import MessageChain
+from .pattern import ArgumentMatch, FullMatch, Match, RegexMatch
 
 
 class TwilightParser(argparse.ArgumentParser):
@@ -59,9 +62,9 @@ class Sparkle:
         match_map: Dict[str, Match] = matches or {
             k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
         }
-        if any(k.startswith("_") for k in match_map.keys()):
-            raise ValueError("Match object's name can not start with underscore!")
-        self._regex_match_list: List[Tuple[str, Match, int]] = []
+        if any(k.startswith("_") or k[0] in string.digits for k in match_map.keys()):
+            raise ValueError("Invalid Match object name!")
+        self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         group_cnt: int = 0
         pattern_list: List[str] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
@@ -168,10 +171,11 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                                 current, elem_mapping
                             ),
                             matched=bool(current),
+                            re_match=re.match(match.pattern, current),
                         ),
                     )
             else:
-                raise ExecutionStop()
+                raise ValueError(f"Regex not matching: {sparkle._regex_pattern}")
 
     def gen_sparkle(self, chain: MessageChain) -> Sparkle:
         sparkle = deepcopy(self.sparkle_root)
@@ -184,7 +188,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             namespace, arg_list = arg_parser.parse_known_args(str_list)
             self.dump_namespace(sparkle, namespace)
         except Exception:
-            raise ExecutionStop()
+            raise
         else:
             self.match_regex(sparkle, elem_mapping, arg_list)
         return sparkle
@@ -196,7 +200,10 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             interface.broadcast.decorator_interface.local_storage
         )
         chain: MessageChain = interface.event.messageChain
-        local_storage["sparkle"] = self.gen_sparkle(chain)
+        try:
+            local_storage["sparkle"] = self.gen_sparkle(chain)
+        except:
+            raise ExecutionStop()
 
     async def catch(
         self, interface: "DispatcherInterface[MessageEvent]"

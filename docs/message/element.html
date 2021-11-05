@@ -34,12 +34,9 @@ from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
 
-from pydantic import BaseModel, validator
+from pydantic import validator
 from pydantic.fields import Field
 from typing_extensions import ParamSpec
-
-if TYPE_CHECKING:
-    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny, DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -300,7 +297,7 @@ class MusicShare(Element):
         return f&#34;[音乐分享:{self.title}]&#34;
 
 
-class ForwardNode(BaseModel):
+class ForwardNode(AriadneBaseModel):
     &#34;表示合并转发中的一个节点&#34;
     senderId: int
     time: datetime
@@ -417,30 +414,9 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data)
             return data
 
-    def dict(
-        self,
-        *,
-        include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
-        exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
-        by_alias: bool = False,
-        skip_defaults: bool = None,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-    ) -&gt; &#34;DictStrAny&#34;:
-        return super().dict(
-            include=include,
-            exclude={&#34;bytes&#34;},
-            by_alias=True,
-            skip_defaults=skip_defaults,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=True,
-        )
-
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
         return (
-            f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+            f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
             if binary
             else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
         )
@@ -595,6 +571,7 @@ def _update_forward_refs():
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -691,6 +668,7 @@ def _update_forward_refs():
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -761,6 +739,7 @@ def _update_forward_refs():
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -821,6 +800,7 @@ def _update_forward_refs():
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -950,6 +930,14 @@ type (str): 元素类型</p>
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.message.element.Face"><code class="flex name class">
 <span>class <span class="ident">Face</span></span>
@@ -1020,6 +1008,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -1106,6 +1095,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -1204,7 +1194,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></b></code>:
 <ul class="hlist">
-<li><code><a title="ariadne.message.element.Image.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.Image.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Image.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
 <li><code><a title="ariadne.message.element.Image.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
@@ -1288,6 +1278,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -1305,7 +1296,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ForwardNode(BaseModel):
+<pre><code class="python">class ForwardNode(AriadneBaseModel):
     &#34;表示合并转发中的一个节点&#34;
     senderId: int
     time: datetime
@@ -1320,6 +1311,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 </ul>
@@ -1350,6 +1342,14 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.message.element.Image"><code class="flex name class">
 <span>class <span class="ident">Image</span></span>
@@ -1448,7 +1448,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></b></code>:
 <ul class="hlist">
-<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
@@ -1553,24 +1553,12 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
     return &#34;[JSON消息]&#34;</code></pre>
 </details>
 </dd>
-<dt id="ariadne.message.element.Json.dict"><code class="name flex">
-<span>def <span class="ident">dict</span></span>(<span>self, *args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dict(self, *args, **kwargs):
-    return super().dict(*args, **({**kwargs, &#34;by_alias&#34;: True}))</code></pre>
-</details>
-</dd>
 </dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -1644,30 +1632,9 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
             self.base64 = b64encode(data)
             return data
 
-    def dict(
-        self,
-        *,
-        include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
-        exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
-        by_alias: bool = False,
-        skip_defaults: bool = None,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-    ) -&gt; &#34;DictStrAny&#34;:
-        return super().dict(
-            include=include,
-            exclude={&#34;bytes&#34;},
-            by_alias=True,
-            skip_defaults=skip_defaults,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=True,
-        )
-
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
         return (
-            f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+            f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
             if binary
             else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
         )
@@ -1747,40 +1714,9 @@ def uuid(self):
 </summary>
 <pre><code class="python">def asPersistentString(self, *, binary: bool = True) -&gt; str:
     return (
-        f&#34;[{self.type}:{j_dump(self.dict(exclude=&#39;type&#39;))}]&#34;
+        f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
         if binary
         else f&#34;[{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
-    )</code></pre>
-</details>
-</dd>
-<dt id="ariadne.message.element.MultimediaElement.dict"><code class="name flex">
-<span>def <span class="ident">dict</span></span>(<span>self, *, include: Union[ForwardRef('AbstractSetIntStr'), ForwardRef('MappingIntStrAny')] = None, exclude: Union[ForwardRef('AbstractSetIntStr'), ForwardRef('MappingIntStrAny')] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) ‑> DictStrAny</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def dict(
-    self,
-    *,
-    include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
-    exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
-    by_alias: bool = False,
-    skip_defaults: bool = None,
-    exclude_unset: bool = False,
-    exclude_defaults: bool = False,
-    exclude_none: bool = False,
-) -&gt; &#34;DictStrAny&#34;:
-    return super().dict(
-        include=include,
-        exclude={&#34;bytes&#34;},
-        by_alias=True,
-        skip_defaults=skip_defaults,
-        exclude_unset=exclude_unset,
-        exclude_defaults=exclude_defaults,
-        exclude_none=True,
     )</code></pre>
 </details>
 </dd>
@@ -1829,6 +1765,7 @@ def uuid(self):
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -1919,6 +1856,7 @@ def uuid(self):
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -2032,6 +1970,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -2092,6 +2031,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -2286,6 +2226,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -2367,6 +2308,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -2433,7 +2375,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></b></code>:
 <ul class="hlist">
-<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
@@ -2495,6 +2437,7 @@ type (str): 元素类型</p>
 <ul class="hlist">
 <li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
 <ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
 </ul>
 </li>
@@ -2626,7 +2569,6 @@ type (str): 元素类型</p>
 <ul class="">
 <li><code><a title="ariadne.message.element.Json.Json" href="#ariadne.message.element.Json.Json">Json</a></code></li>
 <li><code><a title="ariadne.message.element.Json.asDisplay" href="#ariadne.message.element.Json.asDisplay">asDisplay</a></code></li>
-<li><code><a title="ariadne.message.element.Json.dict" href="#ariadne.message.element.Json.dict">dict</a></code></li>
 </ul>
 </li>
 <li>
@@ -2634,7 +2576,6 @@ type (str): 元素类型</p>
 <ul class="two-column">
 <li><code><a title="ariadne.message.element.MultimediaElement.asPersistentString" href="#ariadne.message.element.MultimediaElement.asPersistentString">asPersistentString</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.base64" href="#ariadne.message.element.MultimediaElement.base64">base64</a></code></li>
-<li><code><a title="ariadne.message.element.MultimediaElement.dict" href="#ariadne.message.element.MultimediaElement.dict">dict</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.get_bytes" href="#ariadne.message.element.MultimediaElement.get_bytes">get_bytes</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.id" href="#ariadne.message.element.MultimediaElement.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.MultimediaElement.url" href="#ariadne.message.element.MultimediaElement.url">url</a></code></li>

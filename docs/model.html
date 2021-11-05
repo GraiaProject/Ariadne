@@ -35,6 +35,9 @@ from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra
 from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
+
+if TYPE_CHECKING:
+    from pydantic.typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 from yarl import URL
 
 if TYPE_CHECKING:
@@ -50,16 +53,33 @@ class AriadneBaseModel(BaseModel):
     Ariadne 一切数据模型的基类.
     &#34;&#34;&#34;
 
+    def dict(
+        self,
+        *,
+        include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        by_alias: bool = False,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -&gt; &#34;DictStrAny&#34;:
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=True,
+        )
+
     class Config(BaseConfig):
         extra = Extra.allow
 
 
 class ChatLogConfig(BaseModel):
-    &#34;&#34;&#34;配置日志如何记录 QQ 消息与事件.
-
-    Args:
-        BaseModel ([type]): [description]
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;配置日志如何记录 QQ 消息与事件.&#34;&#34;&#34;
 
     enabled: bool = True
     log_level: str = &#34;INFO&#34;
@@ -106,13 +126,11 @@ class ChatLogConfig(BaseModel):
         def log_friend_message(event: FriendMessage):
             logger.log(
                 self.log_level,
-                self.friend_message_log_format.format_map(
-                    dict(
-                        bot_id=app.mirai_session.account,
-                        friend_name=event.sender.nickname,
-                        friend_id=event.sender.id,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.friend_message_log_format.format(
+                    bot_id=app.mirai_session.account,
+                    friend_name=event.sender.nickname,
+                    friend_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -120,17 +138,15 @@ class ChatLogConfig(BaseModel):
         def log_temp_message(event: TempMessage):
             logger.log(
                 self.log_level,
-                self.temp_message_log_format.format_map(
-                    dict(
-                        group_id=event.sender.group.id,
-                        group_name=event.sender.group.name,
-                        member_id=event.sender.id,
-                        member_name=event.sender.name,
-                        member_permission=event.sender.permission.name,
-                        bot_id=app.mirai_session.account,
-                        bot_permission=event.sender.group.accountPerm.name,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.temp_message_log_format.format(
+                    group_id=event.sender.group.id,
+                    group_name=event.sender.group.name,
+                    member_id=event.sender.id,
+                    member_name=event.sender.name,
+                    member_permission=event.sender.permission.name,
+                    bot_id=app.mirai_session.account,
+                    bot_permission=event.sender.group.accountPerm.name,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -138,7 +154,7 @@ class ChatLogConfig(BaseModel):
         def log_stranger_message(event: StrangerMessage):
             logger.log(
                 self.log_level,
-                self.stranger_message_log_format.format_map(
+                self.stranger_message_log_format.format(
                     bot_id=app.mirai_session.account,
                     stranger_name=event.sender.nickname,
                     stranger_id=event.sender.id,
@@ -150,7 +166,7 @@ class ChatLogConfig(BaseModel):
         def log_other_client_message(event: OtherClientMessage):
             logger.log(
                 self.log_level,
-                self.other_client_message_log_format.format_map(
+                self.other_client_message_log_format.format(
                     bot_id=app.mirai_session.account,
                     platform_name=event.sender.platform,
                     platform_id=event.sender.id,
@@ -393,6 +409,27 @@ class BotMessage(AriadneBaseModel):
     Ariadne 一切数据模型的基类.
     &#34;&#34;&#34;
 
+    def dict(
+        self,
+        *,
+        include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+        by_alias: bool = False,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -&gt; &#34;DictStrAny&#34;:
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=True,
+        )
+
     class Config(BaseConfig):
         extra = Extra.allow</code></pre>
 </details>
@@ -403,7 +440,9 @@ class BotMessage(AriadneBaseModel):
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></li>
 <li><a title="ariadne.message.element.Element" href="message/element.html#ariadne.message.element.Element">Element</a></li>
+<li><a title="ariadne.message.element.ForwardNode" href="message/element.html#ariadne.message.element.ForwardNode">ForwardNode</a></li>
 <li><a title="ariadne.model.BotMessage" href="#ariadne.model.BotMessage">BotMessage</a></li>
 <li><a title="ariadne.model.Client" href="#ariadne.model.Client">Client</a></li>
 <li><a title="ariadne.model.DownloadInfo" href="#ariadne.model.DownloadInfo">DownloadInfo</a></li>
@@ -421,6 +460,40 @@ class BotMessage(AriadneBaseModel):
 <dt id="ariadne.model.AriadneBaseModel.Config"><code class="name">var <span class="ident">Config</span></code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.model.AriadneBaseModel.dict"><code class="name flex">
+<span>def <span class="ident">dict</span></span>(<span>self, *, include: Union[ForwardRef('AbstractSetIntStr'), ForwardRef('MappingIntStrAny')] = None, exclude: Union[ForwardRef('AbstractSetIntStr'), ForwardRef('MappingIntStrAny')] = None, by_alias: bool = False, skip_defaults: bool = None, exclude_unset: bool = False, exclude_defaults: bool = False, exclude_none: bool = False) ‑> DictStrAny</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dict(
+    self,
+    *,
+    include: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+    exclude: Union[&#34;AbstractSetIntStr&#34;, &#34;MappingIntStrAny&#34;] = None,
+    by_alias: bool = False,
+    skip_defaults: bool = None,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+    exclude_none: bool = False,
+) -&gt; &#34;DictStrAny&#34;:
+    return super().dict(
+        include=include,
+        exclude=exclude,
+        by_alias=True,
+        skip_defaults=skip_defaults,
+        exclude_unset=exclude_unset,
+        exclude_defaults=exclude_defaults,
+        exclude_none=True,
+    )</code></pre>
+</details>
 </dd>
 </dl>
 </dd>
@@ -456,6 +529,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.CallMethod"><code class="flex name class">
 <span>class <span class="ident">CallMethod</span></span>
@@ -512,11 +593,6 @@ class BotMessage(AriadneBaseModel):
 </code></dt>
 <dd>
 <div class="desc"><p>配置日志如何记录 QQ 消息与事件.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>BaseModel</code></strong> :&ensp;<code>[type]</code></dt>
-<dd>[description]</dd>
-</dl>
 <p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
@@ -524,11 +600,7 @@ class BotMessage(AriadneBaseModel):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ChatLogConfig(BaseModel):
-    &#34;&#34;&#34;配置日志如何记录 QQ 消息与事件.
-
-    Args:
-        BaseModel ([type]): [description]
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;配置日志如何记录 QQ 消息与事件.&#34;&#34;&#34;
 
     enabled: bool = True
     log_level: str = &#34;INFO&#34;
@@ -575,13 +647,11 @@ class BotMessage(AriadneBaseModel):
         def log_friend_message(event: FriendMessage):
             logger.log(
                 self.log_level,
-                self.friend_message_log_format.format_map(
-                    dict(
-                        bot_id=app.mirai_session.account,
-                        friend_name=event.sender.nickname,
-                        friend_id=event.sender.id,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.friend_message_log_format.format(
+                    bot_id=app.mirai_session.account,
+                    friend_name=event.sender.nickname,
+                    friend_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -589,17 +659,15 @@ class BotMessage(AriadneBaseModel):
         def log_temp_message(event: TempMessage):
             logger.log(
                 self.log_level,
-                self.temp_message_log_format.format_map(
-                    dict(
-                        group_id=event.sender.group.id,
-                        group_name=event.sender.group.name,
-                        member_id=event.sender.id,
-                        member_name=event.sender.name,
-                        member_permission=event.sender.permission.name,
-                        bot_id=app.mirai_session.account,
-                        bot_permission=event.sender.group.accountPerm.name,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.temp_message_log_format.format(
+                    group_id=event.sender.group.id,
+                    group_name=event.sender.group.name,
+                    member_id=event.sender.id,
+                    member_name=event.sender.name,
+                    member_permission=event.sender.permission.name,
+                    bot_id=app.mirai_session.account,
+                    bot_permission=event.sender.group.accountPerm.name,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -607,7 +675,7 @@ class BotMessage(AriadneBaseModel):
         def log_stranger_message(event: StrangerMessage):
             logger.log(
                 self.log_level,
-                self.stranger_message_log_format.format_map(
+                self.stranger_message_log_format.format(
                     bot_id=app.mirai_session.account,
                     stranger_name=event.sender.nickname,
                     stranger_id=event.sender.id,
@@ -619,7 +687,7 @@ class BotMessage(AriadneBaseModel):
         def log_other_client_message(event: OtherClientMessage):
             logger.log(
                 self.log_level,
-                self.other_client_message_log_format.format_map(
+                self.other_client_message_log_format.format(
                     bot_id=app.mirai_session.account,
                     platform_name=event.sender.platform,
                     platform_id=event.sender.id,
@@ -705,13 +773,11 @@ class BotMessage(AriadneBaseModel):
     def log_friend_message(event: FriendMessage):
         logger.log(
             self.log_level,
-            self.friend_message_log_format.format_map(
-                dict(
-                    bot_id=app.mirai_session.account,
-                    friend_name=event.sender.nickname,
-                    friend_id=event.sender.id,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                )
+            self.friend_message_log_format.format(
+                bot_id=app.mirai_session.account,
+                friend_name=event.sender.nickname,
+                friend_id=event.sender.id,
+                message_string=event.messageChain.asDisplay().__repr__(),
             ),
         )
 
@@ -719,17 +785,15 @@ class BotMessage(AriadneBaseModel):
     def log_temp_message(event: TempMessage):
         logger.log(
             self.log_level,
-            self.temp_message_log_format.format_map(
-                dict(
-                    group_id=event.sender.group.id,
-                    group_name=event.sender.group.name,
-                    member_id=event.sender.id,
-                    member_name=event.sender.name,
-                    member_permission=event.sender.permission.name,
-                    bot_id=app.mirai_session.account,
-                    bot_permission=event.sender.group.accountPerm.name,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                )
+            self.temp_message_log_format.format(
+                group_id=event.sender.group.id,
+                group_name=event.sender.group.name,
+                member_id=event.sender.id,
+                member_name=event.sender.name,
+                member_permission=event.sender.permission.name,
+                bot_id=app.mirai_session.account,
+                bot_permission=event.sender.group.accountPerm.name,
+                message_string=event.messageChain.asDisplay().__repr__(),
             ),
         )
 
@@ -737,7 +801,7 @@ class BotMessage(AriadneBaseModel):
     def log_stranger_message(event: StrangerMessage):
         logger.log(
             self.log_level,
-            self.stranger_message_log_format.format_map(
+            self.stranger_message_log_format.format(
                 bot_id=app.mirai_session.account,
                 stranger_name=event.sender.nickname,
                 stranger_id=event.sender.id,
@@ -749,7 +813,7 @@ class BotMessage(AriadneBaseModel):
     def log_other_client_message(event: OtherClientMessage):
         logger.log(
             self.log_level,
-            self.other_client_message_log_format.format_map(
+            self.other_client_message_log_format.format(
                 bot_id=app.mirai_session.account,
                 platform_name=event.sender.platform,
                 platform_id=event.sender.id,
@@ -797,6 +861,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.DownloadInfo"><code class="flex name class">
 <span>class <span class="ident">DownloadInfo</span></span>
@@ -867,6 +939,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.FileInfo"><code class="flex name class">
 <span>class <span class="ident">FileInfo</span></span>
@@ -943,6 +1023,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.Friend"><code class="flex name class">
 <span>class <span class="ident">Friend</span></span>
@@ -984,6 +1072,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.Group"><code class="flex name class">
 <span>class <span class="ident">Group</span></span>
@@ -1025,6 +1121,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.GroupConfig"><code class="flex name class">
 <span>class <span class="ident">GroupConfig</span></span>
@@ -1090,6 +1194,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.Member"><code class="flex name class">
 <span>class <span class="ident">Member</span></span>
@@ -1156,6 +1268,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.MemberInfo"><code class="flex name class">
 <span>class <span class="ident">MemberInfo</span></span>
@@ -1201,6 +1321,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.MemberPerm"><code class="flex name class">
 <span>class <span class="ident">MemberPerm</span></span>
@@ -1344,6 +1472,14 @@ class BotMessage(AriadneBaseModel):
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.Profile"><code class="flex name class">
 <span>class <span class="ident">Profile</span></span>
@@ -1402,6 +1538,14 @@ class BotMessage(AriadneBaseModel):
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.UploadMethod"><code class="flex name class">
 <span>class <span class="ident">UploadMethod</span></span>
@@ -1465,6 +1609,7 @@ class BotMessage(AriadneBaseModel):
 <h4><code><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.model.AriadneBaseModel.Config" href="#ariadne.model.AriadneBaseModel.Config">Config</a></code></li>
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
 </ul>
 </li>
 <li>

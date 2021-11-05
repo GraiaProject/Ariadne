@@ -4,6 +4,8 @@ import sys
 
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from graia.ariadne.message.element import At, Plain
+
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
 
@@ -12,11 +14,11 @@ from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter
 from graia.ariadne.app import Ariadne
-from graia.ariadne.event.message import FriendMessage, MessageEvent
+from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.parser.literature import Literature
-from graia.ariadne.model import Friend, MiraiSession
+from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 if __name__ == "__main__":
     url, account, verify_key = (
@@ -45,6 +47,13 @@ if __name__ == "__main__":
     @bcc.receiver(MessageEvent, dispatchers=[Literature("/test")])
     async def _(app: Ariadne, dii: DispatcherInterface):
         await app.sendMessage(dii.event, MessageChain.create("Auto reply to /test!"))
+
+    @bcc.receiver(GroupMessage)
+    async def reply(app: Ariadne, chain: MessageChain, group: Group, member: Member):
+        if chain.asDisplay() == "Hi!" and member.id == 2907489501:
+            await app.sendGroupMessage(
+                group, MessageChain.create([At(member.id), Plain("Hello World!")])
+            )
 
     async def main():
         await app.launch()

@@ -6,12 +6,9 @@ from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
 
-from pydantic import BaseModel, validator
+from pydantic import validator
 from pydantic.fields import Field
 from typing_extensions import ParamSpec
-
-if TYPE_CHECKING:
-    from pydantic.typing import AbstractSetIntStr, MappingIntStrAny, DictStrAny
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
@@ -272,7 +269,7 @@ class MusicShare(Element):
         return f"[音乐分享:{self.title}]"
 
 
-class ForwardNode(BaseModel):
+class ForwardNode(AriadneBaseModel):
     "表示合并转发中的一个节点"
     senderId: int
     time: datetime
@@ -389,30 +386,9 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data)
             return data
 
-    def dict(
-        self,
-        *,
-        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        by_alias: bool = False,
-        skip_defaults: bool = None,
-        exclude_unset: bool = False,
-        exclude_defaults: bool = False,
-        exclude_none: bool = False,
-    ) -> "DictStrAny":
-        return super().dict(
-            include=include,
-            exclude={"bytes"},
-            by_alias=True,
-            skip_defaults=skip_defaults,
-            exclude_unset=exclude_unset,
-            exclude_defaults=exclude_defaults,
-            exclude_none=True,
-        )
-
     def asPersistentString(self, *, binary: bool = True) -> str:
         return (
-            f"[{self.type}:{j_dump(self.dict(exclude='type'))}]"
+            f"[{self.type}:{j_dump(self.dict(exclude={'type'}))}]"
             if binary
             else f"[{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
         )

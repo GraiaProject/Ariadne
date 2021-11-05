@@ -15,7 +15,7 @@ from aiohttp.http_websocket import WSMsgType
 from graia.broadcast import Broadcast
 from graia.broadcast.utilles import run_always_await
 from loguru import logger
-from typing_extensions import ParamSpec
+from typing_extensions import Concatenate, ParamSpec
 from yarl import URL
 
 from .context import enter_context
@@ -32,7 +32,9 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def require_verified(func: Callable[P, R]) -> Callable[P, R]:
+def require_verified(
+    func: Callable[Concatenate["Adapter", P], R]
+) -> Callable[Concatenate["Adapter", P], R]:
     @functools.wraps(func)
     def wrapper(self: "Adapter", *args: P.args, **kwargs: P.kwargs):
         if not self.mirai_session.session_key:
@@ -42,11 +44,13 @@ def require_verified(func: Callable[P, R]) -> Callable[P, R]:
     return wrapper
 
 
-def error_wrapper(network_action_callable: Callable[P, R]) -> Callable[P, R]:
+def error_wrapper(
+    network_action_callable: Callable[Concatenate["Adapter", P], R]
+) -> Callable[Concatenate["Adapter", P], R]:
     @functools.wraps(network_action_callable)
     async def wrapped_network_action_callable(
         self: "Adapter", *args: P.args, **kwargs: P.kwargs
-    ):
+    ) -> R:
         running_count = 0
 
         while running_count < 5:
@@ -197,7 +201,7 @@ class HttpAdapter(Adapter):
         mirai_session: MiraiSession,
         fetch_interval: float = 0.5,
     ) -> None:
-        super.__init__(self, broadcast, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.fetch_interval = fetch_interval
         raise NotImplementedError("HTTP Adapter is not supported yet!")
 

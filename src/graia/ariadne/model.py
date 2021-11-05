@@ -7,6 +7,9 @@ from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra
 from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
+
+if TYPE_CHECKING:
+    from pydantic.typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 from yarl import URL
 
 if TYPE_CHECKING:
@@ -22,16 +25,33 @@ class AriadneBaseModel(BaseModel):
     Ariadne 一切数据模型的基类.
     """
 
+    def dict(
+        self,
+        *,
+        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        by_alias: bool = False,
+        skip_defaults: bool = None,
+        exclude_unset: bool = False,
+        exclude_defaults: bool = False,
+        exclude_none: bool = False,
+    ) -> "DictStrAny":
+        return super().dict(
+            include=include,
+            exclude=exclude,
+            by_alias=True,
+            skip_defaults=skip_defaults,
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+            exclude_none=True,
+        )
+
     class Config(BaseConfig):
         extra = Extra.allow
 
 
 class ChatLogConfig(BaseModel):
-    """配置日志如何记录 QQ 消息与事件.
-
-    Args:
-        BaseModel ([type]): [description]
-    """
+    """配置日志如何记录 QQ 消息与事件."""
 
     enabled: bool = True
     log_level: str = "INFO"
@@ -78,13 +98,11 @@ class ChatLogConfig(BaseModel):
         def log_friend_message(event: FriendMessage):
             logger.log(
                 self.log_level,
-                self.friend_message_log_format.format_map(
-                    dict(
-                        bot_id=app.mirai_session.account,
-                        friend_name=event.sender.nickname,
-                        friend_id=event.sender.id,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.friend_message_log_format.format(
+                    bot_id=app.mirai_session.account,
+                    friend_name=event.sender.nickname,
+                    friend_id=event.sender.id,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -92,17 +110,15 @@ class ChatLogConfig(BaseModel):
         def log_temp_message(event: TempMessage):
             logger.log(
                 self.log_level,
-                self.temp_message_log_format.format_map(
-                    dict(
-                        group_id=event.sender.group.id,
-                        group_name=event.sender.group.name,
-                        member_id=event.sender.id,
-                        member_name=event.sender.name,
-                        member_permission=event.sender.permission.name,
-                        bot_id=app.mirai_session.account,
-                        bot_permission=event.sender.group.accountPerm.name,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.temp_message_log_format.format(
+                    group_id=event.sender.group.id,
+                    group_name=event.sender.group.name,
+                    member_id=event.sender.id,
+                    member_name=event.sender.name,
+                    member_permission=event.sender.permission.name,
+                    bot_id=app.mirai_session.account,
+                    bot_permission=event.sender.group.accountPerm.name,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -110,7 +126,7 @@ class ChatLogConfig(BaseModel):
         def log_stranger_message(event: StrangerMessage):
             logger.log(
                 self.log_level,
-                self.stranger_message_log_format.format_map(
+                self.stranger_message_log_format.format(
                     bot_id=app.mirai_session.account,
                     stranger_name=event.sender.nickname,
                     stranger_id=event.sender.id,
@@ -122,7 +138,7 @@ class ChatLogConfig(BaseModel):
         def log_other_client_message(event: OtherClientMessage):
             logger.log(
                 self.log_level,
-                self.other_client_message_log_format.format_map(
+                self.other_client_message_log_format.format(
                     bot_id=app.mirai_session.account,
                     platform_name=event.sender.platform,
                     platform_id=event.sender.id,

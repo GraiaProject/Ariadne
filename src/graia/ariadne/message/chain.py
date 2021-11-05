@@ -5,11 +5,8 @@ import json
 import re
 from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
-from graia.broadcast.utilles import run_always_await
-from pydantic import BaseModel
-
-from graia.ariadne.util import gen_subclass
-
+from ..model import AriadneBaseModel
+from ..util import gen_subclass
 from .element import (
     At,
     AtAll,
@@ -28,7 +25,7 @@ MessageIndex = Tuple[int, Optional[int]]
 Element_T = TypeVar("Element_T", bound=Element)
 
 
-class MessageChain(BaseModel):
+class MessageChain(AriadneBaseModel):
     """
     即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有继承了 Element 的各式类实例.
     """

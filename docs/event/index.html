@@ -26,18 +26,22 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from graia.broadcast import Dispatchable
-from pydantic import BaseModel, validator
+<pre><code class="python">from typing import Type
+
+from graia.broadcast import Dispatchable
+from pydantic import validator
+
+from graia.ariadne.model import AriadneBaseModel
 
 from ..dispatcher import ApplicationDispatcher
 from ..exception import InvalidEventTypeDefinition
 
 
-class MiraiEvent(Dispatchable, BaseModel):
+class MiraiEvent(Dispatchable, AriadneBaseModel):
     type: str
 
     @validator(&#34;type&#34;, allow_reuse=True)
-    def type_limit(cls, v):
+    def validate_event_type(cls, v):
         if cls.type != v:
             raise InvalidEventTypeDefinition(
                 &#34;{0}&#39;s type must be &#39;{1}&#39;, not &#39;{2}&#39;&#34;.format(cls.__name__, cls.type, v)
@@ -83,17 +87,18 @@ class MiraiEvent(Dispatchable, BaseModel):
 <span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<div class="desc"><p>Ariadne 一切数据模型的基类.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
 <p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class MiraiEvent(Dispatchable, BaseModel):
+<pre><code class="python">class MiraiEvent(Dispatchable, AriadneBaseModel):
     type: str
 
     @validator(&#34;type&#34;, allow_reuse=True)
-    def type_limit(cls, v):
+    def validate_event_type(cls, v):
         if cls.type != v:
             raise InvalidEventTypeDefinition(
                 &#34;{0}&#39;s type must be &#39;{1}&#39;, not &#39;{2}&#39;&#34;.format(cls.__name__, cls.type, v)
@@ -108,6 +113,7 @@ class MiraiEvent(Dispatchable, BaseModel):
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>graia.broadcast.entities.event.Dispatchable</li>
+<li>graia.ariadne.model.AriadneBaseModel</li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 </ul>
@@ -141,8 +147,8 @@ class MiraiEvent(Dispatchable, BaseModel):
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="ariadne.event.MiraiEvent.type_limit"><code class="name flex">
-<span>def <span class="ident">type_limit</span></span>(<span>v)</span>
+<dt id="ariadne.event.MiraiEvent.validate_event_type"><code class="name flex">
+<span>def <span class="ident">validate_event_type</span></span>(<span>v)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -151,7 +157,7 @@ class MiraiEvent(Dispatchable, BaseModel):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@validator(&#34;type&#34;, allow_reuse=True)
-def type_limit(cls, v):
+def validate_event_type(cls, v):
     if cls.type != v:
         raise InvalidEventTypeDefinition(
             &#34;{0}&#39;s type must be &#39;{1}&#39;, not &#39;{2}&#39;&#34;.format(cls.__name__, cls.type, v)
@@ -191,7 +197,7 @@ def type_limit(cls, v):
 <li><code><a title="ariadne.event.MiraiEvent.Config" href="#ariadne.event.MiraiEvent.Config">Config</a></code></li>
 <li><code><a title="ariadne.event.MiraiEvent.Dispatcher" href="#ariadne.event.MiraiEvent.Dispatcher">Dispatcher</a></code></li>
 <li><code><a title="ariadne.event.MiraiEvent.type" href="#ariadne.event.MiraiEvent.type">type</a></code></li>
-<li><code><a title="ariadne.event.MiraiEvent.type_limit" href="#ariadne.event.MiraiEvent.type_limit">type_limit</a></code></li>
+<li><code><a title="ariadne.event.MiraiEvent.validate_event_type" href="#ariadne.event.MiraiEvent.validate_event_type">validate_event_type</a></code></li>
 </ul>
 </li>
 </ul>

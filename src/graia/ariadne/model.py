@@ -59,7 +59,7 @@ class AriadneBaseModel(BaseModel):
         extra = Extra.allow
 
 
-class ChatLogConfig(BaseModel):
+class ChatLogConfig(AriadneBaseModel):
     """配置日志如何记录 QQ 消息与事件."""
 
     enabled: bool = True
@@ -75,6 +75,14 @@ class ChatLogConfig(BaseModel):
     stranger_message_log_format: str = (
         "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
     )
+
+    def __init__(
+        __pydantic_self__,
+        enabled: bool = True,
+        log_level: str = "INFO",
+        **msg_format: str,
+    ) -> None:
+        super().__init__(enabled=enabled, log_level=log_level, **msg_format)
 
     def initialize(self, app: "Ariadne"):
         from .event.message import (

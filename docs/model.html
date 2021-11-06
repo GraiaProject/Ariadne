@@ -87,7 +87,7 @@ class AriadneBaseModel(BaseModel):
         extra = Extra.allow
 
 
-class ChatLogConfig(BaseModel):
+class ChatLogConfig(AriadneBaseModel):
     &#34;&#34;&#34;配置日志如何记录 QQ 消息与事件.&#34;&#34;&#34;
 
     enabled: bool = True
@@ -103,6 +103,14 @@ class ChatLogConfig(BaseModel):
     stranger_message_log_format: str = (
         &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
     )
+
+    def __init__(
+        __pydantic_self__,
+        enabled: bool = True,
+        log_level: str = &#34;INFO&#34;,
+        **msg_format: str,
+    ) -&gt; None:
+        super().__init__(enabled=enabled, log_level=log_level, **msg_format)
 
     def initialize(self, app: &#34;Ariadne&#34;):
         from .event.message import (
@@ -454,6 +462,7 @@ class BotMessage(AriadneBaseModel):
 <li><a title="ariadne.message.element.Element" href="message/element.html#ariadne.message.element.Element">Element</a></li>
 <li><a title="ariadne.message.element.ForwardNode" href="message/element.html#ariadne.message.element.ForwardNode">ForwardNode</a></li>
 <li><a title="ariadne.model.BotMessage" href="#ariadne.model.BotMessage">BotMessage</a></li>
+<li><a title="ariadne.model.ChatLogConfig" href="#ariadne.model.ChatLogConfig">ChatLogConfig</a></li>
 <li><a title="ariadne.model.Client" href="#ariadne.model.Client">Client</a></li>
 <li><a title="ariadne.model.DownloadInfo" href="#ariadne.model.DownloadInfo">DownloadInfo</a></li>
 <li><a title="ariadne.model.FileInfo" href="#ariadne.model.FileInfo">FileInfo</a></li>
@@ -599,7 +608,7 @@ class BotMessage(AriadneBaseModel):
 </dd>
 <dt id="ariadne.model.ChatLogConfig"><code class="flex name class">
 <span>class <span class="ident">ChatLogConfig</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>enabled: bool = True, log_level: str = 'INFO', **msg_format: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>配置日志如何记录 QQ 消息与事件.</p>
@@ -609,7 +618,7 @@ class BotMessage(AriadneBaseModel):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ChatLogConfig(BaseModel):
+<pre><code class="python">class ChatLogConfig(AriadneBaseModel):
     &#34;&#34;&#34;配置日志如何记录 QQ 消息与事件.&#34;&#34;&#34;
 
     enabled: bool = True
@@ -625,6 +634,14 @@ class BotMessage(AriadneBaseModel):
     stranger_message_log_format: str = (
         &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
     )
+
+    def __init__(
+        __pydantic_self__,
+        enabled: bool = True,
+        log_level: str = &#34;INFO&#34;,
+        **msg_format: str,
+    ) -&gt; None:
+        super().__init__(enabled=enabled, log_level=log_level, **msg_format)
 
     def initialize(self, app: &#34;Ariadne&#34;):
         from .event.message import (
@@ -707,6 +724,7 @@ class BotMessage(AriadneBaseModel):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 </ul>
@@ -833,6 +851,14 @@ class BotMessage(AriadneBaseModel):
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="ariadne.model.Client"><code class="flex name class">
 <span>class <span class="ident">Client</span></span>

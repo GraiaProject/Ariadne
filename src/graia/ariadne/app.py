@@ -3,7 +3,7 @@ import time
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.tasks import Task
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Literal, Optional, Union
 
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -1116,7 +1116,7 @@ class Ariadne(
         broadcast: Broadcast,
         adapter: Adapter,
         *,
-        chat_log_config: Optional[ChatLogConfig] = None,
+        chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
         use_bypass_listener: Optional[bool] = False,
     ):
@@ -1126,7 +1126,7 @@ class Ariadne(
         Args:
             broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
             adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
-            chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法. 设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持
         """
@@ -1140,14 +1140,17 @@ class Ariadne(
         self.daemon_task: Optional[Task] = None
         self.running: bool = False
         self.remote_version: str = ""
+        chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
-            chat_log_config if chat_log_config else ChatLogConfig()
+            chat_log_config
+            if chat_log_config
+            else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_loguru_traceback:
             inject_loguru_traceback()
 
     @classmethod
-    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast]):
+    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast] = None):
         """快速创建一个 `Ariadne` 实例.
 
         Args:

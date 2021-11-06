@@ -3,10 +3,9 @@ from typing import Type
 from graia.broadcast import Dispatchable
 from pydantic import validator
 
-from graia.ariadne.model import AriadneBaseModel
-
 from ..dispatcher import ApplicationDispatcher
 from ..exception import InvalidEventTypeDefinition
+from ..model import AriadneBaseModel
 
 
 class MiraiEvent(Dispatchable, AriadneBaseModel):

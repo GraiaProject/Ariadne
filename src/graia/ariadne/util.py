@@ -100,6 +100,16 @@ def inject_bypass_listener(broadcast: Broadcast):
                 priority=priority,
             )
 
+    @broadcast.dispatcher_interface.inject_global_raw
+    async def _(interface: DispatcherInterface):
+        if isinstance(interface.event, interface.annotation):
+            return interface.event
+        elif (
+            hasattr(interface.annotation, "__origin__")
+            and interface.annotation.__origin__ is DispatcherInterface
+        ):
+            return interface
+
     import graia.broadcast.entities.listener
 
     graia.broadcast.entities.listener.Listener = BypassListener

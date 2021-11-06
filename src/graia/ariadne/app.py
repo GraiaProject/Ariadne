@@ -1128,7 +1128,7 @@ class Ariadne(
             adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
             chat_log_config (ChatLogConfig): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
-            use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持 (注意：请使用 dii: DispatcherInterface 获取 dii, 后通过 dii.event 获取事件!)
+            use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持
         """
         self.broadcast: Broadcast = broadcast
         if use_bypass_listener:

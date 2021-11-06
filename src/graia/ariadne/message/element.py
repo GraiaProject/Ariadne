@@ -39,7 +39,7 @@ class Element(AriadneBaseModel, abc.ABC):
         return ""
 
     def asPersistentString(self) -> str:
-        return f"[mirai:{self.type}:{j_dump(self.dict(exclude='type'))}]"
+        return f"[mirai:{self.type}:{j_dump(self.dict(exclude={'type'}))}]"
 
     def prepare(self) -> None:
         """
@@ -212,8 +212,11 @@ class App(Element):
     def asDisplay(self) -> str:
         return "[APP消息]"
 
+
+"""
     def asPersistentString(self) -> str:
         return ""
+"""
 
 
 class PokeMethods(Enum):
@@ -388,9 +391,9 @@ class MultimediaElement(Element):
 
     def asPersistentString(self, *, binary: bool = True) -> str:
         return (
-            f"[{self.type}:{j_dump(self.dict(exclude={'type'}))}]"
+            f"[mirai:{self.type}:{j_dump(self.dict(exclude={'type'}))}]"
             if binary
-            else f"[{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
+            else f"[mirai:{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
         )
 
     @property
@@ -445,7 +448,7 @@ class FlashImage(Image):
 class Voice(MultimediaElement):
     "指示消息中的语音元素"
     type = "Voice"
-    id: Optional[str] = Field(..., alias="voiceId")
+    id: Optional[str] = Field(None, alias="voiceId")
     length: Optional[int]
 
     def asDisplay(self) -> str:

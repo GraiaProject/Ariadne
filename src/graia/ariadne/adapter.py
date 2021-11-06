@@ -22,7 +22,7 @@ from .context import enter_context
 from .event import MiraiEvent
 from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
-from .model import CallMethod, MiraiSession
+from .model import CallMethod, DatetimeEncoder, MiraiSession
 from .util import validate_response
 
 if TYPE_CHECKING:
@@ -122,7 +122,7 @@ class Adapter(abc.ABC):
     @require_verified
     @error_wrapper
     async def call_api(
-        self, action: str, method: CallMethod, data: Optional[dict] = None
+        self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
     ) -> Union[dict, list]:
         """
         向Mirai端发送数据.
@@ -212,18 +212,22 @@ class HttpAdapter(Adapter):
     @require_verified
     @error_wrapper
     async def call_api(
-        self, action: str, method: CallMethod, data: Optional[dict] = {}
+        self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
     ) -> Union[dict, list]:
         data = data or dict()
         if method == CallMethod.GET or method == CallMethod.RESTGET:
+            if isinstance(data, str):
+                data = json.loads(data)
             async with self.session.get(
                 URL(self.mirai_session.url_gen(action)).with_query(data)
             ) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
         elif method == CallMethod.POST or method == CallMethod.RESTPOST:
+            if not isinstance(data, str):
+                data = json.dumps(data, cls=DatetimeEncoder)
             async with self.session.post(
-                self.mirai_session.url_gen(action), data=json.dumps(data)
+                self.mirai_session.url_gen(action), data=data
             ) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
@@ -297,7 +301,7 @@ class WebsocketAdapter(Adapter):
     @require_verified
     @error_wrapper
     async def call_api(
-        self, action: str, method: CallMethod, data: Optional[dict] = None
+        self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
     ) -> Union[dict, list]:
         data = data or dict()
         if not self.ws_conn:
@@ -305,10 +309,12 @@ class WebsocketAdapter(Adapter):
         sync_id = self.SyncIdManager.allocate()
         event = self.CallResponse()
         self.sync_event[sync_id] = event
+        if not isinstance(data, str):
+            data = json.dumps(data, cls=DatetimeEncoder)
         content = {
             "syncId": sync_id,
             "command": action,
-            "content": json.dumps(data),
+            "content": data,
         }
         if method == CallMethod.RESTGET:
             content["subCommand"] = "get"

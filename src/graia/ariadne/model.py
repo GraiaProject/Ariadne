@@ -1,6 +1,7 @@
+import json
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 from loguru import logger
 from pydantic import BaseModel, Field, validator
@@ -10,6 +11,7 @@ from typing_extensions import Literal
 
 if TYPE_CHECKING:
     from pydantic.typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
+
 from yarl import URL
 
 if TYPE_CHECKING:
@@ -18,6 +20,13 @@ if TYPE_CHECKING:
 
 def datetime_encoder(v: datetime):
     return v.timestamp()
+
+
+class DatetimeEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, datetime):
+            return int(o.timestamp())
+        return super().default(o)
 
 
 class AriadneBaseModel(BaseModel):

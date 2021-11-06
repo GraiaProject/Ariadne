@@ -23,11 +23,9 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import Element
-
 from ...event.message import MessageEvent
 from ..chain import MessageChain
+from ..element import Element
 from .pattern import ArgumentMatch, FullMatch, Match, RegexMatch
 
 

@@ -31,10 +31,9 @@
 from graia.broadcast import Dispatchable
 from pydantic import validator
 
-from graia.ariadne.model import AriadneBaseModel
-
 from ..dispatcher import ApplicationDispatcher
 from ..exception import InvalidEventTypeDefinition
+from ..model import AriadneBaseModel
 
 
 class MiraiEvent(Dispatchable, AriadneBaseModel):
@@ -113,7 +112,7 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>graia.broadcast.entities.event.Dispatchable</li>
-<li>graia.ariadne.model.AriadneBaseModel</li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
 <li>pydantic.main.BaseModel</li>
 <li>pydantic.utils.Representation</li>
 </ul>
@@ -166,6 +165,14 @@ def validate_event_type(cls, v):
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>

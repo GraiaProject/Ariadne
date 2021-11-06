@@ -52,6 +52,12 @@ MessageIndex = Tuple[int, Optional[int]]
 
 Element_T = TypeVar(&#34;Element_T&#34;, bound=Element)
 
+ELEMENT_MAPPING = {
+    i.__fields__[&#34;type&#34;].default: i
+    for i in gen_subclass(Element)
+    if hasattr(i.__fields__[&#34;type&#34;], &#34;default&#34;)
+}
+
 
 class MessageChain(AriadneBaseModel):
     &#34;&#34;&#34;
@@ -536,13 +542,12 @@ class MessageChain(AriadneBaseModel):
 
     @classmethod
     def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
-        element_mapping = {i.type: i for i in gen_subclass(Element)}
         result = []
         for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
             mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
             if mirai:
                 j_string = mirai.group(3)
-                element_cls = element_mapping[mirai.group(1)]
+                element_cls = ELEMENT_MAPPING[mirai.group(1)]
                 result.append(element_cls.parse_obj(json.loads(j_string)))
             elif match:
                 result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
@@ -1135,13 +1140,12 @@ _update_forward_refs()</code></pre>
 
     @classmethod
     def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
-        element_mapping = {i.type: i for i in gen_subclass(Element)}
         result = []
         for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
             mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
             if mirai:
                 j_string = mirai.group(3)
-                element_cls = element_mapping[mirai.group(1)]
+                element_cls = ELEMENT_MAPPING[mirai.group(1)]
                 result.append(element_cls.parse_obj(json.loads(j_string)))
             elif match:
                 result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))
@@ -1367,13 +1371,12 @@ def fromMappingString(
 </summary>
 <pre><code class="python">@classmethod
 def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
-    element_mapping = {i.type: i for i in gen_subclass(Element)}
     result = []
     for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
         mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
         if mirai:
             j_string = mirai.group(3)
-            element_cls = element_mapping[mirai.group(1)]
+            element_cls = ELEMENT_MAPPING[mirai.group(1)]
             result.append(element_cls.parse_obj(json.loads(j_string)))
         elif match:
             result.append(Plain(match.replace(&#34;[_&#34;, &#34;[&#34;)))

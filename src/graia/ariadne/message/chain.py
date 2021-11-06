@@ -24,6 +24,12 @@ MessageIndex = Tuple[int, Optional[int]]
 
 Element_T = TypeVar("Element_T", bound=Element)
 
+ELEMENT_MAPPING = {
+    i.__fields__["type"].default: i
+    for i in gen_subclass(Element)
+    if hasattr(i.__fields__["type"], "default")
+}
+
 
 class MessageChain(AriadneBaseModel):
     """
@@ -508,13 +514,12 @@ class MessageChain(AriadneBaseModel):
 
     @classmethod
     def fromPersistentString(cls, string) -> "MessageChain":
-        element_mapping = {i.type: i for i in gen_subclass(Element)}
         result = []
         for match in re.split(r"(\[mirai:.+?\])", string):
             mirai = re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match)
             if mirai:
                 j_string = mirai.group(3)
-                element_cls = element_mapping[mirai.group(1)]
+                element_cls = ELEMENT_MAPPING[mirai.group(1)]
                 result.append(element_cls.parse_obj(json.loads(j_string)))
             elif match:
                 result.append(Plain(match.replace("[_", "[")))

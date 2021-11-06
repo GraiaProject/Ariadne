@@ -51,11 +51,9 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import Element
-
 from ...event.message import MessageEvent
 from ..chain import MessageChain
+from ..element import Element
 from .pattern import ArgumentMatch, FullMatch, Match, RegexMatch
 
 
@@ -262,7 +260,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <dl>
 <dt id="ariadne.message.parser.twilight.ArgumentMatchType"><code class="flex name class">
 <span>class <span class="ident">ArgumentMatchType</span></span>
-<span>(</span><span>match: <a title="ariadne.message.parser.pattern.ArgumentMatch" href="pattern.html#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a>, regex: re.Pattern, mapping: Dict[str, graia.ariadne.message.element.Element])</span>
+<span>(</span><span>match: <a title="ariadne.message.parser.pattern.ArgumentMatch" href="pattern.html#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a>, regex: re.Pattern, mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -494,7 +492,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <h3>Static methods</h3>
 <dl>
 <dt id="ariadne.message.parser.twilight.Twilight.build_arg_parser"><code class="name flex">
-<span>def <span class="ident">build_arg_parser</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, graia.ariadne.message.element.Element]) ‑> <a title="ariadne.message.parser.twilight.TwilightParser" href="#ariadne.message.parser.twilight.TwilightParser">TwilightParser</a></span>
+<span>def <span class="ident">build_arg_parser</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>]) ‑> <a title="ariadne.message.parser.twilight.TwilightParser" href="#ariadne.message.parser.twilight.TwilightParser">TwilightParser</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -545,7 +543,7 @@ def dump_namespace(sparkle: Sparkle, namespace: argparse.Namespace) -&gt; None:
 </details>
 </dd>
 <dt id="ariadne.message.parser.twilight.Twilight.match_regex"><code class="name flex">
-<span>def <span class="ident">match_regex</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, graia.ariadne.message.element.Element], arg_list: List[str]) ‑> None</span>
+<span>def <span class="ident">match_regex</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>], arg_list: List[str]) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"></div>

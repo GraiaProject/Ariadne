@@ -344,14 +344,14 @@ class MultimediaElement(Element):
         self,
         id: Optional[str] = None,
         url: Optional[str] = None,
+        *,
         path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
-        *,
         data_bytes: Optional[bytes] = None,
         **kwargs,
     ) -> None:
         data = {}
-        if sum([bool(path), bool(path), bool(base64)]) > 1:
+        if sum([bool(url), bool(path), bool(base64)]) > 1:
             raise ValueError("Too many binary initializers!")
         # Web initializer
         data["id"] = id
@@ -362,7 +362,7 @@ class MultimediaElement(Element):
                 path = Path(path)
             if not path.exists():
                 raise FileNotFoundError(f"{path} is not exist!")
-            data_bytes = path.read_bytes()
+            data["base64"] = b64encode(path.read_bytes())
         elif base64:
             data["base64"] = base64
         elif data_bytes:

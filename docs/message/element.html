@@ -372,14 +372,14 @@ class MultimediaElement(Element):
         self,
         id: Optional[str] = None,
         url: Optional[str] = None,
+        *,
         path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
-        *,
         data_bytes: Optional[bytes] = None,
         **kwargs,
     ) -&gt; None:
         data = {}
-        if sum([bool(path), bool(path), bool(base64)]) &gt; 1:
+        if sum([bool(url), bool(path), bool(base64)]) &gt; 1:
             raise ValueError(&#34;Too many binary initializers!&#34;)
         # Web initializer
         data[&#34;id&#34;] = id
@@ -390,7 +390,7 @@ class MultimediaElement(Element):
                 path = Path(path)
             if not path.exists():
                 raise FileNotFoundError(f&#34;{path} is not exist!&#34;)
-            data_bytes = path.read_bytes()
+            data[&#34;base64&#34;] = b64encode(path.read_bytes())
         elif base64:
             data[&#34;base64&#34;] = base64
         elif data_bytes:
@@ -1090,7 +1090,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.FlashImage"><code class="flex name class">
 <span>class <span class="ident">FlashImage</span></span>
-<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, *, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的闪照元素</p>
@@ -1340,7 +1340,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </dd>
 <dt id="ariadne.message.element.Image"><code class="flex name class">
 <span>class <span class="ident">Image</span></span>
-<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, *, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的图片元素</p>
@@ -1553,7 +1553,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 </dd>
 <dt id="ariadne.message.element.MultimediaElement"><code class="flex name class">
 <span>class <span class="ident">MultimediaElement</span></span>
-<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, *, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示多媒体消息元素.</p>
@@ -1574,14 +1574,14 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
         self,
         id: Optional[str] = None,
         url: Optional[str] = None,
+        *,
         path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
-        *,
         data_bytes: Optional[bytes] = None,
         **kwargs,
     ) -&gt; None:
         data = {}
-        if sum([bool(path), bool(path), bool(base64)]) &gt; 1:
+        if sum([bool(url), bool(path), bool(base64)]) &gt; 1:
             raise ValueError(&#34;Too many binary initializers!&#34;)
         # Web initializer
         data[&#34;id&#34;] = id
@@ -1592,7 +1592,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
                 path = Path(path)
             if not path.exists():
                 raise FileNotFoundError(f&#34;{path} is not exist!&#34;)
-            data_bytes = path.read_bytes()
+            data[&#34;base64&#34;] = b64encode(path.read_bytes())
         elif base64:
             data[&#34;base64&#34;] = base64
         elif data_bytes:
@@ -2303,7 +2303,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.Voice"><code class="flex name class">
 <span>class <span class="ident">Voice</span></span>
-<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, *, data_bytes: Optional[bytes] = None, **kwargs)</span>
+<span>(</span><span>id: Optional[str] = None, url: Optional[str] = None, *, path: Union[pathlib.Path, str, ForwardRef(None)] = None, base64: Optional[str] = None, data_bytes: Optional[bytes] = None, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示消息中的语音元素</p>

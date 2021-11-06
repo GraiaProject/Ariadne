@@ -1,0 +1,34 @@
+site_name: Ariadne 文档
+theme:
+  name: material
+  language: zh
+  icon:
+    repo: fontawesome/brands/git-alt
+    logo: material/file-document-multiple-outline
+  favicon: images/favicon.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: 黑暗模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: 明亮模式
+
+repo_url: https://github.com/GraiaProject/Ariadne
+repo_name: GraiaProject/Ariadne
+copyright: Copyright &copy; 2021 Graia Project.
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/GraiaProject
+      name: Github 组织
+    - icon: fontawesome/brands/qq
+      link: https://jq.qq.com/?_wv=1027&k=VXp6plBD
+      name: QQ 群
+markdown_extensions:
+  - attr_list
+  - md_in_html

@@ -75,5 +75,9 @@ nav:
   - "配套设施":
       - "suite/scheduler.md"
       - "suite/saya.md"
+  - "迁移":
+      - "porting/guide.md"
+      - "porting/cheatsheet.md"
+  - "faq.md"
   - "credits.md"
   - GitHub 仓库: https://github.com/GraiaProject/Ariadne

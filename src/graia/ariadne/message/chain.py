@@ -488,6 +488,19 @@ class MessageChain(AriadneBaseModel):
         include: Optional[Iterable[Type[Element]]] = (),
         exclude: Optional[Iterable[Type[Element]]] = (),
     ) -> str:
+        """转换为持久化字符串.
+
+        Args:
+            binary (bool, optional): 是否附带图片或声音的二进制. 默认为 True.
+            include (Optional[Iterable[Type[Element]]], optional): 筛选, 只包含本参数提供的元素类型.
+            exclude (Optional[Iterable[Type[Element]]], optional): 筛选, 排除本参数提供的元素类型.
+
+        Raises:
+            ValueError: 同时提供 include 与 exclude
+
+        Returns:
+            str: 持久化字符串. 不是 Mirai Code.
+        """
         string_list = []
         include = tuple(include)
         exclude = tuple(exclude)
@@ -508,12 +521,18 @@ class MessageChain(AriadneBaseModel):
         return "".join(string_list)
 
     async def download_binary(self) -> None:
+        """下载消息中所有的二进制数据并保存在元素实例内"""
         for elem in self.__root__:
             if isinstance(elem, MultimediaElement):
                 await elem.get_bytes()
 
     @classmethod
-    def fromPersistentString(cls, string) -> "MessageChain":
+    def fromPersistentString(cls, string: str) -> "MessageChain":
+        """从持久化字符串生成消息链.
+
+        Returns:
+            MessageChain: 还原的消息链.
+        """
         result = []
         for match in re.split(r"(\[mirai:.+?\])", string):
             mirai = re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match)
@@ -526,11 +545,16 @@ class MessageChain(AriadneBaseModel):
         return MessageChain.create(result)
 
     def asMappingString(
-        self, *, remove_quote: bool = True, remove_extra_space: bool = False
+        self,
+        *,
+        remove_source: bool = True,
+        remove_quote: bool = True,
+        remove_extra_space: bool = False,
     ) -> Tuple[str, Dict[int, Element]]:
         """转换消息链为映射字符串与映射字典的元组.
 
         Args:
+            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
             remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
 
@@ -542,6 +566,8 @@ class MessageChain(AriadneBaseModel):
         for i, elem in enumerate(self.__root__):
             if not isinstance(elem, Plain):
                 if remove_quote and isinstance(elem, Quote):
+                    continue
+                elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
                 elem_str_list.append(f"\b{i}\b")
@@ -582,6 +608,15 @@ class MessageChain(AriadneBaseModel):
         return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -> "MessageChain":
+        """移除消息链前缀.
+
+        Args:
+            prefix (str): 要移除的前缀.
+            copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未移除则原样返回.
+        """
         elements = self.__root__[:]
         if not elements or not isinstance(elements[0], Plain):
             return self if not copy else self.copy()
@@ -593,6 +628,15 @@ class MessageChain(AriadneBaseModel):
                 self.__root__ = elements
 
     def removesuffix(self, suffix: str, *, copy: bool = True) -> "MessageChain":
+        """移除消息链后缀.
+
+        Args:
+            prefix (str): 要移除的后缀.
+            copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未移除则原样返回.
+        """
         elements = self.__root__[:]
         if not elements or not isinstance(elements[-1], Plain):
             return self if not copy else self.copy()

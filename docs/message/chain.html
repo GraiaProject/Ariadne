@@ -516,6 +516,19 @@ class MessageChain(AriadneBaseModel):
         include: Optional[Iterable[Type[Element]]] = (),
         exclude: Optional[Iterable[Type[Element]]] = (),
     ) -&gt; str:
+        &#34;&#34;&#34;转换为持久化字符串.
+
+        Args:
+            binary (bool, optional): 是否附带图片或声音的二进制. 默认为 True.
+            include (Optional[Iterable[Type[Element]]], optional): 筛选, 只包含本参数提供的元素类型.
+            exclude (Optional[Iterable[Type[Element]]], optional): 筛选, 排除本参数提供的元素类型.
+
+        Raises:
+            ValueError: 同时提供 include 与 exclude
+
+        Returns:
+            str: 持久化字符串. 不是 Mirai Code.
+        &#34;&#34;&#34;
         string_list = []
         include = tuple(include)
         exclude = tuple(exclude)
@@ -536,12 +549,18 @@ class MessageChain(AriadneBaseModel):
         return &#34;&#34;.join(string_list)
 
     async def download_binary(self) -&gt; None:
+        &#34;&#34;&#34;下载消息中所有的二进制数据并保存在元素实例内&#34;&#34;&#34;
         for elem in self.__root__:
             if isinstance(elem, MultimediaElement):
                 await elem.get_bytes()
 
     @classmethod
-    def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
+    def fromPersistentString(cls, string: str) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;从持久化字符串生成消息链.
+
+        Returns:
+            MessageChain: 还原的消息链.
+        &#34;&#34;&#34;
         result = []
         for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
             mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
@@ -554,11 +573,16 @@ class MessageChain(AriadneBaseModel):
         return MessageChain.create(result)
 
     def asMappingString(
-        self, *, remove_quote: bool = True, remove_extra_space: bool = False
+        self,
+        *,
+        remove_source: bool = True,
+        remove_quote: bool = True,
+        remove_extra_space: bool = False,
     ) -&gt; Tuple[str, Dict[int, Element]]:
         &#34;&#34;&#34;转换消息链为映射字符串与映射字典的元组.
 
         Args:
+            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
             remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
 
@@ -570,6 +594,8 @@ class MessageChain(AriadneBaseModel):
         for i, elem in enumerate(self.__root__):
             if not isinstance(elem, Plain):
                 if remove_quote and isinstance(elem, Quote):
+                    continue
+                elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
                 elem_str_list.append(f&#34;\b{i}\b&#34;)
@@ -610,6 +636,15 @@ class MessageChain(AriadneBaseModel):
         return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;移除消息链前缀.
+
+        Args:
+            prefix (str): 要移除的前缀.
+            copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未移除则原样返回.
+        &#34;&#34;&#34;
         elements = self.__root__[:]
         if not elements or not isinstance(elements[0], Plain):
             return self if not copy else self.copy()
@@ -621,6 +656,15 @@ class MessageChain(AriadneBaseModel):
                 self.__root__ = elements
 
     def removesuffix(self, suffix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;移除消息链后缀.
+
+        Args:
+            prefix (str): 要移除的后缀.
+            copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未移除则原样返回.
+        &#34;&#34;&#34;
         elements = self.__root__[:]
         if not elements or not isinstance(elements[-1], Plain):
             return self if not copy else self.copy()
@@ -1114,6 +1158,19 @@ _update_forward_refs()</code></pre>
         include: Optional[Iterable[Type[Element]]] = (),
         exclude: Optional[Iterable[Type[Element]]] = (),
     ) -&gt; str:
+        &#34;&#34;&#34;转换为持久化字符串.
+
+        Args:
+            binary (bool, optional): 是否附带图片或声音的二进制. 默认为 True.
+            include (Optional[Iterable[Type[Element]]], optional): 筛选, 只包含本参数提供的元素类型.
+            exclude (Optional[Iterable[Type[Element]]], optional): 筛选, 排除本参数提供的元素类型.
+
+        Raises:
+            ValueError: 同时提供 include 与 exclude
+
+        Returns:
+            str: 持久化字符串. 不是 Mirai Code.
+        &#34;&#34;&#34;
         string_list = []
         include = tuple(include)
         exclude = tuple(exclude)
@@ -1134,12 +1191,18 @@ _update_forward_refs()</code></pre>
         return &#34;&#34;.join(string_list)
 
     async def download_binary(self) -&gt; None:
+        &#34;&#34;&#34;下载消息中所有的二进制数据并保存在元素实例内&#34;&#34;&#34;
         for elem in self.__root__:
             if isinstance(elem, MultimediaElement):
                 await elem.get_bytes()
 
     @classmethod
-    def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
+    def fromPersistentString(cls, string: str) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;从持久化字符串生成消息链.
+
+        Returns:
+            MessageChain: 还原的消息链.
+        &#34;&#34;&#34;
         result = []
         for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
             mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
@@ -1152,11 +1215,16 @@ _update_forward_refs()</code></pre>
         return MessageChain.create(result)
 
     def asMappingString(
-        self, *, remove_quote: bool = True, remove_extra_space: bool = False
+        self,
+        *,
+        remove_source: bool = True,
+        remove_quote: bool = True,
+        remove_extra_space: bool = False,
     ) -&gt; Tuple[str, Dict[int, Element]]:
         &#34;&#34;&#34;转换消息链为映射字符串与映射字典的元组.
 
         Args:
+            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
             remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
 
@@ -1168,6 +1236,8 @@ _update_forward_refs()</code></pre>
         for i, elem in enumerate(self.__root__):
             if not isinstance(elem, Plain):
                 if remove_quote and isinstance(elem, Quote):
+                    continue
+                elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
                 elem_str_list.append(f&#34;\b{i}\b&#34;)
@@ -1208,6 +1278,15 @@ _update_forward_refs()</code></pre>
         return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;移除消息链前缀.
+
+        Args:
+            prefix (str): 要移除的前缀.
+            copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未移除则原样返回.
+        &#34;&#34;&#34;
         elements = self.__root__[:]
         if not elements or not isinstance(elements[0], Plain):
             return self if not copy else self.copy()
@@ -1219,6 +1298,15 @@ _update_forward_refs()</code></pre>
                 self.__root__ = elements
 
     def removesuffix(self, suffix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;移除消息链后缀.
+
+        Args:
+            prefix (str): 要移除的后缀.
+            copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未移除则原样返回.
+        &#34;&#34;&#34;
         elements = self.__root__[:]
         if not elements or not isinstance(elements[-1], Plain):
             return self if not copy else self.copy()
@@ -1361,16 +1449,26 @@ def fromMappingString(
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.fromPersistentString"><code class="name flex">
-<span>def <span class="ident">fromPersistentString</span></span>(<span>string) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+<span>def <span class="ident">fromPersistentString</span></span>(<span>string: str) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>从持久化字符串生成消息链.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dd>还原的消息链.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def fromPersistentString(cls, string) -&gt; &#34;MessageChain&#34;:
+def fromPersistentString(cls, string: str) -&gt; &#34;MessageChain&#34;:
+    &#34;&#34;&#34;从持久化字符串生成消息链.
+
+    Returns:
+        MessageChain: 还原的消息链.
+    &#34;&#34;&#34;
     result = []
     for match in re.split(r&#34;(\[mirai:.+?\])&#34;, string):
         mirai = re.fullmatch(r&#34;\[mirai:(.+?)(:(.+?))\]&#34;, match)
@@ -1461,12 +1559,14 @@ def parse_obj(
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.asMappingString"><code class="name flex">
-<span>def <span class="ident">asMappingString</span></span>(<span>self, *, remove_quote: bool = True, remove_extra_space: bool = False) ‑> Tuple[str, Dict[int, <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]]</span>
+<span>def <span class="ident">asMappingString</span></span>(<span>self, *, remove_source: bool = True, remove_quote: bool = True, remove_extra_space: bool = False) ‑> Tuple[str, Dict[int, <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>转换消息链为映射字符串与映射字典的元组.</p>
 <h2 id="args">Args</h2>
 <dl>
+<dt><strong><code>remove_source</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否移除消息链中的 Source 元素. 默认为 True.</dd>
 <dt><strong><code>remove_quote</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>是否移除消息链中的 Quote 元素. 默认为 True.</dd>
 <dt><strong><code>remove_extra_space</code></strong> :&ensp;<code>bool</code>, optional</dt>
@@ -1482,11 +1582,16 @@ def parse_obj(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asMappingString(
-    self, *, remove_quote: bool = True, remove_extra_space: bool = False
+    self,
+    *,
+    remove_source: bool = True,
+    remove_quote: bool = True,
+    remove_extra_space: bool = False,
 ) -&gt; Tuple[str, Dict[int, Element]]:
     &#34;&#34;&#34;转换消息链为映射字符串与映射字典的元组.
 
     Args:
+        remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
         remove_quote (bool, optional): 是否移除消息链中的 Quote 元素. 默认为 True.
         remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
 
@@ -1498,6 +1603,8 @@ def parse_obj(
     for i, elem in enumerate(self.__root__):
         if not isinstance(elem, Plain):
             if remove_quote and isinstance(elem, Quote):
+                continue
+            elif remove_source and isinstance(elem, Source):
                 continue
             elem_mapping[i] = elem
             elem_str_list.append(f&#34;\b{i}\b&#34;)
@@ -1520,7 +1627,26 @@ def parse_obj(
 <span>def <span class="ident">asPersistentString</span></span>(<span>self, *, binary: bool = True, include: Optional[Iterable[Type[Element]]] = (), exclude: Optional[Iterable[Type[Element]]] = ()) ‑> str</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>转换为持久化字符串.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>binary</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否附带图片或声音的二进制. 默认为 True.</dd>
+<dt><strong><code>include</code></strong> :&ensp;<code>Optional[Iterable[Type[Element]]]</code>, optional</dt>
+<dd>筛选, 只包含本参数提供的元素类型.</dd>
+<dt><strong><code>exclude</code></strong> :&ensp;<code>Optional[Iterable[Type[Element]]]</code>, optional</dt>
+<dd>筛选, 排除本参数提供的元素类型.</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>同时提供 include 与 exclude</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>持久化字符串. 不是 Mirai Code.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1532,6 +1658,19 @@ def parse_obj(
     include: Optional[Iterable[Type[Element]]] = (),
     exclude: Optional[Iterable[Type[Element]]] = (),
 ) -&gt; str:
+    &#34;&#34;&#34;转换为持久化字符串.
+
+    Args:
+        binary (bool, optional): 是否附带图片或声音的二进制. 默认为 True.
+        include (Optional[Iterable[Type[Element]]], optional): 筛选, 只包含本参数提供的元素类型.
+        exclude (Optional[Iterable[Type[Element]]], optional): 筛选, 排除本参数提供的元素类型.
+
+    Raises:
+        ValueError: 同时提供 include 与 exclude
+
+    Returns:
+        str: 持久化字符串. 不是 Mirai Code.
+    &#34;&#34;&#34;
     string_list = []
     include = tuple(include)
     exclude = tuple(exclude)
@@ -1612,12 +1751,13 @@ def parse_obj(
 <span>async def <span class="ident">download_binary</span></span>(<span>self) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>下载消息中所有的二进制数据并保存在元素实例内</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def download_binary(self) -&gt; None:
+    &#34;&#34;&#34;下载消息中所有的二进制数据并保存在元素实例内&#34;&#34;&#34;
     for elem in self.__root__:
         if isinstance(elem, MultimediaElement):
             await elem.get_bytes()</code></pre>
@@ -2050,12 +2190,33 @@ def parse_obj(
 <span>def <span class="ident">removeprefix</span></span>(<span>self, prefix: str, *, copy: bool = True) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>移除消息链前缀.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>prefix</code></strong> :&ensp;<code>str</code></dt>
+<dd>要移除的前缀.</dd>
+<dt><strong><code>copy</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否在副本上修改, 默认为 True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dd>修改后的消息链, 若未移除则原样返回.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def removeprefix(self, prefix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+    &#34;&#34;&#34;移除消息链前缀.
+
+    Args:
+        prefix (str): 要移除的前缀.
+        copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+    Returns:
+        MessageChain: 修改后的消息链, 若未移除则原样返回.
+    &#34;&#34;&#34;
     elements = self.__root__[:]
     if not elements or not isinstance(elements[0], Plain):
         return self if not copy else self.copy()
@@ -2071,12 +2232,33 @@ def parse_obj(
 <span>def <span class="ident">removesuffix</span></span>(<span>self, suffix: str, *, copy: bool = True) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>移除消息链后缀.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>prefix</code></strong> :&ensp;<code>str</code></dt>
+<dd>要移除的后缀.</dd>
+<dt><strong><code>copy</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否在副本上修改, 默认为 True.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code><a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></code></dt>
+<dd>修改后的消息链, 若未移除则原样返回.</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def removesuffix(self, suffix: str, *, copy: bool = True) -&gt; &#34;MessageChain&#34;:
+    &#34;&#34;&#34;移除消息链后缀.
+
+    Args:
+        prefix (str): 要移除的后缀.
+        copy (bool, optional): 是否在副本上修改, 默认为 True.
+
+    Returns:
+        MessageChain: 修改后的消息链, 若未移除则原样返回.
+    &#34;&#34;&#34;
     elements = self.__root__[:]
     if not elements or not isinstance(elements[-1], Plain):
         return self if not copy else self.copy()

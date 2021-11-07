@@ -5,8 +5,11 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?labelColor=ef8336)](https://pycqa.github.io/isort/)
 ______________________
-[文档](https://graiaproject.github.io/Ariadne/) 部署状态:
+[API 文档](https://graiaproject.github.io/Ariadne/) 部署状态:
 [![PDoc Deploy](https://img.shields.io/github/deployments/GraiaProject/Ariadne/github-pages)](https://graiaproject.github.io/Ariadne/)
+
+[入门文档](https://graia.readthedocs.io/zh_CN/latest/)部署状态：
+[![Read The Docs Deploy](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.readthedocs.io/zh_CN/latest/)
 
 一个适用于 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http) 的 Python SDK.
 

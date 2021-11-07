@@ -47,7 +47,6 @@ from typing import (
 )
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
-from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -57,7 +56,7 @@ from ..element import Element
 from .pattern import ArgumentMatch, FullMatch, Match, RegexMatch
 
 
-class TwilightParser(argparse.ArgumentParser):
+class _TwilightParser(argparse.ArgumentParser):
     def error(self, message) -&gt; NoReturn:
         raise ValueError(message)
 
@@ -69,7 +68,7 @@ class TwilightParser(argparse.ArgumentParser):
         return True
 
 
-class ArgumentMatchType:
+class _ArgumentMatchType:
     def __init__(
         self, match: ArgumentMatch, regex: re.Pattern, mapping: Dict[str, Element]
     ):
@@ -84,16 +83,28 @@ class ArgumentMatchType:
 
 
 class Sparkle:
-    def __init__(self, matches: Optional[Dict[str, Match]] = None):
+    def __init__(
+        self, check_args: Tuple[Match] = (), matches: Optional[Dict[str, Match]] = None
+    ):
         match_map: Dict[str, Match] = matches or {
             k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
         }
-        if any(k.startswith(&#34;_&#34;) or k[0] in string.digits for k in match_map.keys()):
+        match_map = match_map | {f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)}
+
+        if any(
+            k.startswith(&#34;_&#34;)
+            and not re.fullmatch(r&#34;_check_(\d+)&#34;, k)
+            or k[0] in string.digits
+            for k in match_map.keys()
+        ):
             raise ValueError(&#34;Invalid Match object name!&#34;)
-        self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
+
         group_cnt: int = 0
         pattern_list: List[str] = []
+
+        self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
+
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
@@ -116,7 +127,7 @@ class Sparkle:
 T_Sparkle = TypeVar(&#34;T_Sparkle&#34;, bound=Sparkle)
 
 
-class TwilightLocalStorage(TypedDict):
+class _TwilightLocalStorage(TypedDict):
     sparkle: Optional[Sparkle]
 
 
@@ -128,6 +139,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def __init__(
         self,
         sparkle_cls: Optional[Type[T_Sparkle]] = None,
+        *check_args: Match,
+        remove_source: bool = True,
         remove_quote: bool = True,
         remove_extra_space: bool = False,
         **match_kwargs: Match,
@@ -136,25 +149,32 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
         Args:
             sparkle (Optional[Type[T_Sparkle]], optional): Sparkle 的子类, 用于生成 Sparkle.
+            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
             remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-            match_kwargs (Match, kwargs): 若未提供 Sparkle 则通过本 kwargs 新建一个.
+            check_args (Match, args): 若未提供 Sparkle 则用此参数新建.
+            match_kwargs (Match, kwargs): 若未提供 Sparkle 则用此参数新建.
         Raises:
-            ValueError: 同时提供或均未提供 sparkle 与 match_kwargs
+            ValueError: 同时提供或均未提供 sparkle 与 check_args, match_kwargs
         &#34;&#34;&#34;
-        if not bool(sparkle_cls) ^ bool(match_kwargs):  # Both present or both missing
+        if not bool(sparkle_cls) ^ bool(
+            check_args or match_kwargs
+        ):  # Both present or both missing
             raise ValueError(&#34;Not correct usage!&#34;)
         self.sparkle_root: Sparkle = (
-            sparkle_cls() if sparkle_cls else Sparkle(match_kwargs)
+            sparkle_cls() if sparkle_cls else Sparkle(check_args, match_kwargs)
         )
-        self.remove_quote = remove_quote
-        self.remove_extra_space = remove_extra_space
+        self.map_params = {
+            &#34;remove_source&#34;: remove_source,
+            &#34;remove_quote&#34;: remove_quote,
+            &#34;remove_extra_space&#34;: remove_extra_space,
+        }
 
     @staticmethod
     def build_arg_parser(
         sparkle: Sparkle, elem_mapping: Dict[str, Element]
-    ) -&gt; TwilightParser:
-        arg_parser = TwilightParser(exit_on_error=False)
+    ) -&gt; _TwilightParser:
+        arg_parser = _TwilightParser(exit_on_error=False)
         for match, _ in sparkle._args_map.values():
             add_argument_data = {
                 &#34;action&#34;: match.action,
@@ -162,7 +182,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                 &#34;default&#34;: match.default,
                 &#34;required&#34;: not match.optional,
             } | (
-                {&#34;type&#34;: ArgumentMatchType(match, match.regex, elem_mapping)}
+                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
                 if arg_parser.accept_type(match.action)
                 else {}
             )
@@ -189,7 +209,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             if regex_match := sparkle._regex.fullmatch(&#34; &#34;.join(arg_list)):
                 for name, match, index in sparkle._regex_match_list:
                     current = regex_match.group(index) or &#34;&#34;
-                    setattr(  # sparkle.{name} = to_MessageChain(current)
+                    setattr(  # sparkle.{name} = toMessageChain(current)
                         sparkle,
                         name,
                         match.clone(
@@ -205,9 +225,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
     def gen_sparkle(self, chain: MessageChain) -&gt; Sparkle:
         sparkle = deepcopy(self.sparkle_root)
-        mapping_str, elem_mapping = chain.asMappingString(
-            remove_quote=self.remove_quote, remove_extra_space=self.remove_extra_space
-        )
+        mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         arg_parser = self.build_arg_parser(sparkle, elem_mapping)
         str_list = shlex.split(mapping_str)
         try:
@@ -222,7 +240,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def beforeExecution(self, interface: &#34;DispatcherInterface[MessageEvent]&#34;):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop()
-        local_storage: TwilightLocalStorage = (
+        local_storage: _TwilightLocalStorage = (
             interface.broadcast.decorator_interface.local_storage
         )
         chain: MessageChain = interface.event.messageChain
@@ -234,7 +252,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     async def catch(
         self, interface: &#34;DispatcherInterface[MessageEvent]&#34;
     ) -&gt; Optional[T_Sparkle]:
-        local_storage: TwilightLocalStorage = (
+        local_storage: _TwilightLocalStorage = (
             interface.broadcast.decorator_interface.local_storage
         )
         if issubclass(interface.annotation, Sparkle):
@@ -258,33 +276,9 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="ariadne.message.parser.twilight.ArgumentMatchType"><code class="flex name class">
-<span>class <span class="ident">ArgumentMatchType</span></span>
-<span>(</span><span>match: <a title="ariadne.message.parser.pattern.ArgumentMatch" href="pattern.html#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a>, regex: re.Pattern, mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>])</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class ArgumentMatchType:
-    def __init__(
-        self, match: ArgumentMatch, regex: re.Pattern, mapping: Dict[str, Element]
-    ):
-        self.match = match
-        self.regex: re.Pattern = regex
-        self.mapping: Dict[str, Element] = mapping
-
-    def __call__(self, string: str) -&gt; MessageChain:
-        if self.regex and not self.regex.fullmatch(string):
-            raise ValueError(f&#34;{string} not matching {self.regex.pattern}&#34;)
-        return MessageChain.fromMappingString(string, self.mapping)</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.parser.twilight.Sparkle"><code class="flex name class">
 <span>class <span class="ident">Sparkle</span></span>
-<span>(</span><span>matches: Optional[Dict[str, <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>]] = None)</span>
+<span>(</span><span>check_args: Tuple[<a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>] = (), matches: Optional[Dict[str, <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>]] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -293,16 +287,28 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Sparkle:
-    def __init__(self, matches: Optional[Dict[str, Match]] = None):
+    def __init__(
+        self, check_args: Tuple[Match] = (), matches: Optional[Dict[str, Match]] = None
+    ):
         match_map: Dict[str, Match] = matches or {
             k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
         }
-        if any(k.startswith(&#34;_&#34;) or k[0] in string.digits for k in match_map.keys()):
+        match_map = match_map | {f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)}
+
+        if any(
+            k.startswith(&#34;_&#34;)
+            and not re.fullmatch(r&#34;_check_(\d+)&#34;, k)
+            or k[0] in string.digits
+            for k in match_map.keys()
+        ):
             raise ValueError(&#34;Invalid Match object name!&#34;)
-        self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
+
         group_cnt: int = 0
         pattern_list: List[str] = []
+
+        self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
+
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
@@ -324,7 +330,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 </dd>
 <dt id="ariadne.message.parser.twilight.Twilight"><code class="flex name class">
 <span>class <span class="ident">Twilight</span></span>
-<span>(</span><span>sparkle_cls: Optional[Type[~T_Sparkle]] = None, remove_quote: bool = True, remove_extra_space: bool = False, **match_kwargs: <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>)</span>
+<span>(</span><span>sparkle_cls: Optional[Type[~T_Sparkle]] = None, *check_args: <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>, remove_source: bool = True, remove_quote: bool = True, remove_extra_space: bool = False, **match_kwargs: <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>暮光.</p>
@@ -333,17 +339,21 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <dl>
 <dt><strong><code>sparkle</code></strong> :&ensp;<code>Optional[Type[T_Sparkle]]</code>, optional</dt>
 <dd>Sparkle 的子类, 用于生成 Sparkle.</dd>
+<dt><strong><code>remove_source</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>是否移除消息链中的 Source 元素. 默认为 True.</dd>
 <dt><strong><code>remove_quote</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>处理时是否要移除消息链的 Quote 元素. 默认为 True.</dd>
 <dt><strong><code>remove_extra_space</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>是否移除 Quote At AtAll 的多余空格. 默认为 False.</dd>
+<dt><strong><code>check_args</code></strong> :&ensp;<code>Match, args</code></dt>
+<dd>若未提供 Sparkle 则用此参数新建.</dd>
 <dt><strong><code>match_kwargs</code></strong> :&ensp;<code>Match, kwargs</code></dt>
-<dd>若未提供 Sparkle 则通过本 kwargs 新建一个.</dd>
+<dd>若未提供 Sparkle 则用此参数新建.</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><code>ValueError</code></dt>
-<dd>同时提供或均未提供 sparkle 与 match_kwargs</dd>
+<dd>同时提供或均未提供 sparkle 与 check_args, match_kwargs</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -357,6 +367,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def __init__(
         self,
         sparkle_cls: Optional[Type[T_Sparkle]] = None,
+        *check_args: Match,
+        remove_source: bool = True,
         remove_quote: bool = True,
         remove_extra_space: bool = False,
         **match_kwargs: Match,
@@ -365,25 +377,32 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
         Args:
             sparkle (Optional[Type[T_Sparkle]], optional): Sparkle 的子类, 用于生成 Sparkle.
+            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
             remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-            match_kwargs (Match, kwargs): 若未提供 Sparkle 则通过本 kwargs 新建一个.
+            check_args (Match, args): 若未提供 Sparkle 则用此参数新建.
+            match_kwargs (Match, kwargs): 若未提供 Sparkle 则用此参数新建.
         Raises:
-            ValueError: 同时提供或均未提供 sparkle 与 match_kwargs
+            ValueError: 同时提供或均未提供 sparkle 与 check_args, match_kwargs
         &#34;&#34;&#34;
-        if not bool(sparkle_cls) ^ bool(match_kwargs):  # Both present or both missing
+        if not bool(sparkle_cls) ^ bool(
+            check_args or match_kwargs
+        ):  # Both present or both missing
             raise ValueError(&#34;Not correct usage!&#34;)
         self.sparkle_root: Sparkle = (
-            sparkle_cls() if sparkle_cls else Sparkle(match_kwargs)
+            sparkle_cls() if sparkle_cls else Sparkle(check_args, match_kwargs)
         )
-        self.remove_quote = remove_quote
-        self.remove_extra_space = remove_extra_space
+        self.map_params = {
+            &#34;remove_source&#34;: remove_source,
+            &#34;remove_quote&#34;: remove_quote,
+            &#34;remove_extra_space&#34;: remove_extra_space,
+        }
 
     @staticmethod
     def build_arg_parser(
         sparkle: Sparkle, elem_mapping: Dict[str, Element]
-    ) -&gt; TwilightParser:
-        arg_parser = TwilightParser(exit_on_error=False)
+    ) -&gt; _TwilightParser:
+        arg_parser = _TwilightParser(exit_on_error=False)
         for match, _ in sparkle._args_map.values():
             add_argument_data = {
                 &#34;action&#34;: match.action,
@@ -391,7 +410,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                 &#34;default&#34;: match.default,
                 &#34;required&#34;: not match.optional,
             } | (
-                {&#34;type&#34;: ArgumentMatchType(match, match.regex, elem_mapping)}
+                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
                 if arg_parser.accept_type(match.action)
                 else {}
             )
@@ -418,7 +437,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             if regex_match := sparkle._regex.fullmatch(&#34; &#34;.join(arg_list)):
                 for name, match, index in sparkle._regex_match_list:
                     current = regex_match.group(index) or &#34;&#34;
-                    setattr(  # sparkle.{name} = to_MessageChain(current)
+                    setattr(  # sparkle.{name} = toMessageChain(current)
                         sparkle,
                         name,
                         match.clone(
@@ -434,9 +453,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
     def gen_sparkle(self, chain: MessageChain) -&gt; Sparkle:
         sparkle = deepcopy(self.sparkle_root)
-        mapping_str, elem_mapping = chain.asMappingString(
-            remove_quote=self.remove_quote, remove_extra_space=self.remove_extra_space
-        )
+        mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         arg_parser = self.build_arg_parser(sparkle, elem_mapping)
         str_list = shlex.split(mapping_str)
         try:
@@ -451,7 +468,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def beforeExecution(self, interface: &#34;DispatcherInterface[MessageEvent]&#34;):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop()
-        local_storage: TwilightLocalStorage = (
+        local_storage: _TwilightLocalStorage = (
             interface.broadcast.decorator_interface.local_storage
         )
         chain: MessageChain = interface.event.messageChain
@@ -463,7 +480,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     async def catch(
         self, interface: &#34;DispatcherInterface[MessageEvent]&#34;
     ) -&gt; Optional[T_Sparkle]:
-        local_storage: TwilightLocalStorage = (
+        local_storage: _TwilightLocalStorage = (
             interface.broadcast.decorator_interface.local_storage
         )
         if issubclass(interface.annotation, Sparkle):
@@ -492,7 +509,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <h3>Static methods</h3>
 <dl>
 <dt id="ariadne.message.parser.twilight.Twilight.build_arg_parser"><code class="name flex">
-<span>def <span class="ident">build_arg_parser</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>]) ‑> <a title="ariadne.message.parser.twilight.TwilightParser" href="#ariadne.message.parser.twilight.TwilightParser">TwilightParser</a></span>
+<span>def <span class="ident">build_arg_parser</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>]) ‑> ariadne.message.parser.twilight._TwilightParser</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -503,8 +520,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <pre><code class="python">@staticmethod
 def build_arg_parser(
     sparkle: Sparkle, elem_mapping: Dict[str, Element]
-) -&gt; TwilightParser:
-    arg_parser = TwilightParser(exit_on_error=False)
+) -&gt; _TwilightParser:
+    arg_parser = _TwilightParser(exit_on_error=False)
     for match, _ in sparkle._args_map.values():
         add_argument_data = {
             &#34;action&#34;: match.action,
@@ -512,7 +529,7 @@ def build_arg_parser(
             &#34;default&#34;: match.default,
             &#34;required&#34;: not match.optional,
         } | (
-            {&#34;type&#34;: ArgumentMatchType(match, match.regex, elem_mapping)}
+            {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
             if arg_parser.accept_type(match.action)
             else {}
         )
@@ -559,7 +576,7 @@ def match_regex(
         if regex_match := sparkle._regex.fullmatch(&#34; &#34;.join(arg_list)):
             for name, match, index in sparkle._regex_match_list:
                 current = regex_match.group(index) or &#34;&#34;
-                setattr(  # sparkle.{name} = to_MessageChain(current)
+                setattr(  # sparkle.{name} = toMessageChain(current)
                     sparkle,
                     name,
                     match.clone(
@@ -635,7 +652,7 @@ def match_regex(
 <pre><code class="python">def beforeExecution(self, interface: &#34;DispatcherInterface[MessageEvent]&#34;):
     if not isinstance(interface.event, MessageEvent):
         raise ExecutionStop()
-    local_storage: TwilightLocalStorage = (
+    local_storage: _TwilightLocalStorage = (
         interface.broadcast.decorator_interface.local_storage
     )
     chain: MessageChain = interface.event.messageChain
@@ -667,7 +684,7 @@ def match_regex(
 <pre><code class="python">async def catch(
     self, interface: &#34;DispatcherInterface[MessageEvent]&#34;
 ) -&gt; Optional[T_Sparkle]:
-    local_storage: TwilightLocalStorage = (
+    local_storage: _TwilightLocalStorage = (
         interface.broadcast.decorator_interface.local_storage
     )
     if issubclass(interface.annotation, Sparkle):
@@ -685,9 +702,7 @@ def match_regex(
 </summary>
 <pre><code class="python">def gen_sparkle(self, chain: MessageChain) -&gt; Sparkle:
     sparkle = deepcopy(self.sparkle_root)
-    mapping_str, elem_mapping = chain.asMappingString(
-        remove_quote=self.remove_quote, remove_extra_space=self.remove_extra_space
-    )
+    mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
     arg_parser = self.build_arg_parser(sparkle, elem_mapping)
     str_list = shlex.split(mapping_str)
     try:
@@ -698,122 +713,6 @@ def match_regex(
     else:
         self.match_regex(sparkle, elem_mapping, arg_list)
     return sparkle</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-<dt id="ariadne.message.parser.twilight.TwilightLocalStorage"><code class="flex name class">
-<span>class <span class="ident">TwilightLocalStorage</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>dict() -&gt; new empty dictionary
-dict(mapping) -&gt; new dictionary initialized from a mapping object's
-(key, value) pairs
-dict(iterable) -&gt; new dictionary initialized as if via:
-d = {}
-for k, v in iterable:
-d[k] = v
-dict(**kwargs) -&gt; new dictionary initialized with the name=value pairs
-in the keyword argument list.
-For example:
-dict(one=1, two=2)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class TwilightLocalStorage(TypedDict):
-    sparkle: Optional[Sparkle]</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.dict</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="ariadne.message.parser.twilight.TwilightLocalStorage.sparkle"><code class="name">var <span class="ident">sparkle</span> : Optional[<a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="ariadne.message.parser.twilight.TwilightParser"><code class="flex name class">
-<span>class <span class="ident">TwilightParser</span></span>
-<span>(</span><span>prog=None, usage=None, description=None, epilog=None, parents=[], formatter_class=argparse.HelpFormatter, prefix_chars='-', fromfile_prefix_chars=None, argument_default=None, conflict_handler='error', add_help=True, allow_abbrev=True, exit_on_error=True)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Object for parsing command line strings into Python objects.</p>
-<p>Keyword Arguments:
-- prog &ndash; The name of the program (default: sys.argv[0])
-- usage &ndash; A usage message (default: auto-generated from arguments)
-- description &ndash; A description of what the program does
-- epilog &ndash; Text following the argument descriptions
-- parents &ndash; Parsers whose arguments should be copied into this one
-- formatter_class &ndash; HelpFormatter class for printing help messages
-- prefix_chars &ndash; Characters that prefix optional arguments
-- fromfile_prefix_chars &ndash; Characters that prefix files containing
-additional arguments
-- argument_default &ndash; The default value for all arguments
-- conflict_handler &ndash; String indicating how to handle conflicts
-- add_help &ndash; Add a -h/-help option
-- allow_abbrev &ndash; Allow long options to be abbreviated unambiguously
-- exit_on_error &ndash; Determines whether or not ArgumentParser exits with
-error info when an error occurs</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class TwilightParser(argparse.ArgumentParser):
-    def error(self, message) -&gt; NoReturn:
-        raise ValueError(message)
-
-    def accept_type(self, action_str: str) -&gt; bool:
-        action_cls: type = self._registry_get(&#34;action&#34;, action_str, action_str)
-        action_init_sig = inspect.signature(action_cls.__init__)
-        if &#34;type&#34; not in action_init_sig.parameters:
-            return False
-        return True</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>argparse.ArgumentParser</li>
-<li>argparse._AttributeHolder</li>
-<li>argparse._ActionsContainer</li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="ariadne.message.parser.twilight.TwilightParser.accept_type"><code class="name flex">
-<span>def <span class="ident">accept_type</span></span>(<span>self, action_str: str) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def accept_type(self, action_str: str) -&gt; bool:
-    action_cls: type = self._registry_get(&#34;action&#34;, action_str, action_str)
-    action_init_sig = inspect.signature(action_cls.__init__)
-    if &#34;type&#34; not in action_init_sig.parameters:
-        return False
-    return True</code></pre>
-</details>
-</dd>
-<dt id="ariadne.message.parser.twilight.TwilightParser.error"><code class="name flex">
-<span>def <span class="ident">error</span></span>(<span>self, message) ‑> NoReturn</span>
-</code></dt>
-<dd>
-<div class="desc"><p>error(message: string)</p>
-<p>Prints a usage message incorporating the message to stderr and
-exits.</p>
-<p>If you override this in a subclass, it should not return &ndash; it
-should either exit or raise an exception.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def error(self, message) -&gt; NoReturn:
-    raise ValueError(message)</code></pre>
 </details>
 </dd>
 </dl>
@@ -835,9 +734,6 @@ should either exit or raise an exception.</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="ariadne.message.parser.twilight.ArgumentMatchType" href="#ariadne.message.parser.twilight.ArgumentMatchType">ArgumentMatchType</a></code></h4>
-</li>
-<li>
 <h4><code><a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a></code></h4>
 </li>
 <li>
@@ -851,19 +747,6 @@ should either exit or raise an exception.</p></div>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.gen_sparkle" href="#ariadne.message.parser.twilight.Twilight.gen_sparkle">gen_sparkle</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.match_regex" href="#ariadne.message.parser.twilight.Twilight.match_regex">match_regex</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.mixin" href="#ariadne.message.parser.twilight.Twilight.mixin">mixin</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="ariadne.message.parser.twilight.TwilightLocalStorage" href="#ariadne.message.parser.twilight.TwilightLocalStorage">TwilightLocalStorage</a></code></h4>
-<ul class="">
-<li><code><a title="ariadne.message.parser.twilight.TwilightLocalStorage.sparkle" href="#ariadne.message.parser.twilight.TwilightLocalStorage.sparkle">sparkle</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="ariadne.message.parser.twilight.TwilightParser" href="#ariadne.message.parser.twilight.TwilightParser">TwilightParser</a></code></h4>
-<ul class="">
-<li><code><a title="ariadne.message.parser.twilight.TwilightParser.accept_type" href="#ariadne.message.parser.twilight.TwilightParser.accept_type">accept_type</a></code></li>
-<li><code><a title="ariadne.message.parser.twilight.TwilightParser.error" href="#ariadne.message.parser.twilight.TwilightParser.error">error</a></code></li>
 </ul>
 </li>
 </ul>

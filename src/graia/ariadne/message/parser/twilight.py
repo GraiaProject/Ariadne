@@ -63,7 +63,7 @@ class Sparkle:
         check_args: Iterable[Match] = (),
         matches: Optional[Union[Dict[str, Match], Iterable[Tuple[str, Match]]]] = None,
     ):
-        if matches is None or isinstance(matches, Dict[str, Match]):
+        if matches is None or isinstance(matches, dict):
             match_map: Dict[str, Match] = matches or {
                 k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
             }

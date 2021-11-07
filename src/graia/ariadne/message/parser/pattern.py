@@ -79,20 +79,27 @@ class RegexMatch(Match):
     flags: re.RegexFlag
     flags_repr: str
     regex_match: Optional[re.Match]
+    preserve_space: bool
 
     def __init__(
         self,
         pattern: str,
+        *,
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
+        preserve_space: bool = True,
     ) -> None:
         super().__init__(pattern, optional)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
+        self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
-        return f"({f'?{self.flags_repr}:' if self.flags_repr else ''}{self.pattern}){'?' if self.optional else ''}"
+        return (
+            f"({f'?{self.flags_repr}:' if self.flags_repr else ''}{self.pattern})"
+            f"{'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+        )
 
     def clone(
         self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None
@@ -103,7 +110,7 @@ class RegexMatch(Match):
 
 
 class FullMatch(Match):
-    def __init__(self, pattern: str, optional: bool = False) -> None:
+    def __init__(self, pattern: str, *, optional: bool = False) -> None:
         super().__init__(pattern, optional)
 
     def gen_regex(self) -> str:
@@ -122,7 +129,7 @@ class ArgumentMatch(Match):
     action: str
     default: Optional[Any]
     regex: Optional[str]
-    result: Any
+    result: Union["MessageChain", Any]
 
     def __init__(
         self,
@@ -133,8 +140,8 @@ class ArgumentMatch(Match):
         action: str = "store",
         regex: Optional[str] = None,
     ) -> None:
-        if len(pattern) >= 2 and not all(string.startswith("-") for string in pattern):
-            raise ValueError("Invalid pattern: multiple pattern without '-' as start!")
+        if not all(string.startswith("-") for string in pattern):
+            raise ValueError("Invalid pattern: pattern without '-' as start!")
         elif not pattern:
             raise ValueError("Expected as least 1 pattern!")
         super().__init__(pattern, optional)

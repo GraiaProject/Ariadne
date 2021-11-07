@@ -8,6 +8,7 @@ from types import TracebackType
 from typing import (
     Dict,
     Generic,
+    Iterable,
     List,
     NoReturn,
     Optional,
@@ -55,12 +56,19 @@ class _ArgumentMatchType:
 
 
 class Sparkle:
+    __dict__: Dict[str, Match]
+
     def __init__(
-        self, check_args: Tuple[Match] = (), matches: Optional[Dict[str, Match]] = None
+        self,
+        check_args: Iterable[Match] = (),
+        matches: Optional[Union[Dict[str, Match], Iterable[Tuple[str, Match]]]] = None,
     ):
-        match_map: Dict[str, Match] = matches or {
-            k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
-        }
+        if matches is None or isinstance(matches, Dict[str, Match]):
+            match_map: Dict[str, Match] = matches or {
+                k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
+            }
+        else:
+            match_map: Dict[str, Match] = {k: v for k, v in matches}
         match_map = match_map | {f"_check_{i}": val for i, val in enumerate(check_args)}
 
         if any(
@@ -110,12 +118,10 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
     def __init__(
         self,
-        sparkle_cls: Optional[Type[T_Sparkle]] = None,
-        *check_args: Match,
+        sparkle: Union[Type[T_Sparkle], T_Sparkle],
         remove_source: bool = True,
         remove_quote: bool = True,
         remove_extra_space: bool = False,
-        **match_kwargs: Match,
     ):
         """本魔法方法用于初始化本实例.
 
@@ -124,18 +130,11 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
             remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-            check_args (Match, args): 若未提供 Sparkle 则用此参数新建.
-            match_kwargs (Match, kwargs): 若未提供 Sparkle 则用此参数新建.
-        Raises:
-            ValueError: 同时提供或均未提供 sparkle 与 check_args, match_kwargs
         """
-        if not bool(sparkle_cls) ^ bool(
-            check_args or match_kwargs
-        ):  # Both present or both missing
-            raise ValueError("Not correct usage!")
-        self.sparkle_root: Sparkle = (
-            sparkle_cls() if sparkle_cls else Sparkle(check_args, match_kwargs)
-        )
+        if isinstance(sparkle, Sparkle):
+            self.sparkle_root = sparkle
+        else:
+            self.sparkle_root = sparkle()
         self.map_params = {
             "remove_source": remove_source,
             "remove_quote": remove_quote,
@@ -195,7 +194,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             else:
                 raise ValueError(f"Regex not matching: {sparkle._regex_pattern}")
 
-    def gen_sparkle(self, chain: MessageChain) -> Sparkle:
+    def gen_sparkle(self, chain: MessageChain) -> T_Sparkle:
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         arg_parser = self.build_arg_parser(sparkle, elem_mapping)
@@ -227,8 +226,14 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         local_storage: _TwilightLocalStorage = (
             interface.broadcast.decorator_interface.local_storage
         )
+        sparkle = local_storage["sparkle"]
         if issubclass(interface.annotation, Sparkle):
-            return local_storage["sparkle"]
+            return sparkle
+        if isinstance(interface.annotation, Match):
+            if hasattr(sparkle, interface.name):
+                match: Match = getattr(sparkle, interface.name)
+                if isinstance(match, interface.annotation):
+                    return match
 
     def afterExecution(
         self,

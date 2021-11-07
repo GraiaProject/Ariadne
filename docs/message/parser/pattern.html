@@ -107,20 +107,27 @@ class RegexMatch(Match):
     flags: re.RegexFlag
     flags_repr: str
     regex_match: Optional[re.Match]
+    preserve_space: bool
 
     def __init__(
         self,
         pattern: str,
+        *,
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
+        preserve_space: bool = True,
     ) -&gt; None:
         super().__init__(pattern, optional)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
+        self.preserve_space = preserve_space
 
     def gen_regex(self) -&gt; str:
-        return f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern}){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+        return (
+            f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
+            f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+        )
 
     def clone(
         self, result: &#34;MessageChain&#34;, matched: bool, re_match: Optional[re.Match] = None
@@ -131,7 +138,7 @@ class RegexMatch(Match):
 
 
 class FullMatch(Match):
-    def __init__(self, pattern: str, optional: bool = False) -&gt; None:
+    def __init__(self, pattern: str, *, optional: bool = False) -&gt; None:
         super().__init__(pattern, optional)
 
     def gen_regex(self) -&gt; str:
@@ -150,7 +157,7 @@ class ArgumentMatch(Match):
     action: str
     default: Optional[Any]
     regex: Optional[str]
-    result: Any
+    result: Union[&#34;MessageChain&#34;, Any]
 
     def __init__(
         self,
@@ -161,8 +168,8 @@ class ArgumentMatch(Match):
         action: str = &#34;store&#34;,
         regex: Optional[str] = None,
     ) -&gt; None:
-        if len(pattern) &gt;= 2 and not all(string.startswith(&#34;-&#34;) for string in pattern):
-            raise ValueError(&#34;Invalid pattern: multiple pattern without &#39;-&#39; as start!&#34;)
+        if not all(string.startswith(&#34;-&#34;) for string in pattern):
+            raise ValueError(&#34;Invalid pattern: pattern without &#39;-&#39; as start!&#34;)
         elif not pattern:
             raise ValueError(&#34;Expected as least 1 pattern!&#34;)
         super().__init__(pattern, optional)
@@ -233,7 +240,7 @@ inheritance.</p></div>
     action: str
     default: Optional[Any]
     regex: Optional[str]
-    result: Any
+    result: Union[&#34;MessageChain&#34;, Any]
 
     def __init__(
         self,
@@ -244,8 +251,8 @@ inheritance.</p></div>
         action: str = &#34;store&#34;,
         regex: Optional[str] = None,
     ) -&gt; None:
-        if len(pattern) &gt;= 2 and not all(string.startswith(&#34;-&#34;) for string in pattern):
-            raise ValueError(&#34;Invalid pattern: multiple pattern without &#39;-&#39; as start!&#34;)
+        if not all(string.startswith(&#34;-&#34;) for string in pattern):
+            raise ValueError(&#34;Invalid pattern: pattern without &#39;-&#39; as start!&#34;)
         elif not pattern:
             raise ValueError(&#34;Expected as least 1 pattern!&#34;)
         super().__init__(pattern, optional)
@@ -289,7 +296,7 @@ inheritance.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.result"><code class="name">var <span class="ident">result</span> : Any</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.result"><code class="name">var <span class="ident">result</span> : Union[MessageChain, Any]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -351,7 +358,7 @@ class BoxParameter(ParamPattern):
 </dd>
 <dt id="ariadne.message.parser.pattern.FullMatch"><code class="flex name class">
 <span>class <span class="ident">FullMatch</span></span>
-<span>(</span><span>pattern: str, optional: bool = False)</span>
+<span>(</span><span>pattern: str, *, optional: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -361,7 +368,7 @@ inheritance.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FullMatch(Match):
-    def __init__(self, pattern: str, optional: bool = False) -&gt; None:
+    def __init__(self, pattern: str, *, optional: bool = False) -&gt; None:
         super().__init__(pattern, optional)
 
     def gen_regex(self) -&gt; str:
@@ -574,7 +581,7 @@ class ParamPattern:
 </dd>
 <dt id="ariadne.message.parser.pattern.RegexMatch"><code class="flex name class">
 <span>class <span class="ident">RegexMatch</span></span>
-<span>(</span><span>pattern: str, optional: bool = False, flags: re.RegexFlag = )</span>
+<span>(</span><span>pattern: str, *, optional: bool = False, flags: re.RegexFlag = , preserve_space: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>基础的正则表达式匹配器</p></div>
@@ -587,20 +594,27 @@ class ParamPattern:
     flags: re.RegexFlag
     flags_repr: str
     regex_match: Optional[re.Match]
+    preserve_space: bool
 
     def __init__(
         self,
         pattern: str,
+        *,
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
+        preserve_space: bool = True,
     ) -&gt; None:
         super().__init__(pattern, optional)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
+        self.preserve_space = preserve_space
 
     def gen_regex(self) -&gt; str:
-        return f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern}){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+        return (
+            f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
+            f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+        )
 
     def clone(
         self, result: &#34;MessageChain&#34;, matched: bool, re_match: Optional[re.Match] = None
@@ -621,6 +635,10 @@ class ParamPattern:
 <div class="desc"></div>
 </dd>
 <dt id="ariadne.message.parser.pattern.RegexMatch.flags_repr"><code class="name">var <span class="ident">flags_repr</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.RegexMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -658,7 +676,10 @@ class ParamPattern:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def gen_regex(self) -&gt; str:
-    return f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern}){&#39;?&#39; if self.optional else &#39;&#39;}&#34;</code></pre>
+    return (
+        f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
+        f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+    )</code></pre>
 </details>
 </dd>
 </dl>
@@ -770,11 +791,12 @@ class SwitchParameter(ParamPattern):
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.clone" href="#ariadne.message.parser.pattern.RegexMatch.clone">clone</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.flags" href="#ariadne.message.parser.pattern.RegexMatch.flags">flags</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.flags_repr" href="#ariadne.message.parser.pattern.RegexMatch.flags_repr">flags_repr</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.gen_regex" href="#ariadne.message.parser.pattern.RegexMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.RegexMatch.preserve_space" href="#ariadne.message.parser.pattern.RegexMatch.preserve_space">preserve_space</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.regex_match" href="#ariadne.message.parser.pattern.RegexMatch.regex_match">regex_match</a></code></li>
 </ul>
 </li>

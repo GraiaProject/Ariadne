@@ -79,5 +79,6 @@ nav:
       - "porting/guide.md"
       - "porting/cheatsheet.md"
   - "faq.md"
+  - "TODO.md"
   - "credits.md"
   - GitHub 仓库: https://github.com/GraiaProject/Ariadne

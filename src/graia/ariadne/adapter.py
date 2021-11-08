@@ -6,7 +6,7 @@ from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.locks import Event
 from asyncio.tasks import Task
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Set, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set, TypeVar, Union
 
 import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
@@ -233,7 +233,8 @@ class HttpAdapter(Adapter):
                 resp_json: dict = await response.json()
         else:  # MULTIPART
             form = FormData()
-            for k, v in data:
+            data: Dict[str, Any]
+            for k, v in data.items():
                 form.add_fields(k, v)
             async with self.session.post(
                 self.mirai_session.url_gen(action), data=form

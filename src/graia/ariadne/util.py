@@ -153,3 +153,19 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
     yield cls
     for sub_cls in cls.__subclasses__():
         yield from gen_subclass(sub_cls)
+
+
+T_Callable = TypeVar("T_Callable", bound=Callable)
+
+
+def deprecated(remove_ver: str) -> Callable:
+    def out_wrapper(func: T_Callable) -> T_Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            logger.warning(f"Deprecated function: {func.__qualname__}")
+            logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return out_wrapper

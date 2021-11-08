@@ -34,7 +34,7 @@ import re
 from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from ..model import AriadneBaseModel
-from ..util import gen_subclass
+from ..util import deprecated, gen_subclass
 from .element import (
     At,
     AtAll,
@@ -67,7 +67,7 @@ class MessageChain(AriadneBaseModel):
     __root__: List[Element]
 
     @staticmethod
-    def build_chain(obj: List[Union[dict, Element]]) -&gt; List[Element]:
+    def build_chain(obj: List[Union[dict, Element, str]]) -&gt; List[Element]:
         &#34;&#34;&#34;内部接口, 会自动反序列化对象并生成.
 
         Args:
@@ -85,6 +85,8 @@ class MessageChain(AriadneBaseModel):
                     if element_cls.__name__ == i[&#34;type&#34;]:
                         element_list.append(element_cls.parse_obj(i))
                         break
+            elif isinstance(i, str):
+                element_list.append(Plain(i))
         return element_list
 
     @classmethod
@@ -101,7 +103,7 @@ class MessageChain(AriadneBaseModel):
         &#34;&#34;&#34;
         return cls(__root__=cls.build_chain(obj))
 
-    def __init__(self, __root__: Iterable[Element]) -&gt; None:
+    def __init__(self, __root__: Iterable[Union[Element, str]]) -&gt; None:
         super().__init__(__root__=self.build_chain(__root__))
 
     @classmethod
@@ -396,7 +398,11 @@ class MessageChain(AriadneBaseModel):
                 return True
         return False
 
+    @deprecated(&#34;0.4.0&#34;)
     def onlyHas(self, *types: Type[Element]) -&gt; bool:
+        return all(isinstance(i, types) for i in self.__root__)
+
+    def onlyContains(self, *types: Type[Element]) -&gt; bool:
         return all(isinstance(i, types) for i in self.__root__)
 
     def merge(self, copy: bool = False) -&gt; &#34;MessageChain&#34;:
@@ -495,16 +501,18 @@ class MessageChain(AriadneBaseModel):
             content: List[Element] = content.__root__
         return MessageChain(self.__root__ + content)
 
-    def __iadd__(self, content: Union[MessageChain, List]) -&gt; None:
+    def __iadd__(self, content: Union[MessageChain, List[Element]]) -&gt; &#34;MessageChain&#34;:
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
         self.__root__.extend(content)
+        return self
 
     def __mul__(self, time: int) -&gt; &#34;MessageChain&#34;:
         return MessageChain(self.__root__ * time)
 
-    def __imul__(self, time: int) -&gt; None:
+    def __imul__(self, time: int) -&gt; &#34;MessageChain&#34;:
         self.__root__ *= time
+        return self
 
     def __len__(self) -&gt; int:
         return len(self.__root__)
@@ -692,7 +700,7 @@ _update_forward_refs()</code></pre>
 <dl>
 <dt id="ariadne.message.chain.MessageChain"><code class="flex name class">
 <span>class <span class="ident">MessageChain</span></span>
-<span>(</span><span>__root__: Iterable[Element])</span>
+<span>(</span><span>__root__: Iterable[Union[Element, str]])</span>
 </code></dt>
 <dd>
 <div class="desc"><p>即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有继承了 Element 的各式类实例.</p>
@@ -710,7 +718,7 @@ _update_forward_refs()</code></pre>
     __root__: List[Element]
 
     @staticmethod
-    def build_chain(obj: List[Union[dict, Element]]) -&gt; List[Element]:
+    def build_chain(obj: List[Union[dict, Element, str]]) -&gt; List[Element]:
         &#34;&#34;&#34;内部接口, 会自动反序列化对象并生成.
 
         Args:
@@ -728,6 +736,8 @@ _update_forward_refs()</code></pre>
                     if element_cls.__name__ == i[&#34;type&#34;]:
                         element_list.append(element_cls.parse_obj(i))
                         break
+            elif isinstance(i, str):
+                element_list.append(Plain(i))
         return element_list
 
     @classmethod
@@ -744,7 +754,7 @@ _update_forward_refs()</code></pre>
         &#34;&#34;&#34;
         return cls(__root__=cls.build_chain(obj))
 
-    def __init__(self, __root__: Iterable[Element]) -&gt; None:
+    def __init__(self, __root__: Iterable[Union[Element, str]]) -&gt; None:
         super().__init__(__root__=self.build_chain(__root__))
 
     @classmethod
@@ -1039,7 +1049,11 @@ _update_forward_refs()</code></pre>
                 return True
         return False
 
+    @deprecated(&#34;0.4.0&#34;)
     def onlyHas(self, *types: Type[Element]) -&gt; bool:
+        return all(isinstance(i, types) for i in self.__root__)
+
+    def onlyContains(self, *types: Type[Element]) -&gt; bool:
         return all(isinstance(i, types) for i in self.__root__)
 
     def merge(self, copy: bool = False) -&gt; &#34;MessageChain&#34;:
@@ -1138,16 +1152,18 @@ _update_forward_refs()</code></pre>
             content: List[Element] = content.__root__
         return MessageChain(self.__root__ + content)
 
-    def __iadd__(self, content: Union[MessageChain, List]) -&gt; None:
+    def __iadd__(self, content: Union[MessageChain, List[Element]]) -&gt; &#34;MessageChain&#34;:
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
         self.__root__.extend(content)
+        return self
 
     def __mul__(self, time: int) -&gt; &#34;MessageChain&#34;:
         return MessageChain(self.__root__ * time)
 
-    def __imul__(self, time: int) -&gt; None:
+    def __imul__(self, time: int) -&gt; &#34;MessageChain&#34;:
         self.__root__ *= time
+        return self
 
     def __len__(self) -&gt; int:
         return len(self.__root__)
@@ -1329,7 +1345,7 @@ _update_forward_refs()</code></pre>
 <h3>Static methods</h3>
 <dl>
 <dt id="ariadne.message.chain.MessageChain.build_chain"><code class="name flex">
-<span>def <span class="ident">build_chain</span></span>(<span>obj: List[Union[dict, Element]]) ‑> List[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]</span>
+<span>def <span class="ident">build_chain</span></span>(<span>obj: List[Union[dict, Element, str]]) ‑> List[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>内部接口, 会自动反序列化对象并生成.</p>
@@ -1348,7 +1364,7 @@ _update_forward_refs()</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@staticmethod
-def build_chain(obj: List[Union[dict, Element]]) -&gt; List[Element]:
+def build_chain(obj: List[Union[dict, Element, str]]) -&gt; List[Element]:
     &#34;&#34;&#34;内部接口, 会自动反序列化对象并生成.
 
     Args:
@@ -1366,6 +1382,8 @@ def build_chain(obj: List[Union[dict, Element]]) -&gt; List[Element]:
                 if element_cls.__name__ == i[&#34;type&#34;]:
                     element_list.append(element_cls.parse_obj(i))
                     break
+        elif isinstance(i, str):
+            element_list.append(Plain(i))
     return element_list</code></pre>
 </details>
 </dd>
@@ -2142,6 +2160,19 @@ def parse_obj(
         return self</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.chain.MessageChain.onlyContains"><code class="name flex">
+<span>def <span class="ident">onlyContains</span></span>(<span>self, *types: Type[Element]) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def onlyContains(self, *types: Type[Element]) -&gt; bool:
+    return all(isinstance(i, types) for i in self.__root__)</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.chain.MessageChain.onlyHas"><code class="name flex">
 <span>def <span class="ident">onlyHas</span></span>(<span>self, *types: Type[Element]) ‑> bool</span>
 </code></dt>
@@ -2151,7 +2182,8 @@ def parse_obj(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def onlyHas(self, *types: Type[Element]) -&gt; bool:
+<pre><code class="python">@deprecated(&#34;0.4.0&#34;)
+def onlyHas(self, *types: Type[Element]) -&gt; bool:
     return all(isinstance(i, types) for i in self.__root__)</code></pre>
 </details>
 </dd>
@@ -2476,6 +2508,7 @@ def parse_obj(
 <li><code><a title="ariadne.message.chain.MessageChain.include" href="#ariadne.message.chain.MessageChain.include">include</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.index" href="#ariadne.message.chain.MessageChain.index">index</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.merge" href="#ariadne.message.chain.MessageChain.merge">merge</a></code></li>
+<li><code><a title="ariadne.message.chain.MessageChain.onlyContains" href="#ariadne.message.chain.MessageChain.onlyContains">onlyContains</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.onlyHas" href="#ariadne.message.chain.MessageChain.onlyHas">onlyHas</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.parse_obj" href="#ariadne.message.chain.MessageChain.parse_obj">parse_obj</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.prepare" href="#ariadne.message.chain.MessageChain.prepare">prepare</a></code></li>

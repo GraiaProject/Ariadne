@@ -6,7 +6,7 @@ import re
 from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
 
 from ..model import AriadneBaseModel
-from ..util import gen_subclass
+from ..util import deprecated, gen_subclass
 from .element import (
     At,
     AtAll,
@@ -39,7 +39,7 @@ class MessageChain(AriadneBaseModel):
     __root__: List[Element]
 
     @staticmethod
-    def build_chain(obj: List[Union[dict, Element]]) -> List[Element]:
+    def build_chain(obj: List[Union[dict, Element, str]]) -> List[Element]:
         """内部接口, 会自动反序列化对象并生成.
 
         Args:
@@ -57,6 +57,8 @@ class MessageChain(AriadneBaseModel):
                     if element_cls.__name__ == i["type"]:
                         element_list.append(element_cls.parse_obj(i))
                         break
+            elif isinstance(i, str):
+                element_list.append(Plain(i))
         return element_list
 
     @classmethod
@@ -73,7 +75,7 @@ class MessageChain(AriadneBaseModel):
         """
         return cls(__root__=cls.build_chain(obj))
 
-    def __init__(self, __root__: Iterable[Element]) -> None:
+    def __init__(self, __root__: Iterable[Union[Element, str]]) -> None:
         super().__init__(__root__=self.build_chain(__root__))
 
     @classmethod
@@ -368,7 +370,11 @@ class MessageChain(AriadneBaseModel):
                 return True
         return False
 
+    @deprecated("0.4.0")
     def onlyHas(self, *types: Type[Element]) -> bool:
+        return all(isinstance(i, types) for i in self.__root__)
+
+    def onlyContains(self, *types: Type[Element]) -> bool:
         return all(isinstance(i, types) for i in self.__root__)
 
     def merge(self, copy: bool = False) -> "MessageChain":
@@ -467,16 +473,18 @@ class MessageChain(AriadneBaseModel):
             content: List[Element] = content.__root__
         return MessageChain(self.__root__ + content)
 
-    def __iadd__(self, content: Union[MessageChain, List]) -> None:
+    def __iadd__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
         self.__root__.extend(content)
+        return self
 
     def __mul__(self, time: int) -> "MessageChain":
         return MessageChain(self.__root__ * time)
 
-    def __imul__(self, time: int) -> None:
+    def __imul__(self, time: int) -> "MessageChain":
         self.__root__ *= time
+        return self
 
     def __len__(self) -> int:
         return len(self.__root__)

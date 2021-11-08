@@ -180,7 +180,23 @@ T = TypeVar(&#34;T&#34;)
 def gen_subclass(cls: Type[T]) -&gt; Generator[Type[T], None, None]:
     yield cls
     for sub_cls in cls.__subclasses__():
-        yield from gen_subclass(sub_cls)</code></pre>
+        yield from gen_subclass(sub_cls)
+
+
+T_Callable = TypeVar(&#34;T_Callable&#34;, bound=Callable)
+
+
+def deprecated(remove_ver: str) -&gt; Callable:
+    def out_wrapper(func: T_Callable) -&gt; T_Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            logger.warning(f&#34;Deprecated function: {func.__qualname__}&#34;)
+            logger.warning(f&#34;{func.__qualname__} will be removed in {remove_ver}!&#34;)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return out_wrapper</code></pre>
 </details>
 </section>
 <section>
@@ -206,6 +222,28 @@ def gen_subclass(cls: Type[T]) -&gt; Generator[Type[T], None, None]:
             return await func(self, *args, **kwargs)
 
     return wrapper</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.deprecated"><code class="name flex">
+<span>def <span class="ident">deprecated</span></span>(<span>remove_ver: str) ‑> Callable</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deprecated(remove_ver: str) -&gt; Callable:
+    def out_wrapper(func: T_Callable) -&gt; T_Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            logger.warning(f&#34;Deprecated function: {func.__qualname__}&#34;)
+            logger.warning(f&#34;{func.__qualname__} will be removed in {remove_ver}!&#34;)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return out_wrapper</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.gen_subclass"><code class="name flex">
@@ -497,6 +535,7 @@ def gen_subclass(cls: Type[T]) -&gt; Generator[Type[T], None, None]:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ariadne.util.app_ctx_manager" href="#ariadne.util.app_ctx_manager">app_ctx_manager</a></code></li>
+<li><code><a title="ariadne.util.deprecated" href="#ariadne.util.deprecated">deprecated</a></code></li>
 <li><code><a title="ariadne.util.gen_subclass" href="#ariadne.util.gen_subclass">gen_subclass</a></code></li>
 <li><code><a title="ariadne.util.inject_bypass_listener" href="#ariadne.util.inject_bypass_listener">inject_bypass_listener</a></code></li>
 <li><code><a title="ariadne.util.inject_loguru_traceback" href="#ariadne.util.inject_loguru_traceback">inject_loguru_traceback</a></code></li>

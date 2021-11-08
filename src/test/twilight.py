@@ -47,9 +47,12 @@ if __name__ == "__main__":
         devtools.debug(e)
 
     twilight_args_kwargs = Twilight(
-        Sparkle([FullMatch(".command")], {"param": ArgumentMatch("--option")})
+        Sparkle(
+            [FullMatch(".command")],
+            {"param": ArgumentMatch("--option"), "at": ElementMatch(At)},
+        )
     )
     sparkle_kwargs = twilight_args_kwargs.gen_sparkle(
-        MessageChain.create(".command --option foo", At(123))
+        MessageChain.create(".command --option foo ", At(123))
     )
     devtools.debug(sparkle_kwargs)

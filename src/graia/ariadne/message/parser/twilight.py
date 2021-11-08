@@ -26,7 +26,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import ArgumentMatch, FullMatch, Match, RegexMatch
+from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
 
 
 class _TwilightParser(argparse.ArgumentParser):
@@ -182,17 +182,34 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             if regex_match := sparkle._regex.fullmatch(" ".join(arg_list)):
                 for name, match, index in sparkle._regex_match_list:
                     current = regex_match.group(index) or ""
-                    setattr(  # sparkle.{name} = toMessageChain(current)
-                        sparkle,
-                        name,
-                        match.clone(
-                            result=MessageChain.fromMappingString(
-                                current, elem_mapping
+                    if isinstance(match, ElementMatch):
+                        result = (
+                            elem_mapping[
+                                int(re.fullmatch("\b(\\d+)_\\w+\b", current).group(1))
+                            ]
+                            if current
+                            else None
+                        )
+                        setattr(
+                            sparkle,
+                            name,
+                            match.clone(
+                                result=result,
+                                matched=bool(current),
                             ),
-                            matched=bool(current),
-                            re_match=re.match(match.pattern, current),
-                        ),
-                    )
+                        )
+                    else:
+                        setattr(  # sparkle.{name} = toMessageChain(current)
+                            sparkle,
+                            name,
+                            match.clone(
+                                result=MessageChain.fromMappingString(
+                                    current, elem_mapping
+                                ),
+                                matched=bool(current),
+                                re_match=re.match(match.pattern, current),
+                            ),
+                        )
             else:
                 raise ValueError(f"Regex not matching: {sparkle._regex_pattern}")
 

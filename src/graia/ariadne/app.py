@@ -1150,20 +1150,28 @@ class Ariadne(
             inject_loguru_traceback()
 
     @classmethod
-    def create(cls, *, session: MiraiSession, broadcast: Optional[Broadcast] = None):
+    def create(
+        cls,
+        *,
+        session: MiraiSession,
+        broadcast: Optional[Broadcast] = None,
+        loop: Optional[AbstractEventLoop] = None,
+    ) -> "Ariadne":
         """快速创建一个 `Ariadne` 实例.
 
         Args:
             session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
             broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+            loop (Optional[AbstractEventLoop]): 事件循环实例.
 
         Returns:
-            [type]: [description]
+            Ariadne: 创建的实例.
         """
-        if not broadcast:
+        if not loop:
             loop = asyncio.new_event_loop()
+        if not broadcast:
             broadcast = Broadcast(loop=loop)
-        adapter = DefaultAdapter(broadcast=broadcast, session=session)
+        adapter = DefaultAdapter(broadcast=broadcast, mirai_session=session)
         return cls(broadcast, adapter)
 
     async def daemon(self, retry_interval: float = 5.0):

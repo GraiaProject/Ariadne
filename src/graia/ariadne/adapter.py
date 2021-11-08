@@ -273,9 +273,9 @@ class WebsocketAdapter(Adapter):
             self.response: Optional[dict] = None
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -> None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -408,9 +408,9 @@ class CombinedAdapter(Adapter):
     """
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -> None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None

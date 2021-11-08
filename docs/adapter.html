@@ -301,9 +301,9 @@ class WebsocketAdapter(Adapter):
             self.response: Optional[dict] = None
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -&gt; None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -436,9 +436,9 @@ class CombinedAdapter(Adapter):
     &#34;&#34;&#34;
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -&gt; None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -881,7 +881,7 @@ async def fetch_cycle(self) -&gt; None:
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">CombinedAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
@@ -909,9 +909,9 @@ async def fetch_cycle(self) -&gt; None:
     &#34;&#34;&#34;
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -&gt; None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -1092,7 +1092,7 @@ async def call_api(
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">DefaultAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
@@ -1120,9 +1120,9 @@ async def call_api(
     &#34;&#34;&#34;
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -&gt; None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -1219,7 +1219,7 @@ async def call_api(
 </dd>
 <dt id="ariadne.adapter.DebugAdapter"><code class="flex name class">
 <span>class <span class="ident">DebugAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Debugging adapter</p></div>
@@ -1366,7 +1366,7 @@ Note: Working In Progress</p></div>
 </dd>
 <dt id="ariadne.adapter.WebsocketAdapter"><code class="flex name class">
 <span>class <span class="ident">WebsocketAdapter</span></span>
-<span>(</span><span>bcc: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>仅使用正向 Websocket 的适配器.
@@ -1401,9 +1401,9 @@ Note: Working In Progress</p></div>
             self.response: Optional[dict] = None
 
     def __init__(
-        self, bcc: Broadcast, mirai_session: MiraiSession, ping: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
     ) -&gt; None:
-        super().__init__(bcc, mirai_session)
+        super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None

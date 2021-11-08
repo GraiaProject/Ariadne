@@ -2,10 +2,23 @@ import abc
 import copy
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Iterable, List, Literal, Optional, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Iterable,
+    List,
+    Literal,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
+
+from graia.ariadne.message.chain import ELEMENT_MAPPING
 
 if TYPE_CHECKING:
     from ..chain import MessageChain
+    from ..element import Element
 
 
 @dataclass(init=True, eq=True, repr=True)
@@ -51,7 +64,6 @@ class Match(abc.ABC):
         new_instance.matched = matched
         return new_instance
 
-    @abc.abstractmethod
     def gen_regex(self) -> str:
         ...
 
@@ -110,15 +122,32 @@ class RegexMatch(Match):
 
 
 class FullMatch(Match):
-    def __init__(self, pattern: str, *, optional: bool = False) -> None:
+    def __init__(
+        self, pattern: str, *, optional: bool = False, preserve_space: bool = True
+    ) -> None:
         super().__init__(pattern, optional)
+        self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
-        return f"({re.escape(self.pattern)}){'?' if self.optional else ''}"
+        return f"({re.escape(self.pattern)}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
 
     def clone(
         self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None
     ) -> "FullMatch":
+        return super().clone(result, matched)
+
+
+class ElementMatch(Match):
+    pattern: Type["Element"]
+    result: "Element"
+
+    def __init__(self, pattern: Type["Element"], optional: bool = False) -> None:
+        super().__init__(pattern, optional=optional)
+
+    def gen_regex(self) -> str:
+        return f"(\b\\d+_{self.pattern.__fields__['type'].default}\b)"
+
+    def clone(self, result: "Element", matched: bool) -> "Match":
         return super().clone(result, matched)
 
 
@@ -150,6 +179,3 @@ class ArgumentMatch(Match):
         self.action = action
         self.default = default
         self.regex = re.compile(regex) if regex else None
-
-    def gen_regex(self) -> str:
-        return ""

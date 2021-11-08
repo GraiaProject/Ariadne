@@ -598,7 +598,7 @@ class MessageChain(AriadneBaseModel):
                 elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
-                elem_str_list.append(f&#34;\b{i}\b&#34;)
+                elem_str_list.append(f&#34;\b{i}_{elem.type}\b&#34;)
             else:
                 if (
                     remove_extra_space
@@ -627,8 +627,8 @@ class MessageChain(AriadneBaseModel):
             MessageChain: 构建的消息链
         &#34;&#34;&#34;
         elements: List[Element] = []
-        for x in re.split(&#34;(\b\\d+\b)&#34;, string):
-            if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+        for x in re.split(&#34;(\b\\d+_\\w+\b)&#34;, string):
+            if match := re.match(&#34;\b(\\d+)_\\w+\b&#34;, x):
                 index = int(match.group(1))
                 elements.append(mapping[index])
             else:
@@ -1241,7 +1241,7 @@ _update_forward_refs()</code></pre>
                 elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
-                elem_str_list.append(f&#34;\b{i}\b&#34;)
+                elem_str_list.append(f&#34;\b{i}_{elem.type}\b&#34;)
             else:
                 if (
                     remove_extra_space
@@ -1270,8 +1270,8 @@ _update_forward_refs()</code></pre>
             MessageChain: 构建的消息链
         &#34;&#34;&#34;
         elements: List[Element] = []
-        for x in re.split(&#34;(\b\\d+\b)&#34;, string):
-            if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+        for x in re.split(&#34;(\b\\d+_\\w+\b)&#34;, string):
+            if match := re.match(&#34;\b(\\d+)_\\w+\b&#34;, x):
                 index = int(match.group(1))
                 elements.append(mapping[index])
             else:
@@ -1441,8 +1441,8 @@ def fromMappingString(
         MessageChain: 构建的消息链
     &#34;&#34;&#34;
     elements: List[Element] = []
-    for x in re.split(&#34;(\b\\d+\b)&#34;, string):
-        if match := re.match(&#34;\b(\\d+)\b&#34;, x):
+    for x in re.split(&#34;(\b\\d+_\\w+\b)&#34;, string):
+        if match := re.match(&#34;\b(\\d+)_\\w+\b&#34;, x):
             index = int(match.group(1))
             elements.append(mapping[index])
         else:
@@ -1610,7 +1610,7 @@ def parse_obj(
             elif remove_source and isinstance(elem, Source):
                 continue
             elem_mapping[i] = elem
-            elem_str_list.append(f&#34;\b{i}\b&#34;)
+            elem_str_list.append(f&#34;\b{i}_{elem.type}\b&#34;)
         else:
             if (
                 remove_extra_space

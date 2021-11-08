@@ -570,7 +570,7 @@ class MessageChain(AriadneBaseModel):
                 elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
-                elem_str_list.append(f"\b{i}\b")
+                elem_str_list.append(f"\b{i}_{elem.type}\b")
             else:
                 if (
                     remove_extra_space
@@ -599,8 +599,8 @@ class MessageChain(AriadneBaseModel):
             MessageChain: 构建的消息链
         """
         elements: List[Element] = []
-        for x in re.split("(\b\\d+\b)", string):
-            if match := re.match("\b(\\d+)\b", x):
+        for x in re.split("(\b\\d+_\\w+\b)", string):
+            if match := re.match("\b(\\d+)_\\w+\b", x):
                 index = int(match.group(1))
                 elements.append(mapping[index])
             else:

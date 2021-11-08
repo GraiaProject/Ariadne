@@ -1,0 +1,38 @@
+import asyncio
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
+
+import devtools
+from graia.broadcast import Broadcast
+from loguru import logger
+
+from graia.ariadne.event.message import MessageEvent
+from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.element import *
+from graia.ariadne.message.parser.base import DetectPrefix, DetectSuffix
+from graia.ariadne.model import Friend
+
+if __name__ == "__main__":
+    loop = asyncio.new_event_loop()
+    bcc = Broadcast(loop=loop)
+
+    @bcc.receiver(MessageEvent)
+    async def pup(result: MessageChain = DetectPrefix(".test")):
+        devtools.debug(result)
+
+    @bcc.receiver(MessageEvent)
+    async def pap(result: MessageChain = DetectSuffix("end")):
+        devtools.debug(result)
+
+    async def main():
+        bcc.postEvent(
+            MessageEvent(
+                messageChain=MessageChain.create(".test option end"),
+                sender=Friend(id=123, nickname="opq", remark="test"),
+            )
+        )
+        await asyncio.sleep(0.2)
+
+    loop.run_until_complete(main())

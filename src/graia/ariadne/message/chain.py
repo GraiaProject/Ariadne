@@ -599,12 +599,13 @@ class MessageChain(AriadneBaseModel):
             MessageChain: 构建的消息链
         """
         elements: List[Element] = []
-        for x in re.split("(\b(\\d+)\b)", string):
+        for x in re.split("(\b\\d+\b)", string):
             if match := re.match("\b(\\d+)\b", x):
                 index = int(match.group(1))
                 elements.append(mapping[index])
             else:
-                elements.append(Plain(x))
+                if x:
+                    elements.append(Plain(x))
         return cls.create(elements)
 
     def removeprefix(self, prefix: str, *, copy: bool = True) -> "MessageChain":

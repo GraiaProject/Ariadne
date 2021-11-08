@@ -69,7 +69,9 @@ class Sparkle:
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        match_map = match_map | {f"_check_{i}": val for i, val in enumerate(check_args)}
+        match_map = {
+            f"_check_{i}": val for i, val in enumerate(check_args)
+        } | match_map  # ensure check args come first
 
         if any(
             k.startswith("_")
@@ -229,6 +231,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         sparkle = local_storage["sparkle"]
         if issubclass(interface.annotation, Sparkle):
             return sparkle
+        if issubclass(interface.annotation, Twilight):
+            return self
         if isinstance(interface.annotation, Match):
             if hasattr(sparkle, interface.name):
                 match: Match = getattr(sparkle, interface.name)
@@ -241,4 +245,5 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         exception: Optional[Exception],
         tb: Optional[TracebackType],
     ):
-        del interface.broadcast.decorator_interface.local_storage["sparkle"]
+        if "sparkle" in interface.broadcast.decorator_interface.local_storage:
+            del interface.broadcast.decorator_interface.local_storage["sparkle"]

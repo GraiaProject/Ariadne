@@ -49,7 +49,7 @@ if __name__ == "__main__":
     twilight_args_kwargs = Twilight(
         Sparkle(
             [FullMatch(".command")],
-            {"param": ArgumentMatch("--option"), "at": ElementMatch(At)},
+            {"param": ArgumentMatch("--option"), "at": ElementMatch(At, optional=True)},
         )
     )
     sparkle_kwargs = twilight_args_kwargs.gen_sparkle(

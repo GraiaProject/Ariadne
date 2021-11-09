@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from ..chain import MessageChain
     from ..element import Element
 
+    Self = TypeVar("Self")
+
 
 @dataclass(init=True, eq=True, repr=True)
 class ParamPattern:
@@ -58,7 +60,7 @@ class Match(abc.ABC):
         annotation = {k: getattr(self, k) for k in self.__annotations__.keys()}
         return f"<{self.__class__.__qualname__} {annotation})>"
 
-    def clone(self, result: "MessageChain", matched: bool) -> "Match":
+    def clone(self, result: "MessageChain", matched: bool) -> "Self":
         new_instance = copy.copy(self)
         new_instance.result = result
         new_instance.matched = matched
@@ -115,7 +117,7 @@ class RegexMatch(Match):
 
     def clone(
         self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None
-    ) -> "RegexMatch":
+    ) -> "Self":
         new_instance: RegexMatch = super().clone(result, matched)
         new_instance.regex_match = re_match
         return new_instance
@@ -131,24 +133,25 @@ class FullMatch(Match):
     def gen_regex(self) -> str:
         return f"({re.escape(self.pattern)}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
 
-    def clone(
-        self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None
-    ) -> "FullMatch":
-        return super().clone(result, matched)
-
 
 class ElementMatch(Match):
     pattern: Type["Element"]
     result: "Element"
 
-    def __init__(self, pattern: Type["Element"], optional: bool = False) -> None:
+    def __init__(
+        self,
+        pattern: Type["Element"],
+        optional: bool = False,
+        preserve_space: bool = True,
+    ) -> None:
         super().__init__(pattern, optional=optional)
+        self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
-        return f"(\b\\d+_{self.pattern.__fields__['type'].default}\b)"
-
-    def clone(self, result: "Element", matched: bool) -> "Match":
-        return super().clone(result, matched)
+        return (
+            f"(\b\\d+_{self.pattern.__fields__['type'].default}\b){'?' if self.optional else ''}"
+            f"{'( )?' if self.preserve_space else ''}"
+        )
 
 
 class ArgumentMatch(Match):

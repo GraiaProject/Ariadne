@@ -133,6 +133,70 @@ class Sparkle:
         }
         return f&#34;&lt;Sparkle: {repr_dict}&gt;&#34;
 
+    def build_arg_parser(self, elem_mapping: Dict[str, Element]) -&gt; _TwilightParser:
+        arg_parser = _TwilightParser(exit_on_error=False)
+        for match, _ in self._args_map.values():
+            add_argument_data = {
+                &#34;action&#34;: match.action,
+                &#34;nargs&#34;: match.nargs,
+                &#34;default&#34;: match.default,
+                &#34;required&#34;: not match.optional,
+            } | (
+                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
+                if arg_parser.accept_type(match.action)
+                else {}
+            )
+            arg_parser.add_argument(*match.pattern, **add_argument_data)
+        return arg_parser
+
+    def dump_namespace(self, namespace: argparse.Namespace) -&gt; None:
+        for arg_name, val_tuple in self._args_map.items():
+            match, sparkle_name = val_tuple
+            namespace_val = getattr(namespace, arg_name, None)
+            if arg_name in namespace.__dict__:
+                setattr(
+                    self,
+                    sparkle_name,
+                    match.clone(namespace_val, bool(namespace_val)),
+                )
+
+    def match_regex(
+        self, elem_mapping: Dict[str, Element], arg_list: List[str]
+    ) -&gt; None:
+        if self._regex_pattern:
+            if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
+                for name, match, index in self._regex_match_list:
+                    current = regex_match.group(index) or &#34;&#34;
+                    if isinstance(match, ElementMatch):
+                        if current:
+                            index = re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1)
+                            result = elem_mapping[int(index)]
+                        else:
+                            result = None
+                    else:
+                        result = MessageChain.fromMappingString(current, elem_mapping)
+                    if isinstance(match, RegexMatch):
+                        setattr(  # sparkle.{name} = toMessageChain(current)
+                            self,
+                            name,
+                            match.clone(
+                                result=result,
+                                matched=bool(current),
+                                re_match=re.match(match.pattern, current),
+                            ),
+                        )
+                    else:
+                        setattr(
+                            self,
+                            name,
+                            match.clone(
+                                result=result,
+                                matched=bool(current),
+                            ),
+                        )
+            else:
+                raise ValueError(f&#34;Regex not matching: {self._regex_pattern}&#34;)
+
 
 T_Sparkle = TypeVar(&#34;T_Sparkle&#34;, bound=Sparkle)
 
@@ -171,88 +235,18 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             &#34;remove_extra_space&#34;: remove_extra_space,
         }
 
-    @staticmethod
-    def build_arg_parser(
-        sparkle: Sparkle, elem_mapping: Dict[str, Element]
-    ) -&gt; _TwilightParser:
-        arg_parser = _TwilightParser(exit_on_error=False)
-        for match, _ in sparkle._args_map.values():
-            add_argument_data = {
-                &#34;action&#34;: match.action,
-                &#34;nargs&#34;: match.nargs,
-                &#34;default&#34;: match.default,
-                &#34;required&#34;: not match.optional,
-            } | (
-                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
-                if arg_parser.accept_type(match.action)
-                else {}
-            )
-            arg_parser.add_argument(*match.pattern, **add_argument_data)
-        return arg_parser
-
-    @staticmethod
-    def dump_namespace(sparkle: Sparkle, namespace: argparse.Namespace) -&gt; None:
-        for arg_name, val_tuple in sparkle._args_map.items():
-            match, sparkle_name = val_tuple
-            namespace_val = getattr(namespace, arg_name, None)
-            if arg_name in namespace.__dict__:
-                setattr(
-                    sparkle,
-                    sparkle_name,
-                    match.clone(namespace_val, bool(namespace_val)),
-                )
-
-    @staticmethod
-    def match_regex(
-        sparkle: Sparkle, elem_mapping: Dict[str, Element], arg_list: List[str]
-    ) -&gt; None:
-        if sparkle._regex_pattern:
-            if regex_match := sparkle._regex.fullmatch(&#34; &#34;.join(arg_list)):
-                for name, match, index in sparkle._regex_match_list:
-                    current = regex_match.group(index) or &#34;&#34;
-                    if isinstance(match, ElementMatch):
-                        result = (
-                            elem_mapping[
-                                int(re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1))
-                            ]
-                            if current
-                            else None
-                        )
-                        setattr(
-                            sparkle,
-                            name,
-                            match.clone(
-                                result=result,
-                                matched=bool(current),
-                            ),
-                        )
-                    else:
-                        setattr(  # sparkle.{name} = toMessageChain(current)
-                            sparkle,
-                            name,
-                            match.clone(
-                                result=MessageChain.fromMappingString(
-                                    current, elem_mapping
-                                ),
-                                matched=bool(current),
-                                re_match=re.match(match.pattern, current),
-                            ),
-                        )
-            else:
-                raise ValueError(f&#34;Regex not matching: {sparkle._regex_pattern}&#34;)
-
     def gen_sparkle(self, chain: MessageChain) -&gt; T_Sparkle:
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
-        arg_parser = self.build_arg_parser(sparkle, elem_mapping)
+        arg_parser = sparkle.build_arg_parser(elem_mapping)
         str_list = shlex.split(mapping_str)
         try:
             namespace, arg_list = arg_parser.parse_known_args(str_list)
-            self.dump_namespace(sparkle, namespace)
+            sparkle.dump_namespace(namespace)
         except Exception:
             raise
         else:
-            self.match_regex(sparkle, elem_mapping, arg_list)
+            sparkle.match_regex(elem_mapping, arg_list)
         return sparkle
 
     def beforeExecution(self, interface: &#34;DispatcherInterface[MessageEvent]&#34;):
@@ -361,8 +355,169 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         repr_dict: Dict[str, Match] = {
             k: v for k, v in self.__dict__.items() if isinstance(v, Match)
         }
-        return f&#34;&lt;Sparkle: {repr_dict}&gt;&#34;</code></pre>
+        return f&#34;&lt;Sparkle: {repr_dict}&gt;&#34;
+
+    def build_arg_parser(self, elem_mapping: Dict[str, Element]) -&gt; _TwilightParser:
+        arg_parser = _TwilightParser(exit_on_error=False)
+        for match, _ in self._args_map.values():
+            add_argument_data = {
+                &#34;action&#34;: match.action,
+                &#34;nargs&#34;: match.nargs,
+                &#34;default&#34;: match.default,
+                &#34;required&#34;: not match.optional,
+            } | (
+                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
+                if arg_parser.accept_type(match.action)
+                else {}
+            )
+            arg_parser.add_argument(*match.pattern, **add_argument_data)
+        return arg_parser
+
+    def dump_namespace(self, namespace: argparse.Namespace) -&gt; None:
+        for arg_name, val_tuple in self._args_map.items():
+            match, sparkle_name = val_tuple
+            namespace_val = getattr(namespace, arg_name, None)
+            if arg_name in namespace.__dict__:
+                setattr(
+                    self,
+                    sparkle_name,
+                    match.clone(namespace_val, bool(namespace_val)),
+                )
+
+    def match_regex(
+        self, elem_mapping: Dict[str, Element], arg_list: List[str]
+    ) -&gt; None:
+        if self._regex_pattern:
+            if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
+                for name, match, index in self._regex_match_list:
+                    current = regex_match.group(index) or &#34;&#34;
+                    if isinstance(match, ElementMatch):
+                        if current:
+                            index = re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1)
+                            result = elem_mapping[int(index)]
+                        else:
+                            result = None
+                    else:
+                        result = MessageChain.fromMappingString(current, elem_mapping)
+                    if isinstance(match, RegexMatch):
+                        setattr(  # sparkle.{name} = toMessageChain(current)
+                            self,
+                            name,
+                            match.clone(
+                                result=result,
+                                matched=bool(current),
+                                re_match=re.match(match.pattern, current),
+                            ),
+                        )
+                    else:
+                        setattr(
+                            self,
+                            name,
+                            match.clone(
+                                result=result,
+                                matched=bool(current),
+                            ),
+                        )
+            else:
+                raise ValueError(f&#34;Regex not matching: {self._regex_pattern}&#34;)</code></pre>
 </details>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.twilight.Sparkle.build_arg_parser"><code class="name flex">
+<span>def <span class="ident">build_arg_parser</span></span>(<span>self, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>]) ‑> ariadne.message.parser.twilight._TwilightParser</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_arg_parser(self, elem_mapping: Dict[str, Element]) -&gt; _TwilightParser:
+    arg_parser = _TwilightParser(exit_on_error=False)
+    for match, _ in self._args_map.values():
+        add_argument_data = {
+            &#34;action&#34;: match.action,
+            &#34;nargs&#34;: match.nargs,
+            &#34;default&#34;: match.default,
+            &#34;required&#34;: not match.optional,
+        } | (
+            {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
+            if arg_parser.accept_type(match.action)
+            else {}
+        )
+        arg_parser.add_argument(*match.pattern, **add_argument_data)
+    return arg_parser</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.twilight.Sparkle.dump_namespace"><code class="name flex">
+<span>def <span class="ident">dump_namespace</span></span>(<span>self, namespace: argparse.Namespace) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dump_namespace(self, namespace: argparse.Namespace) -&gt; None:
+    for arg_name, val_tuple in self._args_map.items():
+        match, sparkle_name = val_tuple
+        namespace_val = getattr(namespace, arg_name, None)
+        if arg_name in namespace.__dict__:
+            setattr(
+                self,
+                sparkle_name,
+                match.clone(namespace_val, bool(namespace_val)),
+            )</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.twilight.Sparkle.match_regex"><code class="name flex">
+<span>def <span class="ident">match_regex</span></span>(<span>self, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>], arg_list: List[str]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def match_regex(
+    self, elem_mapping: Dict[str, Element], arg_list: List[str]
+) -&gt; None:
+    if self._regex_pattern:
+        if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
+            for name, match, index in self._regex_match_list:
+                current = regex_match.group(index) or &#34;&#34;
+                if isinstance(match, ElementMatch):
+                    if current:
+                        index = re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1)
+                        result = elem_mapping[int(index)]
+                    else:
+                        result = None
+                else:
+                    result = MessageChain.fromMappingString(current, elem_mapping)
+                if isinstance(match, RegexMatch):
+                    setattr(  # sparkle.{name} = toMessageChain(current)
+                        self,
+                        name,
+                        match.clone(
+                            result=result,
+                            matched=bool(current),
+                            re_match=re.match(match.pattern, current),
+                        ),
+                    )
+                else:
+                    setattr(
+                        self,
+                        name,
+                        match.clone(
+                            result=result,
+                            matched=bool(current),
+                        ),
+                    )
+        else:
+            raise ValueError(f&#34;Regex not matching: {self._regex_pattern}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
 </dd>
 <dt id="ariadne.message.parser.twilight.Twilight"><code class="flex name class">
 <span>class <span class="ident">Twilight</span></span>
@@ -416,88 +571,18 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             &#34;remove_extra_space&#34;: remove_extra_space,
         }
 
-    @staticmethod
-    def build_arg_parser(
-        sparkle: Sparkle, elem_mapping: Dict[str, Element]
-    ) -&gt; _TwilightParser:
-        arg_parser = _TwilightParser(exit_on_error=False)
-        for match, _ in sparkle._args_map.values():
-            add_argument_data = {
-                &#34;action&#34;: match.action,
-                &#34;nargs&#34;: match.nargs,
-                &#34;default&#34;: match.default,
-                &#34;required&#34;: not match.optional,
-            } | (
-                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
-                if arg_parser.accept_type(match.action)
-                else {}
-            )
-            arg_parser.add_argument(*match.pattern, **add_argument_data)
-        return arg_parser
-
-    @staticmethod
-    def dump_namespace(sparkle: Sparkle, namespace: argparse.Namespace) -&gt; None:
-        for arg_name, val_tuple in sparkle._args_map.items():
-            match, sparkle_name = val_tuple
-            namespace_val = getattr(namespace, arg_name, None)
-            if arg_name in namespace.__dict__:
-                setattr(
-                    sparkle,
-                    sparkle_name,
-                    match.clone(namespace_val, bool(namespace_val)),
-                )
-
-    @staticmethod
-    def match_regex(
-        sparkle: Sparkle, elem_mapping: Dict[str, Element], arg_list: List[str]
-    ) -&gt; None:
-        if sparkle._regex_pattern:
-            if regex_match := sparkle._regex.fullmatch(&#34; &#34;.join(arg_list)):
-                for name, match, index in sparkle._regex_match_list:
-                    current = regex_match.group(index) or &#34;&#34;
-                    if isinstance(match, ElementMatch):
-                        result = (
-                            elem_mapping[
-                                int(re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1))
-                            ]
-                            if current
-                            else None
-                        )
-                        setattr(
-                            sparkle,
-                            name,
-                            match.clone(
-                                result=result,
-                                matched=bool(current),
-                            ),
-                        )
-                    else:
-                        setattr(  # sparkle.{name} = toMessageChain(current)
-                            sparkle,
-                            name,
-                            match.clone(
-                                result=MessageChain.fromMappingString(
-                                    current, elem_mapping
-                                ),
-                                matched=bool(current),
-                                re_match=re.match(match.pattern, current),
-                            ),
-                        )
-            else:
-                raise ValueError(f&#34;Regex not matching: {sparkle._regex_pattern}&#34;)
-
     def gen_sparkle(self, chain: MessageChain) -&gt; T_Sparkle:
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
-        arg_parser = self.build_arg_parser(sparkle, elem_mapping)
+        arg_parser = sparkle.build_arg_parser(elem_mapping)
         str_list = shlex.split(mapping_str)
         try:
             namespace, arg_list = arg_parser.parse_known_args(str_list)
-            self.dump_namespace(sparkle, namespace)
+            sparkle.dump_namespace(namespace)
         except Exception:
             raise
         else:
-            self.match_regex(sparkle, elem_mapping, arg_list)
+            sparkle.match_regex(elem_mapping, arg_list)
         return sparkle
 
     def beforeExecution(self, interface: &#34;DispatcherInterface[MessageEvent]&#34;):
@@ -548,109 +633,6 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <dt id="ariadne.message.parser.twilight.Twilight.mixin"><code class="name">var <span class="ident">mixin</span> : List[Union[graia.broadcast.entities.dispatcher.BaseDispatcher, Type[graia.broadcast.entities.dispatcher.BaseDispatcher]]]</code></dt>
 <dd>
 <div class="desc"></div>
-</dd>
-</dl>
-<h3>Static methods</h3>
-<dl>
-<dt id="ariadne.message.parser.twilight.Twilight.build_arg_parser"><code class="name flex">
-<span>def <span class="ident">build_arg_parser</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>]) ‑> ariadne.message.parser.twilight._TwilightParser</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def build_arg_parser(
-    sparkle: Sparkle, elem_mapping: Dict[str, Element]
-) -&gt; _TwilightParser:
-    arg_parser = _TwilightParser(exit_on_error=False)
-    for match, _ in sparkle._args_map.values():
-        add_argument_data = {
-            &#34;action&#34;: match.action,
-            &#34;nargs&#34;: match.nargs,
-            &#34;default&#34;: match.default,
-            &#34;required&#34;: not match.optional,
-        } | (
-            {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
-            if arg_parser.accept_type(match.action)
-            else {}
-        )
-        arg_parser.add_argument(*match.pattern, **add_argument_data)
-    return arg_parser</code></pre>
-</details>
-</dd>
-<dt id="ariadne.message.parser.twilight.Twilight.dump_namespace"><code class="name flex">
-<span>def <span class="ident">dump_namespace</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, namespace: argparse.Namespace) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def dump_namespace(sparkle: Sparkle, namespace: argparse.Namespace) -&gt; None:
-    for arg_name, val_tuple in sparkle._args_map.items():
-        match, sparkle_name = val_tuple
-        namespace_val = getattr(namespace, arg_name, None)
-        if arg_name in namespace.__dict__:
-            setattr(
-                sparkle,
-                sparkle_name,
-                match.clone(namespace_val, bool(namespace_val)),
-            )</code></pre>
-</details>
-</dd>
-<dt id="ariadne.message.parser.twilight.Twilight.match_regex"><code class="name flex">
-<span>def <span class="ident">match_regex</span></span>(<span>sparkle: <a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a>, elem_mapping: Dict[str, <a title="ariadne.message.element.Element" href="../element.html#ariadne.message.element.Element">Element</a>], arg_list: List[str]) ‑> None</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@staticmethod
-def match_regex(
-    sparkle: Sparkle, elem_mapping: Dict[str, Element], arg_list: List[str]
-) -&gt; None:
-    if sparkle._regex_pattern:
-        if regex_match := sparkle._regex.fullmatch(&#34; &#34;.join(arg_list)):
-            for name, match, index in sparkle._regex_match_list:
-                current = regex_match.group(index) or &#34;&#34;
-                if isinstance(match, ElementMatch):
-                    result = (
-                        elem_mapping[
-                            int(re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1))
-                        ]
-                        if current
-                        else None
-                    )
-                    setattr(
-                        sparkle,
-                        name,
-                        match.clone(
-                            result=result,
-                            matched=bool(current),
-                        ),
-                    )
-                else:
-                    setattr(  # sparkle.{name} = toMessageChain(current)
-                        sparkle,
-                        name,
-                        match.clone(
-                            result=MessageChain.fromMappingString(
-                                current, elem_mapping
-                            ),
-                            matched=bool(current),
-                            re_match=re.match(match.pattern, current),
-                        ),
-                    )
-        else:
-            raise ValueError(f&#34;Regex not matching: {sparkle._regex_pattern}&#34;)</code></pre>
-</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -773,15 +755,15 @@ def match_regex(
 <pre><code class="python">def gen_sparkle(self, chain: MessageChain) -&gt; T_Sparkle:
     sparkle = deepcopy(self.sparkle_root)
     mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
-    arg_parser = self.build_arg_parser(sparkle, elem_mapping)
+    arg_parser = sparkle.build_arg_parser(elem_mapping)
     str_list = shlex.split(mapping_str)
     try:
         namespace, arg_list = arg_parser.parse_known_args(str_list)
-        self.dump_namespace(sparkle, namespace)
+        sparkle.dump_namespace(namespace)
     except Exception:
         raise
     else:
-        self.match_regex(sparkle, elem_mapping, arg_list)
+        sparkle.match_regex(elem_mapping, arg_list)
     return sparkle</code></pre>
 </details>
 </dd>
@@ -805,17 +787,19 @@ def match_regex(
 <ul>
 <li>
 <h4><code><a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.twilight.Sparkle.build_arg_parser" href="#ariadne.message.parser.twilight.Sparkle.build_arg_parser">build_arg_parser</a></code></li>
+<li><code><a title="ariadne.message.parser.twilight.Sparkle.dump_namespace" href="#ariadne.message.parser.twilight.Sparkle.dump_namespace">dump_namespace</a></code></li>
+<li><code><a title="ariadne.message.parser.twilight.Sparkle.match_regex" href="#ariadne.message.parser.twilight.Sparkle.match_regex">match_regex</a></code></li>
+</ul>
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.twilight.Twilight" href="#ariadne.message.parser.twilight.Twilight">Twilight</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="ariadne.message.parser.twilight.Twilight.afterExecution" href="#ariadne.message.parser.twilight.Twilight.afterExecution">afterExecution</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.beforeExecution" href="#ariadne.message.parser.twilight.Twilight.beforeExecution">beforeExecution</a></code></li>
-<li><code><a title="ariadne.message.parser.twilight.Twilight.build_arg_parser" href="#ariadne.message.parser.twilight.Twilight.build_arg_parser">build_arg_parser</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.catch" href="#ariadne.message.parser.twilight.Twilight.catch">catch</a></code></li>
-<li><code><a title="ariadne.message.parser.twilight.Twilight.dump_namespace" href="#ariadne.message.parser.twilight.Twilight.dump_namespace">dump_namespace</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.gen_sparkle" href="#ariadne.message.parser.twilight.Twilight.gen_sparkle">gen_sparkle</a></code></li>
-<li><code><a title="ariadne.message.parser.twilight.Twilight.match_regex" href="#ariadne.message.parser.twilight.Twilight.match_regex">match_regex</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.mixin" href="#ariadne.message.parser.twilight.Twilight.mixin">mixin</a></code></li>
 </ul>
 </li>

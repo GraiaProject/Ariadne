@@ -187,6 +187,7 @@ class ArgumentMatch(Match):
     name: str
     nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;]
     action: str
+    const: Optional[Any]
     default: Optional[Any]
     regex: Optional[str]
     result: Union[&#34;MessageChain&#34;, Any]
@@ -195,6 +196,7 @@ class ArgumentMatch(Match):
         self,
         *pattern: str,
         optional: bool = True,
+        const: Optional[Any] = None,
         default: Optional[Any] = None,
         nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;, &#34;N&#34;] = &#34;?&#34;,
         action: str = &#34;store&#34;,
@@ -208,6 +210,7 @@ class ArgumentMatch(Match):
         self.name = pattern[0].lstrip(&#34;-&#34;).replace(&#34;-&#34;, &#34;_&#34;)
         self.nargs = nargs
         self.action = action
+        self.const = const
         self.default = default
         self.regex = re.compile(regex) if regex else None</code></pre>
 </details>
@@ -253,7 +256,7 @@ class ArgumentMatch(Match):
 <dl>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch"><code class="flex name class">
 <span>class <span class="ident">ArgumentMatch</span></span>
-<span>(</span><span>*pattern: str, optional: bool = True, default: Optional[Any] = None, nargs: Literal['?', '+', '*', 'N'] = '?', action: str = 'store', regex: Optional[str] = None)</span>
+<span>(</span><span>*pattern: str, optional: bool = True, const: Optional[Any] = None, default: Optional[Any] = None, nargs: Literal['?', '+', '*', 'N'] = '?', action: str = 'store', regex: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -267,6 +270,7 @@ inheritance.</p></div>
     name: str
     nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;]
     action: str
+    const: Optional[Any]
     default: Optional[Any]
     regex: Optional[str]
     result: Union[&#34;MessageChain&#34;, Any]
@@ -275,6 +279,7 @@ inheritance.</p></div>
         self,
         *pattern: str,
         optional: bool = True,
+        const: Optional[Any] = None,
         default: Optional[Any] = None,
         nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;, &#34;N&#34;] = &#34;?&#34;,
         action: str = &#34;store&#34;,
@@ -288,6 +293,7 @@ inheritance.</p></div>
         self.name = pattern[0].lstrip(&#34;-&#34;).replace(&#34;-&#34;, &#34;_&#34;)
         self.nargs = nargs
         self.action = action
+        self.const = const
         self.default = default
         self.regex = re.compile(regex) if regex else None</code></pre>
 </details>
@@ -299,6 +305,10 @@ inheritance.</p></div>
 <h3>Class variables</h3>
 <dl>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch.action"><code class="name">var <span class="ident">action</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.const"><code class="name">var <span class="ident">const</span> : Optional[Any]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -798,6 +808,7 @@ class SwitchParameter(ParamPattern):
 <h4><code><a title="ariadne.message.parser.pattern.ArgumentMatch" href="#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a></code></h4>
 <ul class="two-column">
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.action" href="#ariadne.message.parser.pattern.ArgumentMatch.action">action</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.const" href="#ariadne.message.parser.pattern.ArgumentMatch.const">const</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.default" href="#ariadne.message.parser.pattern.ArgumentMatch.default">default</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.name" href="#ariadne.message.parser.pattern.ArgumentMatch.name">name</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.nargs" href="#ariadne.message.parser.pattern.ArgumentMatch.nargs">nargs</a></code></li>

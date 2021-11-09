@@ -111,6 +111,7 @@ class Sparkle:
             add_argument_data = {
                 "action": match.action,
                 "nargs": match.nargs,
+                "const": match.const,
                 "default": match.default,
                 "required": not match.optional,
             } | (

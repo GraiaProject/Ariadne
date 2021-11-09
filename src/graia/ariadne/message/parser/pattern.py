@@ -159,6 +159,7 @@ class ArgumentMatch(Match):
     name: str
     nargs: Literal["?", "+", "*"]
     action: str
+    const: Optional[Any]
     default: Optional[Any]
     regex: Optional[str]
     result: Union["MessageChain", Any]
@@ -167,6 +168,7 @@ class ArgumentMatch(Match):
         self,
         *pattern: str,
         optional: bool = True,
+        const: Optional[Any] = None,
         default: Optional[Any] = None,
         nargs: Literal["?", "+", "*", "N"] = "?",
         action: str = "store",
@@ -180,5 +182,6 @@ class ArgumentMatch(Match):
         self.name = pattern[0].lstrip("-").replace("-", "_")
         self.nargs = nargs
         self.action = action
+        self.const = const
         self.default = default
         self.regex = re.compile(regex) if regex else None

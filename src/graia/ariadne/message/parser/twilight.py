@@ -26,7 +26,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
+from .pattern import EMPTY, ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
 
 
 class _TwilightParser(argparse.ArgumentParser):
@@ -108,14 +108,18 @@ class Sparkle:
     def build_arg_parser(self, elem_mapping: Dict[str, Element]) -> _TwilightParser:
         arg_parser = _TwilightParser(exit_on_error=False)
         for match, _ in self._args_map.values():
-            add_argument_data = {
-                "action": match.action,
-                "nargs": match.nargs,
-                "const": match.const,
-                "default": match.default,
-                "required": not match.optional,
-            } | (
-                {"type": _ArgumentMatchType(match, match.regex, elem_mapping)}
+            add_argument_data = (
+                {"action": match.action}
+                if match.action is not EMPTY
+                else {} | {"nargs": match.nargs}
+                if match.nargs is not EMPTY
+                else {} | {"const": match.const}
+                if match.const is not EMPTY
+                else {} | {"default": match.default}
+                if match.default is not EMPTY
+                else {}
+                | {"required": not match.optional}
+                | {"type": _ArgumentMatchType(match, match.regex, elem_mapping)}
                 if arg_parser.accept_type(match.action)
                 else {}
             )

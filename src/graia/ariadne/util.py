@@ -1,7 +1,7 @@
 import functools
 import sys
 import traceback
-from typing import Callable, ContextManager, Generator, List, Type, TypeVar, Union
+from typing import Callable, ContextManager, Dict, Generator, List, Type, TypeVar, Union
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -26,15 +26,16 @@ from .exception import (
     InvalidSession,
     InvalidVerifyKey,
     MessageTooLong,
+    UnknownError,
     UnknownTarget,
-    UnVerifyedSession,
+    UnVerifiedSession,
 )
 
-code_exceptions_mapping = {
+code_exceptions_mapping: Dict[int, Type[Exception]] = {
     1: InvalidVerifyKey,
     2: AccountNotFound,
     3: InvalidSession,
-    4: UnVerifyedSession,
+    4: UnVerifiedSession,
     5: UnknownTarget,
     6: FileNotFoundError,
     10: PermissionError,
@@ -45,15 +46,18 @@ code_exceptions_mapping = {
 
 
 def validate_response(code: Union[dict, int]):
+    origin = code
     if isinstance(code, dict):
         code = code.get("code")
-        exception_code = code_exceptions_mapping.get(code)
-        if exception_code:
-            raise exception_code
-    elif isinstance(code, int):
-        exception_code = code_exceptions_mapping.get(code)
-        if exception_code:
-            raise exception_code
+    else:
+        code = code
+    if code == 200:
+        return
+    exc_cls = code_exceptions_mapping.get(code)
+    if exc_cls:
+        raise exc_cls(exc_cls.__doc__)
+    else:
+        raise UnknownError(f"{origin}")
 
 
 def loguru_print_exception(cls, val, tb, limit, file, chain):

@@ -29,6 +29,7 @@
 <pre><code class="python">import abc
 import copy
 import re
+from argparse import Action
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
@@ -42,7 +43,7 @@ from typing import (
     Union,
 )
 
-from graia.ariadne.message.chain import ELEMENT_MAPPING
+from ..chain import ELEMENT_MAPPING
 
 if TYPE_CHECKING:
     from ..chain import MessageChain
@@ -182,13 +183,19 @@ class ElementMatch(Match):
         )
 
 
+EMPTY = object()  # flag
+
+T_const = TypeVar(&#34;T_const&#34;)
+T_default = TypeVar(&#34;T_default&#34;)
+
+
 class ArgumentMatch(Match):
     pattern: Iterable[str]
     name: str
-    nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;]
-    action: str
-    const: Optional[Any]
-    default: Optional[Any]
+    nargs: Union[str, int]
+    action: Union[str, Type[Action]]
+    const: Optional[T_const]
+    default: Optional[T_default]
     regex: Optional[str]
     result: Union[&#34;MessageChain&#34;, Any]
 
@@ -196,10 +203,10 @@ class ArgumentMatch(Match):
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[Any] = None,
-        default: Optional[Any] = None,
-        nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;, &#34;N&#34;] = &#34;?&#34;,
-        action: str = &#34;store&#34;,
+        const: Optional[T_const] = EMPTY,
+        default: Optional[T_default] = EMPTY,
+        nargs: Union[str, int] = EMPTY,
+        action: Union[str, Type[Action]] = EMPTY,
         regex: Optional[str] = None,
     ) -&gt; None:
         if not all(string.startswith(&#34;-&#34;) for string in pattern):
@@ -256,7 +263,7 @@ class ArgumentMatch(Match):
 <dl>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch"><code class="flex name class">
 <span>class <span class="ident">ArgumentMatch</span></span>
-<span>(</span><span>*pattern: str, optional: bool = True, const: Optional[Any] = None, default: Optional[Any] = None, nargs: Literal['?', '+', '*', 'N'] = '?', action: str = 'store', regex: Optional[str] = None)</span>
+<span>(</span><span>*pattern: str, optional: bool = True, const: Optional[~T_const] = &lt;object object&gt;, default: Optional[~T_default] = &lt;object object&gt;, nargs: Union[str, int] = &lt;object object&gt;, action: Union[str, Type[argparse.Action]] = &lt;object object&gt;, regex: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -268,10 +275,10 @@ inheritance.</p></div>
 <pre><code class="python">class ArgumentMatch(Match):
     pattern: Iterable[str]
     name: str
-    nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;]
-    action: str
-    const: Optional[Any]
-    default: Optional[Any]
+    nargs: Union[str, int]
+    action: Union[str, Type[Action]]
+    const: Optional[T_const]
+    default: Optional[T_default]
     regex: Optional[str]
     result: Union[&#34;MessageChain&#34;, Any]
 
@@ -279,10 +286,10 @@ inheritance.</p></div>
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[Any] = None,
-        default: Optional[Any] = None,
-        nargs: Literal[&#34;?&#34;, &#34;+&#34;, &#34;*&#34;, &#34;N&#34;] = &#34;?&#34;,
-        action: str = &#34;store&#34;,
+        const: Optional[T_const] = EMPTY,
+        default: Optional[T_default] = EMPTY,
+        nargs: Union[str, int] = EMPTY,
+        action: Union[str, Type[Action]] = EMPTY,
         regex: Optional[str] = None,
     ) -&gt; None:
         if not all(string.startswith(&#34;-&#34;) for string in pattern):
@@ -304,15 +311,15 @@ inheritance.</p></div>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.action"><code class="name">var <span class="ident">action</span> : str</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.action"><code class="name">var <span class="ident">action</span> : Union[str, Type[argparse.Action]]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.const"><code class="name">var <span class="ident">const</span> : Optional[Any]</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.const"><code class="name">var <span class="ident">const</span> : Optional[~T_const]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.default"><code class="name">var <span class="ident">default</span> : Optional[Any]</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.default"><code class="name">var <span class="ident">default</span> : Optional[~T_default]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -320,7 +327,7 @@ inheritance.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.nargs"><code class="name">var <span class="ident">nargs</span> : Literal['?', '+', '*']</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.nargs"><code class="name">var <span class="ident">nargs</span> : Union[str, int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

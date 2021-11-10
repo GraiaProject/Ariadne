@@ -54,7 +54,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
+from .pattern import EMPTY, ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
 
 
 class _TwilightParser(argparse.ArgumentParser):
@@ -136,14 +136,18 @@ class Sparkle:
     def build_arg_parser(self, elem_mapping: Dict[str, Element]) -&gt; _TwilightParser:
         arg_parser = _TwilightParser(exit_on_error=False)
         for match, _ in self._args_map.values():
-            add_argument_data = {
-                &#34;action&#34;: match.action,
-                &#34;nargs&#34;: match.nargs,
-                &#34;const&#34;: match.const,
-                &#34;default&#34;: match.default,
-                &#34;required&#34;: not match.optional,
-            } | (
-                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
+            add_argument_data = (
+                {&#34;action&#34;: match.action}
+                if match.action is not EMPTY
+                else {} | {&#34;nargs&#34;: match.nargs}
+                if match.nargs is not EMPTY
+                else {} | {&#34;const&#34;: match.const}
+                if match.const is not EMPTY
+                else {} | {&#34;default&#34;: match.default}
+                if match.default is not EMPTY
+                else {}
+                | {&#34;required&#34;: not match.optional}
+                | {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
                 if arg_parser.accept_type(match.action)
                 else {}
             )
@@ -361,14 +365,18 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def build_arg_parser(self, elem_mapping: Dict[str, Element]) -&gt; _TwilightParser:
         arg_parser = _TwilightParser(exit_on_error=False)
         for match, _ in self._args_map.values():
-            add_argument_data = {
-                &#34;action&#34;: match.action,
-                &#34;nargs&#34;: match.nargs,
-                &#34;const&#34;: match.const,
-                &#34;default&#34;: match.default,
-                &#34;required&#34;: not match.optional,
-            } | (
-                {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
+            add_argument_data = (
+                {&#34;action&#34;: match.action}
+                if match.action is not EMPTY
+                else {} | {&#34;nargs&#34;: match.nargs}
+                if match.nargs is not EMPTY
+                else {} | {&#34;const&#34;: match.const}
+                if match.const is not EMPTY
+                else {} | {&#34;default&#34;: match.default}
+                if match.default is not EMPTY
+                else {}
+                | {&#34;required&#34;: not match.optional}
+                | {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
                 if arg_parser.accept_type(match.action)
                 else {}
             )
@@ -437,14 +445,18 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <pre><code class="python">def build_arg_parser(self, elem_mapping: Dict[str, Element]) -&gt; _TwilightParser:
     arg_parser = _TwilightParser(exit_on_error=False)
     for match, _ in self._args_map.values():
-        add_argument_data = {
-            &#34;action&#34;: match.action,
-            &#34;nargs&#34;: match.nargs,
-            &#34;const&#34;: match.const,
-            &#34;default&#34;: match.default,
-            &#34;required&#34;: not match.optional,
-        } | (
-            {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
+        add_argument_data = (
+            {&#34;action&#34;: match.action}
+            if match.action is not EMPTY
+            else {} | {&#34;nargs&#34;: match.nargs}
+            if match.nargs is not EMPTY
+            else {} | {&#34;const&#34;: match.const}
+            if match.const is not EMPTY
+            else {} | {&#34;default&#34;: match.default}
+            if match.default is not EMPTY
+            else {}
+            | {&#34;required&#34;: not match.optional}
+            | {&#34;type&#34;: _ArgumentMatchType(match, match.regex, elem_mapping)}
             if arg_parser.accept_type(match.action)
             else {}
         )

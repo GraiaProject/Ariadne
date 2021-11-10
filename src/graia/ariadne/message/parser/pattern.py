@@ -1,6 +1,7 @@
 import abc
 import copy
 import re
+from argparse import Action
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
@@ -14,7 +15,7 @@ from typing import (
     Union,
 )
 
-from graia.ariadne.message.chain import ELEMENT_MAPPING
+from ..chain import ELEMENT_MAPPING
 
 if TYPE_CHECKING:
     from ..chain import MessageChain
@@ -154,13 +155,19 @@ class ElementMatch(Match):
         )
 
 
+EMPTY = object()  # flag
+
+T_const = TypeVar("T_const")
+T_default = TypeVar("T_default")
+
+
 class ArgumentMatch(Match):
     pattern: Iterable[str]
     name: str
-    nargs: Literal["?", "+", "*"]
-    action: str
-    const: Optional[Any]
-    default: Optional[Any]
+    nargs: Union[str, int]
+    action: Union[str, Type[Action]]
+    const: Optional[T_const]
+    default: Optional[T_default]
     regex: Optional[str]
     result: Union["MessageChain", Any]
 
@@ -168,10 +175,10 @@ class ArgumentMatch(Match):
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[Any] = None,
-        default: Optional[Any] = None,
-        nargs: Literal["?", "+", "*", "N"] = "?",
-        action: str = "store",
+        const: Optional[T_const] = EMPTY,
+        default: Optional[T_default] = EMPTY,
+        nargs: Union[str, int] = EMPTY,
+        action: Union[str, Type[Action]] = EMPTY,
         regex: Optional[str] = None,
     ) -> None:
         if not all(string.startswith("-") for string in pattern):

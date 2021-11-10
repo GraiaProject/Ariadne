@@ -28,72 +28,58 @@
 </summary>
 <pre><code class="python">class InvalidEventTypeDefinition(Exception):
     &#34;不合法的事件类型定义.&#34;
-    pass
 
 
 class InvalidVerifyKey(Exception):
     &#34;无效的 verifyKey 或其配置.&#34;
-    pass
 
 
 class AccountNotFound(Exception):
     &#34;未能使用所配置的账号激活 sessionKey, 请检查 mirai_session 配置.&#34;
-    pass
 
 
 class InvalidSession(Exception):
     &#34;无效的 sessionKey, 请重新获取.&#34;
-    pass
 
 
-class UnVerifyedSession(Exception):
+class UnVerifiedSession(Exception):
     &#34;尚未验证/绑定的 session.&#34;
-    pass
 
 
 class UnknownTarget(Exception):
     &#34;对象位置未知, 不存在或不可及.&#34;
-    pass
-
-
-# FileNotFoundError
-
-# PermissionError
 
 
 class AccountMuted(Exception):
     &#34;账号在对象所在聊天区域被封禁.&#34;
-    pass
 
 
 class MessageTooLong(Exception):
     &#34;消息过长, 尝试分段发送或报告问题.&#34;
-    pass
 
 
 class InvalidArgument(Exception):
     &#34;操作参数不合法, 请报告问题.&#34;
-    pass
 
 
 class NotSupportedAction(Exception):
     &#34;该版本不支持本接口.&#34;
-    pass
 
 
 class DeprecatedImpl(Exception):
     &#34;该接口已弃用.&#34;
-    pass
 
 
 class MissingNecessaryArgument(Exception):
     &#34;应在所提到的参数之中至少传入/使用一个&#34;
-    pass
 
 
 class ConflictItem(Exception):
     &#34;项冲突/其中一项被重复定义&#34;
-    pass</code></pre>
+
+
+class UnknownError(Exception):
+    &#34;其他错误&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -116,8 +102,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AccountMuted(Exception):
-    &#34;账号在对象所在聊天区域被封禁.&#34;
-    pass</code></pre>
+    &#34;账号在对象所在聊天区域被封禁.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -136,8 +121,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AccountNotFound(Exception):
-    &#34;未能使用所配置的账号激活 sessionKey, 请检查 mirai_session 配置.&#34;
-    pass</code></pre>
+    &#34;未能使用所配置的账号激活 sessionKey, 请检查 mirai_session 配置.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -156,8 +140,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ConflictItem(Exception):
-    &#34;项冲突/其中一项被重复定义&#34;
-    pass</code></pre>
+    &#34;项冲突/其中一项被重复定义&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -176,8 +159,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class DeprecatedImpl(Exception):
-    &#34;该接口已弃用.&#34;
-    pass</code></pre>
+    &#34;该接口已弃用.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -196,8 +178,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidArgument(Exception):
-    &#34;操作参数不合法, 请报告问题.&#34;
-    pass</code></pre>
+    &#34;操作参数不合法, 请报告问题.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -216,8 +197,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidEventTypeDefinition(Exception):
-    &#34;不合法的事件类型定义.&#34;
-    pass</code></pre>
+    &#34;不合法的事件类型定义.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -236,8 +216,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidSession(Exception):
-    &#34;无效的 sessionKey, 请重新获取.&#34;
-    pass</code></pre>
+    &#34;无效的 sessionKey, 请重新获取.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -256,8 +235,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class InvalidVerifyKey(Exception):
-    &#34;无效的 verifyKey 或其配置.&#34;
-    pass</code></pre>
+    &#34;无效的 verifyKey 或其配置.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -276,8 +254,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MessageTooLong(Exception):
-    &#34;消息过长, 尝试分段发送或报告问题.&#34;
-    pass</code></pre>
+    &#34;消息过长, 尝试分段发送或报告问题.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -296,8 +273,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MissingNecessaryArgument(Exception):
-    &#34;应在所提到的参数之中至少传入/使用一个&#34;
-    pass</code></pre>
+    &#34;应在所提到的参数之中至少传入/使用一个&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -316,8 +292,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class NotSupportedAction(Exception):
-    &#34;该版本不支持本接口.&#34;
-    pass</code></pre>
+    &#34;该版本不支持本接口.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -325,8 +300,8 @@ class ConflictItem(Exception):
 <li>builtins.BaseException</li>
 </ul>
 </dd>
-<dt id="ariadne.exception.UnVerifyedSession"><code class="flex name class">
-<span>class <span class="ident">UnVerifyedSession</span></span>
+<dt id="ariadne.exception.UnVerifiedSession"><code class="flex name class">
+<span>class <span class="ident">UnVerifiedSession</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
 <dd>
@@ -335,9 +310,27 @@ class ConflictItem(Exception):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class UnVerifyedSession(Exception):
-    &#34;尚未验证/绑定的 session.&#34;
-    pass</code></pre>
+<pre><code class="python">class UnVerifiedSession(Exception):
+    &#34;尚未验证/绑定的 session.&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
+<dt id="ariadne.exception.UnknownError"><code class="flex name class">
+<span>class <span class="ident">UnknownError</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>其他错误</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnknownError(Exception):
+    &#34;其他错误&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -356,8 +349,7 @@ class ConflictItem(Exception):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class UnknownTarget(Exception):
-    &#34;对象位置未知, 不存在或不可及.&#34;
-    pass</code></pre>
+    &#34;对象位置未知, 不存在或不可及.&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -415,7 +407,10 @@ class ConflictItem(Exception):
 <h4><code><a title="ariadne.exception.NotSupportedAction" href="#ariadne.exception.NotSupportedAction">NotSupportedAction</a></code></h4>
 </li>
 <li>
-<h4><code><a title="ariadne.exception.UnVerifyedSession" href="#ariadne.exception.UnVerifyedSession">UnVerifyedSession</a></code></h4>
+<h4><code><a title="ariadne.exception.UnVerifiedSession" href="#ariadne.exception.UnVerifiedSession">UnVerifiedSession</a></code></h4>
+</li>
+<li>
+<h4><code><a title="ariadne.exception.UnknownError" href="#ariadne.exception.UnknownError">UnknownError</a></code></h4>
 </li>
 <li>
 <h4><code><a title="ariadne.exception.UnknownTarget" href="#ariadne.exception.UnknownTarget">UnknownTarget</a></code></h4>

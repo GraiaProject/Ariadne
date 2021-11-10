@@ -269,10 +269,12 @@ class HttpAdapter(Adapter):
             ) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
-        validate_response(resp_json)
         if &#34;data&#34; in resp_json:
-            return resp_json[&#34;data&#34;]
-        return resp_json
+            resp = resp_json[&#34;data&#34;]
+        else:
+            resp = resp_json
+        validate_response(resp)
+        return resp
 
 
 class WebsocketAdapter(Adapter):
@@ -988,10 +990,12 @@ async def call_api(
         ) as response:
             response.raise_for_status()
             resp_json: dict = await response.json()
-    validate_response(resp_json)
     if &#34;data&#34; in resp_json:
-        return resp_json[&#34;data&#34;]
-    return resp_json</code></pre>
+        resp = resp_json[&#34;data&#34;]
+    else:
+        resp = resp_json
+    validate_response(resp)
+    return resp</code></pre>
 </details>
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter.fetch_cycle"><code class="name flex">
@@ -1342,10 +1346,12 @@ Note: Working In Progress</p></div>
             ) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
-        validate_response(resp_json)
         if &#34;data&#34; in resp_json:
-            return resp_json[&#34;data&#34;]
-        return resp_json</code></pre>
+            resp = resp_json[&#34;data&#34;]
+        else:
+            resp = resp_json
+        validate_response(resp)
+        return resp</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

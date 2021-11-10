@@ -241,10 +241,12 @@ class HttpAdapter(Adapter):
             ) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
-        validate_response(resp_json)
         if "data" in resp_json:
-            return resp_json["data"]
-        return resp_json
+            resp = resp_json["data"]
+        else:
+            resp = resp_json
+        validate_response(resp)
+        return resp
 
 
 class WebsocketAdapter(Adapter):

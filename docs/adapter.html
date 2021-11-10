@@ -196,7 +196,9 @@ class Adapter(abc.ABC):
             self.session = ClientSession()
         if not self.fetch_task or self.fetch_task.done():
             self.running = True
-            self.fetch_task = self.loop.create_task(self.fetch_cycle())
+            self.fetch_task = self.loop.create_task(
+                self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;
+            )
 
     @property
     def session_activated(self) -&gt; bool:
@@ -396,7 +398,9 @@ class WebsocketAdapter(Adapter):
             self.ws_conn = connection
 
             if self.ping:
-                self.ping_task = self.loop.create_task(self.ws_ping())
+                self.ping_task = self.loop.create_task(
+                    self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;
+                )
                 logger.info(&#34;websocket: ping task created&#34;)
             try:
                 while self.running:
@@ -680,7 +684,9 @@ class DebugAdapter(DefaultAdapter):
             self.session = ClientSession()
         if not self.fetch_task or self.fetch_task.done():
             self.running = True
-            self.fetch_task = self.loop.create_task(self.fetch_cycle())
+            self.fetch_task = self.loop.create_task(
+                self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;
+            )
 
     @property
     def session_activated(self) -&gt; bool:
@@ -853,7 +859,9 @@ async def fetch_cycle(self) -&gt; None:
         self.session = ClientSession()
     if not self.fetch_task or self.fetch_task.done():
         self.running = True
-        self.fetch_task = self.loop.create_task(self.fetch_cycle())</code></pre>
+        self.fetch_task = self.loop.create_task(
+            self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;
+        )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.adapter.Adapter.stop"><code class="name flex">
@@ -1016,7 +1024,9 @@ async def call_api(
         self.ws_conn = connection
 
         if self.ping:
-            self.ping_task = self.loop.create_task(self.ws_ping())
+            self.ping_task = self.loop.create_task(
+                self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;
+            )
             logger.info(&#34;websocket: ping task created&#34;)
         try:
             while self.running:
@@ -1500,7 +1510,9 @@ Note: Working In Progress</p></div>
             self.ws_conn = connection
 
             if self.ping:
-                self.ping_task = self.loop.create_task(self.ws_ping())
+                self.ping_task = self.loop.create_task(
+                    self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;
+                )
                 logger.info(&#34;websocket: ping task created&#34;)
             try:
                 while self.running:

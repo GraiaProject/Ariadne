@@ -86,13 +86,13 @@ class MessageMixin(AriadneMixin):
     &#34;&#34;&#34;用于发送, 撤回, 获取消息的 Mixin 类.&#34;&#34;&#34;
 
     @app_ctx_manager
-    async def getMessageFromId(self, messageId: int) -&gt; MessageChain:
+    async def getMessageFromId(self, messageId: int) -&gt; MessageEvent:
         result = await self.adapter.call_api(
             &#34;messageFromId&#34;,
             CallMethod.GET,
             {&#34;sessionKey&#34;: self.session_key, &#34;id&#34;: messageId},
         )
-        return MessageChain.parse_obj(result)
+        return await self.adapter.build_event(result)
 
     @app_ctx_manager
     async def sendFriendMessage(
@@ -1249,7 +1249,9 @@ class Ariadne(
             )
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
-            self.daemon_task = self.loop.create_task(self.daemon())
+            self.daemon_task = self.loop.create_task(
+                self.daemon(), name=&#34;ariadne_daemon&#34;
+            )
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
             self.broadcast.postEvent(ApplicationLaunched(self))
@@ -1266,7 +1268,11 @@ class Ariadne(
                 self.daemon_task = None
             await self.adapter.stop()
             for t in asyncio.all_tasks(self.loop):
-                if t is not asyncio.current_task(self.loop):
+                if (
+                    t is not asyncio.current_task(self.loop)
+                    and not t.get_name().startswith(&#34;ariadne&#34;)
+                    and not t.get_name().startswith(&#34;_&#34;)
+                ):
                     t.cancel()
                     try:
                         await t
@@ -1461,7 +1467,9 @@ class Ariadne(
             )
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
-            self.daemon_task = self.loop.create_task(self.daemon())
+            self.daemon_task = self.loop.create_task(
+                self.daemon(), name=&#34;ariadne_daemon&#34;
+            )
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
             self.broadcast.postEvent(ApplicationLaunched(self))
@@ -1478,7 +1486,11 @@ class Ariadne(
                 self.daemon_task = None
             await self.adapter.stop()
             for t in asyncio.all_tasks(self.loop):
-                if t is not asyncio.current_task(self.loop):
+                if (
+                    t is not asyncio.current_task(self.loop)
+                    and not t.get_name().startswith(&#34;ariadne&#34;)
+                    and not t.get_name().startswith(&#34;_&#34;)
+                ):
                     t.cancel()
                     try:
                         await t
@@ -1669,7 +1681,9 @@ async def getVersion(self, auto_set: bool = True):
         )
         if self.chat_log_cfg.enabled:
             self.chat_log_cfg.initialize(self)
-        self.daemon_task = self.loop.create_task(self.daemon())
+        self.daemon_task = self.loop.create_task(
+            self.daemon(), name=&#34;ariadne_daemon&#34;
+        )
         while not self.adapter.session_activated:
             await asyncio.sleep(0.001)
         self.broadcast.postEvent(ApplicationLaunched(self))
@@ -1715,7 +1729,11 @@ async def getVersion(self, auto_set: bool = True):
             self.daemon_task = None
         await self.adapter.stop()
         for t in asyncio.all_tasks(self.loop):
-            if t is not asyncio.current_task(self.loop):
+            if (
+                t is not asyncio.current_task(self.loop)
+                and not t.get_name().startswith(&#34;ariadne&#34;)
+                and not t.get_name().startswith(&#34;_&#34;)
+            ):
                 t.cancel()
                 try:
                     await t
@@ -2641,13 +2659,13 @@ async def uploadFile(
     &#34;&#34;&#34;用于发送, 撤回, 获取消息的 Mixin 类.&#34;&#34;&#34;
 
     @app_ctx_manager
-    async def getMessageFromId(self, messageId: int) -&gt; MessageChain:
+    async def getMessageFromId(self, messageId: int) -&gt; MessageEvent:
         result = await self.adapter.call_api(
             &#34;messageFromId&#34;,
             CallMethod.GET,
             {&#34;sessionKey&#34;: self.session_key, &#34;id&#34;: messageId},
         )
-        return MessageChain.parse_obj(result)
+        return await self.adapter.build_event(result)
 
     @app_ctx_manager
     async def sendFriendMessage(
@@ -2913,7 +2931,7 @@ async def uploadFile(
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.app.MessageMixin.getMessageFromId"><code class="name flex">
-<span>async def <span class="ident">getMessageFromId</span></span>(<span>self, messageId: int) ‑> <a title="ariadne.message.chain.MessageChain" href="message/chain.html#ariadne.message.chain.MessageChain">MessageChain</a></span>
+<span>async def <span class="ident">getMessageFromId</span></span>(<span>self, messageId: int) ‑> <a title="ariadne.event.message.MessageEvent" href="event/message.html#ariadne.event.message.MessageEvent">MessageEvent</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -2922,13 +2940,13 @@ async def uploadFile(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@app_ctx_manager
-async def getMessageFromId(self, messageId: int) -&gt; MessageChain:
+async def getMessageFromId(self, messageId: int) -&gt; MessageEvent:
     result = await self.adapter.call_api(
         &#34;messageFromId&#34;,
         CallMethod.GET,
         {&#34;sessionKey&#34;: self.session_key, &#34;id&#34;: messageId},
     )
-    return MessageChain.parse_obj(result)</code></pre>
+    return await self.adapter.build_event(result)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.app.MessageMixin.recallMessage"><code class="name flex">

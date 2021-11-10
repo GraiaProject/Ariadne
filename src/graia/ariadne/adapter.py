@@ -168,7 +168,9 @@ class Adapter(abc.ABC):
             self.session = ClientSession()
         if not self.fetch_task or self.fetch_task.done():
             self.running = True
-            self.fetch_task = self.loop.create_task(self.fetch_cycle())
+            self.fetch_task = self.loop.create_task(
+                self.fetch_cycle(), name="ariadne_adapter_fetch_cycle"
+            )
 
     @property
     def session_activated(self) -> bool:
@@ -368,7 +370,9 @@ class WebsocketAdapter(Adapter):
             self.ws_conn = connection
 
             if self.ping:
-                self.ping_task = self.loop.create_task(self.ws_ping())
+                self.ping_task = self.loop.create_task(
+                    self.ws_ping(), name="ariadne_adapter_ws_ping"
+                )
                 logger.info("websocket: ping task created")
             try:
                 while self.running:

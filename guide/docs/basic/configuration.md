@@ -47,8 +47,26 @@
 
 设置 `use_loguru_traceback` 后, `Ariadne` 会调用 `util.inject_loguru_traceback()` 替换
 [`traceback.print_exception()`](https://docs.python.org/zh-cn/3/library/traceback.html#traceback.print_exception) 与
-[`sys.excepthook()`](https://docs.python.org/zh-cn/3/library/sys.html#sys.excepthook)
-
-从而获得对异常输出的完全控制权.
+[`sys.excepthook()`](https://docs.python.org/zh-cn/3/library/sys.html#sys.excepthook) 从而获得对异常输出的完全控制权.
 
 ### use_bypass_listener
+
+你可能想过这样写:
+
+```python
+@bcc.receiver(MessageEvent)
+async def reply(app: Ariadne, event: MessageEvent):
+    await app.sendMessage(event, MessageChain.create("Hello!"))
+```
+
+不幸的是, `Graia Broadcast` 的默认事件分发器只支持原事件 (`listening_event is posted_event`).
+
+所以你的代码并不能正常监听到 `FriendMessage`, `GroupMessage` 等子事件.
+
+设置 `use_bypass_listener` 后, `Ariadne` 会通过某些魔法支持子事件解析 (事件透传).
+
+现在, 事件分发就能支持子事件了. (`posted_event is instance of listening event`)
+
+!!! note "提示"
+
+    如果你真的非常关心实现细节, 它在 `util.inject_inject_bypass_listener()` 里.

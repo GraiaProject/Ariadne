@@ -26,7 +26,7 @@ poetry add graia-ariadne
     如果你想更新其中的一个:
 
     ``` bash
-    # 更新 graia-application-mirai
+    # 更新 graia-ariadne
     pip install graia-ariadne --upgrade
     ## 使用 poetry
     poetry update graia-ariadne
@@ -87,7 +87,7 @@ app = Ariadne(
     adapter=DefaultAdapter(
         bcc,
         MiraiSession(
-            host="http://localhost:8080",  # 填入 httpapi 服务运行的地址
+            host="http://localhost:8080",  # 填入 HTTP API 服务运行的地址
             verify_key="ServiceVerifyKey",  # 填入 verifyKey
             account=123456789,  # 你的机器人的 qq 号
         ),

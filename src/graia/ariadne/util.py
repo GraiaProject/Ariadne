@@ -51,7 +51,7 @@ def validate_response(code: Union[dict, int]):
         code = code.get("code")
     else:
         code = code
-    if code == 200:
+    if not isinstance(code, int) or code == 200 or code == 0:
         return
     exc_cls = code_exceptions_mapping.get(code)
     if exc_cls:

@@ -19,7 +19,7 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import inject_bypass_listener, inject_loguru_traceback
+from .util import deprecated, inject_bypass_listener, inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -779,7 +779,7 @@ class FileMixin(AriadneMixin):
     """用于对文件进行各种操作的 Mixin 类."""
 
     @app_ctx_manager
-    async def listFile(
+    async def getFileList(
         self,
         target: Union[Friend, Group, int],
         id: str = "",
@@ -822,6 +822,23 @@ class FileMixin(AriadneMixin):
             },
         )
         return [FileInfo.parse_obj(i) for i in result]
+
+    @deprecated("0.4.0")
+    async def listFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = "",
+        offset: Optional[int] = 0,
+        size: Optional[int] = 1,
+        with_download_info: bool = False,
+    ) -> List[FileInfo]:
+        return await self.getFileList(
+            target=target,
+            id=id,
+            offset=offset,
+            size=size,
+            with_download_info=with_download_info,
+        )
 
     @app_ctx_manager
     async def getFileInfo(

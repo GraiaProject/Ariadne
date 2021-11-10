@@ -14,9 +14,9 @@
 ## 安装
 
 ```bash
-pip install graia-application-mirai
+pip install graia-ariadne
 # 使用 poetry(推荐的方式)
-poetry add graia-application-mirai
+poetry add graia-ariadne
 ```
 
 这同时会安装 `graia-ariadne` 和 `graia-broadcast` 这两个包的最新版本.
@@ -44,8 +44,6 @@ poetry add graia-application-mirai
 
 ```yaml
 # file: "MCL/config/net.mamoe.mirai-api-http/setting.yml"
-authKey:
-
 adapters:
   - http
   - ws
@@ -105,6 +103,10 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
 
 loop.run_until_complete(app.lifecycle())
 ```
+
+!!! info "技巧"
+
+    将 `CombinedAdapter` 换为 `DebugAdapter` 可以输出所有接收到的事件, 但在生产环境下并不推荐.
 
 !!! note "提示"
 

@@ -64,7 +64,6 @@ nav:
       - "basic/configuration.md"
       - "basic/application.md"
       - "basic/msg-chain.md"
-      - "basic/log.md"
   - "进阶":
       - "advance/msg-chain.md"
       - "advance/base-parser.md"

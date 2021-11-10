@@ -47,7 +47,7 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import inject_bypass_listener, inject_loguru_traceback
+from .util import deprecated, inject_bypass_listener, inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -807,7 +807,7 @@ class FileMixin(AriadneMixin):
     &#34;&#34;&#34;用于对文件进行各种操作的 Mixin 类.&#34;&#34;&#34;
 
     @app_ctx_manager
-    async def listFile(
+    async def getFileList(
         self,
         target: Union[Friend, Group, int],
         id: str = &#34;&#34;,
@@ -851,6 +851,23 @@ class FileMixin(AriadneMixin):
         )
         return [FileInfo.parse_obj(i) for i in result]
 
+    @deprecated(&#34;0.4.0&#34;)
+    async def listFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        offset: Optional[int] = 0,
+        size: Optional[int] = 1,
+        with_download_info: bool = False,
+    ) -&gt; List[FileInfo]:
+        return await self.getFileList(
+            target=target,
+            id=id,
+            offset=offset,
+            size=size,
+            with_download_info=with_download_info,
+        )
+
     @app_ctx_manager
     async def getFileInfo(
         self,
@@ -877,7 +894,7 @@ class FileMixin(AriadneMixin):
         target = target.id if isinstance(target, Group) else target
 
         result = await self.adapter.call_api(
-            &#34;file/list&#34;,
+            &#34;file/info&#34;,
             CallMethod.GET,
             {
                 &#34;sessionKey&#34;: self.session_key,
@@ -1024,7 +1041,7 @@ class FileMixin(AriadneMixin):
         target = target.id if isinstance(target, Group) else target
 
         await self.adapter.call_api(
-            &#34;file/move&#34;,
+            &#34;file/rename&#34;,
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: self.session_key,
@@ -1747,7 +1764,7 @@ async def getVersion(self, auto_set: bool = True):
 <ul class="hlist">
 <li><code><a title="ariadne.app.FileMixin.deleteFile" href="#ariadne.app.FileMixin.deleteFile">deleteFile</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.getFileInfo" href="#ariadne.app.FileMixin.getFileInfo">getFileInfo</a></code></li>
-<li><code><a title="ariadne.app.FileMixin.listFile" href="#ariadne.app.FileMixin.listFile">listFile</a></code></li>
+<li><code><a title="ariadne.app.FileMixin.getFileList" href="#ariadne.app.FileMixin.getFileList">getFileList</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.makeDirectory" href="#ariadne.app.FileMixin.makeDirectory">makeDirectory</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.moveFile" href="#ariadne.app.FileMixin.moveFile">moveFile</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.renameFile" href="#ariadne.app.FileMixin.renameFile">renameFile</a></code></li>
@@ -1834,7 +1851,7 @@ def session_key(self) -&gt; Optional[str]:
     &#34;&#34;&#34;用于对文件进行各种操作的 Mixin 类.&#34;&#34;&#34;
 
     @app_ctx_manager
-    async def listFile(
+    async def getFileList(
         self,
         target: Union[Friend, Group, int],
         id: str = &#34;&#34;,
@@ -1878,6 +1895,23 @@ def session_key(self) -&gt; Optional[str]:
         )
         return [FileInfo.parse_obj(i) for i in result]
 
+    @deprecated(&#34;0.4.0&#34;)
+    async def listFile(
+        self,
+        target: Union[Friend, Group, int],
+        id: str = &#34;&#34;,
+        offset: Optional[int] = 0,
+        size: Optional[int] = 1,
+        with_download_info: bool = False,
+    ) -&gt; List[FileInfo]:
+        return await self.getFileList(
+            target=target,
+            id=id,
+            offset=offset,
+            size=size,
+            with_download_info=with_download_info,
+        )
+
     @app_ctx_manager
     async def getFileInfo(
         self,
@@ -1904,7 +1938,7 @@ def session_key(self) -&gt; Optional[str]:
         target = target.id if isinstance(target, Group) else target
 
         result = await self.adapter.call_api(
-            &#34;file/list&#34;,
+            &#34;file/info&#34;,
             CallMethod.GET,
             {
                 &#34;sessionKey&#34;: self.session_key,
@@ -2051,7 +2085,7 @@ def session_key(self) -&gt; Optional[str]:
         target = target.id if isinstance(target, Group) else target
 
         await self.adapter.call_api(
-            &#34;file/move&#34;,
+            &#34;file/rename&#34;,
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: self.session_key,
@@ -2230,7 +2264,7 @@ async def getFileInfo(
     target = target.id if isinstance(target, Group) else target
 
     result = await self.adapter.call_api(
-        &#34;file/list&#34;,
+        &#34;file/info&#34;,
         CallMethod.GET,
         {
             &#34;sessionKey&#34;: self.session_key,
@@ -2245,8 +2279,8 @@ async def getFileInfo(
     return FileInfo.parse_obj(result)</code></pre>
 </details>
 </dd>
-<dt id="ariadne.app.FileMixin.listFile"><code class="name flex">
-<span>async def <span class="ident">listFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[<a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a>]</span>
+<dt id="ariadne.app.FileMixin.getFileList"><code class="name flex">
+<span>async def <span class="ident">getFileList</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[<a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>列出指定文件夹下的所有文件.</p>
@@ -2274,7 +2308,7 @@ async def getFileInfo(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@app_ctx_manager
-async def listFile(
+async def getFileList(
     self,
     target: Union[Friend, Group, int],
     id: str = &#34;&#34;,
@@ -2317,6 +2351,33 @@ async def listFile(
         },
     )
     return [FileInfo.parse_obj(i) for i in result]</code></pre>
+</details>
+</dd>
+<dt id="ariadne.app.FileMixin.listFile"><code class="name flex">
+<span>async def <span class="ident">listFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[<a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@deprecated(&#34;0.4.0&#34;)
+async def listFile(
+    self,
+    target: Union[Friend, Group, int],
+    id: str = &#34;&#34;,
+    offset: Optional[int] = 0,
+    size: Optional[int] = 1,
+    with_download_info: bool = False,
+) -&gt; List[FileInfo]:
+    return await self.getFileList(
+        target=target,
+        id=id,
+        offset=offset,
+        size=size,
+        with_download_info=with_download_info,
+    )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.app.FileMixin.makeDirectory"><code class="name flex">
@@ -2493,7 +2554,7 @@ async def renameFile(
     target = target.id if isinstance(target, Group) else target
 
     await self.adapter.call_api(
-        &#34;file/move&#34;,
+        &#34;file/rename&#34;,
         CallMethod.POST,
         {
             &#34;sessionKey&#34;: self.session_key,
@@ -4912,6 +4973,7 @@ async def getMemberProfile(
 <li><code><a title="ariadne.app.FileMixin.broadcast" href="#ariadne.app.FileMixin.broadcast">broadcast</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.deleteFile" href="#ariadne.app.FileMixin.deleteFile">deleteFile</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.getFileInfo" href="#ariadne.app.FileMixin.getFileInfo">getFileInfo</a></code></li>
+<li><code><a title="ariadne.app.FileMixin.getFileList" href="#ariadne.app.FileMixin.getFileList">getFileList</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.listFile" href="#ariadne.app.FileMixin.listFile">listFile</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.makeDirectory" href="#ariadne.app.FileMixin.makeDirectory">makeDirectory</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.mirai_session" href="#ariadne.app.FileMixin.mirai_session">mirai_session</a></code></li>

@@ -849,7 +849,7 @@ class FileMixin(AriadneMixin):
         target = target.id if isinstance(target, Group) else target
 
         result = await self.adapter.call_api(
-            "file/list",
+            "file/info",
             CallMethod.GET,
             {
                 "sessionKey": self.session_key,
@@ -996,7 +996,7 @@ class FileMixin(AriadneMixin):
         target = target.id if isinstance(target, Group) else target
 
         await self.adapter.call_api(
-            "file/move",
+            "file/rename",
             CallMethod.POST,
             {
                 "sessionKey": self.session_key,

@@ -60,11 +60,11 @@ def validate_response(code: Union[dict, int]):
         raise UnknownError(f"{origin}")
 
 
-def loguru_print_exception(cls, val, tb, limit, file, chain):
+def loguru_print_exception(cls, val, tb, *_, **__):
     logger.opt(exception=(cls, val, tb)).error(f"Caught Exception {val}:")
 
 
-def loguru_excepthook(cls, val, tb):
+def loguru_excepthook(cls, val, tb, *_, **__):
     logger.opt(exception=(cls, val, tb)).error(f"Uncaught Exception:")
 
 

@@ -88,11 +88,11 @@ def validate_response(code: Union[dict, int]):
         raise UnknownError(f&#34;{origin}&#34;)
 
 
-def loguru_print_exception(cls, val, tb, limit, file, chain):
+def loguru_print_exception(cls, val, tb, *_, **__):
     logger.opt(exception=(cls, val, tb)).error(f&#34;Caught Exception {val}:&#34;)
 
 
-def loguru_excepthook(cls, val, tb):
+def loguru_excepthook(cls, val, tb, *_, **__):
     logger.opt(exception=(cls, val, tb)).error(f&#34;Uncaught Exception:&#34;)
 
 
@@ -341,7 +341,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 </details>
 </dd>
 <dt id="ariadne.util.loguru_excepthook"><code class="name flex">
-<span>def <span class="ident">loguru_excepthook</span></span>(<span>cls, val, tb)</span>
+<span>def <span class="ident">loguru_excepthook</span></span>(<span>cls, val, tb, *_, **__)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -349,12 +349,12 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def loguru_excepthook(cls, val, tb):
+<pre><code class="python">def loguru_excepthook(cls, val, tb, *_, **__):
     logger.opt(exception=(cls, val, tb)).error(f&#34;Uncaught Exception:&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.loguru_print_exception"><code class="name flex">
-<span>def <span class="ident">loguru_print_exception</span></span>(<span>cls, val, tb, limit, file, chain)</span>
+<span>def <span class="ident">loguru_print_exception</span></span>(<span>cls, val, tb, *_, **__)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -362,7 +362,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def loguru_print_exception(cls, val, tb, limit, file, chain):
+<pre><code class="python">def loguru_print_exception(cls, val, tb, *_, **__):
     logger.opt(exception=(cls, val, tb)).error(f&#34;Caught Exception {val}:&#34;)</code></pre>
 </details>
 </dd>

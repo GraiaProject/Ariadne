@@ -2,10 +2,12 @@ import abc
 import copy
 import re
 from argparse import Action
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
+    Dict,
     Iterable,
     List,
     Literal,
@@ -15,7 +17,7 @@ from typing import (
     Union,
 )
 
-from ..chain import ELEMENT_MAPPING
+from .util import gen_flags_repr
 
 if TYPE_CHECKING:
     from ..chain import MessageChain
@@ -69,24 +71,6 @@ class Match(abc.ABC):
 
     def gen_regex(self) -> str:
         ...
-
-
-def gen_flags_repr(flags: re.RegexFlag) -> str:
-    flags_list: List[str] = []
-    if re.ASCII in flags:
-        flags_list.append("a")
-    if re.IGNORECASE in flags_list:
-        flags_list.append("i")
-    if re.LOCALE in flags_list:
-        flags_list.append("L")
-    if re.MULTILINE in flags_list:
-        flags_list.append("m")
-    if re.DOTALL in flags_list:
-        flags_list.append("s")
-    if re.UNICODE in flags_list:
-        flags_list.append("u")
-    if re.VERBOSE in flags_list:
-        flags_list.append("x")
 
 
 class RegexMatch(Match):
@@ -155,8 +139,6 @@ class ElementMatch(Match):
         )
 
 
-EMPTY = object()  # flag
-
 T_const = TypeVar("T_const")
 T_default = TypeVar("T_default")
 
@@ -170,15 +152,17 @@ class ArgumentMatch(Match):
     default: Optional[T_default]
     regex: Optional[str]
     result: Union["MessageChain", Any]
+    add_arg_data: Dict[str, Any]
+    elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
 
     def __init__(
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[T_const] = EMPTY,
-        default: Optional[T_default] = EMPTY,
-        nargs: Union[str, int] = EMPTY,
-        action: Union[str, Type[Action]] = EMPTY,
+        const: Optional[T_const] = ...,
+        default: Optional[T_default] = ...,
+        nargs: Union[str, int] = ...,
+        action: Union[str, Type[Action]] = ...,
         regex: Optional[str] = None,
     ) -> None:
         if not all(string.startswith("-") for string in pattern):
@@ -192,3 +176,14 @@ class ArgumentMatch(Match):
         self.const = const
         self.default = default
         self.regex = re.compile(regex) if regex else None
+        data: Dict[str, Any] = {}
+        if action is not ...:
+            data["action"] = action
+        if nargs is not ...:
+            data["nargs"] = nargs
+        if const is not ...:
+            data["const"] = const
+        if default is not ...:
+            data["default"] = default
+        data["required"] = not optional
+        self.add_arg_data = data

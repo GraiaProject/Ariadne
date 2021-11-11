@@ -30,10 +30,12 @@
 import copy
 import re
 from argparse import Action
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
+    Dict,
     Iterable,
     List,
     Literal,
@@ -43,7 +45,7 @@ from typing import (
     Union,
 )
 
-from ..chain import ELEMENT_MAPPING
+from .util import gen_flags_repr
 
 if TYPE_CHECKING:
     from ..chain import MessageChain
@@ -97,24 +99,6 @@ class Match(abc.ABC):
 
     def gen_regex(self) -&gt; str:
         ...
-
-
-def gen_flags_repr(flags: re.RegexFlag) -&gt; str:
-    flags_list: List[str] = []
-    if re.ASCII in flags:
-        flags_list.append(&#34;a&#34;)
-    if re.IGNORECASE in flags_list:
-        flags_list.append(&#34;i&#34;)
-    if re.LOCALE in flags_list:
-        flags_list.append(&#34;L&#34;)
-    if re.MULTILINE in flags_list:
-        flags_list.append(&#34;m&#34;)
-    if re.DOTALL in flags_list:
-        flags_list.append(&#34;s&#34;)
-    if re.UNICODE in flags_list:
-        flags_list.append(&#34;u&#34;)
-    if re.VERBOSE in flags_list:
-        flags_list.append(&#34;x&#34;)
 
 
 class RegexMatch(Match):
@@ -183,8 +167,6 @@ class ElementMatch(Match):
         )
 
 
-EMPTY = object()  # flag
-
 T_const = TypeVar(&#34;T_const&#34;)
 T_default = TypeVar(&#34;T_default&#34;)
 
@@ -198,15 +180,17 @@ class ArgumentMatch(Match):
     default: Optional[T_default]
     regex: Optional[str]
     result: Union[&#34;MessageChain&#34;, Any]
+    add_arg_data: Dict[str, Any]
+    elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
 
     def __init__(
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[T_const] = EMPTY,
-        default: Optional[T_default] = EMPTY,
-        nargs: Union[str, int] = EMPTY,
-        action: Union[str, Type[Action]] = EMPTY,
+        const: Optional[T_const] = ...,
+        default: Optional[T_default] = ...,
+        nargs: Union[str, int] = ...,
+        action: Union[str, Type[Action]] = ...,
         regex: Optional[str] = None,
     ) -&gt; None:
         if not all(string.startswith(&#34;-&#34;) for string in pattern):
@@ -219,7 +203,18 @@ class ArgumentMatch(Match):
         self.action = action
         self.const = const
         self.default = default
-        self.regex = re.compile(regex) if regex else None</code></pre>
+        self.regex = re.compile(regex) if regex else None
+        data: Dict[str, Any] = {}
+        if action is not ...:
+            data[&#34;action&#34;] = action
+        if nargs is not ...:
+            data[&#34;nargs&#34;] = nargs
+        if const is not ...:
+            data[&#34;const&#34;] = const
+        if default is not ...:
+            data[&#34;default&#34;] = default
+        data[&#34;required&#34;] = not optional
+        self.add_arg_data = data</code></pre>
 </details>
 </section>
 <section>
@@ -227,43 +222,13 @@ class ArgumentMatch(Match):
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="ariadne.message.parser.pattern.gen_flags_repr"><code class="name flex">
-<span>def <span class="ident">gen_flags_repr</span></span>(<span>flags: re.RegexFlag) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def gen_flags_repr(flags: re.RegexFlag) -&gt; str:
-    flags_list: List[str] = []
-    if re.ASCII in flags:
-        flags_list.append(&#34;a&#34;)
-    if re.IGNORECASE in flags_list:
-        flags_list.append(&#34;i&#34;)
-    if re.LOCALE in flags_list:
-        flags_list.append(&#34;L&#34;)
-    if re.MULTILINE in flags_list:
-        flags_list.append(&#34;m&#34;)
-    if re.DOTALL in flags_list:
-        flags_list.append(&#34;s&#34;)
-    if re.UNICODE in flags_list:
-        flags_list.append(&#34;u&#34;)
-    if re.VERBOSE in flags_list:
-        flags_list.append(&#34;x&#34;)</code></pre>
-</details>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch"><code class="flex name class">
 <span>class <span class="ident">ArgumentMatch</span></span>
-<span>(</span><span>*pattern: str, optional: bool = True, const: Optional[~T_const] = &lt;object object&gt;, default: Optional[~T_default] = &lt;object object&gt;, nargs: Union[str, int] = &lt;object object&gt;, action: Union[str, Type[argparse.Action]] = &lt;object object&gt;, regex: Optional[str] = None)</span>
+<span>(</span><span>*pattern: str, optional: bool = True, const: Optional[~T_const] = Ellipsis, default: Optional[~T_default] = Ellipsis, nargs: Union[str, int] = Ellipsis, action: Union[str, Type[argparse.Action]] = Ellipsis, regex: Optional[str] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Helper class that provides a standard way to create an ABC using
@@ -281,15 +246,17 @@ inheritance.</p></div>
     default: Optional[T_default]
     regex: Optional[str]
     result: Union[&#34;MessageChain&#34;, Any]
+    add_arg_data: Dict[str, Any]
+    elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
 
     def __init__(
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[T_const] = EMPTY,
-        default: Optional[T_default] = EMPTY,
-        nargs: Union[str, int] = EMPTY,
-        action: Union[str, Type[Action]] = EMPTY,
+        const: Optional[T_const] = ...,
+        default: Optional[T_default] = ...,
+        nargs: Union[str, int] = ...,
+        action: Union[str, Type[Action]] = ...,
         regex: Optional[str] = None,
     ) -&gt; None:
         if not all(string.startswith(&#34;-&#34;) for string in pattern):
@@ -302,7 +269,18 @@ inheritance.</p></div>
         self.action = action
         self.const = const
         self.default = default
-        self.regex = re.compile(regex) if regex else None</code></pre>
+        self.regex = re.compile(regex) if regex else None
+        data: Dict[str, Any] = {}
+        if action is not ...:
+            data[&#34;action&#34;] = action
+        if nargs is not ...:
+            data[&#34;nargs&#34;] = nargs
+        if const is not ...:
+            data[&#34;const&#34;] = const
+        if default is not ...:
+            data[&#34;default&#34;] = default
+        data[&#34;required&#34;] = not optional
+        self.add_arg_data = data</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -315,11 +293,19 @@ inheritance.</p></div>
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.add_arg_data"><code class="name">var <span class="ident">add_arg_data</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch.const"><code class="name">var <span class="ident">const</span> : Optional[~T_const]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch.default"><code class="name">var <span class="ident">default</span> : Optional[~T_default]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.elem_mapping_ctx"><code class="name">var <span class="ident">elem_mapping_ctx</span> : ContextVar</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -804,19 +790,16 @@ class SwitchParameter(ParamPattern):
 <li><code><a title="ariadne.message.parser" href="index.html">ariadne.message.parser</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="ariadne.message.parser.pattern.gen_flags_repr" href="#ariadne.message.parser.pattern.gen_flags_repr">gen_flags_repr</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.ArgumentMatch" href="#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a></code></h4>
 <ul class="two-column">
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.action" href="#ariadne.message.parser.pattern.ArgumentMatch.action">action</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.add_arg_data" href="#ariadne.message.parser.pattern.ArgumentMatch.add_arg_data">add_arg_data</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.const" href="#ariadne.message.parser.pattern.ArgumentMatch.const">const</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.default" href="#ariadne.message.parser.pattern.ArgumentMatch.default">default</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.elem_mapping_ctx" href="#ariadne.message.parser.pattern.ArgumentMatch.elem_mapping_ctx">elem_mapping_ctx</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.name" href="#ariadne.message.parser.pattern.ArgumentMatch.name">name</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.nargs" href="#ariadne.message.parser.pattern.ArgumentMatch.nargs">nargs</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.pattern" href="#ariadne.message.parser.pattern.ArgumentMatch.pattern">pattern</a></code></li>

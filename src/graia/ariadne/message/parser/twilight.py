@@ -1,16 +1,13 @@
-import argparse
-import inspect
 import re
-import shlex
 import string
 from copy import deepcopy
+from shlex import split
 from types import TracebackType
 from typing import (
     Dict,
     Generic,
     Iterable,
     List,
-    NoReturn,
     Optional,
     Tuple,
     Type,
@@ -26,33 +23,8 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import EMPTY, ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
-
-
-class _TwilightParser(argparse.ArgumentParser):
-    def error(self, message) -> NoReturn:
-        raise ValueError(message)
-
-    def accept_type(self, action_str: str) -> bool:
-        action_cls: type = self._registry_get("action", action_str, action_str)
-        action_init_sig = inspect.signature(action_cls.__init__)
-        if "type" not in action_init_sig.parameters:
-            return False
-        return True
-
-
-class _ArgumentMatchType:
-    def __init__(
-        self, match: ArgumentMatch, regex: re.Pattern, mapping: Dict[str, Element]
-    ):
-        self.match = match
-        self.regex: re.Pattern = regex
-        self.mapping: Dict[str, Element] = mapping
-
-    def __call__(self, string: str) -> MessageChain:
-        if self.regex and not self.regex.fullmatch(string):
-            raise ValueError(f"{string} not matching {self.regex.pattern}")
-        return MessageChain.fromMappingString(string, self.mapping)
+from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
+from .util import ArgumentMatchType, TwilightParser
 
 
 class Sparkle:
@@ -86,11 +58,14 @@ class Sparkle:
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-
+        self._parser = TwilightParser()
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
                     self._args_map[v.name] = (v, k)
+                    if v.action is not ... and self._parser.accept_type(v.action):
+                        v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
+                    self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 else:
                     self._regex_match_list.append((k, v, group_cnt + 1))
                     group_cnt += re.compile(v.gen_regex()).groups
@@ -105,28 +80,8 @@ class Sparkle:
         }
         return f"<Sparkle: {repr_dict}>"
 
-    def build_arg_parser(self, elem_mapping: Dict[str, Element]) -> _TwilightParser:
-        arg_parser = _TwilightParser(exit_on_error=False)
-        for match, _ in self._args_map.values():
-            add_argument_data = (
-                {"action": match.action}
-                if match.action is not EMPTY
-                else {} | {"nargs": match.nargs}
-                if match.nargs is not EMPTY
-                else {} | {"const": match.const}
-                if match.const is not EMPTY
-                else {} | {"default": match.default}
-                if match.default is not EMPTY
-                else {}
-                | {"required": not match.optional}
-                | {"type": _ArgumentMatchType(match, match.regex, elem_mapping)}
-                if arg_parser.accept_type(match.action)
-                else {}
-            )
-            arg_parser.add_argument(*match.pattern, **add_argument_data)
-        return arg_parser
-
-    def dump_namespace(self, namespace: argparse.Namespace) -> None:
+    def parse_arg_list(self, args: List[str]) -> List[str]:
+        namespace, rest = self._parser.parse_known_args(args)
         for arg_name, val_tuple in self._args_map.items():
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)
@@ -136,6 +91,7 @@ class Sparkle:
                     sparkle_name,
                     match.clone(namespace_val, bool(namespace_val)),
                 )
+        return rest
 
     def match_regex(
         self, elem_mapping: Dict[str, Element], arg_list: List[str]
@@ -215,15 +171,15 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def gen_sparkle(self, chain: MessageChain) -> T_Sparkle:
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
-        arg_parser = sparkle.build_arg_parser(elem_mapping)
-        str_list = shlex.split(mapping_str)
+        token = ArgumentMatch.elem_mapping_ctx.set(chain)
+        str_list = split(mapping_str)
         try:
-            namespace, arg_list = arg_parser.parse_known_args(str_list)
-            sparkle.dump_namespace(namespace)
+            arg_list = sparkle.parse_arg_list(str_list)
         except Exception:
             raise
         else:
             sparkle.match_regex(elem_mapping, arg_list)
+        ArgumentMatch.elem_mapping_ctx.reset(token)
         return sparkle
 
     def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):

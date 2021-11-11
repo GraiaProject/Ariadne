@@ -7,6 +7,9 @@ authors = [
     "GreyElaina <GreyElaina@outlook.com>"
 ]
 packages = [{ include = "graia", from = "src" }]
+readme = 'README.md'
+repository = "https://github.com/GraiaProject/Ariadne"
+homepage = "https://github.com/GraiaProject/Ariadne"
 
 [[tool.poetry.source]]
 name = "tuna-tsinghua"

@@ -314,8 +314,6 @@ class WebsocketAdapter(Adapter):
         sync_id = self.SyncIdManager.allocate()
         event = self.CallResponse()
         self.sync_event[sync_id] = event
-        if not isinstance(data, str):
-            data = json.dumps(data, cls=DatetimeEncoder)
         content = {
             "syncId": sync_id,
             "command": action,
@@ -330,7 +328,7 @@ class WebsocketAdapter(Adapter):
                 f"Unsupported operation for WebsocketAdapter: {method}"
             )
 
-        await self.ws_conn.send_json(content)
+        await self.ws_conn.send_str(json.dumps(content, cls=DatetimeEncoder))
         logger.debug(f"websocket：sent with sync id: {sync_id}")
         await event.wait()
         self.SyncIdManager.done(sync_id)
@@ -344,13 +342,14 @@ class WebsocketAdapter(Adapter):
             return value
 
     async def raw_data_parser(self, raw_data: dict) -> None:
-        sync_id: int = raw_data["syncId"]
+        sync_id: str = raw_data["syncId"]
         received_data: dict = raw_data["data"]
         validate_response(received_data)
         if not self.mirai_session.session_key:
             if session_key := received_data.get("session", None):
                 self.mirai_session.session_key = session_key
             return
+        sync_id = int(sync_id)
         if sync_id not in self.SyncIdManager.allocated:
             event = await self.build_event(received_data)
             with enter_context(app=self.app, event=event):

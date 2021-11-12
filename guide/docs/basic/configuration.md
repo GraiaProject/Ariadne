@@ -8,18 +8,17 @@
 
 这里是 `Ariadne` 的 `__init__()` 签名:
 
-```python
-    def __init__(
-        self,
-        broadcast: Broadcast,
-        adapter: Adapter,
-        *,
-        chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
-        use_loguru_traceback: Optional[bool] = True,
-        use_bypass_listener: Optional[bool] = False,
-        max_retry: int = -1
-    ):
-    ...
+```python hl_lines="6-9"
+def __init__(
+    self,
+    broadcast: Broadcast,
+    adapter: Adapter,
+    *,
+    chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
+    use_loguru_traceback: Optional[bool] = True,
+    use_bypass_listener: Optional[bool] = False,
+    max_retry: int = -1
+): ...
 ```
 
 `broadcast`, `adapter` 自不必说. 但剩下三个仅关键字参数值得说一下.
@@ -75,4 +74,4 @@ async def reply(app: Ariadne, event: MessageEvent):
 ## max_retry
 
 `Ariadne` 默认会尝试无限重启 `Adapter`,
-设置 `max_retry` 可以确保在**连续至少** `max_retry` 次连接失败后自动退出 `daemon` (前提是你使用 `Ariadne.lifecycle()`)
+设置 `max_retry` 可以确保在 **连续至少** `max_retry` 次连接失败后自动退出 `daemon` (前提是你使用 `Ariadne.lifecycle()`)

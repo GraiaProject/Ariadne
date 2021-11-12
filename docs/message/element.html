@@ -41,6 +41,7 @@ from typing_extensions import ParamSpec
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
+from ..util import wrap_bracket
 
 if TYPE_CHECKING:
     from .chain import MessageChain
@@ -67,7 +68,9 @@ class Element(AriadneBaseModel, abc.ABC):
         return &#34;&#34;
 
     def asPersistentString(self) -&gt; str:
-        return f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
+        return (
+            f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
+        )
 
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
@@ -194,7 +197,7 @@ class AtAll(Element):
 class Face(Element):
     &#34;表示消息中所附带的表情, 这些表情大多都是聊天工具内置的.&#34;
     type: str = &#34;Face&#34;
-    faceId: int
+    faceId: Optional[int] = None
     name: Optional[str] = None
 
     def asDisplay(self) -&gt; str:
@@ -419,9 +422,9 @@ class MultimediaElement(Element):
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
         return (
-            f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
+            f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
             if binary
-            else f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+            else f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;})))}]&#34;
         )
 
     @property
@@ -821,7 +824,9 @@ type (str): 元素类型</p>
         return &#34;&#34;
 
     def asPersistentString(self) -&gt; str:
-        return f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
+        return (
+            f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
+        )
 
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
@@ -890,7 +895,9 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asPersistentString(self) -&gt; str:
-    return f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;</code></pre>
+    return (
+        f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
+    )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.element.Element.prepare"><code class="name flex">
@@ -941,7 +948,7 @@ type (str): 元素类型</p>
 <pre><code class="python">class Face(Element):
     &#34;表示消息中所附带的表情, 这些表情大多都是聊天工具内置的.&#34;
     type: str = &#34;Face&#34;
-    faceId: int
+    faceId: Optional[int] = None
     name: Optional[str] = None
 
     def asDisplay(self) -&gt; str:
@@ -962,7 +969,7 @@ type (str): 元素类型</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.element.Face.faceId"><code class="name">var <span class="ident">faceId</span> : int</code></dt>
+<dt id="ariadne.message.element.Face.faceId"><code class="name">var <span class="ident">faceId</span> : Optional[int]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1621,9 +1628,9 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
         return (
-            f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
+            f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
             if binary
-            else f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+            else f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;})))}]&#34;
         )
 
     @property
@@ -1701,9 +1708,9 @@ def uuid(self):
 </summary>
 <pre><code class="python">def asPersistentString(self, *, binary: bool = True) -&gt; str:
     return (
-        f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;}))}]&#34;
+        f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
         if binary
-        else f&#34;[mirai:{self.type}:{j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;}))}]&#34;
+        else f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;, &#39;base64&#39;})))}]&#34;
     )</code></pre>
 </details>
 </dd>

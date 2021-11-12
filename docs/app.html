@@ -1194,7 +1194,7 @@ class Ariadne(
             else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_loguru_traceback:
-            inject_loguru_traceback()
+            inject_loguru_traceback(self.loop)
 
     @classmethod
     def create(
@@ -1203,6 +1203,8 @@ class Ariadne(
         session: MiraiSession,
         broadcast: Optional[Broadcast] = None,
         loop: Optional[AbstractEventLoop] = None,
+        max_retry: int = -1,
+        chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
     ) -&gt; &#34;Ariadne&#34;:
         &#34;&#34;&#34;快速创建一个 `Ariadne` 实例.
 
@@ -1219,7 +1221,9 @@ class Ariadne(
         if not broadcast:
             broadcast = Broadcast(loop=loop)
         adapter = DefaultAdapter(broadcast=broadcast, mirai_session=session)
-        return cls(broadcast, adapter)
+        return cls(
+            broadcast, adapter, max_retry=max_retry, chat_log_config=chat_log_config
+        )
 
     async def daemon(self, retry_interval: float = 5.0):
         retry_cnt: int = 0
@@ -1422,7 +1426,7 @@ class Ariadne(
             else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_loguru_traceback:
-            inject_loguru_traceback()
+            inject_loguru_traceback(self.loop)
 
     @classmethod
     def create(
@@ -1431,6 +1435,8 @@ class Ariadne(
         session: MiraiSession,
         broadcast: Optional[Broadcast] = None,
         loop: Optional[AbstractEventLoop] = None,
+        max_retry: int = -1,
+        chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
     ) -&gt; &#34;Ariadne&#34;:
         &#34;&#34;&#34;快速创建一个 `Ariadne` 实例.
 
@@ -1447,7 +1453,9 @@ class Ariadne(
         if not broadcast:
             broadcast = Broadcast(loop=loop)
         adapter = DefaultAdapter(broadcast=broadcast, mirai_session=session)
-        return cls(broadcast, adapter)
+        return cls(
+            broadcast, adapter, max_retry=max_retry, chat_log_config=chat_log_config
+        )
 
     async def daemon(self, retry_interval: float = 5.0):
         retry_cnt: int = 0
@@ -1579,7 +1587,7 @@ class Ariadne(
 <h3>Static methods</h3>
 <dl>
 <dt id="ariadne.app.Ariadne.create"><code class="name flex">
-<span>def <span class="ident">create</span></span>(<span>*, session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, broadcast: Optional[graia.broadcast.Broadcast] = None, loop: Optional[asyncio.events.AbstractEventLoop] = None) ‑> <a title="ariadne.app.Ariadne" href="#ariadne.app.Ariadne">Ariadne</a></span>
+<span>def <span class="ident">create</span></span>(<span>*, session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, broadcast: Optional[graia.broadcast.Broadcast] = None, loop: Optional[asyncio.events.AbstractEventLoop] = None, max_retry: int = -1, chat_log_config: Union[<a title="ariadne.model.ChatLogConfig" href="model.html#ariadne.model.ChatLogConfig">ChatLogConfig</a>, Literal[False], ForwardRef(None)] = None) ‑> <a title="ariadne.app.Ariadne" href="#ariadne.app.Ariadne">Ariadne</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>快速创建一个 <code><a title="ariadne.app.Ariadne" href="#ariadne.app.Ariadne">Ariadne</a></code> 实例.</p>
@@ -1608,6 +1616,8 @@ def create(
     session: MiraiSession,
     broadcast: Optional[Broadcast] = None,
     loop: Optional[AbstractEventLoop] = None,
+    max_retry: int = -1,
+    chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
 ) -&gt; &#34;Ariadne&#34;:
     &#34;&#34;&#34;快速创建一个 `Ariadne` 实例.
 
@@ -1624,7 +1634,9 @@ def create(
     if not broadcast:
         broadcast = Broadcast(loop=loop)
     adapter = DefaultAdapter(broadcast=broadcast, mirai_session=session)
-    return cls(broadcast, adapter)</code></pre>
+    return cls(
+        broadcast, adapter, max_retry=max_retry, chat_log_config=chat_log_config
+    )</code></pre>
 </details>
 </dd>
 </dl>

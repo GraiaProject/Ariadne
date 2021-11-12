@@ -1,5 +1,8 @@
 site_name: Ariadne 文档
 theme:
+  features:
+    - navigation.instant
+    - navigation.sections
   name: material
   language: zh
   icon:
@@ -40,6 +43,9 @@ markdown_extensions:
   - pymdownx.critic # 增加删除修改高亮注释，可修饰行内或段落
   - pymdownx.details # 提示块可折叠
   - pymdownx.inlinehilite # 行内代码高亮
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets
   - pymdownx.mark # 文本高亮
   - pymdownx.smartsymbols # 符号转换
   - pymdownx.superfences # 代码嵌套在列表里
@@ -54,11 +60,13 @@ markdown_extensions:
   - pymdownx.magiclink # 自动识别超链接
   - pymdownx.tasklist: # 复选框checklist
       custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 nav:
   - "index.md"
+  - "quickstart.md"
   - "基础":
-      - "basic/quickstart.md"
       - "basic/configuration.md"
       - "basic/application.md"
       - "basic/msg-chain.md"
@@ -75,6 +83,8 @@ nav:
   - "迁移":
       - "porting/guide.md"
       - "porting/cheatsheet.md"
-  - "faq.md"
-  - "credits.md"
+  - "附录":
+      - "appendix/faq.md"
+      - "appendix/credits.md"
+      - "appendix/asyncio-intro.md"
   - GitHub 仓库: https://github.com/GraiaProject/Ariadne

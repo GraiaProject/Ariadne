@@ -3,13 +3,25 @@
 ## 前言
 
 这里我们假设你已经参照 [ `mirai` ](https://github.com/mamoe/mirai) 和 [ `mirai-api-http` ](https://github.com/mamoe/mirai-api-http)
-的 README, 通过启动了你的 `mirai-console` , 同时也安装了最新版本的 `mirai-api-http` 插件.
+的 README,
+
+启动了你的 `mirai-console` , 同时也安装了最新版本的 `mirai-api-http` 插件.
 
 !!!important "重要"
 
     如果你使用时开发库出现了错误, 应先检查是否是 `Graia Framework` 的错误,
     确认之后, 请在我们的 [GitHub Issues](https://github.com/GraiaProject/Ariadne/issues) 处汇报你的错误,
     我们会尽快处理问题
+
+!!! error "注意"
+
+    本 快速开始 文档假设你已有 [`Python 3.7+`](https://docs.python.org/zh-cn/3/) 与 [`asyncio`](https://docs.python.org/zh-cn/3/library/asyncio.html) 基础.
+
+    若没有 `Python 3.7+` 基础, 请移步 [`Python 教程`](https://www.runoob.com/python3/python3-tutorial.html)
+
+    若没有 `asyncio` 基础, 请移步 [`asyncio 入门`](appendix/asyncio-intro.md)
+
+    开发者不会负责 `Python` 基础教学.
 
 ## 安装
 
@@ -114,7 +126,7 @@ loop.run_until_complete(app.lifecycle())
 
     !!!important "重要"
 
-        但是这样你无法利用下一章中的配置特性.
+        但是这样你无法利用下一章中的部分配置特性.
 
     ```python
     session = MiraiSession(...) # 自行替换 MiraiSession 内容

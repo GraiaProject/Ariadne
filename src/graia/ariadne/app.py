@@ -1166,7 +1166,7 @@ class Ariadne(
             else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_loguru_traceback:
-            inject_loguru_traceback()
+            inject_loguru_traceback(self.loop)
 
     @classmethod
     def create(
@@ -1175,6 +1175,8 @@ class Ariadne(
         session: MiraiSession,
         broadcast: Optional[Broadcast] = None,
         loop: Optional[AbstractEventLoop] = None,
+        max_retry: int = -1,
+        chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
     ) -> "Ariadne":
         """快速创建一个 `Ariadne` 实例.
 
@@ -1191,7 +1193,9 @@ class Ariadne(
         if not broadcast:
             broadcast = Broadcast(loop=loop)
         adapter = DefaultAdapter(broadcast=broadcast, mirai_session=session)
-        return cls(broadcast, adapter)
+        return cls(
+            broadcast, adapter, max_retry=max_retry, chat_log_config=chat_log_config
+        )
 
     async def daemon(self, retry_interval: float = 5.0):
         retry_cnt: int = 0

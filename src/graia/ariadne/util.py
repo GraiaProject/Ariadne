@@ -1,6 +1,7 @@
 import functools
 import sys
 import traceback
+from asyncio.events import AbstractEventLoop
 from typing import Callable, ContextManager, Dict, Generator, List, Type, TypeVar, Union
 
 from graia.broadcast import Broadcast
@@ -60,18 +61,19 @@ def validate_response(code: Union[dict, int]):
         raise UnknownError(f"{origin}")
 
 
-def loguru_print_exception(cls, val, tb, *_, **__):
-    logger.opt(exception=(cls, val, tb)).error(f"Caught Exception {val}:")
-
-
 def loguru_excepthook(cls, val, tb, *_, **__):
-    logger.opt(exception=(cls, val, tb)).error(f"Uncaught Exception:")
+    logger.opt(exception=(cls, val, tb)).error(f"Exception:")
 
 
-def inject_loguru_traceback():
+def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
+    logger.opt(exception=ctx["exception"]).error(f"Exception:")
+
+
+def inject_loguru_traceback(loop: AbstractEventLoop):
     """使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook"""
-    traceback.print_exception = loguru_print_exception
+    traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
+    loop.set_exception_handler(loguru_async_handler)
 
 
 def inject_bypass_listener(broadcast: Broadcast):
@@ -157,6 +159,10 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
     yield cls
     for sub_cls in cls.__subclasses__():
         yield from gen_subclass(sub_cls)
+
+
+def wrap_bracket(string: str) -> str:
+    return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
 T_Callable = TypeVar("T_Callable", bound=Callable)

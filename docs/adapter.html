@@ -342,8 +342,6 @@ class WebsocketAdapter(Adapter):
         sync_id = self.SyncIdManager.allocate()
         event = self.CallResponse()
         self.sync_event[sync_id] = event
-        if not isinstance(data, str):
-            data = json.dumps(data, cls=DatetimeEncoder)
         content = {
             &#34;syncId&#34;: sync_id,
             &#34;command&#34;: action,
@@ -358,7 +356,7 @@ class WebsocketAdapter(Adapter):
                 f&#34;Unsupported operation for WebsocketAdapter: {method}&#34;
             )
 
-        await self.ws_conn.send_json(content)
+        await self.ws_conn.send_str(json.dumps(content, cls=DatetimeEncoder))
         logger.debug(f&#34;websocket：sent with sync id: {sync_id}&#34;)
         await event.wait()
         self.SyncIdManager.done(sync_id)
@@ -372,13 +370,14 @@ class WebsocketAdapter(Adapter):
             return value
 
     async def raw_data_parser(self, raw_data: dict) -&gt; None:
-        sync_id: int = raw_data[&#34;syncId&#34;]
+        sync_id: str = raw_data[&#34;syncId&#34;]
         received_data: dict = raw_data[&#34;data&#34;]
         validate_response(received_data)
         if not self.mirai_session.session_key:
             if session_key := received_data.get(&#34;session&#34;, None):
                 self.mirai_session.session_key = session_key
             return
+        sync_id = int(sync_id)
         if sync_id not in self.SyncIdManager.allocated:
             event = await self.build_event(received_data)
             with enter_context(app=self.app, event=event):
@@ -1454,8 +1453,6 @@ Note: Working In Progress</p></div>
         sync_id = self.SyncIdManager.allocate()
         event = self.CallResponse()
         self.sync_event[sync_id] = event
-        if not isinstance(data, str):
-            data = json.dumps(data, cls=DatetimeEncoder)
         content = {
             &#34;syncId&#34;: sync_id,
             &#34;command&#34;: action,
@@ -1470,7 +1467,7 @@ Note: Working In Progress</p></div>
                 f&#34;Unsupported operation for WebsocketAdapter: {method}&#34;
             )
 
-        await self.ws_conn.send_json(content)
+        await self.ws_conn.send_str(json.dumps(content, cls=DatetimeEncoder))
         logger.debug(f&#34;websocket：sent with sync id: {sync_id}&#34;)
         await event.wait()
         self.SyncIdManager.done(sync_id)
@@ -1484,13 +1481,14 @@ Note: Working In Progress</p></div>
             return value
 
     async def raw_data_parser(self, raw_data: dict) -&gt; None:
-        sync_id: int = raw_data[&#34;syncId&#34;]
+        sync_id: str = raw_data[&#34;syncId&#34;]
         received_data: dict = raw_data[&#34;data&#34;]
         validate_response(received_data)
         if not self.mirai_session.session_key:
             if session_key := received_data.get(&#34;session&#34;, None):
                 self.mirai_session.session_key = session_key
             return
+        sync_id = int(sync_id)
         if sync_id not in self.SyncIdManager.allocated:
             event = await self.build_event(received_data)
             with enter_context(app=self.app, event=event):
@@ -1573,13 +1571,14 @@ false.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def raw_data_parser(self, raw_data: dict) -&gt; None:
-    sync_id: int = raw_data[&#34;syncId&#34;]
+    sync_id: str = raw_data[&#34;syncId&#34;]
     received_data: dict = raw_data[&#34;data&#34;]
     validate_response(received_data)
     if not self.mirai_session.session_key:
         if session_key := received_data.get(&#34;session&#34;, None):
             self.mirai_session.session_key = session_key
         return
+    sync_id = int(sync_id)
     if sync_id not in self.SyncIdManager.allocated:
         event = await self.build_event(received_data)
         with enter_context(app=self.app, event=event):

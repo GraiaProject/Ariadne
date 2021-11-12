@@ -13,6 +13,7 @@ from typing_extensions import ParamSpec
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
+from ..util import wrap_bracket
 
 if TYPE_CHECKING:
     from .chain import MessageChain
@@ -39,7 +40,9 @@ class Element(AriadneBaseModel, abc.ABC):
         return ""
 
     def asPersistentString(self) -> str:
-        return f"[mirai:{self.type}:{j_dump(self.dict(exclude={'type'}))}]"
+        return (
+            f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type'})))}]"
+        )
 
     def prepare(self) -> None:
         """
@@ -166,7 +169,7 @@ class AtAll(Element):
 class Face(Element):
     "表示消息中所附带的表情, 这些表情大多都是聊天工具内置的."
     type: str = "Face"
-    faceId: int
+    faceId: Optional[int] = None
     name: Optional[str] = None
 
     def asDisplay(self) -> str:
@@ -391,9 +394,9 @@ class MultimediaElement(Element):
 
     def asPersistentString(self, *, binary: bool = True) -> str:
         return (
-            f"[mirai:{self.type}:{j_dump(self.dict(exclude={'type'}))}]"
+            f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type'})))}]"
             if binary
-            else f"[mirai:{self.type}:{j_dump(self.dict(exclude={'type', 'base64'}))}]"
+            else f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type', 'base64'})))}]"
         )
 
     @property

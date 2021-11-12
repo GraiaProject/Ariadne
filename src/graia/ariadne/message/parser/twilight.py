@@ -184,7 +184,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
     def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
         if not isinstance(interface.event, MessageEvent):
-            raise ExecutionStop()
+            raise ExecutionStop
         local_storage: _TwilightLocalStorage = (
             interface.broadcast.decorator_interface.local_storage
         )
@@ -192,7 +192,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         try:
             local_storage["sparkle"] = self.gen_sparkle(chain)
         except:
-            raise ExecutionStop()
+            raise ExecutionStop
 
     async def catch(
         self, interface: "DispatcherInterface[MessageEvent]"
@@ -205,7 +205,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             return sparkle
         if issubclass(interface.annotation, Twilight):
             return self
-        if isinstance(interface.annotation, Match):
+        if issubclass(interface.annotation, Match):
             if hasattr(sparkle, interface.name):
                 match: Match = getattr(sparkle, interface.name)
                 if isinstance(match, interface.annotation):

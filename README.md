@@ -36,7 +36,7 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 [API 文档](https://graiaproject.github.io/Ariadne/) [入门文档](https://graia.readthedocs.io/zh_CN/latest/)
 
-[鸣谢](https://graia.readthedocs.io/zh_CN/latest/credits)
+[鸣谢](https://graia.readthedocs.io/zh_CN/latest/appendix/credits)
 
 ### 许可证
 

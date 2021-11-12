@@ -27,7 +27,7 @@ class Ariadne(...):
 
 别急, 让我们看看 `lifecycle()` 的源码.
 
-```python
+```python hl_lines="2 8"
 async def lifecycle(self):
     await self.launch()
     try:
@@ -50,3 +50,13 @@ async def lifecycle(self):
 - 使用 `谓词 + 名词` 命名.
 - 注: 获取数据的方法统一以 `get` 开头.
 - 为 `async` 异步函数.
+
+其他的信息你应该可以从 `doc string` 里得到. 此处不再赘述.
+
+!!!info "对于 Graia Application 用户"
+
+    你可以直接使用 `app.sendMessage(sender_or_event, message, ...)` 发送信息.
+
+!!!note "提示"
+
+    `MessageChain` 如何使用会在下一节介绍.

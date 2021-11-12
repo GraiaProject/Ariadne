@@ -125,17 +125,20 @@ class MessageChain(AriadneBaseModel):
         else:
             return self
 
-    def has(self, element_class: Type[Element_T]) -> bool:
+    def has(self, element: Union[Element_T, Type[Element_T]]) -> bool:
         """
-        判断消息链中是否含有特定类型的消息元素
+        判断消息链中是否含有特定的消息元素
 
         Args:
-            element_class (T): 需要判断的消息元素的类型, 例如 "Plain", "At", "Image" 等.
+            element (T): 需要判断的消息元素, 可为类型或实例.
 
         Returns:
             bool: 判断结果
         """
-        return element_class in [type(i) for i in self.__root__]
+        if isinstance(element, Element):
+            return element in self.__root__
+        else:
+            return element in [type(i) for i in self.__root__]
 
     def get(self, element_class: Type[Element_T]) -> List[Element_T]:
         """
@@ -183,7 +186,7 @@ class MessageChain(AriadneBaseModel):
         """
         return "".join(i.asDisplay() for i in self.__root__)
 
-    def __contains__(self, item: Union[Type[Element_T], str]) -> bool:
+    def __contains__(self, item: Union[Type[Element_T], Element_T, str]) -> bool:
         """
         是否包含特定元素类型/字符串
         """
@@ -221,9 +224,9 @@ class MessageChain(AriadneBaseModel):
         通过 `int` 取出对应位置元素.
 
         Args:
-            item (Union[Type[Element_T], slice, Tuple[Type[Element_T], int], int]): 索引项
+            item: 索引项
         Returns:
-            Union[List[Element_T], "MessageChain", Element]: 索引结果.
+            索引结果.
         """
         if isinstance(item, slice):
             return self.subchain(item)
@@ -486,15 +489,14 @@ class MessageChain(AriadneBaseModel):
             if isinstance(e, element_type):
                 return i
 
-    def count(self, element_type: Type[Element_T]) -> int:
+    def count(self, element: Union[Type[Element_T], Element_T]) -> int:
         """
-        统计共有多少个指定类型的元素.
+        统计共有多少个指定的元素.
         """
-        cnt = 0
-        for e in self.__root__:
-            if isinstance(e, element_type):
-                cnt += 1
-        return cnt
+        if isinstance(element, Element):
+            return sum(i == element for i in self.__root__)
+        else:
+            return sum(isinstance(i, element) for i in self.__root__)
 
     def asSendable(self):
         return self.exclude(Source, Quote, File)

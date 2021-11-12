@@ -1133,6 +1133,7 @@ class Ariadne(
         broadcast: Broadcast,
         adapter: Adapter,
         *,
+        max_retry: int = -1,
         chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
         use_bypass_listener: Optional[bool] = False,
@@ -1157,6 +1158,7 @@ class Ariadne(
         self.daemon_task: Optional[Task] = None
         self.running: bool = False
         self.remote_version: str = ""
+        self.max_retry: int = max_retry
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config
@@ -1192,6 +1194,7 @@ class Ariadne(
         return cls(broadcast, adapter)
 
     async def daemon(self, retry_interval: float = 5.0):
+        retry_cnt: int = 0
         logger.debug("Application daemon started.")
         while self.running:
             try:
@@ -1202,8 +1205,15 @@ class Ariadne(
                         await self.adapter.fetch_task
                 except Exception as e:
                     logger.exception(e)
+                if not self.session_key:
+                    retry_cnt += 1
+                else:
+                    retry_cnt = 0
                 await self.adapter.stop()
                 self.broadcast.postEvent(AdapterShutdowned(self))
+                if retry_cnt == self.max_retry:
+                    logger.critical(f"Max retry exceeded: {self.max_retry}")
+                    break
                 logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
                 await asyncio.sleep(retry_interval)
                 logger.info("daemon: restarting adapter")

@@ -8,13 +8,16 @@
 
 [`GraiaProject`](https://github.com/GraiaProject) 的其他项目:
 
-- 直接依赖:
-  - [`Broadcast Control`](https://github.com/GraiaProject/BroadcastControl): 扩展性强大, 模块间低耦合, 高灵活性的事件系统支持, 是 `Ariadne` 的底层.
-  - [`Saya`](https://github.com/GraiaProject/Saya) 简洁的模块管理系统.
-  - [`Scheduler`](https://github.com/GraiaProject/Scheduler): 简洁的基于 `asyncio` 的定时任务实现.
-- 参考:
-  - [`Application`](https://github.com/GraiaProject/Application/) (a.k.a v4): 本项目的结构基础, 支持 `mirai-api-http v1.x` 版本 .
-  - [`Avilla`](https://github.com/GraiaProject/Avilla/) (a.k.a v5):下一代即时通讯框架.`The Future`.
+直接依赖:
+
+- [`Broadcast Control`](https://github.com/GraiaProject/BroadcastControl): 扩展性强大, 模块间低耦合, 高灵活性的事件系统支持, 是 `Ariadne` 的底层.
+- [`Saya`](https://github.com/GraiaProject/Saya) 简洁的模块管理系统.
+- [`Scheduler`](https://github.com/GraiaProject/Scheduler): 简洁的基于 `asyncio` 的定时任务实现.
+
+参考:
+
+- [`Application`](https://github.com/GraiaProject/Application/) (a.k.a v4): 本项目的结构基础, 支持 `mirai-api-http v1.x` 版本 .
+- [`Avilla`](https://github.com/GraiaProject/Avilla/) (a.k.a v5):下一代即时通讯框架.`The Future`.
 
 其他项目:
 
@@ -22,7 +25,7 @@
 
 个人:
 
-- [`Grey Elaina`](https://github.com/GreyElaina) `Graia Project` 的 `main artist`.
-- [`Bryan不可思议 (ProgramRipper)`](https://github.com/ProgramRipper) `Graia Project` 的 协作者.
-- [`BlueGlassBlock`](https://github.com/BlueGlassBlock) `Ariadne` 的 主要维护者.
+- [`Grey Elaina`](https://github.com/GreyElaina): `Graia Project` 的 `main artist`.
+- [`Bryan不可思议 (ProgramRipper)`](https://github.com/ProgramRipper): `Graia Project` 的 协作者.
+- [`BlueGlassBlock`](https://github.com/BlueGlassBlock): `Ariadne` 的 主要维护者.
 - [`A60 (djkcyl)`](https://github.com/djkcyl) 与 [`Redlnn`](https://github.com/Redlnn): 早期版本的 issuer.

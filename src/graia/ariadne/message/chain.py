@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import copy
 import json
 import re
-from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union
+from copy import deepcopy
+from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union, overload
 
 from ..model import AriadneBaseModel
 from ..util import deprecated, gen_subclass
@@ -75,8 +75,13 @@ class MessageChain(AriadneBaseModel):
         """
         return cls(__root__=cls.build_chain(obj))
 
-    def __init__(self, __root__: Iterable[Union[Element, str]]) -> None:
-        super().__init__(__root__=self.build_chain(__root__))
+    def __init__(
+        self, __root__: Iterable[Union[Element, str]], *, inline: bool = False
+    ) -> None:
+        if not inline:
+            super().__init__(__root__=self.build_chain(__root__))
+        else:
+            super().__init__(__root__=__root__)
 
     @classmethod
     def create(
@@ -98,8 +103,8 @@ class MessageChain(AriadneBaseModel):
             elif isinstance(i, str):
                 element_list.append(Plain(i))
             else:
-                element_list.extend(list(i))
-        return cls(__root__=element_list)
+                element_list.extend(cls.build_chain(i))
+        return cls(__root__=element_list, inline=True)
 
     def prepare(self, copy: bool = False) -> "MessageChain":
         """
@@ -187,8 +192,24 @@ class MessageChain(AriadneBaseModel):
         else:
             return self.has(item)
 
+    @overload
+    def __getitem__(self, item: Tuple[Element_T, int]) -> List[Element_T]:
+        ...
+
+    @overload
+    def __getitem__(self, item: Type[Element_T]) -> List[Element_T]:
+        ...
+
+    @overload
+    def __getitem__(self, item: int) -> Element_T:
+        ...
+
+    @overload
+    def __getitem__(self, item: slice) -> "MessageChain":
+        ...
+
     def __getitem__(
-        self, item: Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]
+        self, item: Union[Type[Element_T], slice, Tuple[Type[Element_T], int], int]
     ) -> Union[List[Element_T], "MessageChain", Element]:
         """
         可通过切片取出子消息链, 或元素.
@@ -200,7 +221,7 @@ class MessageChain(AriadneBaseModel):
         通过 `int` 取出对应位置元素.
 
         Args:
-            item (Union[Type[Element_T], slice, Tuple[Type[Element_T], int]]): 索引项
+            item (Union[Type[Element_T], slice, Tuple[Type[Element_T], int], int]): 索引项
         Returns:
             Union[List[Element_T], "MessageChain", Element]: 索引结果.
         """
@@ -230,7 +251,7 @@ class MessageChain(AriadneBaseModel):
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         """
 
-        result = copy.copy(self.__root__)
+        result = deepcopy(self.__root__)
         if item.start:
             first_slice = result[item.start[0] :]
             if item.start[1] is not None and first_slice:  # text slice
@@ -267,7 +288,7 @@ class MessageChain(AriadneBaseModel):
                 ]
             else:
                 result = first_slice
-        return MessageChain(result)
+        return MessageChain(result, inline=True)
 
     def exclude(self, *types: Type[Element]) -> MessageChain:
         """将除了在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
@@ -278,7 +299,9 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 返回的消息链中不包含参数中给出的消息元素类型
         """
-        return MessageChain([i for i in self.__root__ if type(i) not in types])
+        return MessageChain(
+            [i for i in self.__root__ if type(i) not in types], inline=True
+        )
 
     def include(self, *types: Type[Element]) -> MessageChain:
         """将只在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
@@ -289,7 +312,7 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 返回的消息链中只包含参数中给出的消息元素类型
         """
-        return MessageChain([i for i in self.__root__ if type(i) in types])
+        return MessageChain([i for i in self.__root__ if type(i) in types], inline=True)
 
     def split(self, pattern: str, raw_string: bool = False) -> List["MessageChain"]:
         """和 `str.split` 差不多, 提供一个字符串, 然后返回分割结果.
@@ -305,7 +328,7 @@ class MessageChain(AriadneBaseModel):
                 split_result = element.text.split(pattern)
                 for index, split_str in enumerate(split_result):
                     if tmp and index > 0:
-                        result.append(MessageChain(tmp))
+                        result.append(MessageChain(tmp, inline=True))
                         tmp = []
                     if split_str or raw_string:
                         tmp.append(Plain(split_str))
@@ -313,7 +336,7 @@ class MessageChain(AriadneBaseModel):
                 tmp.append(element)
         else:
             if tmp:
-                result.append(MessageChain(tmp))
+                result.append(MessageChain(tmp, inline=True))
                 tmp = []
         return result
 
@@ -402,19 +425,23 @@ class MessageChain(AriadneBaseModel):
                 result.append(Plain("".join(plain)))
                 plain.clear()
         if copy:
-            return MessageChain(result)
+            return MessageChain(result, inline=True)
         else:
             self.__root__ = result
             return self
 
-    def append(self, element: Element) -> None:
+    def append(self, element: Union[Element, str]) -> None:
         """
         向消息链最后追加单个元素
         """
+        if isinstance(element, str):
+            element = Plain(element)
         self.__root__.append(element)
 
     def extend(
-        self, *content: Union[MessageChain, Element, List[Element]], copy: bool = False
+        self,
+        *content: Union[MessageChain, Element, List[Union[Element, str]]],
+        copy: bool = False,
     ) -> "MessageChain":
         """
         向消息链最后添加元素/元素列表/消息链
@@ -429,14 +456,18 @@ class MessageChain(AriadneBaseModel):
         for i in content:
             if isinstance(i, Element):
                 result.append(i)
-            if isinstance(i, MessageChain):
+            elif isinstance(i, MessageChain):
                 result.extend(i.__root__)
             else:
-                result.extend(i)
+                for e in i:
+                    if isinstance(e, str):
+                        result.append(Plain(e))
+                    else:
+                        result.append(e)
         if copy:
-            return MessageChain(result)
+            return MessageChain(deepcopy(self.__root__) + result, inline=True)
         else:
-            self.__root__ = result
+            self.__root__.extend(result)
             return self
 
     def copy(self) -> "MessageChain":
@@ -445,7 +476,7 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 拷贝的副本.
         """
-        return MessageChain(self.__root__)
+        return MessageChain(deepcopy(self.__root__), inline=True)
 
     def index(self, element_type: Type[Element_T]) -> Union[int, None]:
         """
@@ -471,7 +502,7 @@ class MessageChain(AriadneBaseModel):
     def __add__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
-        return MessageChain(self.__root__ + content)
+        return MessageChain(deepcopy(self.__root__) + content, inline=True)
 
     def __iadd__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
@@ -480,10 +511,13 @@ class MessageChain(AriadneBaseModel):
         return self
 
     def __mul__(self, time: int) -> "MessageChain":
-        return MessageChain(self.__root__ * time)
+        result = []
+        for _ in range(time):
+            result.extend(deepcopy(self.__root__))
+        return MessageChain(result, inline=True)
 
     def __imul__(self, time: int) -> "MessageChain":
-        self.__root__ *= time
+        self.__root__ = self.__mul__(time)
         return self
 
     def __len__(self) -> int:

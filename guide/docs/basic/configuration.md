@@ -17,6 +17,7 @@
         chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
         use_bypass_listener: Optional[bool] = False,
+        max_retry: int = -1
     ):
     ...
 ```
@@ -29,7 +30,7 @@
 
 这个部分是用于控制 Ariadne 的 聊天日志的.
 
-如果你不喜欢启用聊天日志保存, 设置为 `False` 即可.
+如果你不喜欢启用聊天日志输出, 设置为 `False` 即可.
 
 你可以从 `graia.ariadne.model` 导入 `ChatLogConfig`, 进行更细致的控制.
 
@@ -70,3 +71,8 @@ async def reply(app: Ariadne, event: MessageEvent):
 !!! note "提示"
 
     如果你真的非常关心实现细节, 它在 `util.inject_inject_bypass_listener()` 里.
+
+## max_retry
+
+`Ariadne` 默认会尝试无限重启 `Adapter`,
+设置 `max_retry` 可以确保在**连续至少** `max_retry` 次连接失败后自动退出 `daemon` (前提是你使用 `Ariadne.lifecycle()`)

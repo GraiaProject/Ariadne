@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.4.0-a10"
+version = "0.3.9.9"
 description = "Anelegant mirai-api-http v2 Python SDK."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -34,6 +34,7 @@ ptpython = "^3.0.20"
 pdoc3 = "^0.10.0"
 graia-saya = "^0.0.13"
 mkdocs-material = "^7.3.6"
+graia-scheduler = "^0.0.6"
 
 [tool.isort]
 profile = "black"

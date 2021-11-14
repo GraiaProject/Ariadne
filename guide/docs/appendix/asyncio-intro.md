@@ -41,7 +41,7 @@ class Example:
 简单调用 `asyncio.new_event_loop()` 即可获取事件循环对象.
 
 ```python
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
 ```
 
 !!! note "提示"

@@ -283,14 +283,11 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "graia-broadcast"
-version = "0.14.0"
+version = "0.13.1"
 description = "a highly customizable, elegantly designed event system based on asyncio"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
-
-[package.dependencies]
-typing-extensions = {version = ">=3.10.0,<4.0.0", markers = "python_version >= \"3.7\" and python_version < \"3.8\""}
 
 [package.source]
 type = "legacy"
@@ -333,7 +330,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "graphviz"
-version = "0.18"
+version = "0.18.1"
 description = "Simple Python interface for Graphviz"
 category = "dev"
 optional = false
@@ -342,7 +339,7 @@ python-versions = ">=3.6"
 [package.extras]
 dev = ["tox (>=3)", "flake8", "pep8-naming", "wheel", "twine"]
 docs = ["sphinx (>=1.8)", "sphinx-autodoc-typehints", "sphinx-rtd-theme"]
-test = ["pytest (>=6)", "pytest-mock (>=2)", "mock (>=3)", "pytest-cov"]
+test = ["pytest (>=6)", "pytest-mock (>=3)", "mock (>=4)", "pytest-cov"]
 
 [package.source]
 type = "legacy"
@@ -1006,7 +1003,7 @@ reference = "tuna-tsinghua"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "f9d768644f7b8869bf44bdffb218edad69d1b7ba1fa7f5b68991b636c15d6c2a"
+content-hash = "852bc84a130f69c6b83dba035124ff43bcdeabbbefa0d423a366d11cdb167bed"
 
 [metadata.files]
 aiohttp = [
@@ -1214,8 +1211,8 @@ ghp-import = [
     {file = "ghp_import-2.0.2-py3-none-any.whl", hash = "sha256:5f8962b30b20652cdffa9c5a9812f7de6bcb56ec475acac579807719bf242c46"},
 ]
 graia-broadcast = [
-    {file = "graia-broadcast-0.14.0.tar.gz", hash = "sha256:830cdfd8351852f30dddeec3fb28c0e48bb1726df5e4f9c1dfb6225304a54f2f"},
-    {file = "graia_broadcast-0.14.0-py3-none-any.whl", hash = "sha256:7a9166e6c469841610e1ef78a0b00870df25a905a27d892e77be0f7cac8cbc4b"},
+    {file = "graia-broadcast-0.13.1.tar.gz", hash = "sha256:a22d2678a1946f9084a5f29c469c3c631e039e60dbefd52d683294db998cb075"},
+    {file = "graia_broadcast-0.13.1-py3-none-any.whl", hash = "sha256:e881570cad8d9de76f3976c15bab1ffd0a7c8e2fe4f81ad39081363d9abba863"},
 ]
 graia-saya = [
     {file = "graia-saya-0.0.13.tar.gz", hash = "sha256:07b4fe4c5e9b82212b63207e6264f5fa296375bdebeb6e972f50eb5825d52547"},
@@ -1226,8 +1223,8 @@ graia-scheduler = [
     {file = "graia_scheduler-0.0.6-py3-none-any.whl", hash = "sha256:bc29952bbb1c2f8c8875c32bec9dcdedc0fa22ba89b94804498963b491eed1e5"},
 ]
 graphviz = [
-    {file = "graphviz-0.18-py3-none-any.whl", hash = "sha256:f8bab3bf3eda40ab259bb96f786811b5dec6fd6957fa70a5b1977534e1ee2a40"},
-    {file = "graphviz-0.18.zip", hash = "sha256:0f04e5f939d3a839b524283d590e941892c56e75e60e0f5238c431264f490022"},
+    {file = "graphviz-0.18.1-py3-none-any.whl", hash = "sha256:6adf01cf64fb9b1c4374b733d91d4bd8bf2e86d5988d9e140c91fa304203cfb2"},
+    {file = "graphviz-0.18.1.zip", hash = "sha256:bb78fbd032590dbfbbb56805b39d61fd5225d165bbf03de1e46873eec48f4b8f"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},

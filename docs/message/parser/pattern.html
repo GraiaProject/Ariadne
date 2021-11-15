@@ -193,10 +193,8 @@ class ArgumentMatch(Match):
         action: Union[str, Type[Action]] = ...,
         regex: Optional[str] = None,
     ) -&gt; None:
-        if not all(string.startswith(&#34;-&#34;) for string in pattern):
-            raise ValueError(&#34;Invalid pattern: pattern without &#39;-&#39; as start!&#34;)
-        elif not pattern:
-            raise ValueError(&#34;Expected as least 1 pattern!&#34;)
+        if not pattern:
+            raise ValueError(&#34;Expected at least 1 pattern!&#34;)
         super().__init__(pattern, optional)
         self.name = pattern[0].lstrip(&#34;-&#34;).replace(&#34;-&#34;, &#34;_&#34;)
         self.nargs = nargs
@@ -259,10 +257,8 @@ inheritance.</p></div>
         action: Union[str, Type[Action]] = ...,
         regex: Optional[str] = None,
     ) -&gt; None:
-        if not all(string.startswith(&#34;-&#34;) for string in pattern):
-            raise ValueError(&#34;Invalid pattern: pattern without &#39;-&#39; as start!&#34;)
-        elif not pattern:
-            raise ValueError(&#34;Expected as least 1 pattern!&#34;)
+        if not pattern:
+            raise ValueError(&#34;Expected at least 1 pattern!&#34;)
         super().__init__(pattern, optional)
         self.name = pattern[0].lstrip(&#34;-&#34;).replace(&#34;-&#34;, &#34;_&#34;)
         self.nargs = nargs

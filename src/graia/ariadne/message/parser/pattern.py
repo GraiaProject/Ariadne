@@ -165,10 +165,8 @@ class ArgumentMatch(Match):
         action: Union[str, Type[Action]] = ...,
         regex: Optional[str] = None,
     ) -> None:
-        if not all(string.startswith("-") for string in pattern):
-            raise ValueError("Invalid pattern: pattern without '-' as start!")
-        elif not pattern:
-            raise ValueError("Expected as least 1 pattern!")
+        if not pattern:
+            raise ValueError("Expected at least 1 pattern!")
         super().__init__(pattern, optional)
         self.name = pattern[0].lstrip("-").replace("-", "_")
         self.nargs = nargs

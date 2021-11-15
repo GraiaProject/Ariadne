@@ -168,7 +168,7 @@ class MessageChain(AriadneBaseModel):
         else:
             return element in [type(i) for i in self.__root__]
 
-    def get(self, element_class: Type[Element_T]) -&gt; List[Element_T]:
+    def get(self, element_class: Type[Element_T], count: int = -1) -&gt; List[Element_T]:
         &#34;&#34;&#34;
         获取消息链中所有特定类型的消息元素
 
@@ -178,7 +178,9 @@ class MessageChain(AriadneBaseModel):
         Returns:
             List[T]: 获取到的符合要求的所有消息元素; 另: 可能是空列表([]).
         &#34;&#34;&#34;
-        return [i for i in self.__root__ if isinstance(i, element_class)]
+        if count == -1:
+            count = len(self.__root__)
+        return [i for i in self.__root__ if isinstance(i, element_class)][:count]
 
     def getOne(self, element_class: Type[Element_T], index: int) -&gt; Element_T:
         &#34;&#34;&#34;
@@ -216,7 +218,7 @@ class MessageChain(AriadneBaseModel):
 
     def __contains__(self, item: Union[Type[Element_T], Element_T, str]) -&gt; bool:
         &#34;&#34;&#34;
-        是否包含特定元素类型/字符串
+        是否包含特定元素/字符串
         &#34;&#34;&#34;
         if isinstance(item, str):
             return self.hasText(item)
@@ -261,7 +263,7 @@ class MessageChain(AriadneBaseModel):
         elif isinstance(item, type) and issubclass(item, Element):
             return self.get(item)
         elif isinstance(item, tuple):
-            return self.get(item[0])[: item[1]]
+            return self.get(*item)
         elif isinstance(item, int):
             return self.__root__[item]
         else:
@@ -855,7 +857,7 @@ _update_forward_refs()</code></pre>
         else:
             return element in [type(i) for i in self.__root__]
 
-    def get(self, element_class: Type[Element_T]) -&gt; List[Element_T]:
+    def get(self, element_class: Type[Element_T], count: int = -1) -&gt; List[Element_T]:
         &#34;&#34;&#34;
         获取消息链中所有特定类型的消息元素
 
@@ -865,7 +867,9 @@ _update_forward_refs()</code></pre>
         Returns:
             List[T]: 获取到的符合要求的所有消息元素; 另: 可能是空列表([]).
         &#34;&#34;&#34;
-        return [i for i in self.__root__ if isinstance(i, element_class)]
+        if count == -1:
+            count = len(self.__root__)
+        return [i for i in self.__root__ if isinstance(i, element_class)][:count]
 
     def getOne(self, element_class: Type[Element_T], index: int) -&gt; Element_T:
         &#34;&#34;&#34;
@@ -903,7 +907,7 @@ _update_forward_refs()</code></pre>
 
     def __contains__(self, item: Union[Type[Element_T], Element_T, str]) -&gt; bool:
         &#34;&#34;&#34;
-        是否包含特定元素类型/字符串
+        是否包含特定元素/字符串
         &#34;&#34;&#34;
         if isinstance(item, str):
             return self.hasText(item)
@@ -948,7 +952,7 @@ _update_forward_refs()</code></pre>
         elif isinstance(item, type) and issubclass(item, Element):
             return self.get(item)
         elif isinstance(item, tuple):
-            return self.get(item[0])[: item[1]]
+            return self.get(*item)
         elif isinstance(item, int):
             return self.__root__[item]
         else:
@@ -1980,7 +1984,7 @@ def parse_obj(
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>self, element_class: Type[Element_T]) ‑> List[~Element_T]</span>
+<span>def <span class="ident">get</span></span>(<span>self, element_class: Type[Element_T], count: int = -1) ‑> List[~Element_T]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>获取消息链中所有特定类型的消息元素</p>
@@ -1998,7 +2002,7 @@ def parse_obj(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get(self, element_class: Type[Element_T]) -&gt; List[Element_T]:
+<pre><code class="python">def get(self, element_class: Type[Element_T], count: int = -1) -&gt; List[Element_T]:
     &#34;&#34;&#34;
     获取消息链中所有特定类型的消息元素
 
@@ -2008,7 +2012,9 @@ def parse_obj(
     Returns:
         List[T]: 获取到的符合要求的所有消息元素; 另: 可能是空列表([]).
     &#34;&#34;&#34;
-    return [i for i in self.__root__ if isinstance(i, element_class)]</code></pre>
+    if count == -1:
+        count = len(self.__root__)
+    return [i for i in self.__root__ if isinstance(i, element_class)][:count]</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.getFirst"><code class="name flex">

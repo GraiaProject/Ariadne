@@ -1,7 +1,6 @@
 import re
 import string
 from copy import deepcopy
-from shlex import split
 from types import TracebackType
 from typing import (
     Dict,
@@ -24,7 +23,7 @@ from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
 from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
-from .util import ArgumentMatchType, TwilightParser
+from .util import ArgumentMatchType, TwilightParser, split
 
 
 class Sparkle:
@@ -62,6 +61,10 @@ class Sparkle:
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
+                    if v.name.startswith("-"):
+                        raise ValueError(
+                            "ArgumentMatch's pattern can't start with '-'!"
+                        )
                     self._args_map[v.name] = (v, k)
                     if v.action is not ... and self._parser.accept_type(v.action):
                         v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
@@ -81,7 +84,7 @@ class Sparkle:
         return f"<Sparkle: {repr_dict}>"
 
     def parse_arg_list(self, args: List[str]) -> List[str]:
-        namespace, rest = self._parser.parse_known_args(args)
+        namespace, rest = self._parser.parse_known_intermixed_args(args)
         for arg_name, val_tuple in self._args_map.items():
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)

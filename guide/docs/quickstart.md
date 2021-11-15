@@ -63,7 +63,7 @@ debug: false
 enableVerify: true
 verifyKey: ServiceVerifyKey # 你可以自己设定, 这里作为示范
 singleMode: false
-cacheSize: 4096 # 可选，缓存大小，默认4096. 缓存过小会导致引用回复与撤回消息失败
+cacheSize: 4096 # 可选, 缓存大小, 默认4096. 缓存过小会导致引用回复与撤回消息失败
 adapterSettings:
   ## 详情看 http adapter 使用说明 配置
   http:
@@ -96,14 +96,11 @@ loop = asyncio.new_event_loop()
 bcc = Broadcast(loop=loop)
 app = Ariadne(
     broadcast=bcc,
-    adapter=DefaultAdapter(
-        bcc,
-        MiraiSession(
+    connect_info=MiraiSession(
             host="http://localhost:8080",  # 填入 HTTP API 服务运行的地址
             verify_key="ServiceVerifyKey",  # 填入 verifyKey
             account=123456789,  # 你的机器人的 qq 号
-        ),
-    ),
+        )
 )
 
 
@@ -119,18 +116,3 @@ loop.run_until_complete(app.lifecycle())
 !!! info "技巧"
 
     将 `CombinedAdapter` 换为 `DebugAdapter` 可以输出所有接收到的事件, 但在生产环境下并不推荐.
-
-!!! note "提示"
-
-    如果你对 `v4 (graia-application-mirai)` 中的初始化方法念念不忘, 你也可以这样做 (并且这样签名更简单)
-
-    !!!important "重要"
-
-        但是这样你无法利用下一章中的部分配置特性.
-
-    ```python
-    session = MiraiSession(...) # 自行替换 MiraiSession 内容
-    app = Ariadne.create(session=session)
-    loop = app.loop
-    bcc = app.broadcast
-    ```

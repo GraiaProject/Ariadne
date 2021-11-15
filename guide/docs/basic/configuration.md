@@ -8,22 +8,19 @@
 
 这里是 `Ariadne` 的 `__init__()` 签名:
 
-```python hl_lines="6-9"
+```python hl_lines="8-10"
 def __init__(
     self,
-    broadcast: Broadcast,
-    adapter: Adapter,
+    connect_info: Union[Adapter, MiraiSession],
     *,
+    loop: Optional[AbstractEventLoop] = None,
+    broadcast: Optional[Broadcast] = None,
+    max_retry: int = -1,
     chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
     use_loguru_traceback: Optional[bool] = True,
     use_bypass_listener: Optional[bool] = False,
-    max_retry: int = -1
-): ...
+    ):
 ```
-
-`broadcast`, `adapter` 自不必说. 但剩下三个仅关键字参数值得说一下.
-
-让我们来一个个介绍.
 
 ### chat_log_config
 
@@ -71,7 +68,7 @@ async def reply(app: Ariadne, event: MessageEvent):
 
     如果你真的非常关心实现细节, 它在 `util.inject_inject_bypass_listener()` 里.
 
-## max_retry
+### max_retry
 
 `Ariadne` 默认会尝试无限重启 `Adapter`,
 设置 `max_retry` 可以确保在 **连续至少** `max_retry` 次连接失败后自动退出 `daemon` (前提是你使用 `Ariadne.lifecycle()`)

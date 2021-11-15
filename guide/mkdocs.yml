@@ -37,10 +37,10 @@ markdown_extensions:
   - md_in_html
   - admonition # 提示块
   - footnotes # 脚注
-  - meta # 定义元数据，通过文章上下文控制，如disqus
+  - meta # 定义元数据, 通过文章上下文控制, 如disqus
   - pymdownx.caret # 下划线上标
   - pymdownx.tilde # 删除线下标
-  - pymdownx.critic # 增加删除修改高亮注释，可修饰行内或段落
+  - pymdownx.critic # 增加删除修改高亮注释, 可修饰行内或段落
   - pymdownx.details # 提示块可折叠
   - pymdownx.inlinehilite # 行内代码高亮
   - pymdownx.highlight
@@ -49,7 +49,7 @@ markdown_extensions:
   - pymdownx.mark # 文本高亮
   - pymdownx.smartsymbols # 符号转换
   - pymdownx.superfences # 代码嵌套在列表里
-  - codehilite: # 代码高亮，显示行号
+  - codehilite: # 代码高亮, 显示行号
       guess_lang: false
       linenums: true
   - toc: # 锚点
@@ -61,7 +61,7 @@ markdown_extensions:
   - pymdownx.tasklist: # 复选框checklist
       custom_checkbox: true
   - pymdownx.tabbed:
-      alternate_style: true 
+      alternate_style: true
 
 nav:
   - "index.md"

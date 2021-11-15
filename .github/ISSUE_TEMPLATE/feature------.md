@@ -1,10 +1,9 @@
 ---
-name: 'Feature: 特性请求'
-about: 为 Ariadne 贡献新点子。
+name: "Feature: 特性请求"
+about: 为 Ariadne 贡献新点子.
 title: "[Feature]"
 labels: enhancement, triage
-assignees: ''
-
+assignees: ""
 ---
 
 **使用场景.**
@@ -14,7 +13,7 @@ assignees: ''
 描述你认为可行的最后解决方案
 
 **是否已有相关实现**
-若有，请在此处贴出。
+若有, 请在此处贴出.
 
 **其他内容**
-你认为重要的其他内容。
+你认为重要的其他内容.

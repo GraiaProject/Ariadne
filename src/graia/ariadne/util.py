@@ -122,6 +122,12 @@ def inject_bypass_listener(broadcast: Broadcast):
 
     graia.broadcast.entities.listener.Listener = BypassListener
     graia.broadcast.Listener = BypassListener
+    try:  # Override saya listener
+        import graia.saya.builtins.broadcast.schema
+
+        graia.saya.builtins.broadcast.schema.Listener = BypassListener
+    except ImportError:  # Saya not installed, pass.
+        pass
 
 
 class ApplicationMiddlewareDispatcher(BaseDispatcher):

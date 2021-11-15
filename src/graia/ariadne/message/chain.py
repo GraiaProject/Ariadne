@@ -140,7 +140,7 @@ class MessageChain(AriadneBaseModel):
         else:
             return element in [type(i) for i in self.__root__]
 
-    def get(self, element_class: Type[Element_T]) -> List[Element_T]:
+    def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
         """
         获取消息链中所有特定类型的消息元素
 
@@ -150,7 +150,9 @@ class MessageChain(AriadneBaseModel):
         Returns:
             List[T]: 获取到的符合要求的所有消息元素; 另: 可能是空列表([]).
         """
-        return [i for i in self.__root__ if isinstance(i, element_class)]
+        if count == -1:
+            count = len(self.__root__)
+        return [i for i in self.__root__ if isinstance(i, element_class)][:count]
 
     def getOne(self, element_class: Type[Element_T], index: int) -> Element_T:
         """
@@ -188,7 +190,7 @@ class MessageChain(AriadneBaseModel):
 
     def __contains__(self, item: Union[Type[Element_T], Element_T, str]) -> bool:
         """
-        是否包含特定元素类型/字符串
+        是否包含特定元素/字符串
         """
         if isinstance(item, str):
             return self.hasText(item)
@@ -233,7 +235,7 @@ class MessageChain(AriadneBaseModel):
         elif isinstance(item, type) and issubclass(item, Element):
             return self.get(item)
         elif isinstance(item, tuple):
-            return self.get(item[0])[: item[1]]
+            return self.get(*item)
         elif isinstance(item, int):
             return self.__root__[item]
         else:

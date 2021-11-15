@@ -3,7 +3,17 @@ import time
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.tasks import Task
-from typing import TYPE_CHECKING, List, Literal, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -1112,6 +1122,9 @@ class MultimediaMixin(AriadneMixin):
         return Voice.parse_obj(result)
 
 
+T = TypeVar("T")
+
+
 class Ariadne(
     MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin
 ):
@@ -1130,9 +1143,10 @@ class Ariadne(
 
     def __init__(
         self,
-        broadcast: Broadcast,
-        adapter: Adapter,
+        connect_info: Union[Adapter, MiraiSession],
         *,
+        loop: Optional[AbstractEventLoop] = None,
+        broadcast: Optional[Broadcast] = None,
         max_retry: int = -1,
         chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
@@ -1142,60 +1156,81 @@ class Ariadne(
         初始化 Ariadne.
 
         Args:
-            broadcast (Broadcast): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
+            connect_info (Union[Adapter, MiraiSession]) 提供与 `mirai-api-http` 交互的信息.
+            loop (AbstractEventLoop, optional): 事件循环.
+            broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
             chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法. 设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持
         """
-        self.broadcast: Broadcast = broadcast
-        if use_bypass_listener:
-            inject_bypass_listener(self.broadcast)
-        self.adapter: Adapter = adapter
+        if broadcast:
+            loop = broadcast.loop
+        if not loop:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+        self.loop = loop
+        self.broadcast: Broadcast = broadcast or Broadcast(loop=self.loop)
+        self.adapter: Adapter = (
+            connect_info
+            if isinstance(connect_info, Adapter)
+            else DefaultAdapter(self.broadcast, connect_info)
+        )
         self.adapter.app = self
-        self.mirai_session: MiraiSession = adapter.mirai_session
-        self.loop: AbstractEventLoop = broadcast.loop
+        self.mirai_session: MiraiSession = self.adapter.mirai_session
+
         self.daemon_task: Optional[Task] = None
         self.running: bool = False
         self.remote_version: str = ""
         self.max_retry: int = max_retry
+
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config
             if chat_log_config
             else ChatLogConfig(enabled=chat_log_enabled)
         )
+        if use_bypass_listener:
+            inject_bypass_listener(self.broadcast)
         if use_loguru_traceback:
             inject_loguru_traceback(self.loop)
 
-    @classmethod
     def create(
-        cls,
-        *,
-        session: MiraiSession,
-        broadcast: Optional[Broadcast] = None,
-        loop: Optional[AbstractEventLoop] = None,
-        max_retry: int = -1,
-        chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
-    ) -> "Ariadne":
-        """快速创建一个 `Ariadne` 实例.
+        self,
+        cls: Type[T],
+    ) -> T:
+        """利用 Ariadne 已有的信息协助创建实例.
 
         Args:
-            session (MiraiSession): 连接信息, 如账号和 verifyKey 等.
-            broadcast (Optional[Broadcast]): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            loop (Optional[AbstractEventLoop]): 事件循环实例.
+            cls (Type[T]): 需要创建的类.
 
         Returns:
-            Ariadne: 创建的实例.
+            T: 创建的类.
         """
-        if not loop:
-            loop = asyncio.new_event_loop()
-        if not broadcast:
-            broadcast = Broadcast(loop=loop)
-        adapter = DefaultAdapter(broadcast=broadcast, mirai_session=session)
-        return cls(
-            broadcast, adapter, max_retry=max_retry, chat_log_config=chat_log_config
-        )
+        INFO = {
+            Ariadne: self,
+            Broadcast: self.broadcast,
+            AbstractEventLoop: self.loop,
+            Adapter: self.adapter,
+            MiraiSession: self.mirai_session,
+        }
+        call_args: list = []
+        call_kwargs: Dict[str, Any] = {}
+        import inspect
+
+        init_sig = inspect.signature(cls)
+
+        for name, param in init_sig.parameters.items():
+            if param.annotation in INFO and param.kind not in (
+                param.VAR_KEYWORD,
+                param.VAR_POSITIONAL,
+            ):
+                if param.kind is param.POSITIONAL_ONLY:
+                    call_args.append(INFO[param.annotation])
+                else:
+                    call_kwargs[name] = INFO[param.annotation]
+        return cls(*call_args, **call_kwargs)
 
     async def daemon(self, retry_interval: float = 5.0):
         retry_cnt: int = 0
@@ -1233,6 +1268,12 @@ class Ariadne(
             self.broadcast.dispatcher_interface.inject_global_raw(
                 ApplicationMiddlewareDispatcher(self)
             )
+            self.remote_version = await self.getVersion()
+            logger.info(f"Remote version: {self.remote_version}")
+            if not self.remote_version.startswith("2"):
+                raise RuntimeError(
+                    f"You are using an unsupported version: {self.remote_version}!"
+                )
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
             self.daemon_task = self.loop.create_task(
@@ -1241,8 +1282,6 @@ class Ariadne(
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
             self.broadcast.postEvent(ApplicationLaunched(self))
-            self.remote_version = await self.getVersion()
-            logger.info(f"Remote version: {self.remote_version}")
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
 
     async def stop(self):

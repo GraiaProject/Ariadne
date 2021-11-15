@@ -9,6 +9,32 @@ if TYPE_CHECKING:
     from .pattern import ArgumentMatch
 
 
+def split(string: str) -> List[str]:
+    result: List[str] = []
+    quote = ""
+    cache: List[str] = []
+    for index, char in enumerate(string):
+        if char in "'\"":
+            if not quote:
+                quote = char
+            elif (
+                char == quote and index and string[index - 1] != "\\"
+            ):  # is current quote, not transfigured
+                quote = ""
+            else:
+                cache.append(char)
+            continue
+        if not quote and char == " ":
+            result.append("".join(cache))
+            cache = []
+        else:
+            if char != "\\":
+                cache.append(char)
+    if cache:
+        result.append("".join(cache))
+    return result
+
+
 def gen_flags_repr(flags: re.RegexFlag) -> str:
     flags_list: List[str] = []
     if re.ASCII in flags:

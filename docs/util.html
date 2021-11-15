@@ -150,6 +150,12 @@ def inject_bypass_listener(broadcast: Broadcast):
 
     graia.broadcast.entities.listener.Listener = BypassListener
     graia.broadcast.Listener = BypassListener
+    try:  # Override saya listener
+        import graia.saya.builtins.broadcast.schema
+
+        graia.saya.builtins.broadcast.schema.Listener = BypassListener
+    except ImportError:  # Saya not installed, pass.
+        pass
 
 
 class ApplicationMiddlewareDispatcher(BaseDispatcher):
@@ -330,7 +336,13 @@ def deprecated(remove_ver: str) -&gt; Callable:
     import graia.broadcast.entities.listener
 
     graia.broadcast.entities.listener.Listener = BypassListener
-    graia.broadcast.Listener = BypassListener</code></pre>
+    graia.broadcast.Listener = BypassListener
+    try:  # Override saya listener
+        import graia.saya.builtins.broadcast.schema
+
+        graia.saya.builtins.broadcast.schema.Listener = BypassListener
+    except ImportError:  # Saya not installed, pass.
+        pass</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.inject_loguru_traceback"><code class="name flex">

@@ -7,6 +7,10 @@
 
 启动了你的 `mirai-console` , 同时也安装了最新版本的 `mirai-api-http` 插件.
 
+!!! error "注意"
+
+    什么? 你还不会安装 `mirai-console`? 请移步 [`Mirai API HTTP 安装`](appendix/mah-install.md).
+
 !!!important "重要"
 
     如果你使用时开发库出现了错误, 应先检查是否是 `Graia Framework` 的错误,

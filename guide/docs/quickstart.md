@@ -11,7 +11,7 @@
 
     什么? 你还不会安装 `mirai-console`? 请移步 [`Mirai API HTTP 安装`](appendix/mah-install.md).
 
-    也可以尝试[用 Docker 安装 Mirai 与 mirai-api-http](appendix/docker.md)。
+    也可以尝试[用 Docker 安装 Mirai 与 mirai-api-http](appendix/docker.md).
 
 !!!important "重要"
 

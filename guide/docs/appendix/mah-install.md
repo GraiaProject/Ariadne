@@ -103,9 +103,38 @@ xxxx-xx-xx xx:xx:xx I/main: mirai-console started successfully.
 
 如果直接显示 `Event: BotOnlineEvent(bot=Bot(<你的QQ号>))` 那么恭喜你, 你已经 [完成](#4) 了.
 
-但是... 如果弹出一个弹窗或显示一长串连接, 那你还要往下看.
+但是... 如果像下面那样弹出一个弹窗, 那你还要往下看.
 
-!!! TODO "需要手机截图之类的..."
+!!! note "Linux NoGUI 用户请在桌面环境下先配置好, 之后复制 `bots` 文件夹."
+
+![](/images/CaptchaBox.png)
+
+点击 `Open with TxCaptchaHelper`, 会弹出一个新窗口.
+
+![](/images/CaptchaBox-2.png)
+
+在手机上下载 [`TxCaptchaHelper`](https://maupdate.rainchan.win/txcaptcha.apk) 并安装.
+
+打开后会有如下界面:
+
+<figure markdown>
+  ![](/images/CaptchaHelper-1.jpg){width="200"}
+</figure>
+
+此时输入上方的 **4 位数** 请求码, 点击 `下一步` , 可以看到:
+
+<figure markdown>
+  ![](/images/CaptchaHelper-2.jpg){width="200"}
+</figure>
+
+完成滑块验证, 之后你就可以在电脑窗口中点击 `确定` 了.
+
+<figure markdown>
+  之后还会有一个设备锁, 如图:
+  ![](/images/DeviceVerify.png){align="right", width="500"}
+</figure>
+
+复制里面的 `url` 至 浏览器, 按照提示完成即可.
 
 # 4. 完成
 

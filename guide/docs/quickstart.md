@@ -11,6 +11,8 @@
 
     什么? 你还不会安装 `mirai-console`? 请移步 [`Mirai API HTTP 安装`](appendix/mah-install.md).
 
+    也可以尝试[用 Docker 安装 Mirai 与 mirai-api-http](appendix/docker.md)。
+
 !!!important "重要"
 
     如果你使用时开发库出现了错误, 应先检查是否是 `Graia Framework` 的错误,

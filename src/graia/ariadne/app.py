@@ -1268,12 +1268,6 @@ class Ariadne(
             self.broadcast.dispatcher_interface.inject_global_raw(
                 ApplicationMiddlewareDispatcher(self)
             )
-            self.remote_version = await self.getVersion()
-            logger.info(f"Remote version: {self.remote_version}")
-            if not self.remote_version.startswith("2"):
-                raise RuntimeError(
-                    f"You are using an unsupported version: {self.remote_version}!"
-                )
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
             self.daemon_task = self.loop.create_task(
@@ -1281,6 +1275,12 @@ class Ariadne(
             )
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
+            self.remote_version = await self.getVersion()
+            logger.info(f"Remote version: {self.remote_version}")
+            if not self.remote_version.startswith("2"):
+                raise RuntimeError(
+                    f"You are using an unsupported version: {self.remote_version}!"
+                )
             self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
 

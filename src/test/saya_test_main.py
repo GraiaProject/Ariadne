@@ -24,11 +24,15 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
     saya = Saya(bcc)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    app = Ariadne(bcc, adapter)
+    app = Ariadne(adapter, broadcast=bcc)
 
     saya.install_behaviours(BroadcastBehaviour(bcc))
 
     with saya.module_context():
         saya.require("saya_test_downstream")
+
+    @bcc.receiver(FriendMessage)
+    async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
+        await app.sendFriendMessage(friend, MessageChain.create("Hello, World 1!"))
 
     loop.run_until_complete(app.lifecycle())

@@ -1296,12 +1296,6 @@ class Ariadne(
             self.broadcast.dispatcher_interface.inject_global_raw(
                 ApplicationMiddlewareDispatcher(self)
             )
-            self.remote_version = await self.getVersion()
-            logger.info(f&#34;Remote version: {self.remote_version}&#34;)
-            if not self.remote_version.startswith(&#34;2&#34;):
-                raise RuntimeError(
-                    f&#34;You are using an unsupported version: {self.remote_version}!&#34;
-                )
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
             self.daemon_task = self.loop.create_task(
@@ -1309,6 +1303,12 @@ class Ariadne(
             )
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
+            self.remote_version = await self.getVersion()
+            logger.info(f&#34;Remote version: {self.remote_version}&#34;)
+            if not self.remote_version.startswith(&#34;2&#34;):
+                raise RuntimeError(
+                    f&#34;You are using an unsupported version: {self.remote_version}!&#34;
+                )
             self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
 
@@ -1555,12 +1555,6 @@ class Ariadne(
             self.broadcast.dispatcher_interface.inject_global_raw(
                 ApplicationMiddlewareDispatcher(self)
             )
-            self.remote_version = await self.getVersion()
-            logger.info(f&#34;Remote version: {self.remote_version}&#34;)
-            if not self.remote_version.startswith(&#34;2&#34;):
-                raise RuntimeError(
-                    f&#34;You are using an unsupported version: {self.remote_version}!&#34;
-                )
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
             self.daemon_task = self.loop.create_task(
@@ -1568,6 +1562,12 @@ class Ariadne(
             )
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
+            self.remote_version = await self.getVersion()
+            logger.info(f&#34;Remote version: {self.remote_version}&#34;)
+            if not self.remote_version.startswith(&#34;2&#34;):
+                raise RuntimeError(
+                    f&#34;You are using an unsupported version: {self.remote_version}!&#34;
+                )
             self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
 
@@ -1785,12 +1785,6 @@ async def getVersion(self, auto_set: bool = True):
         self.broadcast.dispatcher_interface.inject_global_raw(
             ApplicationMiddlewareDispatcher(self)
         )
-        self.remote_version = await self.getVersion()
-        logger.info(f&#34;Remote version: {self.remote_version}&#34;)
-        if not self.remote_version.startswith(&#34;2&#34;):
-            raise RuntimeError(
-                f&#34;You are using an unsupported version: {self.remote_version}!&#34;
-            )
         if self.chat_log_cfg.enabled:
             self.chat_log_cfg.initialize(self)
         self.daemon_task = self.loop.create_task(
@@ -1798,6 +1792,12 @@ async def getVersion(self, auto_set: bool = True):
         )
         while not self.adapter.session_activated:
             await asyncio.sleep(0.001)
+        self.remote_version = await self.getVersion()
+        logger.info(f&#34;Remote version: {self.remote_version}&#34;)
+        if not self.remote_version.startswith(&#34;2&#34;):
+            raise RuntimeError(
+                f&#34;You are using an unsupported version: {self.remote_version}!&#34;
+            )
         self.broadcast.postEvent(ApplicationLaunched(self))
         logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)</code></pre>
 </details>

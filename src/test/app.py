@@ -29,7 +29,7 @@ if __name__ == "__main__":
     loop.set_debug(True)
     bcc = Broadcast(loop=loop)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    app = Ariadne(bcc, adapter, use_bypass_listener=True, max_retry=5)
+    app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5)
 
     @bcc.receiver(FriendMessage)
     async def reply(app: Ariadne, chain: MessageChain, friend: Friend):

@@ -12,8 +12,7 @@ loop = asyncio.new_event_loop()
 
 bcc = Broadcast(loop=loop)
 app = Ariadne(
-    broadcast=bcc,
-    adapter=DefaultAdapter(
+    connect_info=DefaultAdapter(
         bcc,
         MiraiSession(
             host="http://localhost:8080",  # 填入 httpapi 服务运行的地址
@@ -21,6 +20,7 @@ app = Ariadne(
             account=123456789,  # 你的机器人的 qq 号
         ),
     ),
+    broadcast=bcc,
 )
 
 

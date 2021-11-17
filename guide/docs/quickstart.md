@@ -91,7 +91,6 @@ import asyncio
 
 from graia.broadcast import Broadcast
 
-from graia.ariadne.adapter import DefaultAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import Plain
@@ -103,10 +102,10 @@ bcc = Broadcast(loop=loop)
 app = Ariadne(
     broadcast=bcc,
     connect_info=MiraiSession(
-            host="http://localhost:8080",  # 填入 HTTP API 服务运行的地址
-            verify_key="ServiceVerifyKey",  # 填入 verifyKey
-            account=123456789,  # 你的机器人的 qq 号
-        )
+        host="http://localhost:8080",  # 填入 HTTP API 服务运行的地址
+        verify_key="ServiceVerifyKey",  # 填入 verifyKey
+        account=123456789,  # 你的机器人的 qq 号
+    )
 )
 
 

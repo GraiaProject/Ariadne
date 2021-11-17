@@ -29,7 +29,7 @@ Mirai 将登录信息, 还有 Mirai 与 mirai-api-http 的配置文件, 保存�
 
 在镜像中, 这两个文件夹分别位于 `/app/bots` 与 `/app/config` 中.
 
-建议将 Mirai 的保存到容器外部.
+建议将这些文件保存到容器外部.
 
 新建文件夹:
 

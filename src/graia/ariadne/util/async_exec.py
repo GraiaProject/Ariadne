@@ -64,7 +64,7 @@ class ParallelExecutor:
         return cls.func_mapping[name](*args, **kwargs)
 
 
-def cpu_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
+def io_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
     ParallelExecutor.func_mapping[func.__qualname__] = func
 
     @functools.wraps(func)

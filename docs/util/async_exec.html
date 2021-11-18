@@ -92,7 +92,7 @@ class ParallelExecutor:
         return cls.func_mapping[name](*args, **kwargs)
 
 
-def cpu_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
+def io_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
     ParallelExecutor.func_mapping[func.__qualname__] = func
 
     @functools.wraps(func)
@@ -155,6 +155,34 @@ def cpu_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
         executor = ParallelExecutor.get(loop)
         return await loop.run_in_executor(
             executor.proc_exec,
+            ParallelExecutor.run_func,
+            func.__qualname__,
+            func.__module__,
+            args,
+            kwargs,
+        )
+
+    return wrapper</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.async_exec.io_bound"><code class="name flex">
+<span>def <span class="ident">io_bound</span></span>(<span>func: Callable[[~P], ~R]) ‑> Callable[[~P], Awaitable[~R]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def io_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
+    ParallelExecutor.func_mapping[func.__qualname__] = func
+
+    @functools.wraps(func)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -&gt; R:
+        loop = asyncio.get_running_loop()
+        executor = ParallelExecutor.get(loop)
+        return await loop.run_in_executor(
+            executor.thread_exec,
             ParallelExecutor.run_func,
             func.__qualname__,
             func.__module__,
@@ -346,6 +374,7 @@ def shutdown(cls):
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ariadne.util.async_exec.cpu_bound" href="#ariadne.util.async_exec.cpu_bound">cpu_bound</a></code></li>
+<li><code><a title="ariadne.util.async_exec.io_bound" href="#ariadne.util.async_exec.io_bound">io_bound</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

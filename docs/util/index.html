@@ -43,12 +43,12 @@ from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
 from typing_extensions import ParamSpec
 
-from .context import enter_context
+from ..context import enter_context
 
 P = ParamSpec(&#34;P&#34;)
 R = TypeVar(&#34;R&#34;)
 
-from .exception import (
+from ..exception import (
     AccountMuted,
     AccountNotFound,
     InvalidArgument,
@@ -173,7 +173,7 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         self.context.__exit__(exception.__class__ if exception else None, exception, tb)
 
     async def catch(self, interface: &#34;DispatcherInterface&#34;):
-        from .app import Ariadne
+        from ..app import Ariadne
 
         if interface.annotation is Ariadne:
             return self.app
@@ -218,6 +218,13 @@ def deprecated(remove_ver: str) -&gt; Callable:
 </details>
 </section>
 <section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="ariadne.util.async_exec" href="async_exec.html">ariadne.util.async_exec</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
 </section>
 <section>
 </section>
@@ -456,7 +463,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
         self.context.__exit__(exception.__class__ if exception else None, exception, tb)
 
     async def catch(self, interface: &#34;DispatcherInterface&#34;):
-        from .app import Ariadne
+        from ..app import Ariadne
 
         if interface.annotation is Ariadne:
             return self.app</code></pre>
@@ -553,7 +560,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def catch(self, interface: &#34;DispatcherInterface&#34;):
-    from .app import Ariadne
+    from ..app import Ariadne
 
     if interface.annotation is Ariadne:
         return self.app</code></pre>
@@ -572,7 +579,12 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="ariadne" href="index.html">ariadne</a></code></li>
+<li><code><a title="ariadne" href="../index.html">ariadne</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="ariadne.util.async_exec" href="async_exec.html">ariadne.util.async_exec</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>

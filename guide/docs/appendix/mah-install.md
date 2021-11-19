@@ -138,4 +138,32 @@ xxxx-xx-xx xx:xx:xx I/main: mirai-console started successfully.
 
 # 4. 完成
 
+在 `config/net.mamoe.mirai-api-http` 下, 你会找到 `setting.yml` 文件.
+
+改成如下内容 (注意依照注释更改):
+
+```yaml
+# file: "MCL/config/net.mamoe.mirai-api-http/setting.yml"
+adapters:
+  - http
+  - ws
+debug: false
+enableVerify: true
+verifyKey: ServiceVerifyKey # 你可以自己设定, 这里作为示范
+singleMode: false
+cacheSize: 4096 # 可选, 缓存大小, 默认4096. 缓存过小会导致引用回复与撤回消息失败
+adapterSettings:
+  ## 详情看 http adapter 使用说明 配置
+  http:
+    host: localhost
+    port: 8080 # 端口
+    cors: [*]
+
+  ## 详情看 websocket adapter 使用说明 配置
+  ws:
+    host: localhost
+    port: 8080 # 端口
+    reservedSyncId: -1 # 确保为 -1
+```
+
 至此, 你已经完成了 `mirai-api-http` 的安装与配置. 享受使用 `Graia Framework` 开发吧!

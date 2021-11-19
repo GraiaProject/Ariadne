@@ -1,7 +1,7 @@
 ---
 name: "Docs: 文档改进"
 about: 针对文档中不足的地方改进.
-title: "[文档]"
+title: "[Docs]"
 labels: docs, triage
 assignees: ""
 ---

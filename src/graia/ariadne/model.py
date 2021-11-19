@@ -206,6 +206,13 @@ class Friend(AriadneBaseModel):
     remark: str
 
 
+class Stranger(AriadneBaseModel):
+    "描述 Tencent QQ 中的陌生人."
+    id: int
+    nickname: str
+    remark: str
+
+
 class MemberPerm(Enum):
     "描述群成员在群组中所具备的权限"
 

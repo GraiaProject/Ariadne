@@ -1,6 +1,6 @@
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from graia.broadcast.interfaces.decorator import DecoratorInterface
 
 from ...event.message import MessageEvent
 from ..chain import MessageChain
@@ -20,7 +20,7 @@ class DetectPrefix(Decorator):
         """
         self.prefix = prefix
 
-    def target(self, interface: DispatcherInterface):
+    def target(self, interface: DecoratorInterface):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -45,7 +45,7 @@ class DetectSuffix(Decorator):
         """
         self.suffix = suffix
 
-    def target(self, interface: DispatcherInterface):
+    def target(self, interface: DecoratorInterface):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)

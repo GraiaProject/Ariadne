@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
+    ClassVar,
     Dict,
     Iterable,
     List,
@@ -22,8 +23,7 @@ from .util import gen_flags_repr
 if TYPE_CHECKING:
     from ..chain import MessageChain
     from ..element import Element
-
-    Self = TypeVar("Self")
+    from ...typing import Self
 
 
 @dataclass(init=True, eq=True, repr=True)

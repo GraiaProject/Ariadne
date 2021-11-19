@@ -6,7 +6,7 @@ labels: enhancement, triage
 assignees: ""
 ---
 
-**使用场景.**
+**使用场景**
 这个新特性可以在什么时候派上用场？
 
 **你想要的解决方案**

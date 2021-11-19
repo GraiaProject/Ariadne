@@ -6,14 +6,14 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ..dispatcher import ApplicationDispatcher, MessageChainDispatcher, SourceDispatcher
 from ..message.chain import MessageChain
-from ..model import Client, Friend, Group, Member
+from ..model import Client, Friend, Group, Member, Stranger
 from . import MiraiEvent
 
 
 class MessageEvent(MiraiEvent):
     type: str = "MessageEvent"
     messageChain: MessageChain
-    sender: Union[Friend, Member, Client]
+    sender: Union[Friend, Member, Client, Stranger]
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
@@ -90,7 +90,7 @@ class OtherClientMessage(MessageEvent):
 class StrangerMessage(MessageEvent):
     type: str = "StrangerMessage"
     messageChain: MessageChain
-    sender: Friend  # use Friend because it has the same structure as the stranger.
+    sender: Stranger
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]

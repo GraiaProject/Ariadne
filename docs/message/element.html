@@ -44,6 +44,8 @@ from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:
+    from pydantic.typing import ReprArgs
+
     from .chain import MessageChain
 
 
@@ -81,6 +83,12 @@ class Element(AriadneBaseModel, abc.ABC):
 
         若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
         &#34;&#34;&#34;
+
+    def __repr_args__(self) -&gt; &#34;ReprArgs&#34;:
+        return [(k, v) for k, v in self.dict(exclude={&#34;type&#34;}).items()]
+
+    def __str__(self) -&gt; str:
+        return self.asDisplay()
 
 
 class Plain(Element):
@@ -172,7 +180,7 @@ class At(Element):
             pass
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[At:{self.display}({self.target})]&#34;
+        return f&#34;@{self.display}&#34; if self.display else f&#34;@{self.target}&#34;
 
 
 class AtAll(Element):
@@ -180,7 +188,7 @@ class AtAll(Element):
     type: str = &#34;AtAll&#34;
 
     def asDisplay(self) -&gt; str:
-        return &#34;[AtAll]&#34;
+        return &#34;@全体成员&#34;
 
     def prepare(self) -&gt; None:
         try:
@@ -613,7 +621,7 @@ def _update_forward_refs():
             pass
 
     def asDisplay(self) -&gt; str:
-        return f&#34;[At:{self.display}({self.target})]&#34;</code></pre>
+        return f&#34;@{self.display}&#34; if self.display else f&#34;@{self.target}&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -650,7 +658,7 @@ def _update_forward_refs():
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
-    return f&#34;[At:{self.display}({self.target})]&#34;</code></pre>
+    return f&#34;@{self.display}&#34; if self.display else f&#34;@{self.target}&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -681,7 +689,7 @@ def _update_forward_refs():
     type: str = &#34;AtAll&#34;
 
     def asDisplay(self) -&gt; str:
-        return &#34;[AtAll]&#34;
+        return &#34;@全体成员&#34;
 
     def prepare(self) -&gt; None:
         try:
@@ -721,7 +729,7 @@ def _update_forward_refs():
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asDisplay(self) -&gt; str:
-    return &#34;[AtAll]&#34;</code></pre>
+    return &#34;@全体成员&#34;</code></pre>
 </details>
 </dd>
 </dl>
@@ -836,7 +844,13 @@ type (str): 元素类型</p>
         保留空实现以允许不需要 `prepare`的元素类型存在.
 
         若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
-        &#34;&#34;&#34;</code></pre>
+        &#34;&#34;&#34;
+
+    def __repr_args__(self) -&gt; &#34;ReprArgs&#34;:
+        return [(k, v) for k, v in self.dict(exclude={&#34;type&#34;}).items()]
+
+    def __str__(self) -&gt; str:
+        return self.asDisplay()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

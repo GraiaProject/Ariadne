@@ -1,3 +1,5 @@
+"""本模块提供并行执行器, 及方便函数 `io_bound`, `cpu_bound`.
+"""
 import asyncio
 import functools
 import importlib

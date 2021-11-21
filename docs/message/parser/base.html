@@ -28,7 +28,7 @@
 </summary>
 <pre><code class="python">from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from graia.broadcast.interfaces.decorator import DecoratorInterface
 
 from ...event.message import MessageEvent
 from ..chain import MessageChain
@@ -48,7 +48,7 @@ class DetectPrefix(Decorator):
         &#34;&#34;&#34;
         self.prefix = prefix
 
-    def target(self, interface: DispatcherInterface):
+    def target(self, interface: DecoratorInterface):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -73,7 +73,7 @@ class DetectSuffix(Decorator):
         &#34;&#34;&#34;
         self.suffix = suffix
 
-    def target(self, interface: DispatcherInterface):
+    def target(self, interface: DecoratorInterface):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -123,7 +123,7 @@ class DetectSuffix(Decorator):
         &#34;&#34;&#34;
         self.prefix = prefix
 
-    def target(self, interface: DispatcherInterface):
+    def target(self, interface: DecoratorInterface):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -148,7 +148,7 @@ class DetectSuffix(Decorator):
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.message.parser.base.DetectPrefix.target"><code class="name flex">
-<span>def <span class="ident">target</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface) ‑> Callable[[Any], Any]</span>
+<span>def <span class="ident">target</span></span>(<span>self, interface: graia.broadcast.interfaces.decorator.DecoratorInterface) ‑> Callable[[Any], Any]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -156,7 +156,7 @@ class DetectSuffix(Decorator):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def target(self, interface: DispatcherInterface):
+<pre><code class="python">def target(self, interface: DecoratorInterface):
     if not isinstance(interface.event, MessageEvent):
         raise ExecutionStop
     header = interface.event.messageChain.include(Quote, Source)
@@ -199,7 +199,7 @@ class DetectSuffix(Decorator):
         &#34;&#34;&#34;
         self.suffix = suffix
 
-    def target(self, interface: DispatcherInterface):
+    def target(self, interface: DecoratorInterface):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -224,7 +224,7 @@ class DetectSuffix(Decorator):
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.message.parser.base.DetectSuffix.target"><code class="name flex">
-<span>def <span class="ident">target</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface) ‑> Callable[[Any], Any]</span>
+<span>def <span class="ident">target</span></span>(<span>self, interface: graia.broadcast.interfaces.decorator.DecoratorInterface) ‑> Callable[[Any], Any]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -232,7 +232,7 @@ class DetectSuffix(Decorator):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def target(self, interface: DispatcherInterface):
+<pre><code class="python">def target(self, interface: DecoratorInterface):
     if not isinstance(interface.event, MessageEvent):
         raise ExecutionStop
     header = interface.event.messageChain.include(Quote, Source)

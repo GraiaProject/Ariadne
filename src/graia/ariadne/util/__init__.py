@@ -1,3 +1,7 @@
+"""本模块提供 Ariadne 内部使用的小工具, 以及方便的 `async_exec` 模块.
+"""
+
+# Utility Layout
 import functools
 import sys
 import traceback
@@ -16,6 +20,10 @@ from loguru import logger
 from typing_extensions import ParamSpec
 
 from ..context import enter_context
+
+# Import layout
+from . import async_exec
+from .async_exec import ParallelExecutor, cpu_bound, io_bound
 
 P = ParamSpec("P")
 R = TypeVar("R")

@@ -21,9 +21,9 @@ from typing import (
 from .util import gen_flags_repr
 
 if TYPE_CHECKING:
+    from ...typing import Self
     from ..chain import MessageChain
     from ..element import Element
-    from ...typing import Self
 
 
 @dataclass(init=True, eq=True, repr=True)
@@ -108,7 +108,25 @@ class RegexMatch(Match):
         return new_instance
 
 
+class WildcardMatch(Match):
+    """泛匹配."""
+
+    preserve_space: bool
+
+    def __init__(
+        self, greed: bool = True, optional: bool = False, preserve_space: bool = True
+    ) -> None:
+        super().__init__(f".*", optional=optional)
+        self.greed = greed
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -> str:
+        return f"({self.pattern}{'?' if self.greed else ''}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+
+
 class FullMatch(Match):
+    """全匹配."""
+
     def __init__(
         self, pattern: str, *, optional: bool = False, preserve_space: bool = True
     ) -> None:
@@ -120,6 +138,8 @@ class FullMatch(Match):
 
 
 class ElementMatch(Match):
+    """元素类型匹配."""
+
     pattern: Type["Element"]
     result: "Element"
 
@@ -144,6 +164,8 @@ T_default = TypeVar("T_default")
 
 
 class ArgumentMatch(Match):
+    """参数匹配."""
+
     pattern: Iterable[str]
     name: str
     nargs: Union[str, int]

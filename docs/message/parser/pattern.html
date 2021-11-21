@@ -35,6 +35,7 @@ from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
+    ClassVar,
     Dict,
     Iterable,
     List,
@@ -48,10 +49,9 @@ from typing import (
 from .util import gen_flags_repr
 
 if TYPE_CHECKING:
+    from ...typing import Self
     from ..chain import MessageChain
     from ..element import Element
-
-    Self = TypeVar(&#34;Self&#34;)
 
 
 @dataclass(init=True, eq=True, repr=True)
@@ -136,7 +136,25 @@ class RegexMatch(Match):
         return new_instance
 
 
+class WildcardMatch(Match):
+    &#34;&#34;&#34;泛匹配.&#34;&#34;&#34;
+
+    preserve_space: bool
+
+    def __init__(
+        self, greed: bool = True, optional: bool = False, preserve_space: bool = True
+    ) -&gt; None:
+        super().__init__(f&#34;.*&#34;, optional=optional)
+        self.greed = greed
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+
+
 class FullMatch(Match):
+    &#34;&#34;&#34;全匹配.&#34;&#34;&#34;
+
     def __init__(
         self, pattern: str, *, optional: bool = False, preserve_space: bool = True
     ) -&gt; None:
@@ -148,6 +166,8 @@ class FullMatch(Match):
 
 
 class ElementMatch(Match):
+    &#34;&#34;&#34;元素类型匹配.&#34;&#34;&#34;
+
     pattern: Type[&#34;Element&#34;]
     result: &#34;Element&#34;
 
@@ -172,6 +192,8 @@ T_default = TypeVar(&#34;T_default&#34;)
 
 
 class ArgumentMatch(Match):
+    &#34;&#34;&#34;参数匹配.&#34;&#34;&#34;
+
     pattern: Iterable[str]
     name: str
     nargs: Union[str, int]
@@ -229,13 +251,14 @@ class ArgumentMatch(Match):
 <span>(</span><span>*pattern: str, optional: bool = True, const: Optional[~T_const] = Ellipsis, default: Optional[~T_default] = Ellipsis, nargs: Union[str, int] = Ellipsis, action: Union[str, Type[argparse.Action]] = Ellipsis, regex: Optional[str] = None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>参数匹配.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ArgumentMatch(Match):
+    &#34;&#34;&#34;参数匹配.&#34;&#34;&#34;
+
     pattern: Iterable[str]
     name: str
     nargs: Union[str, int]
@@ -370,13 +393,14 @@ class BoxParameter(ParamPattern):
 <span>(</span><span>pattern: Type[ForwardRef('Element')], optional: bool = False, preserve_space: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>元素类型匹配.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ElementMatch(Match):
+    &#34;&#34;&#34;元素类型匹配.&#34;&#34;&#34;
+
     pattern: Type[&#34;Element&#34;]
     result: &#34;Element&#34;
 
@@ -436,13 +460,14 @@ inheritance.</p></div>
 <span>(</span><span>pattern: str, *, optional: bool = False, preserve_space: bool = True)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>全匹配.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class FullMatch(Match):
+    &#34;&#34;&#34;全匹配.&#34;&#34;&#34;
+
     def __init__(
         self, pattern: str, *, optional: bool = False, preserve_space: bool = True
     ) -&gt; None:
@@ -541,6 +566,7 @@ inheritance.</p></div>
 <li><a title="ariadne.message.parser.pattern.ElementMatch" href="#ariadne.message.parser.pattern.ElementMatch">ElementMatch</a></li>
 <li><a title="ariadne.message.parser.pattern.FullMatch" href="#ariadne.message.parser.pattern.FullMatch">FullMatch</a></li>
 <li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.WildcardMatch" href="#ariadne.message.parser.pattern.WildcardMatch">WildcardMatch</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -772,6 +798,60 @@ class SwitchParameter(ParamPattern):
 </dd>
 </dl>
 </dd>
+<dt id="ariadne.message.parser.pattern.WildcardMatch"><code class="flex name class">
+<span>class <span class="ident">WildcardMatch</span></span>
+<span>(</span><span>greed: bool = True, optional: bool = False, preserve_space: bool = True)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>泛匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WildcardMatch(Match):
+    &#34;&#34;&#34;泛匹配.&#34;&#34;&#34;
+
+    preserve_space: bool
+
+    def __init__(
+        self, greed: bool = True, optional: bool = False, preserve_space: bool = True
+    ) -&gt; None:
+        super().__init__(f&#34;.*&#34;, optional=optional)
+        self.greed = greed
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.WildcardMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.WildcardMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -866,6 +946,13 @@ class SwitchParameter(ParamPattern):
 <ul class="">
 <li><code><a title="ariadne.message.parser.pattern.SwitchParameter.auto_reverse" href="#ariadne.message.parser.pattern.SwitchParameter.auto_reverse">auto_reverse</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.SwitchParameter.default" href="#ariadne.message.parser.pattern.SwitchParameter.default">default</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.WildcardMatch" href="#ariadne.message.parser.pattern.WildcardMatch">WildcardMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.WildcardMatch.gen_regex" href="#ariadne.message.parser.pattern.WildcardMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.WildcardMatch.preserve_space" href="#ariadne.message.parser.pattern.WildcardMatch.preserve_space">preserve_space</a></code></li>
 </ul>
 </li>
 </ul>

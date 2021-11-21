@@ -16,6 +16,8 @@ from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:
+    from pydantic.typing import ReprArgs
+
     from .chain import MessageChain
 
 
@@ -53,6 +55,12 @@ class Element(AriadneBaseModel, abc.ABC):
 
         若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
         """
+
+    def __repr_args__(self) -> "ReprArgs":
+        return [(k, v) for k, v in self.dict(exclude={"type"}).items()]
+
+    def __str__(self) -> str:
+        return self.asDisplay()
 
 
 class Plain(Element):
@@ -144,7 +152,7 @@ class At(Element):
             pass
 
     def asDisplay(self) -> str:
-        return f"[At:{self.display}({self.target})]"
+        return f"@{self.display}" if self.display else f"@{self.target}"
 
 
 class AtAll(Element):
@@ -152,7 +160,7 @@ class AtAll(Element):
     type: str = "AtAll"
 
     def asDisplay(self) -> str:
-        return "[AtAll]"
+        return "@全体成员"
 
     def prepare(self) -> None:
         try:

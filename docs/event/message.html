@@ -34,14 +34,14 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ..dispatcher import ApplicationDispatcher, MessageChainDispatcher, SourceDispatcher
 from ..message.chain import MessageChain
-from ..model import Client, Friend, Group, Member
+from ..model import Client, Friend, Group, Member, Stranger
 from . import MiraiEvent
 
 
 class MessageEvent(MiraiEvent):
     type: str = &#34;MessageEvent&#34;
     messageChain: MessageChain
-    sender: Union[Friend, Member, Client]
+    sender: Union[Friend, Member, Client, Stranger]
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
@@ -118,7 +118,7 @@ class OtherClientMessage(MessageEvent):
 class StrangerMessage(MessageEvent):
     type: str = &#34;StrangerMessage&#34;
     messageChain: MessageChain
-    sender: Friend  # use Friend because it has the same structure as the stranger.
+    sender: Stranger
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
@@ -273,7 +273,7 @@ class StrangerMessage(MessageEvent):
 <pre><code class="python">class MessageEvent(MiraiEvent):
     type: str = &#34;MessageEvent&#34;
     messageChain: MessageChain
-    sender: Union[Friend, Member, Client]
+    sender: Union[Friend, Member, Client, Stranger]
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
@@ -304,7 +304,7 @@ class StrangerMessage(MessageEvent):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.MessageEvent.sender"><code class="name">var <span class="ident">sender</span> : Union[<a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>, <a title="ariadne.model.Client" href="../model.html#ariadne.model.Client">Client</a>]</code></dt>
+<dt id="ariadne.event.message.MessageEvent.sender"><code class="name">var <span class="ident">sender</span> : Union[<a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>, <a title="ariadne.model.Client" href="../model.html#ariadne.model.Client">Client</a>, <a title="ariadne.model.Stranger" href="../model.html#ariadne.model.Stranger">Stranger</a>]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -397,7 +397,7 @@ class StrangerMessage(MessageEvent):
 <pre><code class="python">class StrangerMessage(MessageEvent):
     type: str = &#34;StrangerMessage&#34;
     messageChain: MessageChain
-    sender: Friend  # use Friend because it has the same structure as the stranger.
+    sender: Stranger
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
@@ -422,7 +422,7 @@ class StrangerMessage(MessageEvent):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.event.message.StrangerMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a></code></dt>
+<dt id="ariadne.event.message.StrangerMessage.sender"><code class="name">var <span class="ident">sender</span> : <a title="ariadne.model.Stranger" href="../model.html#ariadne.model.Stranger">Stranger</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

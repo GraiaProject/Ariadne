@@ -1,5 +1,3 @@
-from typing import Type
-
 from graia.broadcast import Dispatchable
 from pydantic import validator
 

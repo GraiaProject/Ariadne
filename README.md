@@ -2,35 +2,28 @@
 
 # Ariadne
 
-_another elegant framework for mirai and mirai-api-http v2_
+_Another elegant framework for mirai and mirai-api-http v2_
 
 > 接受当下, 面向未来.
 
 </div>
 
 <p align="center">
-
-[![License](https://img.shields.io/github/license/GraiaProject/Ariadne)](https://github.com/GraiaProject/Ariadne/blob/master/LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/graia-ariadne)](https://pypi.org/project/graia-ariadne)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/graia-ariadne)](https://www.python.org/)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?labelColor=ef8336)](https://pycqa.github.io/isort/)
+  <a href="https://github.com/GraiaProject/Ariadne/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/GraiaProject/Ariadne">
+  <a href="https://pypi.org/project/graia-ariadne"><img alt="PyPI" src="https://img.shields.io/pypi/v/graia-ariadne" />
+  <a href="https://graia.readthedocs.io/zh-CN/latest"><img alt="docs" src="https://img.shields.io/badge/文档-readthedocs-black" /></a>
+  <a href="https://graiaproject.github.io/Ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-GitHub_Pages-black">
+  <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="black" />
+  <a href="https://pycqa.github.io/isort/"><img src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336" alt="isort"/>
 
 </p>
 
+
 ---
-
-[API 文档](https://graiaproject.github.io/Ariadne/) 部署状态:
-[![PDoc Deploy](https://img.shields.io/github/deployments/GraiaProject/Ariadne/github-pages)](https://graiaproject.github.io/Ariadne/)
-
-[入门文档](https://graia.readthedocs.io/zh_CN/latest/)部署状态：
-[![Read The Docs Deploy](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.readthedocs.io/zh_CN/latest/)
-
-一个适用于 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http) 的 Python SDK.
 
 **本项目适用于 mirai-api-http 2.0 以上版本**.
 
-目前仍处于开发阶段, 内部接口可能会有较大的变化.
+一个适用于 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http) 的 Python 开发框架.
 
 ## 安装
 
@@ -40,14 +33,13 @@ _another elegant framework for mirai and mirai-api-http v2_
 
 `pip install graia-ariadne`
 
-## 使用
+## 开始使用
 
 ```python
 import asyncio
 
 from graia.broadcast import Broadcast
 
-from graia.ariadne.adapter import DefaultAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import Plain
@@ -74,7 +66,11 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 ## 文档
 
-[API 文档](https://graiaproject.github.io/Ariadne/) [文档](https://graia.readthedocs.io/zh_CN/latest/)
+[API 文档](https://graiaproject.github.io/Ariadne/)
+[![PDoc Deploy](https://img.shields.io/github/deployments/GraiaProject/Ariadne/github-pages)](https://graiaproject.github.io/Ariadne/)
+
+[文档](https://graia.readthedocs.io/zh_CN/latest/)
+[![Read The Docs Deploy](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.readthedocs.io/zh_CN/latest/)
 
 [鸣谢](https://graia.readthedocs.io/zh_CN/latest/appendix/credits)
 

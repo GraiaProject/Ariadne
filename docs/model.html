@@ -234,6 +234,13 @@ class Friend(AriadneBaseModel):
     remark: str
 
 
+class Stranger(AriadneBaseModel):
+    &#34;描述 Tencent QQ 中的陌生人.&#34;
+    id: int
+    nickname: str
+    remark: str
+
+
 class MemberPerm(Enum):
     &#34;描述群成员在群组中所具备的权限&#34;
 
@@ -473,6 +480,7 @@ class BotMessage(AriadneBaseModel):
 <li><a title="ariadne.model.MemberInfo" href="#ariadne.model.MemberInfo">MemberInfo</a></li>
 <li><a title="ariadne.model.MiraiSession" href="#ariadne.model.MiraiSession">MiraiSession</a></li>
 <li><a title="ariadne.model.Profile" href="#ariadne.model.Profile">Profile</a></li>
+<li><a title="ariadne.model.Stranger" href="#ariadne.model.Stranger">Stranger</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -1710,6 +1718,54 @@ implement default like this::</p>
 </li>
 </ul>
 </dd>
+<dt id="ariadne.model.Stranger"><code class="flex name class">
+<span>class <span class="ident">Stranger</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>描述 Tencent QQ 中的陌生人.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Stranger(AriadneBaseModel):
+    &#34;描述 Tencent QQ 中的陌生人.&#34;
+    id: int
+    nickname: str
+    remark: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.model.Stranger.id"><code class="name">var <span class="ident">id</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.model.Stranger.nickname"><code class="name">var <span class="ident">nickname</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.model.Stranger.remark"><code class="name">var <span class="ident">remark</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.model.AriadneBaseModel" href="#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
 <dt id="ariadne.model.UploadMethod"><code class="flex name class">
 <span>class <span class="ident">UploadMethod</span></span>
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
@@ -1921,6 +1977,14 @@ implement default like this::</p>
 <li><code><a title="ariadne.model.Profile.nickname" href="#ariadne.model.Profile.nickname">nickname</a></code></li>
 <li><code><a title="ariadne.model.Profile.sex" href="#ariadne.model.Profile.sex">sex</a></code></li>
 <li><code><a title="ariadne.model.Profile.sign" href="#ariadne.model.Profile.sign">sign</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.model.Stranger" href="#ariadne.model.Stranger">Stranger</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.model.Stranger.id" href="#ariadne.model.Stranger.id">id</a></code></li>
+<li><code><a title="ariadne.model.Stranger.nickname" href="#ariadne.model.Stranger.nickname">nickname</a></code></li>
+<li><code><a title="ariadne.model.Stranger.remark" href="#ariadne.model.Stranger.remark">remark</a></code></li>
 </ul>
 </li>
 <li>

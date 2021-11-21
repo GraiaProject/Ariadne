@@ -31,8 +31,4 @@ if __name__ == "__main__":
     with saya.module_context():
         saya.require("saya_test_downstream")
 
-    @bcc.receiver(FriendMessage)
-    async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
-        await app.sendFriendMessage(friend, MessageChain.create("Hello, World 1!"))
-
     loop.run_until_complete(app.lifecycle())

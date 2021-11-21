@@ -1,12 +1,16 @@
-from typing import Callable, Iterable, List, Optional, Tuple, Type, Union
-from ..element import Element
+from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, Tuple, Type, Union
+
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.interfaces.decorator import DecoratorInterface
-from ..chain import MessageChain
-from ...typing import Slice
 
-ElementClass = Union[Iterable[Type[Element]], Type[Element]]
-Item = Union[Slice[ElementClass, Optional[int]], ElementClass]
+from .chain import MessageChain
+from .element import Element
+
+if TYPE_CHECKING:
+    from ..typing import Slice
+
+    ElementClass = Union[Iterable[Type[Element]], Type[Element]]
+    Item = Union[Slice[ElementClass, Optional[int]], ElementClass]
 
 
 class Component(Decorator):
@@ -28,7 +32,7 @@ class Component(Decorator):
             self.filter = filter
         self.match_time = match_time
 
-    def __class_getitem__(cls, item: Item) -> "Component":
+    def __class_getitem__(cls, item: "Item") -> "Component":
         match_time = -1
 
         if isinstance(item, slice):
@@ -44,11 +48,7 @@ class Component(Decorator):
 
         return cls(element_cls, match_time)
 
-    def target(self, interface: DecoratorInterface) -> MessageChain:
-        if not isinstance(interface.return_value, MessageChain):
-            raise TypeError(f"Can't cast Component on {type(interface.return_value)}!")
-        chain: MessageChain = interface.return_value
-
+    def select(self, chain: MessageChain) -> MessageChain:
         result: List[Element] = []
         matched: int = 0
         for element in chain.__root__:
@@ -58,3 +58,9 @@ class Component(Decorator):
             if matched == self.match_time:
                 break
         return MessageChain(result, inline=True)
+
+    def target(self, interface: DecoratorInterface) -> MessageChain:
+        if not isinstance(interface.return_value, MessageChain):
+            raise TypeError(f"Can't cast Component on {type(interface.return_value)}!")
+        chain: MessageChain = interface.return_value
+        return self.select(chain)

@@ -49,10 +49,13 @@ if __name__ == "__main__":
 
     @bcc.receiver(GroupMessage)
     async def reply(app: Ariadne, chain: MessageChain, group: Group, member: Member):
-        if chain.asDisplay() == "Hi!" and member.id == 2907489501:
+        if chain.hasText("Hi!") and chain.has(At):
             await app.sendGroupMessage(
-                group, MessageChain.create([At(member.id), Plain("Hello World!")])
-            )
+                group,
+                MessageChain.create(
+                    [At(chain.getFirst(At).target), Plain("Hello World!")]
+                ),
+            )  # WARNING: May raise UnknownTarget
 
     async def main():
         await app.launch()

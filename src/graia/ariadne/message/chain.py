@@ -1,9 +1,18 @@
-from __future__ import annotations
-
 import json
 import re
 from copy import deepcopy
-from typing import Dict, Iterable, List, Optional, Tuple, Type, TypeVar, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from ..model import AriadneBaseModel
 from ..util import deprecated, gen_subclass
@@ -20,11 +29,14 @@ from .element import (
     _update_forward_refs,
 )
 
+if TYPE_CHECKING:
+    from pydantic.typing import ReprArgs
+
 MessageIndex = Tuple[int, Optional[int]]
 
 Element_T = TypeVar("Element_T", bound=Element)
 
-ELEMENT_MAPPING = {
+ELEMENT_MAPPING: Dict[str, Type[Element]] = {
     i.__fields__["type"].default: i
     for i in gen_subclass(Element)
     if hasattr(i.__fields__["type"], "default")
@@ -188,6 +200,12 @@ class MessageChain(AriadneBaseModel):
         """
         return "".join(i.asDisplay() for i in self.__root__)
 
+    def __str__(self) -> str:
+        return self.asDisplay()
+
+    def __repr_args__(self) -> "ReprArgs":
+        return [(None, list(self.__root__))]
+
     def __contains__(self, item: Union[Type[Element_T], Element_T, str]) -> bool:
         """
         是否包含特定元素/字符串
@@ -295,7 +313,7 @@ class MessageChain(AriadneBaseModel):
                 result = first_slice
         return MessageChain(result, inline=True)
 
-    def exclude(self, *types: Type[Element]) -> MessageChain:
+    def exclude(self, *types: Type[Element]) -> "MessageChain":
         """将除了在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
 
         Args:
@@ -308,7 +326,7 @@ class MessageChain(AriadneBaseModel):
             [i for i in self.__root__ if type(i) not in types], inline=True
         )
 
-    def include(self, *types: Type[Element]) -> MessageChain:
+    def include(self, *types: Type[Element]) -> "MessageChain":
         """将只在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
 
         Args:
@@ -344,9 +362,6 @@ class MessageChain(AriadneBaseModel):
                 result.append(MessageChain(tmp, inline=True))
                 tmp = []
         return result
-
-    def __repr__(self) -> str:
-        return f"MessageChain({repr(self.__root__)})"
 
     def __iter__(self) -> Iterable[Element]:
         return iter(self.__root__)
@@ -427,7 +442,9 @@ class MessageChain(AriadneBaseModel):
                 plain.append(i.text)
         else:
             if plain:
-                result.append(Plain("".join(plain)))
+                joined = "".join(plain)
+                if joined:
+                    result.append(Plain(joined))
                 plain.clear()
         if copy:
             return MessageChain(result, inline=True)
@@ -445,7 +462,7 @@ class MessageChain(AriadneBaseModel):
 
     def extend(
         self,
-        *content: Union[MessageChain, Element, List[Union[Element, str]]],
+        *content: Union["MessageChain", Element, List[Union[Element, str]]],
         copy: bool = False,
     ) -> "MessageChain":
         """
@@ -503,12 +520,12 @@ class MessageChain(AriadneBaseModel):
     def asSendable(self):
         return self.exclude(Source, Quote, File)
 
-    def __add__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
+    def __add__(self, content: Union["MessageChain", List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
         return MessageChain(deepcopy(self.__root__) + content, inline=True)
 
-    def __iadd__(self, content: Union[MessageChain, List[Element]]) -> "MessageChain":
+    def __iadd__(self, content: Union["MessageChain", List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
         self.__root__.extend(content)
@@ -616,7 +633,7 @@ class MessageChain(AriadneBaseModel):
                 elif remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
-                elem_str_list.append(f"\b{i}_{elem.type}\b")
+                elem_str_list.append(f"\x02{i}_{elem.type}\x03")
             else:
                 if (
                     remove_extra_space
@@ -645,34 +662,49 @@ class MessageChain(AriadneBaseModel):
             MessageChain: 构建的消息链
         """
         elements: List[Element] = []
-        for x in re.split("(\b\\d+_\\w+\b)", string):
-            if match := re.match("\b(\\d+)_\\w+\b", x):
+        for x in re.split("(\x02\\d+_\\w+\x03)", string):
+            if match := re.match("\x02(\\d+)_(\\w+)\x03", x):
                 index = int(match.group(1))
+                class_name = match.group(2)
+                if not isinstance(mapping[index], ELEMENT_MAPPING[class_name]):
+                    raise ValueError("Validation failed: not matching element type!")
                 elements.append(mapping[index])
             else:
                 if x:
                     elements.append(Plain(x))
         return cls.create(elements)
 
-    def removeprefix(self, prefix: str, *, copy: bool = True) -> "MessageChain":
+    def removeprefix(
+        self, prefix: str, *, copy: bool = True, skip_header: bool = True
+    ) -> "MessageChain":
         """移除消息链前缀.
 
         Args:
             prefix (str): 要移除的前缀.
             copy (bool, optional): 是否在副本上修改, 默认为 True.
+            skip_header (bool, optional): 是否要忽略 Source 与 Quote 类型查找, 默认为 True. (移除后仍会带上 Source 与 Quote)
 
         Returns:
             MessageChain: 修改后的消息链, 若未移除则原样返回.
         """
-        elements = self.__root__[:]
+        header = []
+        elements = []
+        if not skip_header:
+            elements = self.__root__[:]
+        else:
+            for element in self.__root__:
+                if isinstance(element, (Quote, Source)):
+                    header.append(element)
+                else:
+                    elements.append(element)
         if not elements or not isinstance(elements[0], Plain):
             return self if not copy else self.copy()
         if elements[0].text.startswith(prefix):
             elements[0].text = elements[0].text[len(prefix) :]
             if copy:
-                return MessageChain.create(elements)
+                return MessageChain(deepcopy(header + elements), inline=True)
             else:
-                self.__root__ = elements
+                self.__root__ = header + elements
 
     def removesuffix(self, suffix: str, *, copy: bool = True) -> "MessageChain":
         """移除消息链后缀.
@@ -691,7 +723,7 @@ class MessageChain(AriadneBaseModel):
         if last_elem.text.endswith(suffix):
             last_elem.text = last_elem.text[: -len(suffix)]
             if copy:
-                return MessageChain.create(elements)
+                return MessageChain(deepcopy(elements), inline=True)
             else:
                 self.__root__ = elements
 

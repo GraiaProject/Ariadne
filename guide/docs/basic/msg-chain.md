@@ -21,7 +21,7 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 === "基础"
 
     ```py
-    message_chain = MessageChain([
+    message_chain = MessageChain.create([
         AtAll(),
         Plain("Hello World!"),
     ])
@@ -30,7 +30,7 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 === "使用 `str` 代替 `Plain`"
 
     ```py
-    message_chain = MessageChain([
+    message_chain = MessageChain.create([
         AtAll(),
         "Hello World!",
     ])
@@ -39,7 +39,7 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 === "省略 `[ ]`"
 
     ```py
-    message_chain = MessageChain(
+    message_chain = MessageChain.create(
         AtAll(),
         "Hello World!",
     )
@@ -64,7 +64,7 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 
 ```py
 for element in message_chain:
-    print(repr(component))
+    print(repr(element))
 ```
 
 ### 比较
@@ -72,16 +72,9 @@ for element in message_chain:
 可以使用 `==` 运算符比较两个消息链是否相同.
 
 ```py
-another_msg_chain = MessageChain([
-    {
-        "type": "AtAll"
-    }, {
-        "type": "Plain",
-        "text": "Hello World!"
-    },
-])
-print(message_chain == another_msg_chain)
-'True'
+>>> another_msg_chain = MessageChain([AtAll(), Plain("Hello World!")])
+>>> message_chain == another_msg_chain
+True
 ```
 
 ### 检查子链
@@ -97,8 +90,6 @@ if AtAll in message_chain:
     print('AtAll')
 if At(bot.qq) in message_chain:
     print('At Me')
-if MessageChain([At(bot.qq), Plain('Hello!')]) in message_chain:
-    print('Hello!')
 if 'Hello' in message_chain:
     print('Hi!')
 ```
@@ -110,27 +101,34 @@ if message_chain.has(AtAll):
     print('AtAll')
 ```
 
-### 索引与切片
-
-消息链对索引操作进行了增强.以消息组件类型为索引, 获取消息链中的全部该类型的消息组件.
+你可以使用 `onlyContains` 方法检查消息链是否只有某些元素类型.
 
 ```py
-plain_list = message_chain[Plain]
-'[Plain("Hello World!")]'
+>>> message_chain.onlyContains(Plain)
+False
 ```
 
-以 `类型, 数量` 为索引, 获取前至多多少个该类型的消息组件.
+### 索引与切片
+
+消息链对索引操作进行了增强.以元素类型为索引, 获取消息链中的全部该类型的消息组件.
 
 ```py
-plain_list_first = message_chain[Plain, 1]
-'[Plain("Hello World!")]'
+>>> message_chain[Plain]
+[Plain("Hello World!")]
+```
+
+以 `类型, 数量` 为索引, 获取前至多多少个该类型的元素.
+
+```py
+>>> message_chain[Plain, 1]
+[Plain("Hello World!")]
 ```
 
 以 `下标` 为索引, 获取底层对应下标的元素.
 
 ```py
-first = message_chain[0]
-'[Plain("Hello World!")]'
+>>> message_chain[0]
+Plain("Hello World!")
 ```
 
 以 `切片对象` 为索引, 相当于调用 `message_chain.subchain()`.
@@ -142,8 +140,8 @@ first = message_chain[0]
 消息链的 `get` 方法和索引操作等价.
 
 ```py
-plain_list_first = message_chain.get(Plain)
-'[Plain("Hello World!")]'
+>>> message_chain.get(Plain)
+[Plain("Hello World!")]
 ```
 
 消息链的 `get` 方法还可指定第二个参数 `count`, 这相当于以 `类型, 数量` 为索引.
@@ -154,20 +152,29 @@ plain_list_first = message_chain.get(Plain, 1)
 plain_list_first = message_chain[Plain, 1]
 ```
 
+## 获取元素
+
+在 `MessageChain` 对象上, 有以下几种获取元素的方式:
+
+`message_chain.getFirst(T_Element)` 获取第一个类型为 `T_Element` 的元素.
+`message_chain.get(T_Element)` 获取所有类型为 `T_Element` 的元素, 聚合为列表.
+`message_chain.getOne(T_Element, index)` 获取第 `index` 个类型为 `T_Element` 的元素。
+`message_chain.get(T_Element, count)` 获取前 `count` 个类型为 `T_element` 的元素, 聚合为列表.
+
 ### 连接与复制
 
 可以用加号连接两个消息链.
 
 ```py
 MessageChain(['Hello World!']) + MessageChain(['Goodbye World!'])
-# 返回 MessageChain([Plain("Hello World!"), Plain("Goodbye World!")])
+>>> MessageChain([Plain("Hello World!"), Plain("Goodbye World!")])
 ```
 
 可以用 `*` 运算符复制消息链.
 
 ```py
-MessageChain(['Hello World!']) * 2
-# 返回 MessageChain([Plain("Hello World!"), Plain("Hello World!")])
+>>> MessageChain(['Hello World!']) * 2
+MessageChain([Plain("Hello World!"), Plain("Hello World!")])
 ```
 
 ### 其他
@@ -175,12 +182,54 @@ MessageChain(['Hello World!']) * 2
 除此之外, 消息链还支持很多 list 拥有的操作, 比如 `index` 和 `count`.
 
 ```py
-message_chain = MessageChain([
-    AtAll(),
-    "Hello World!",
-])
-message_chain.index(Plain)
-# 返回 0
-message_chain.count(Plain)
-# 返回 1
+>>> message_chain = MessageChain([AtAll()"Hello World!"])
+>>> message_chain.index(Plain)
+0
+>>> message_chain.count(Plain)
+1
 ```
+
+## 多媒体元素
+
+相信你在 `docstring` 与函数签名的辅助下, 能够很快掌握 `Plain` `At` `AtAll` 三种元素类型.
+
+接下来, 我将介绍多媒体元素: `Image` `FlashImage` `Voice`.
+
+这三种元素均继承自 `MultimediaElement`.
+
+### 实例化
+
+你可以通过以下方式自行实例化多媒体元素:
+
+- 传入完整 `id` (不是 uuid)
+- 传入 `url`
+- 通过 `data_bytes` 传入 `bytes` 包装的二进制数据.
+- 传入 `base64` 作为二进制存储.
+- 传入 `path` 并以 **当前工作目录** 读入二进制数据.
+
+### 获取二进制
+
+你可以通过 `get_bytes()` 方法获取多媒体元素的二进制数据.
+
+!!! info "提示"
+
+    通过 base64 存储的多媒体元素也可通过本方法取出二进制数据.
+
+    网络图片的二进制数据会在下载后被存储于 `base64` 属性内作为缓存.
+
+### 图片类型转换
+
+可以通过对 `FlashImage` 与 `Image` **实例** 使用 `toImage` `fromImage` `toFlashImage` `fromFlashImage` 方法进行两种图片类型转换.
+
+### 等价性比较
+
+多媒体元素之间的相等比较需要以下条件:
+
+- 类型相同 (也就是说 `Image` 与 `FlashImage` **必定不等**)
+- 以下属性中任意一个相等
+  - base64 (data_bytes)
+  - uuid (剔除了 "/" "{}" 等用于区分图片类型的符号后得到)
+  - url
+
+如果你只是想对 `Ariadne` 有个粗略的了解, 并着手开始编写自己的 QQ bot, 相信这些知识已经足够.
+如果你想进一步挖掘 `Ariadne` 的特性, 请看进阶篇.

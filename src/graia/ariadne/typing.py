@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Generic, TypeVar, Tuple
+from typing import TYPE_CHECKING, Generic, Tuple, TypeVar
 
 if TYPE_CHECKING:
     Self = TypeVar("Self")

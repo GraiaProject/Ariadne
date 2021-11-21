@@ -1,10 +1,22 @@
+<div align="center">
+
 # Ariadne
+
+_another elegant framework for mirai and mirai-api-http v2_
+
+> 接受当下, 面向未来.
+
+</div>
+
+<p align="center">
 
 [![License](https://img.shields.io/github/license/GraiaProject/Ariadne)](https://github.com/GraiaProject/Ariadne/blob/master/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/graia-ariadne)](https://pypi.org/project/graia-ariadne)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/graia-ariadne)](https://www.python.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?labelColor=ef8336)](https://pycqa.github.io/isort/)
+
+</p>
 
 ---
 
@@ -66,6 +78,6 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 [鸣谢](https://graia.readthedocs.io/zh_CN/latest/appendix/credits)
 
-### 许可证
+## 协议
 
-[`GNU AGPLv3`](https://choosealicense.com/licenses/agpl-3.0/) 是本项目的开源许可证.
+本项目以[`GNU AGPLv3`](https://choosealicense.com/licenses/agpl-3.0/) 作为开源协议, 这意味着你需要遵守相应的规则.

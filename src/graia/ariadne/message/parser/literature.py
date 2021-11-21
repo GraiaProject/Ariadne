@@ -10,19 +10,7 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ..chain import MessageChain
-from ..element import (
-    App,
-    At,
-    Element,
-    FlashImage,
-    Json,
-    Plain,
-    Poke,
-    Quote,
-    Source,
-    Voice,
-    Xml,
-)
+from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
 
 BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
@@ -30,7 +18,7 @@ BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
 
 class Literature(BaseDispatcher):
     """旅途的浪漫
-    Avilla Migrated> 如果使用中发现任何属因移植过程发生的错误, 提交 issue.
+    Ariadne Migrated> 如果使用中发现任何属因移植过程发生的错误, 提交 issue.
     """
 
     always = False

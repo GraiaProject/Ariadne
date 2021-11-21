@@ -60,8 +60,12 @@ class Match(abc.ABC):
             raise ValueError("You can't instantiate Match class directly!")
 
     def __repr__(self) -> str:
-        annotation = {k: getattr(self, k) for k in self.__annotations__.keys()}
-        return f"<{self.__class__.__qualname__} {annotation})>"
+        values = {
+            k: v
+            for k, v in self.__dict__.items()
+            if not k.startswith("_") and not callable(v)
+        }
+        return f"<{self.__class__.__qualname__} {values})>"
 
     def clone(self, result: "MessageChain", matched: bool) -> "Self":
         new_instance = copy.copy(self)

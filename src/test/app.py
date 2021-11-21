@@ -18,6 +18,8 @@ from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEven
 from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.parser.literature import Literature
+from graia.ariadne.message.parser.pattern import RegexMatch, WildcardMatch
+from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 if __name__ == "__main__":
@@ -56,6 +58,13 @@ if __name__ == "__main__":
                     [At(chain.getFirst(At).target), Plain("Hello World!")]
                 ),
             )  # WARNING: May raise UnknownTarget
+
+    @bcc.receiver(
+        FriendMessage,
+        dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop"), WildcardMatch()]))],
+    )
+    async def stop(app: Ariadne):
+        await app.stop()
 
     async def main():
         await app.launch()

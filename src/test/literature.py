@@ -1,39 +1,15 @@
 import os
 import sys
-from typing import Dict, List, Tuple
 
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
-from graia.broadcast.entities.dispatcher import BaseDispatcher
-from graia.broadcast.entities.signatures import Force
-from graia.broadcast.exceptions import ExecutionStop
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from graia.broadcast.utilles import printer
-from loguru import logger
-
-from graia.ariadne.message.chain import MessageChain, MessageIndex
-from graia.ariadne.message.element import (
-    App,
-    At,
-    Element,
-    FlashImage,
-    Json,
-    Plain,
-    Poke,
-    Quote,
-    Source,
-    Voice,
-    Xml,
-)
+from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.element import At, Plain
 from graia.ariadne.message.parser.literature import Literature
-from graia.ariadne.message.parser.pattern import (
-    BoxParameter,
-    ParamPattern,
-    SwitchParameter,
-)
+from graia.ariadne.message.parser.pattern import BoxParameter, SwitchParameter
 
 if __name__ == "__main__":
-    from graia.ariadne.message.element import At, AtAll
+    from graia.ariadne.message.element import At
 
     mc = MessageChain.create(
         [

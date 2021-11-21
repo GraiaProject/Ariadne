@@ -94,7 +94,7 @@ class Sparkle:
                             &#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39;!&#34;
                         )
                     self._args_map[v.name] = (v, k)
-                    if v.action is not ... and self._parser.accept_type(v.action):
+                    if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data[&#34;type&#34;] = ArgumentMatchType(v, v.regex)
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 else:
@@ -311,7 +311,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                             &#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39;!&#34;
                         )
                     self._args_map[v.name] = (v, k)
-                    if v.action is not ... and self._parser.accept_type(v.action):
+                    if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data[&#34;type&#34;] = ArgumentMatchType(v, v.regex)
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 else:

@@ -88,8 +88,12 @@ class Match(abc.ABC):
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
     def __repr__(self) -&gt; str:
-        annotation = {k: getattr(self, k) for k in self.__annotations__.keys()}
-        return f&#34;&lt;{self.__class__.__qualname__} {annotation})&gt;&#34;
+        values = {
+            k: v
+            for k, v in self.__dict__.items()
+            if not k.startswith(&#34;_&#34;) and not callable(v)
+        }
+        return f&#34;&lt;{self.__class__.__qualname__} {values})&gt;&#34;
 
     def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
         new_instance = copy.copy(self)
@@ -544,8 +548,12 @@ inheritance.</p></div>
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
     def __repr__(self) -&gt; str:
-        annotation = {k: getattr(self, k) for k in self.__annotations__.keys()}
-        return f&#34;&lt;{self.__class__.__qualname__} {annotation})&gt;&#34;
+        values = {
+            k: v
+            for k, v in self.__dict__.items()
+            if not k.startswith(&#34;_&#34;) and not callable(v)
+        }
+        return f&#34;&lt;{self.__class__.__qualname__} {values})&gt;&#34;
 
     def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
         new_instance = copy.copy(self)

@@ -66,7 +66,7 @@ class Sparkle:
                             "ArgumentMatch's pattern can't start with '-'!"
                         )
                     self._args_map[v.name] = (v, k)
-                    if v.action is not ... and self._parser.accept_type(v.action):
+                    if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 else:

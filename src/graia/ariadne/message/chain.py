@@ -32,7 +32,8 @@ from .element import (
 if TYPE_CHECKING:
     from pydantic.typing import ReprArgs
 
-MessageIndex = Tuple[int, Optional[int]]
+    from ..typing import MessageIndex, Slice
+
 
 Element_T = TypeVar("Element_T", bound=Element)
 
@@ -261,7 +262,11 @@ class MessageChain(AriadneBaseModel):
                 "{0} is not allowed for item getting".format(type(item))
             )
 
-    def subchain(self, item: slice, ignore_text_index: bool = False) -> "MessageChain":
+    def subchain(
+        self,
+        item: "Slice[Optional[MessageIndex], Optional[MessageIndex]]",
+        ignore_text_index: bool = False,
+    ) -> "MessageChain":
         """对消息链执行分片操作
 
         Args:

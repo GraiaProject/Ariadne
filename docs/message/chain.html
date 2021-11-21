@@ -60,7 +60,8 @@ from .element import (
 if TYPE_CHECKING:
     from pydantic.typing import ReprArgs
 
-MessageIndex = Tuple[int, Optional[int]]
+    from ..typing import MessageIndex, Slice
+
 
 Element_T = TypeVar(&#34;Element_T&#34;, bound=Element)
 
@@ -289,7 +290,11 @@ class MessageChain(AriadneBaseModel):
                 &#34;{0} is not allowed for item getting&#34;.format(type(item))
             )
 
-    def subchain(self, item: slice, ignore_text_index: bool = False) -&gt; &#34;MessageChain&#34;:
+    def subchain(
+        self,
+        item: &#34;Slice[Optional[MessageIndex], Optional[MessageIndex]]&#34;,
+        ignore_text_index: bool = False,
+    ) -&gt; &#34;MessageChain&#34;:
         &#34;&#34;&#34;对消息链执行分片操作
 
         Args:
@@ -998,7 +1003,11 @@ _update_forward_refs()</code></pre>
                 &#34;{0} is not allowed for item getting&#34;.format(type(item))
             )
 
-    def subchain(self, item: slice, ignore_text_index: bool = False) -&gt; &#34;MessageChain&#34;:
+    def subchain(
+        self,
+        item: &#34;Slice[Optional[MessageIndex], Optional[MessageIndex]]&#34;,
+        ignore_text_index: bool = False,
+    ) -&gt; &#34;MessageChain&#34;:
         &#34;&#34;&#34;对消息链执行分片操作
 
         Args:
@@ -2541,7 +2550,7 @@ def onlyHas(self, *types: Type[Element]) -&gt; bool:
 </details>
 </dd>
 <dt id="ariadne.message.chain.MessageChain.subchain"><code class="name flex">
-<span>def <span class="ident">subchain</span></span>(<span>self, item: slice, ignore_text_index: bool = False) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
+<span>def <span class="ident">subchain</span></span>(<span>self, item: Slice[Optional[MessageIndex], Optional[MessageIndex]], ignore_text_index: bool = False) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>对消息链执行分片操作</p>
@@ -2564,7 +2573,11 @@ def onlyHas(self, *types: Type[Element]) -&gt; bool:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def subchain(self, item: slice, ignore_text_index: bool = False) -&gt; &#34;MessageChain&#34;:
+<pre><code class="python">def subchain(
+    self,
+    item: &#34;Slice[Optional[MessageIndex], Optional[MessageIndex]]&#34;,
+    ignore_text_index: bool = False,
+) -&gt; &#34;MessageChain&#34;:
     &#34;&#34;&#34;对消息链执行分片操作
 
     Args:

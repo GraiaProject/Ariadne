@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Generic, Tuple, TypeVar
+from typing import TYPE_CHECKING, Generic, Optional, Tuple, TypeVar
 
 if TYPE_CHECKING:
     Self = TypeVar("Self")
@@ -12,4 +12,4 @@ if TYPE_CHECKING:
         stop: T_stop
         step: T_step
 
-    MessageIndex = Tuple[int, int]
+    MessageIndex = Tuple[int, Optional[int]]

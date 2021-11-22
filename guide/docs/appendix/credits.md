@@ -30,6 +30,7 @@
 - [`BlueGlassBlock`](https://github.com/BlueGlassBlock): `Ariadne` 的 主要维护者.
 - 早期测试者 (依参与时间排序):
   - [`Redlnn`](https://github.com/Redlnn)
-  - [`A60 (djkcyl)`](https://github.com/djkcyl) 
+  - [`A60 (djkcyl)`](https://github.com/djkcyl)
   - [`I-love-study`](https://github.com/I-love-study)
   - [`社会易姐QwQ`](https://github.com/SocialSisterYi)
+- [`ZhaoZuohong`](https://github.com/ZhaoZuohong): 撰写了使用 `Docker` 安装 `mirai` 的教程.

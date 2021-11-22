@@ -84,6 +84,7 @@ nav:
       - "porting/guide.md"
       - "porting/cheatsheet.md"
   - "附录":
+      - "appendix/terms.md"
       - "appendix/faq.md"
       - "appendix/credits.md"
       - "appendix/mah-install.md"

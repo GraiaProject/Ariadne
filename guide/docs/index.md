@@ -4,6 +4,8 @@
 
     若你在使用的过程中遇到了问题, 请运用[提问的智慧](https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-zh_CN.md).
 
+    在与你交流的过程中, 我们有很大可能使用 [术语](./appendix/terms) 以提高交流效率.
+
     我们会持续追踪并修复已存在的[问题](https://github.com/GraiaProject/Ariadne/issues)并不断改进, 但是...
 
     我们没有任何义务回答你的问题, 这仅仅是我们的自愿行为.
@@ -13,6 +15,8 @@
 [`Ariadne`](https://github.com/GraiaProject/Ariadne) 是 [`BlueGlassBlock`](https://github.com/BlueGlassBlock) 基于
 [`Graia Project`](https://github.com/GraiaProject/) 系列依赖库而编写的
 **简明, 优雅** 的 聊天软件自动化框架. 其丰富而简洁的接口相信可以使开发者能更好的完成业务逻辑.
+
+**如果认为本项目有帮助, 欢迎点一个 `Star`.**
 
 ## 参与开发
 

@@ -1,5 +1,7 @@
 # 使用 Docker 安装 Mirai
 
+> 本部分由 `ZhaoZuohong` 撰写.
+
 ## Docker 的安装与基本配置
 
 ### Windows 与 macOS

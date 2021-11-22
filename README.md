@@ -71,6 +71,8 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 [鸣谢](https://graia.readthedocs.io/zh_CN/latest/appendix/credits)
 
+**如果认为本项目有帮助, 欢迎点一个 `Star`.**
+
 ## 协议
 
 本项目以[`GNU AGPLv3`](https://choosealicense.com/licenses/agpl-3.0/) 作为开源协议, 这意味着你需要遵守相应的规则.

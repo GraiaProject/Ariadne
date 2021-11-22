@@ -271,21 +271,22 @@ class MessageChain(AriadneBaseModel):
 
         Args:
             item (slice): 这个分片的 `start` 和 `end` 的 Type Annotation 都是 `Optional[MessageIndex]`
+            ignore_text_index (bool, optional): 在 TextIndex 取到错误位置时是否引发错误.
 
         Raises:
-            TypeError: TextIndex 取到了错误的位置
+            ValueError: TextIndex 取到了错误的位置
 
         Returns:
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         """
 
-        result = deepcopy(self.__root__)
+        result = deepcopy(self.merge(copy=True).__root__)
         if item.start:
             first_slice = result[item.start[0] :]
             if item.start[1] is not None and first_slice:  # text slice
                 if not isinstance(first_slice[0], Plain):
                     if not ignore_text_index:
-                        raise TypeError(
+                        raise ValueError(
                             "the sliced chain does not starts with a Plain: {}".format(
                                 first_slice[0]
                             )
@@ -304,7 +305,7 @@ class MessageChain(AriadneBaseModel):
             first_slice = result[: item.stop[0]]
             if item.stop[1] is not None and first_slice:  # text slice
                 if not isinstance(first_slice[-1], Plain):
-                    raise TypeError(
+                    raise ValueError(
                         "the sliced chain does not ends with a Plain: {}".format(
                             first_slice[-1]
                         )
@@ -438,7 +439,7 @@ class MessageChain(AriadneBaseModel):
                 if plain:
                     result.append(Plain("".join(plain)))
                     plain.clear()  # 清空缓存
-                result.append(i)
+                result.append(deepcopy(i) if copy else i)
             else:
                 plain.append(i.text)
         else:

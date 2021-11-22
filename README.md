@@ -2,7 +2,7 @@
 
 # Ariadne
 
-_Another elegant framework for mirai and mirai-api-http v2_
+_Another elegant framework for mirai and mirai-api-http v2._
 
 > 接受当下, 面向未来.
 

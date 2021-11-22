@@ -15,7 +15,7 @@ from typing import (
 )
 
 from ..model import AriadneBaseModel
-from ..util import deprecated, gen_subclass
+from ..util import gen_subclass
 from .element import (
     At,
     AtAll,
@@ -417,10 +417,6 @@ class MessageChain(AriadneBaseModel):
             if string in i.text:
                 return True
         return False
-
-    @deprecated("0.4.0")
-    def onlyHas(self, *types: Type[Element]) -> bool:
-        return all(isinstance(i, types) for i in self.__root__)
 
     def onlyContains(self, *types: Type[Element]) -> bool:
         return all(isinstance(i, types) for i in self.__root__)

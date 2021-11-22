@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "graia-ariadne"
 version = "0.4.0-rc3"
-description = "Anelegant mirai-api-http v2 Python SDK."
+description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
     "GreyElaina <GreyElaina@outlook.com>"
 ]
 packages = [{ include = "graia", from = "src" }]
-readme = 'README.md'
+readme = "README.md"
 repository = "https://github.com/GraiaProject/Ariadne"
-homepage = "https://github.com/GraiaProject/Ariadne"
+homepage = "https://graia.readthedocs.io/zh_CN/latest"
 
 [[tool.poetry.source]]
 name = "tuna-tsinghua"
@@ -35,6 +35,7 @@ pdoc3 = "^0.10.0"
 graia-saya = "^0.0.13"
 mkdocs-material = "^7.3.6"
 graia-scheduler = "^0.0.6"
+pydeps = "^1.10.12"
 
 [tool.isort]
 profile = "black"

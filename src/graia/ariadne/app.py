@@ -20,7 +20,6 @@ from loguru import logger
 
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_message_send_context
-from .event import MiraiEvent
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -29,7 +28,7 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import deprecated, inject_bypass_listener, inject_loguru_traceback
+from .util import inject_bypass_listener, inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -832,23 +831,6 @@ class FileMixin(AriadneMixin):
             },
         )
         return [FileInfo.parse_obj(i) for i in result]
-
-    @deprecated("0.4.0")
-    async def listFile(
-        self,
-        target: Union[Friend, Group, int],
-        id: str = "",
-        offset: Optional[int] = 0,
-        size: Optional[int] = 1,
-        with_download_info: bool = False,
-    ) -> List[FileInfo]:
-        return await self.getFileList(
-            target=target,
-            id=id,
-            offset=offset,
-            size=size,
-            with_download_info=with_download_info,
-        )
 
     @app_ctx_manager
     async def getFileInfo(

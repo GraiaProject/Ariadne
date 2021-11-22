@@ -40,9 +40,8 @@ class Sparkle:
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        match_map = {
-            f"_check_{i}": val for i, val in enumerate(check_args)
-        } | match_map  # ensure check args come first
+        check_map = {f"_check_{i}": val for i, val in enumerate(check_args)}
+        match_map = {**check_map, **match_map}  # ensure check args come first
 
         if any(
             k.startswith("_")

@@ -459,11 +459,11 @@ class Image(MultimediaElement):
     id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
     def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
-        return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+        return FlashImage.parse_obj({**self.dict(), &#34;type&#34;: &#34;FlashImage&#34;})
 
     @classmethod
     def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
-        return cls.parse_obj(flash.dict() | {&#34;type&#34;: &#34;Image&#34;})
+        return cls.parse_obj({**flash.dict(), &#34;type&#34;: &#34;Image&#34;})
 
     def asDisplay(self) -&gt; str:
         return &#34;[图片]&#34;
@@ -474,11 +474,11 @@ class FlashImage(Image):
     type = &#34;FlashImage&#34;
 
     def toImage(self) -&gt; &#34;Image&#34;:
-        return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})
+        return Image.parse_obj({**self.dict(), &#34;type&#34;: &#34;Image&#34;})
 
     @classmethod
     def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
-        return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+        return cls.parse_obj({**image.dict(), &#34;type&#34;: &#34;FlashImage&#34;})
 
     def asDisplay(self) -&gt; str:
         return &#34;[闪照]&#34;
@@ -1126,11 +1126,11 @@ type (str): 元素类型</p>
     type = &#34;FlashImage&#34;
 
     def toImage(self) -&gt; &#34;Image&#34;:
-        return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})
+        return Image.parse_obj({**self.dict(), &#34;type&#34;: &#34;Image&#34;})
 
     @classmethod
     def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
-        return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+        return cls.parse_obj({**image.dict(), &#34;type&#34;: &#34;FlashImage&#34;})
 
     def asDisplay(self) -&gt; str:
         return &#34;[闪照]&#34;</code></pre>
@@ -1165,7 +1165,7 @@ type (str): 元素类型</p>
 </summary>
 <pre><code class="python">@classmethod
 def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
-    return cls.parse_obj(image.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})</code></pre>
+    return cls.parse_obj({**image.dict(), &#34;type&#34;: &#34;FlashImage&#34;})</code></pre>
 </details>
 </dd>
 </dl>
@@ -1194,7 +1194,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def toImage(self) -&gt; &#34;Image&#34;:
-    return Image.parse_obj(self.dict() | {&#34;type&#34;: &#34;Image&#34;})</code></pre>
+    return Image.parse_obj({**self.dict(), &#34;type&#34;: &#34;Image&#34;})</code></pre>
 </details>
 </dd>
 </dl>
@@ -1377,11 +1377,11 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
     id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
     def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
-        return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})
+        return FlashImage.parse_obj({**self.dict(), &#34;type&#34;: &#34;FlashImage&#34;})
 
     @classmethod
     def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
-        return cls.parse_obj(flash.dict() | {&#34;type&#34;: &#34;Image&#34;})
+        return cls.parse_obj({**flash.dict(), &#34;type&#34;: &#34;Image&#34;})
 
     def asDisplay(self) -&gt; str:
         return &#34;[图片]&#34;</code></pre>
@@ -1419,7 +1419,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </summary>
 <pre><code class="python">@classmethod
 def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
-    return cls.parse_obj(flash.dict() | {&#34;type&#34;: &#34;Image&#34;})</code></pre>
+    return cls.parse_obj({**flash.dict(), &#34;type&#34;: &#34;Image&#34;})</code></pre>
 </details>
 </dd>
 </dl>
@@ -1448,7 +1448,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
-    return FlashImage.parse_obj(self.dict() | {&#34;type&#34;: &#34;FlashImage&#34;})</code></pre>
+    return FlashImage.parse_obj({**self.dict(), &#34;type&#34;: &#34;FlashImage&#34;})</code></pre>
 </details>
 </dd>
 </dl>

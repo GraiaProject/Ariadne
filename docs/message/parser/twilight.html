@@ -68,9 +68,8 @@ class Sparkle:
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        match_map = {
-            f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)
-        } | match_map  # ensure check args come first
+        check_map = {f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)}
+        match_map = {**check_map, **match_map}  # ensure check args come first
 
         if any(
             k.startswith(&#34;_&#34;)
@@ -285,9 +284,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        match_map = {
-            f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)
-        } | match_map  # ensure check args come first
+        check_map = {f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)}
+        match_map = {**check_map, **match_map}  # ensure check args come first
 
         if any(
             k.startswith(&#34;_&#34;)

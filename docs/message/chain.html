@@ -43,7 +43,7 @@ from typing import (
 )
 
 from ..model import AriadneBaseModel
-from ..util import deprecated, gen_subclass
+from ..util import gen_subclass
 from .element import (
     At,
     AtAll,
@@ -445,10 +445,6 @@ class MessageChain(AriadneBaseModel):
             if string in i.text:
                 return True
         return False
-
-    @deprecated(&#34;0.4.0&#34;)
-    def onlyHas(self, *types: Type[Element]) -&gt; bool:
-        return all(isinstance(i, types) for i in self.__root__)
 
     def onlyContains(self, *types: Type[Element]) -&gt; bool:
         return all(isinstance(i, types) for i in self.__root__)
@@ -1158,10 +1154,6 @@ _update_forward_refs()</code></pre>
             if string in i.text:
                 return True
         return False
-
-    @deprecated(&#34;0.4.0&#34;)
-    def onlyHas(self, *types: Type[Element]) -&gt; bool:
-        return all(isinstance(i, types) for i in self.__root__)
 
     def onlyContains(self, *types: Type[Element]) -&gt; bool:
         return all(isinstance(i, types) for i in self.__root__)
@@ -2329,20 +2321,6 @@ def parse_obj(
     return all(isinstance(i, types) for i in self.__root__)</code></pre>
 </details>
 </dd>
-<dt id="ariadne.message.chain.MessageChain.onlyHas"><code class="name flex">
-<span>def <span class="ident">onlyHas</span></span>(<span>self, *types: Type[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@deprecated(&#34;0.4.0&#34;)
-def onlyHas(self, *types: Type[Element]) -&gt; bool:
-    return all(isinstance(i, types) for i in self.__root__)</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.chain.MessageChain.prepare"><code class="name flex">
 <span>def <span class="ident">prepare</span></span>(<span>self, copy: bool = False) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
@@ -2683,7 +2661,6 @@ def onlyHas(self, *types: Type[Element]) -&gt; bool:
 <li><code><a title="ariadne.message.chain.MessageChain.index" href="#ariadne.message.chain.MessageChain.index">index</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.merge" href="#ariadne.message.chain.MessageChain.merge">merge</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.onlyContains" href="#ariadne.message.chain.MessageChain.onlyContains">onlyContains</a></code></li>
-<li><code><a title="ariadne.message.chain.MessageChain.onlyHas" href="#ariadne.message.chain.MessageChain.onlyHas">onlyHas</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.parse_obj" href="#ariadne.message.chain.MessageChain.parse_obj">parse_obj</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.prepare" href="#ariadne.message.chain.MessageChain.prepare">prepare</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.removeprefix" href="#ariadne.message.chain.MessageChain.removeprefix">removeprefix</a></code></li>

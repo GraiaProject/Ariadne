@@ -431,11 +431,11 @@ class Image(MultimediaElement):
     id: Optional[str] = Field(None, alias="imageId")
 
     def toFlashImage(self) -> "FlashImage":
-        return FlashImage.parse_obj(self.dict() | {"type": "FlashImage"})
+        return FlashImage.parse_obj({**self.dict(), "type": "FlashImage"})
 
     @classmethod
     def fromFlashImage(cls, flash: "FlashImage") -> "Image":
-        return cls.parse_obj(flash.dict() | {"type": "Image"})
+        return cls.parse_obj({**flash.dict(), "type": "Image"})
 
     def asDisplay(self) -> str:
         return "[图片]"
@@ -446,11 +446,11 @@ class FlashImage(Image):
     type = "FlashImage"
 
     def toImage(self) -> "Image":
-        return Image.parse_obj(self.dict() | {"type": "Image"})
+        return Image.parse_obj({**self.dict(), "type": "Image"})
 
     @classmethod
     def fromImage(cls, image: "Image") -> "FlashImage":
-        return cls.parse_obj(image.dict() | {"type": "FlashImage"})
+        return cls.parse_obj({**image.dict(), "type": "FlashImage"})
 
     def asDisplay(self) -> str:
         return "[闪照]"

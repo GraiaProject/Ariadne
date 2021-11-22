@@ -48,7 +48,6 @@ from loguru import logger
 
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_message_send_context
-from .event import MiraiEvent
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -57,7 +56,7 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import deprecated, inject_bypass_listener, inject_loguru_traceback
+from .util import inject_bypass_listener, inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -502,7 +501,7 @@ class OperationMixin(AriadneMixin):
         Args:
             group (Union[Group, int]): 指定的群组
             member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
-            time (int): 禁言事件, 单位秒, 修正规则: `{time|0 &lt; time &lt;= 2592000}`
+            time (int): 禁言事件, 单位秒, 修正规则: `0 &lt; time &lt;= 2592000`
 
         Raises:
             PermissionError: 没有相应操作权限.
@@ -860,23 +859,6 @@ class FileMixin(AriadneMixin):
             },
         )
         return [FileInfo.parse_obj(i) for i in result]
-
-    @deprecated(&#34;0.4.0&#34;)
-    async def listFile(
-        self,
-        target: Union[Friend, Group, int],
-        id: str = &#34;&#34;,
-        offset: Optional[int] = 0,
-        size: Optional[int] = 1,
-        with_download_info: bool = False,
-    ) -&gt; List[FileInfo]:
-        return await self.getFileList(
-            target=target,
-            id=id,
-            offset=offset,
-            size=size,
-            with_download_info=with_download_info,
-        )
 
     @app_ctx_manager
     async def getFileInfo(
@@ -2023,23 +2005,6 @@ def session_key(self) -&gt; Optional[str]:
         )
         return [FileInfo.parse_obj(i) for i in result]
 
-    @deprecated(&#34;0.4.0&#34;)
-    async def listFile(
-        self,
-        target: Union[Friend, Group, int],
-        id: str = &#34;&#34;,
-        offset: Optional[int] = 0,
-        size: Optional[int] = 1,
-        with_download_info: bool = False,
-    ) -&gt; List[FileInfo]:
-        return await self.getFileList(
-            target=target,
-            id=id,
-            offset=offset,
-            size=size,
-            with_download_info=with_download_info,
-        )
-
     @app_ctx_manager
     async def getFileInfo(
         self,
@@ -2479,33 +2444,6 @@ async def getFileList(
         },
     )
     return [FileInfo.parse_obj(i) for i in result]</code></pre>
-</details>
-</dd>
-<dt id="ariadne.app.FileMixin.listFile"><code class="name flex">
-<span>async def <span class="ident">listFile</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int], id: str = '', offset: Optional[int] = 0, size: Optional[int] = 1, with_download_info: bool = False) ‑> List[<a title="ariadne.model.FileInfo" href="model.html#ariadne.model.FileInfo">FileInfo</a>]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@deprecated(&#34;0.4.0&#34;)
-async def listFile(
-    self,
-    target: Union[Friend, Group, int],
-    id: str = &#34;&#34;,
-    offset: Optional[int] = 0,
-    size: Optional[int] = 1,
-    with_download_info: bool = False,
-) -&gt; List[FileInfo]:
-    return await self.getFileList(
-        target=target,
-        id=id,
-        offset=offset,
-        size=size,
-        with_download_info=with_download_info,
-    )</code></pre>
 </details>
 </dd>
 <dt id="ariadne.app.FileMixin.makeDirectory"><code class="name flex">
@@ -3660,7 +3598,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
         Args:
             group (Union[Group, int]): 指定的群组
             member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
-            time (int): 禁言事件, 单位秒, 修正规则: `{time|0 &lt; time &lt;= 2592000}`
+            time (int): 禁言事件, 单位秒, 修正规则: `0 &lt; time &lt;= 2592000`
 
         Raises:
             PermissionError: 没有相应操作权限.
@@ -4425,7 +4363,7 @@ async def muteAll(self, group: Union[Group, int]):
 <dt><strong><code>member</code></strong> :&ensp;<code>Union[Member, int]</code></dt>
 <dd>指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)</dd>
 <dt><strong><code>time</code></strong> :&ensp;<code>int</code></dt>
-<dd>禁言事件, 单位秒, 修正规则: <code>{time|0 &lt; time &lt;= 2592000}</code></dd>
+<dd>禁言事件, 单位秒, 修正规则: <code>0 &lt; time &lt;= 2592000</code></dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
@@ -4452,7 +4390,7 @@ async def muteMember(
     Args:
         group (Union[Group, int]): 指定的群组
         member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
-        time (int): 禁言事件, 单位秒, 修正规则: `{time|0 &lt; time &lt;= 2592000}`
+        time (int): 禁言事件, 单位秒, 修正规则: `0 &lt; time &lt;= 2592000`
 
     Raises:
         PermissionError: 没有相应操作权限.
@@ -5102,7 +5040,6 @@ async def getMemberProfile(
 <li><code><a title="ariadne.app.FileMixin.deleteFile" href="#ariadne.app.FileMixin.deleteFile">deleteFile</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.getFileInfo" href="#ariadne.app.FileMixin.getFileInfo">getFileInfo</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.getFileList" href="#ariadne.app.FileMixin.getFileList">getFileList</a></code></li>
-<li><code><a title="ariadne.app.FileMixin.listFile" href="#ariadne.app.FileMixin.listFile">listFile</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.makeDirectory" href="#ariadne.app.FileMixin.makeDirectory">makeDirectory</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.mirai_session" href="#ariadne.app.FileMixin.mirai_session">mirai_session</a></code></li>
 <li><code><a title="ariadne.app.FileMixin.moveFile" href="#ariadne.app.FileMixin.moveFile">moveFile</a></code></li>

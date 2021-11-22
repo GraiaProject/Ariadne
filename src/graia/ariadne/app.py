@@ -473,7 +473,7 @@ class OperationMixin(AriadneMixin):
         Args:
             group (Union[Group, int]): 指定的群组
             member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
-            time (int): 禁言事件, 单位秒, 修正规则: `{time|0 < time <= 2592000}`
+            time (int): 禁言事件, 单位秒, 修正规则: `0 < time <= 2592000`
 
         Raises:
             PermissionError: 没有相应操作权限.

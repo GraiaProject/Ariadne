@@ -1,5 +1,6 @@
 import asyncio
 import time
+from watchgod import arun_process
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.tasks import Task
@@ -13,6 +14,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    Callable
 )
 
 from graia.broadcast import Broadcast
@@ -1294,6 +1296,14 @@ class Ariadne(
         except CancelledError:
             pass
         await self.stop()
+        
+    @staticmethod
+    async def watchfile(reload: Callable[[], None]) -> None:
+        await arun_process(os.getcwd(), reload)
+
+    def run(self, reload: Callable[[], None]) -> None:
+        self.loop.create_task(self.watchfile(reload))
+        self.loop.run_forever()
 
     @app_ctx_manager
     async def getVersion(self, auto_set: bool = True):

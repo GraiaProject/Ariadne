@@ -23,11 +23,3 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
 
 if __name__ == "__main__":
     app.run(reload=True)
-
-
-
-
-
-
-
-

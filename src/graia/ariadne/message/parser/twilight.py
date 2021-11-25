@@ -56,14 +56,10 @@ class Sparkle:
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-        self._parser = TwilightParser()
+        self._parser = TwilightParser(add_help=False)
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
-                    if v.name.startswith("-"):
-                        raise ValueError(
-                            "ArgumentMatch's pattern can't start with '-'!"
-                        )
                     self._args_map[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
@@ -72,6 +68,11 @@ class Sparkle:
                     self._regex_match_list.append((k, v, group_cnt + 1))
                     group_cnt += re.compile(v.gen_regex()).groups
                     pattern_list.append(v.gen_regex())
+        if (
+            not all(v[0].pattern[0].startswith("-") for v in self._args_map.values())
+            and self._regex_match_list
+        ):
+            raise ValueError("ArgumentMatch's pattern can't start with '-'!")
 
         self._regex_pattern = "".join(pattern_list)
         self._regex = re.compile(self._regex_pattern)

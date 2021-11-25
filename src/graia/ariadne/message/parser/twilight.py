@@ -83,7 +83,9 @@ class Sparkle:
         return f"<Sparkle: {repr_dict}>"
 
     def parse_arg_list(self, args: List[str]) -> List[str]:
-        namespace, rest = self._parser.parse_known_intermixed_args(args)
+        if not self._args_map:  # Optimization: skip if no ArgumentMatch
+            return args
+        namespace, rest = self._parser.parse_known_args(args)
         for arg_name, val_tuple in self._args_map.items():
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)
@@ -104,7 +106,9 @@ class Sparkle:
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
-                            index = re.fullmatch("\b(\\d+)_\\w+\b", current).group(1)
+                            index = re.fullmatch("\x02(\\d+)_\\w+\x03", current).group(
+                                1
+                            )
                             result = elem_mapping[int(index)]
                         else:
                             result = None

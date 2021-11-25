@@ -1,9 +1,4 @@
 import asyncio
-import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
-
 import devtools
 from graia.broadcast import Broadcast
 from loguru import logger

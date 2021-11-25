@@ -84,21 +84,24 @@ True
 1. 是否有某个消息组件.
 2. 是否有某个类型的消息组件.
 3. 是否有某子字符串.
+4. 是否有某个消息链. (From **0.5.0** )
 
 ```py
-if AtAll in message_chain:
-    print('AtAll')
-if At(bot.qq) in message_chain:
-    print('At Me')
-if 'Hello' in message_chain:
-    print('Hi!')
+>>> AtAll in message_chain
+True
+>>> At(bot.qq) in message_chain
+False
+>>> 'Hello' in message_chain
+True
+>>> MessageChain([AtAll(), "Hello World!"]) in message_chain
+True
 ```
 
 消息链的 `has` 方法和 `in` 等价.
 
 ```py
-if message_chain.has(AtAll):
-    print('AtAll')
+>>> message_chain.has(AtAll)
+True
 ```
 
 你可以使用 `onlyContains` 方法检查消息链是否只有某些元素类型.
@@ -106,6 +109,13 @@ if message_chain.has(AtAll):
 ```py
 >>> message_chain.onlyContains(Plain)
 False
+```
+
+你还可以使用 `find_subchain` 方法寻找可能的消息链子链起始点.
+
+```py
+>>> message_chain.findSubChain(MessageChain(["Hello"]))
+[1]
 ```
 
 ### 索引与切片
@@ -135,7 +145,7 @@ Plain("Hello World!")
 
 !!! note "注意"
 
-    这个方法会在进阶篇中细讲.
+    这个方法会在[进阶](/advance/msg-chain/#subchain)篇中细讲.
 
 消息链的 `get` 方法和索引操作等价.
 
@@ -152,7 +162,7 @@ plain_list_first = message_chain.get(Plain, 1)
 plain_list_first = message_chain[Plain, 1]
 ```
 
-## 获取元素
+### 获取元素
 
 在 `MessageChain` 对象上, 有以下几种获取元素的方式:
 

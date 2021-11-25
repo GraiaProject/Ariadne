@@ -15,3 +15,5 @@ if __name__ == "__main__":
     print(chain_2 * 5)
     chain_2 *= 3
     print(chain_2)
+    print("hello" in chain_2)
+    print(chain_2.findSubChain("Hi"))

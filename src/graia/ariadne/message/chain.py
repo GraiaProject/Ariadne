@@ -15,7 +15,7 @@ from typing import (
 )
 
 from ..model import AriadneBaseModel
-from ..util import gen_subclass
+from ..util import deprecated, gen_subclass
 from .element import (
     At,
     AtAll,
@@ -89,7 +89,9 @@ class MessageChain(AriadneBaseModel):
         return cls(__root__=cls.build_chain(obj))
 
     def __init__(
-        self, __root__: Iterable[Union[Element, str]], *, inline: bool = False
+        self,
+        __root__: Iterable[Union[Element, str]],
+        inline: bool = False,
     ) -> None:
         if not inline:
             super().__init__(__root__=self.build_chain(__root__))
@@ -138,20 +140,24 @@ class MessageChain(AriadneBaseModel):
         else:
             return self
 
-    def has(self, element: Union[Element_T, Type[Element_T]]) -> bool:
+    def has(self, item: Union[Element, Type[Element], "MessageChain", str]) -> bool:
         """
-        判断消息链中是否含有特定的消息元素
+        判断消息链中是否含有特定的元素/元素类型/消息链/字符串.
 
         Args:
-            element (T): 需要判断的消息元素, 可为类型或实例.
+            item (Union[Element_T, Type[Element_T], "MessageChain"]): 需要判断的元素/元素类型/消息链/字符串.
 
         Returns:
             bool: 判断结果
         """
-        if isinstance(element, Element):
-            return element in self.__root__
+        if isinstance(item, str):
+            item = MessageChain([Plain(item)], inline=True)
+        if isinstance(item, Element):
+            return item in self.merge(copy=True).__root__
+        elif isinstance(item, type):
+            return item in [type(i) for i in self.__root__]
         else:
-            return element in [type(i) for i in self.__root__]
+            return bool(self.findSubChain(item))
 
     def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
         """
@@ -207,14 +213,13 @@ class MessageChain(AriadneBaseModel):
     def __repr_args__(self) -> "ReprArgs":
         return [(None, list(self.__root__))]
 
-    def __contains__(self, item: Union[Type[Element_T], Element_T, str]) -> bool:
+    def __contains__(
+        self, item: Union["MessageChain", Type[Element_T], Element_T, str]
+    ) -> bool:
         """
-        是否包含特定元素/字符串
+        是否包含特定对象
         """
-        if isinstance(item, str):
-            return self.hasText(item)
-        else:
-            return self.has(item)
+        return self.has(item)
 
     @overload
     def __getitem__(self, item: Tuple[Element_T, int]) -> List[Element_T]:
@@ -319,6 +324,53 @@ class MessageChain(AriadneBaseModel):
                 result = first_slice
         return MessageChain(result, inline=True)
 
+    def findSubChain(self, subchain: Union["MessageChain", List[Element]]) -> List[int]:
+        """判断消息链是否含有子链. 使用 KMP 算法.
+
+        Args:
+            chain (Union[MessageChain, List[Element]]): 要判断的子链.
+
+        Returns:
+            List[int]: 所有找到的下标.
+        """
+        pattern: List[Union[str, Element]] = []
+        for e in subchain:
+            if isinstance(e, Plain):
+                pattern.extend(e.text)
+            else:
+                pattern.append(e)
+
+        match_target: List[Union[str, Element]] = []
+        for e in self.__root__:
+            if isinstance(e, Plain):
+                match_target.extend(e.text)
+            else:
+                match_target.append(e)
+
+        if len(match_target) < len(pattern):
+            return []
+
+        fallback: List[int] = [0 for _ in pattern]
+        current_fb: int = 0  # current fallback index
+        for i in range(1, len(pattern)):
+            while current_fb and pattern[i] != pattern[current_fb]:
+                current_fb = fallback[current_fb - 1]
+            if pattern[i] == pattern[current_fb]:
+                current_fb += 1
+            fallback[i] = current_fb
+
+        match_index: List[int] = []
+        ptr = 0
+        for i, e in enumerate(match_target):
+            while ptr and e != pattern[ptr]:
+                ptr = fallback[ptr - 1]
+            if e == pattern[ptr]:
+                ptr += 1
+            if ptr == len(pattern):
+                match_index.append(i - ptr + 1)
+                ptr = fallback[ptr - 1]
+        return match_index
+
     def exclude(self, *types: Type[Element]) -> "MessageChain":
         """将除了在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
 
@@ -403,6 +455,7 @@ class MessageChain(AriadneBaseModel):
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)
 
+    @deprecated("0.5.0")
     def hasText(self, string: str) -> bool:
         """
         判定消息链内是否包括相应字符串
@@ -521,6 +574,11 @@ class MessageChain(AriadneBaseModel):
 
     def asSendable(self):
         return self.exclude(Source, Quote, File)
+
+    def __eq__(self, other: Union[List[Union[Element, str]], "MessageChain"]) -> bool:
+        if isinstance(other, list):
+            other = MessageChain(other)
+        return other.asSendable().__root__ == self.asSendable().__root__
 
     def __add__(self, content: Union["MessageChain", List[Element]]) -> "MessageChain":
         if isinstance(content, MessageChain):

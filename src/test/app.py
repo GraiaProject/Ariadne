@@ -1,12 +1,9 @@
 import asyncio
 import os
-import sys
 
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from graia.ariadne.message.element import At, Plain
-
-sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
 
 from graia.broadcast import Broadcast

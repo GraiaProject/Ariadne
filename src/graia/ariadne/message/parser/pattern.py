@@ -7,12 +7,10 @@ from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
-    ClassVar,
     Dict,
-    Iterable,
     List,
-    Literal,
     Optional,
+    Sequence,
     Type,
     TypeVar,
     Union,
@@ -158,7 +156,7 @@ class ElementMatch(Match):
 
     def gen_regex(self) -> str:
         return (
-            f"(\b\\d+_{self.pattern.__fields__['type'].default}\b){'?' if self.optional else ''}"
+            f"(\x02\\d+_{self.pattern.__fields__['type'].default}\x03){'?' if self.optional else ''}"
             f"{'( )?' if self.preserve_space else ''}"
         )
 
@@ -170,7 +168,7 @@ T_default = TypeVar("T_default")
 class ArgumentMatch(Match):
     """参数匹配."""
 
-    pattern: Iterable[str]
+    pattern: Sequence[str]
     name: str
     nargs: Union[str, int]
     action: Union[str, Type[Action]]
@@ -209,5 +207,6 @@ class ArgumentMatch(Match):
             data["const"] = const
         if default is not ...:
             data["default"] = default
-        data["required"] = not optional
+        if pattern[0].startswith("-"):
+            data["required"] = not optional
         self.add_arg_data = data

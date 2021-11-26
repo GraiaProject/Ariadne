@@ -1,9 +1,3 @@
-import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
-
-
 import asyncio
 
 from graia.ariadne.util.async_exec import ParallelExecutor, cpu_bound

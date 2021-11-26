@@ -56,14 +56,10 @@ class Sparkle:
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-        self._parser = TwilightParser()
+        self._parser = TwilightParser(add_help=False)
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
-                    if v.name.startswith("-"):
-                        raise ValueError(
-                            "ArgumentMatch's pattern can't start with '-'!"
-                        )
                     self._args_map[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
@@ -72,6 +68,11 @@ class Sparkle:
                     self._regex_match_list.append((k, v, group_cnt + 1))
                     group_cnt += re.compile(v.gen_regex()).groups
                     pattern_list.append(v.gen_regex())
+        if (
+            not all(v[0].pattern[0].startswith("-") for v in self._args_map.values())
+            and self._regex_match_list
+        ):
+            raise ValueError("ArgumentMatch's pattern can't start with '-'!")
 
         self._regex_pattern = "".join(pattern_list)
         self._regex = re.compile(self._regex_pattern)
@@ -83,7 +84,9 @@ class Sparkle:
         return f"<Sparkle: {repr_dict}>"
 
     def parse_arg_list(self, args: List[str]) -> List[str]:
-        namespace, rest = self._parser.parse_known_intermixed_args(args)
+        if not self._args_map:  # Optimization: skip if no ArgumentMatch
+            return args
+        namespace, rest = self._parser.parse_known_args(args)
         for arg_name, val_tuple in self._args_map.items():
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)
@@ -104,7 +107,9 @@ class Sparkle:
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
-                            index = re.fullmatch("\b(\\d+)_\\w+\b", current).group(1)
+                            index = re.fullmatch("\x02(\\d+)_\\w+\x03", current).group(
+                                1
+                            )
                             result = elem_mapping[int(index)]
                         else:
                             result = None

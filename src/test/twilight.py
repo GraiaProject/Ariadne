@@ -56,3 +56,7 @@ if __name__ == "__main__":
         MessageChain.create(".command --option foo ", At(123))
     )
     devtools.debug(sparkle_kwargs)
+    sparkle_mixed = Twilight(
+        Sparkle(matches={"foo": ArgumentMatch("foo"), "bar": ArgumentMatch("--bar")})
+    ).gen_sparkle(MessageChain.create("test --bar opq"))
+    devtools.debug(sparkle_mixed)

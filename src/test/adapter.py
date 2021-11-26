@@ -15,11 +15,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
     adapter = CombinedAdapter(bcc, MiraiSession(url, account, verify_key))
 
-    async def resp():
-        async for msg in adapter.fetch_cycle():
-            logger.info(f"received: {msg}")
-
     try:
-        loop.run_until_complete(resp())
+        loop.run_forever()
     except KeyboardInterrupt:
-        adapter.stop()
+        loop.run_until_complete(adapter.stop())

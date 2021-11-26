@@ -105,7 +105,7 @@ class ChatLogConfig(AriadneBaseModel):
     )
 
     def __init__(
-        __pydantic_self__,
+        self,
         enabled: bool = True,
         log_level: str = &#34;INFO&#34;,
         **msg_format: str,
@@ -212,8 +212,8 @@ class MiraiSession(AriadneBaseModel):
 
     def __init__(
         self,
-        host: AnyHttpUrl,
-        account: Optional[int] = None,
+        host: Union[AnyHttpUrl, str],
+        account: Optional[Union[int, str]] = None,
         verify_key: Optional[str] = None,
         *,
         single_mode: bool = False,
@@ -644,7 +644,7 @@ class BotMessage(AriadneBaseModel):
     )
 
     def __init__(
-        __pydantic_self__,
+        self,
         enabled: bool = True,
         log_level: str = &#34;INFO&#34;,
         **msg_format: str,
@@ -1540,7 +1540,7 @@ implement default like this::</p>
 </dd>
 <dt id="ariadne.model.MiraiSession"><code class="flex name class">
 <span>class <span class="ident">MiraiSession</span></span>
-<span>(</span><span>host: pydantic.networks.AnyHttpUrl, account: Optional[int] = None, verify_key: Optional[str] = None, *, single_mode: bool = False)</span>
+<span>(</span><span>host: Union[pydantic.networks.AnyHttpUrl, str], account: Union[int, str, ForwardRef(None)] = None, verify_key: Optional[str] = None, *, single_mode: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>用于描述与上游接口会话, 并存储会话状态的实体类.</p>
@@ -1581,8 +1581,8 @@ implement default like this::</p>
 
     def __init__(
         self,
-        host: AnyHttpUrl,
-        account: Optional[int] = None,
+        host: Union[AnyHttpUrl, str],
+        account: Optional[Union[int, str]] = None,
         verify_key: Optional[str] = None,
         *,
         single_mode: bool = False,

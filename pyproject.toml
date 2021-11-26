@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.4.0"
+version = "0.4.2"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -18,7 +18,7 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-graia-broadcast = ">=0.12.1, != 0.14.0"
+graia-broadcast = ">=0.12.1, != 0.14.0, != 0.14.1"
 aiohttp = "^3.7.4"
 pydantic = "^1.8.2"
 yarl = "^1.6.3"
@@ -26,14 +26,14 @@ loguru = "^0.5.3"
 typing-extensions = "^3.10.0"
 
 [tool.poetry.dev-dependencies]
-black = "^21.9b0"
-isort = "^5.9.3"
-devtools = "^0.8.0"
-objgraph = "^3.5.0"
-ptpython = "^3.0.20"
-pdoc3 = "^0.10.0"
+black = ">=21.10b0"
+isort = ">=5.9.3"
+devtools = ">=0.8.0"
+objgraph = ">=3.5.0"
+ptpython = ">=3.0.20"
+pdoc3 = ">=0.10.0"
 graia-saya = "^0.0.13"
-mkdocs-material = "^7.3.6"
+mkdocs-material = ">=7.3.6"
 graia-scheduler = "^0.0.6"
 pydeps = "^1.10.12"
 

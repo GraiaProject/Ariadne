@@ -59,7 +59,7 @@ class Sparkle:
 
     def __init__(
         self,
-        check_args: Iterable[Match] = (),
+        check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
         matches: Optional[Union[Dict[str, Match], Iterable[Tuple[str, Match]]]] = None,
     ):
         if matches is None or isinstance(matches, dict):
@@ -68,8 +68,6 @@ class Sparkle:
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        check_map = {f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)}
-        match_map = {**check_map, **match_map}  # ensure check args come first
 
         if any(
             k.startswith(&#34;_&#34;)
@@ -80,18 +78,14 @@ class Sparkle:
             raise ValueError(&#34;Invalid Match object name!&#34;)
 
         group_cnt: int = 0
-        pattern_list: List[str] = []
+        match_pattern_list: List[str] = []
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-        self._parser = TwilightParser()
+        self._parser = TwilightParser(add_help=False)
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
-                    if v.name.startswith(&#34;-&#34;):
-                        raise ValueError(
-                            &#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39;!&#34;
-                        )
                     self._args_map[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data[&#34;type&#34;] = ArgumentMatchType(v, v.regex)
@@ -99,10 +93,20 @@ class Sparkle:
                 else:
                     self._regex_match_list.append((k, v, group_cnt + 1))
                     group_cnt += re.compile(v.gen_regex()).groups
-                    pattern_list.append(v.gen_regex())
+                    match_pattern_list.append(v.gen_regex())
+        if (
+            not all(v[0].pattern[0].startswith(&#34;-&#34;) for v in self._args_map.values())
+            and self._regex_match_list
+        ):
+            raise ValueError(&#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39;!&#34;)
 
-        self._regex_pattern = &#34;&#34;.join(pattern_list)
+        self._regex_pattern = &#34;&#34;.join(match_pattern_list)
         self._regex = re.compile(self._regex_pattern)
+
+        self._check_pattern: str = &#34;&#34;.join(
+            check_match.gen_regex() for check_match in check_args
+        )
+        self._check_regex = re.compile(self._check_pattern)
 
     def __repr__(self) -&gt; str:
         repr_dict: Dict[str, Match] = {
@@ -110,8 +114,18 @@ class Sparkle:
         }
         return f&#34;&lt;Sparkle: {repr_dict}&gt;&#34;
 
+    def run_check(self, string: str) -&gt; List[str]:
+        if not self._check_pattern:
+            return split(string)
+        if match := self._check_regex.match(string):
+            return split(string[match.end() :])
+        else:
+            raise ValueError(f&#34;Not matching regex: {self._check_pattern}&#34;)
+
     def parse_arg_list(self, args: List[str]) -&gt; List[str]:
-        namespace, rest = self._parser.parse_known_intermixed_args(args)
+        if not self._args_map:  # Optimization: skip if no ArgumentMatch
+            return args
+        namespace, rest = self._parser.parse_known_args(args)
         for arg_name, val_tuple in self._args_map.items():
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)
@@ -132,7 +146,9 @@ class Sparkle:
                     current = regex_match.group(index) or &#34;&#34;
                     if isinstance(match, ElementMatch):
                         if current:
-                            index = re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1)
+                            index = re.fullmatch(&#34;\x02(\\d+)_\\w+\x03&#34;, current).group(
+                                1
+                            )
                             result = elem_mapping[int(index)]
                         else:
                             result = None
@@ -202,8 +218,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         token = ArgumentMatch.elem_mapping_ctx.set(chain)
-        str_list = split(mapping_str)
         try:
+            str_list = sparkle.run_check(mapping_str)
             arg_list = sparkle.parse_arg_list(str_list)
         except Exception:
             raise
@@ -239,16 +255,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             if hasattr(sparkle, interface.name):
                 match: Match = getattr(sparkle, interface.name)
                 if isinstance(match, interface.annotation):
-                    return match
-
-    def afterExecution(
-        self,
-        interface: &#34;DispatcherInterface&#34;,
-        exception: Optional[Exception],
-        tb: Optional[TracebackType],
-    ):
-        if &#34;sparkle&#34; in interface.broadcast.decorator_interface.local_storage:
-            del interface.broadcast.decorator_interface.local_storage[&#34;sparkle&#34;]</code></pre>
+                    return match</code></pre>
 </details>
 </section>
 <section>
@@ -262,7 +269,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <dl>
 <dt id="ariadne.message.parser.twilight.Sparkle"><code class="flex name class">
 <span>class <span class="ident">Sparkle</span></span>
-<span>(</span><span>check_args: Iterable[<a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>] = (), matches: Union[Dict[str, <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>], Iterable[Tuple[str, <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>]], ForwardRef(None)] = None)</span>
+<span>(</span><span>check_args: Iterable[Union[<a title="ariadne.message.parser.pattern.FullMatch" href="pattern.html#ariadne.message.parser.pattern.FullMatch">FullMatch</a>, <a title="ariadne.message.parser.pattern.RegexMatch" href="pattern.html#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a>]] = (), matches: Union[Dict[str, <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>], Iterable[Tuple[str, <a title="ariadne.message.parser.pattern.Match" href="pattern.html#ariadne.message.parser.pattern.Match">Match</a>]], ForwardRef(None)] = None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -275,7 +282,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
     def __init__(
         self,
-        check_args: Iterable[Match] = (),
+        check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
         matches: Optional[Union[Dict[str, Match], Iterable[Tuple[str, Match]]]] = None,
     ):
         if matches is None or isinstance(matches, dict):
@@ -284,8 +291,6 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        check_map = {f&#34;_check_{i}&#34;: val for i, val in enumerate(check_args)}
-        match_map = {**check_map, **match_map}  # ensure check args come first
 
         if any(
             k.startswith(&#34;_&#34;)
@@ -296,18 +301,14 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             raise ValueError(&#34;Invalid Match object name!&#34;)
 
         group_cnt: int = 0
-        pattern_list: List[str] = []
+        match_pattern_list: List[str] = []
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-        self._parser = TwilightParser()
+        self._parser = TwilightParser(add_help=False)
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
-                    if v.name.startswith(&#34;-&#34;):
-                        raise ValueError(
-                            &#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39;!&#34;
-                        )
                     self._args_map[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
                         v.add_arg_data[&#34;type&#34;] = ArgumentMatchType(v, v.regex)
@@ -315,10 +316,20 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                 else:
                     self._regex_match_list.append((k, v, group_cnt + 1))
                     group_cnt += re.compile(v.gen_regex()).groups
-                    pattern_list.append(v.gen_regex())
+                    match_pattern_list.append(v.gen_regex())
+        if (
+            not all(v[0].pattern[0].startswith(&#34;-&#34;) for v in self._args_map.values())
+            and self._regex_match_list
+        ):
+            raise ValueError(&#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39;!&#34;)
 
-        self._regex_pattern = &#34;&#34;.join(pattern_list)
+        self._regex_pattern = &#34;&#34;.join(match_pattern_list)
         self._regex = re.compile(self._regex_pattern)
+
+        self._check_pattern: str = &#34;&#34;.join(
+            check_match.gen_regex() for check_match in check_args
+        )
+        self._check_regex = re.compile(self._check_pattern)
 
     def __repr__(self) -&gt; str:
         repr_dict: Dict[str, Match] = {
@@ -326,8 +337,18 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         }
         return f&#34;&lt;Sparkle: {repr_dict}&gt;&#34;
 
+    def run_check(self, string: str) -&gt; List[str]:
+        if not self._check_pattern:
+            return split(string)
+        if match := self._check_regex.match(string):
+            return split(string[match.end() :])
+        else:
+            raise ValueError(f&#34;Not matching regex: {self._check_pattern}&#34;)
+
     def parse_arg_list(self, args: List[str]) -&gt; List[str]:
-        namespace, rest = self._parser.parse_known_intermixed_args(args)
+        if not self._args_map:  # Optimization: skip if no ArgumentMatch
+            return args
+        namespace, rest = self._parser.parse_known_args(args)
         for arg_name, val_tuple in self._args_map.items():
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)
@@ -348,7 +369,9 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                     current = regex_match.group(index) or &#34;&#34;
                     if isinstance(match, ElementMatch):
                         if current:
-                            index = re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1)
+                            index = re.fullmatch(&#34;\x02(\\d+)_\\w+\x03&#34;, current).group(
+                                1
+                            )
                             result = elem_mapping[int(index)]
                         else:
                             result = None
@@ -396,7 +419,9 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                 current = regex_match.group(index) or &#34;&#34;
                 if isinstance(match, ElementMatch):
                     if current:
-                        index = re.fullmatch(&#34;\b(\\d+)_\\w+\b&#34;, current).group(1)
+                        index = re.fullmatch(&#34;\x02(\\d+)_\\w+\x03&#34;, current).group(
+                            1
+                        )
                         result = elem_mapping[int(index)]
                     else:
                         result = None
@@ -435,7 +460,9 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def parse_arg_list(self, args: List[str]) -&gt; List[str]:
-    namespace, rest = self._parser.parse_known_intermixed_args(args)
+    if not self._args_map:  # Optimization: skip if no ArgumentMatch
+        return args
+    namespace, rest = self._parser.parse_known_args(args)
     for arg_name, val_tuple in self._args_map.items():
         match, sparkle_name = val_tuple
         namespace_val = getattr(namespace, arg_name, None)
@@ -446,6 +473,24 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                 match.clone(namespace_val, bool(namespace_val)),
             )
     return rest</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.twilight.Sparkle.run_check"><code class="name flex">
+<span>def <span class="ident">run_check</span></span>(<span>self, string: str) ‑> List[str]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_check(self, string: str) -&gt; List[str]:
+    if not self._check_pattern:
+        return split(string)
+    if match := self._check_regex.match(string):
+        return split(string[match.end() :])
+    else:
+        raise ValueError(f&#34;Not matching regex: {self._check_pattern}&#34;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -506,8 +551,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         token = ArgumentMatch.elem_mapping_ctx.set(chain)
-        str_list = split(mapping_str)
         try:
+            str_list = sparkle.run_check(mapping_str)
             arg_list = sparkle.parse_arg_list(str_list)
         except Exception:
             raise
@@ -543,16 +588,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             if hasattr(sparkle, interface.name):
                 match: Match = getattr(sparkle, interface.name)
                 if isinstance(match, interface.annotation):
-                    return match
-
-    def afterExecution(
-        self,
-        interface: &#34;DispatcherInterface&#34;,
-        exception: Optional[Exception],
-        tb: Optional[TracebackType],
-    ):
-        if &#34;sparkle&#34; in interface.broadcast.decorator_interface.local_storage:
-            del interface.broadcast.decorator_interface.local_storage[&#34;sparkle&#34;]</code></pre>
+                    return match</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -568,44 +604,6 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="ariadne.message.parser.twilight.Twilight.afterExecution"><code class="name flex">
-<span>def <span class="ident">afterExecution</span></span>(<span>self, interface: DispatcherInterface, exception: Optional[Exception], tb: Optional[traceback])</span>
-</code></dt>
-<dd>
-<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)完成(包含因异常被抛出而退出)后被调用.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
-<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
-</dl>
-<ul>
-<li>当前解析中的参数的信息;</li>
-<li>
-<dl>
-<dt>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</dt>
-<dt><strong><code>exception</code></strong> :&ensp;<code>Optional[Exception]</code></dt>
-<dd>可能存在的异常对象, 若为 None 则表示无异常被抛出, 执行顺利完成.</dd>
-</dl>
-</li>
-</ul>
-<dl>
-<dt><strong><code>tb</code></strong> :&ensp;<code>Optional[TracebackType]</code></dt>
-<dd>可能存在的异常堆栈对象, 若为 None 则表示无异常被抛出, 执行顺利完成.</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def afterExecution(
-    self,
-    interface: &#34;DispatcherInterface&#34;,
-    exception: Optional[Exception],
-    tb: Optional[TracebackType],
-):
-    if &#34;sparkle&#34; in interface.broadcast.decorator_interface.local_storage:
-        del interface.broadcast.decorator_interface.local_storage[&#34;sparkle&#34;]</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.parser.twilight.Twilight.beforeExecution"><code class="name flex">
 <span>def <span class="ident">beforeExecution</span></span>(<span>self, interface: DispatcherInterface[MessageEvent])</span>
 </code></dt>
@@ -687,8 +685,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     sparkle = deepcopy(self.sparkle_root)
     mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
     token = ArgumentMatch.elem_mapping_ctx.set(chain)
-    str_list = split(mapping_str)
     try:
+        str_list = sparkle.run_check(mapping_str)
         arg_list = sparkle.parse_arg_list(str_list)
     except Exception:
         raise
@@ -721,12 +719,12 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 <ul class="">
 <li><code><a title="ariadne.message.parser.twilight.Sparkle.match_regex" href="#ariadne.message.parser.twilight.Sparkle.match_regex">match_regex</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Sparkle.parse_arg_list" href="#ariadne.message.parser.twilight.Sparkle.parse_arg_list">parse_arg_list</a></code></li>
+<li><code><a title="ariadne.message.parser.twilight.Sparkle.run_check" href="#ariadne.message.parser.twilight.Sparkle.run_check">run_check</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.twilight.Twilight" href="#ariadne.message.parser.twilight.Twilight">Twilight</a></code></h4>
 <ul class="">
-<li><code><a title="ariadne.message.parser.twilight.Twilight.afterExecution" href="#ariadne.message.parser.twilight.Twilight.afterExecution">afterExecution</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.beforeExecution" href="#ariadne.message.parser.twilight.Twilight.beforeExecution">beforeExecution</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.catch" href="#ariadne.message.parser.twilight.Twilight.catch">catch</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Twilight.gen_sparkle" href="#ariadne.message.parser.twilight.Twilight.gen_sparkle">gen_sparkle</a></code></li>

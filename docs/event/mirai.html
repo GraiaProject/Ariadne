@@ -355,7 +355,7 @@ class NudgeEvent(MiraiEvent):
     friend_id: Optional[int] = None
     group_id: Optional[int] = None
 
-    context_type: Literal[&#34;friend&#34;, &#34;group&#34;] = None
+    context_type: Literal[&#34;friend&#34;, &#34;group&#34;, None] = None
 
     @validator(&#34;friend_id&#34;, pre=True, always=True)
     def subject_handle_friend_id(cls, v, values, **kwargs):
@@ -4452,7 +4452,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
     friend_id: Optional[int] = None
     group_id: Optional[int] = None
 
-    context_type: Literal[&#34;friend&#34;, &#34;group&#34;] = None
+    context_type: Literal[&#34;friend&#34;, &#34;group&#34;, None] = None
 
     @validator(&#34;friend_id&#34;, pre=True, always=True)
     def subject_handle_friend_id(cls, v, values, **kwargs):
@@ -4478,7 +4478,7 @@ Ariadne (annotation): 发布事件的应用实例</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.event.mirai.NudgeEvent.context_type"><code class="name">var <span class="ident">context_type</span> : Literal['friend', 'group']</code></dt>
+<dt id="ariadne.event.mirai.NudgeEvent.context_type"><code class="name">var <span class="ident">context_type</span> : Literal['friend', 'group', None]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>

@@ -31,7 +31,7 @@
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from .context import application_ctx
+from .context import ariadne_ctx
 
 if TYPE_CHECKING:
     from .event.message import MessageEvent
@@ -50,8 +50,8 @@ class MessageChainDispatcher(BaseDispatcher):
 class ApplicationDispatcher(BaseDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if getattr(interface.annotation, &#34;__name__&#34;, None) == &#34;GraiaMiraiApplication&#34;:
-            return application_ctx.get()
+        if getattr(interface.annotation, &#34;__name__&#34;, None) == &#34;Ariadne&#34;:
+            return ariadne_ctx.get()
 
 
 class SourceDispatcher(BaseDispatcher):
@@ -82,8 +82,8 @@ class SourceDispatcher(BaseDispatcher):
 <pre><code class="python">class ApplicationDispatcher(BaseDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if getattr(interface.annotation, &#34;__name__&#34;, None) == &#34;GraiaMiraiApplication&#34;:
-            return application_ctx.get()</code></pre>
+        if getattr(interface.annotation, &#34;__name__&#34;, None) == &#34;Ariadne&#34;:
+            return ariadne_ctx.get()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -119,8 +119,8 @@ class SourceDispatcher(BaseDispatcher):
 </summary>
 <pre><code class="python">@staticmethod
 async def catch(interface: DispatcherInterface):
-    if getattr(interface.annotation, &#34;__name__&#34;, None) == &#34;GraiaMiraiApplication&#34;:
-        return application_ctx.get()</code></pre>
+    if getattr(interface.annotation, &#34;__name__&#34;, None) == &#34;Ariadne&#34;:
+        return ariadne_ctx.get()</code></pre>
 </details>
 </dd>
 </dl>

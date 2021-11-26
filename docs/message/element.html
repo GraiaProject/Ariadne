@@ -127,6 +127,18 @@ class Source(Element):
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
 
+    async def fetchOriginal(self) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;尝试从本元素恢复原本的消息链, 有可能失败.
+
+        Returns:
+            MessageChain: 原来的消息链.
+        &#34;&#34;&#34;
+        from ..context import ariadne_ctx
+
+        ariadne = ariadne_ctx.get()
+
+        return (await ariadne.getMessageFromId(self.id)).messageChain
+
 
 class Quote(Element):
     &#34;表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)&#34;
@@ -422,10 +434,12 @@ class MultimediaElement(Element):
         if not self.url:
             raise ValueError(&#34;you should offer a url.&#34;)
         session = adapter_ctx.get().session
+        if not session:
+            raise RuntimeError(&#34;Unable to get session!&#34;)
         async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
-            self.base64 = b64encode(data)
+            self.base64 = b64encode(data).decode()
             return data
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
@@ -1634,10 +1648,12 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
         if not self.url:
             raise ValueError(&#34;you should offer a url.&#34;)
         session = adapter_ctx.get().session
+        if not session:
+            raise RuntimeError(&#34;Unable to get session!&#34;)
         async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
-            self.base64 = b64encode(data)
+            self.base64 = b64encode(data).decode()
             return data
 
     def asPersistentString(self, *, binary: bool = True) -&gt; str:
@@ -1761,10 +1777,12 @@ def uuid(self):
     if not self.url:
         raise ValueError(&#34;you should offer a url.&#34;)
     session = adapter_ctx.get().session
+    if not session:
+        raise RuntimeError(&#34;Unable to get session!&#34;)
     async with session.get(self.url) as response:
         response.raise_for_status()
         data = await response.read()
-        self.base64 = b64encode(data)
+        self.base64 = b64encode(data).decode()
         return data</code></pre>
 </details>
 </dd>
@@ -2267,7 +2285,19 @@ type (str): 元素类型</p>
         raise NotSendableElement
 
     def asPersistentString(self) -&gt; str:
-        return &#34;&#34;</code></pre>
+        return &#34;&#34;
+
+    async def fetchOriginal(self) -&gt; &#34;MessageChain&#34;:
+        &#34;&#34;&#34;尝试从本元素恢复原本的消息链, 有可能失败.
+
+        Returns:
+            MessageChain: 原来的消息链.
+        &#34;&#34;&#34;
+        from ..context import ariadne_ctx
+
+        ariadne = ariadne_ctx.get()
+
+        return (await ariadne.getMessageFromId(self.id)).messageChain</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2309,6 +2339,33 @@ type (str): 元素类型</p>
 </summary>
 <pre><code class="python">def asPersistentString(self) -&gt; str:
     return &#34;&#34;</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.element.Source.fetchOriginal"><code class="name flex">
+<span>async def <span class="ident">fetchOriginal</span></span>(<span>self) ‑> MessageChain</span>
+</code></dt>
+<dd>
+<div class="desc"><p>尝试从本元素恢复原本的消息链, 有可能失败.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>MessageChain</code></dt>
+<dd>原来的消息链.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def fetchOriginal(self) -&gt; &#34;MessageChain&#34;:
+    &#34;&#34;&#34;尝试从本元素恢复原本的消息链, 有可能失败.
+
+    Returns:
+        MessageChain: 原来的消息链.
+    &#34;&#34;&#34;
+    from ..context import ariadne_ctx
+
+    ariadne = ariadne_ctx.get()
+
+    return (await ariadne.getMessageFromId(self.id)).messageChain</code></pre>
 </details>
 </dd>
 </dl>
@@ -2656,9 +2713,10 @@ type (str): 元素类型</p>
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.Source" href="#ariadne.message.element.Source">Source</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="ariadne.message.element.Source.Config" href="#ariadne.message.element.Source.Config">Config</a></code></li>
 <li><code><a title="ariadne.message.element.Source.asPersistentString" href="#ariadne.message.element.Source.asPersistentString">asPersistentString</a></code></li>
+<li><code><a title="ariadne.message.element.Source.fetchOriginal" href="#ariadne.message.element.Source.fetchOriginal">fetchOriginal</a></code></li>
 <li><code><a title="ariadne.message.element.Source.id" href="#ariadne.message.element.Source.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.Source.time" href="#ariadne.message.element.Source.time">time</a></code></li>
 <li><code><a title="ariadne.message.element.Source.type" href="#ariadne.message.element.Source.type">type</a></code></li>

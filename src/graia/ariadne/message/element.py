@@ -99,6 +99,18 @@ class Source(Element):
     def asPersistentString(self) -> str:
         return ""
 
+    async def fetchOriginal(self) -> "MessageChain":
+        """尝试从本元素恢复原本的消息链, 有可能失败.
+
+        Returns:
+            MessageChain: 原来的消息链.
+        """
+        from ..context import ariadne_ctx
+
+        ariadne = ariadne_ctx.get()
+
+        return (await ariadne.getMessageFromId(self.id)).messageChain
+
 
 class Quote(Element):
     "表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"
@@ -394,10 +406,12 @@ class MultimediaElement(Element):
         if not self.url:
             raise ValueError("you should offer a url.")
         session = adapter_ctx.get().session
+        if not session:
+            raise RuntimeError("Unable to get session!")
         async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
-            self.base64 = b64encode(data)
+            self.base64 = b64encode(data).decode()
             return data
 
     def asPersistentString(self, *, binary: bool = True) -> str:

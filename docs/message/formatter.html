@@ -55,7 +55,9 @@ class Formatter:
             if match := re.fullmatch(
                 &#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i
             ):
-                header: Literal[&#34;\x02&#34;, &#34;\x03&#34;] = match.group(&#34;header&#34;)
+                header = match.group(&#34;header&#34;)
+                if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
+                    raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
                 content: str = match.group(&#34;content&#34;)
                 full: str = match.group(0)
                 if header == &#34;\x02&#34;:  # from args
@@ -108,7 +110,9 @@ class Formatter:
             if match := re.fullmatch(
                 &#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i
             ):
-                header: Literal[&#34;\x02&#34;, &#34;\x03&#34;] = match.group(&#34;header&#34;)
+                header = match.group(&#34;header&#34;)
+                if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
+                    raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
                 content: str = match.group(&#34;content&#34;)
                 full: str = match.group(0)
                 if header == &#34;\x02&#34;:  # from args
@@ -153,7 +157,9 @@ class Formatter:
         if match := re.fullmatch(
             &#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i
         ):
-            header: Literal[&#34;\x02&#34;, &#34;\x03&#34;] = match.group(&#34;header&#34;)
+            header = match.group(&#34;header&#34;)
+            if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
+                raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
             content: str = match.group(&#34;content&#34;)
             full: str = match.group(0)
             if header == &#34;\x02&#34;:  # from args

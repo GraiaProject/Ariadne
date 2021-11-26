@@ -128,12 +128,12 @@ def inject_bypass_listener(broadcast: Broadcast):
 
     import graia.broadcast.entities.listener
 
-    graia.broadcast.entities.listener.Listener = BypassListener
-    graia.broadcast.Listener = BypassListener
+    graia.broadcast.entities.listener.Listener = BypassListener  # type: ignore
+    graia.broadcast.Listener = BypassListener  # type: ignore
     try:  # Override saya listener
         import graia.saya.builtins.broadcast.schema
 
-        graia.saya.builtins.broadcast.schema.Listener = BypassListener
+        graia.saya.builtins.broadcast.schema.Listener = BypassListener  # type: ignore
     except ImportError:  # Saya not installed, pass.
         pass
 

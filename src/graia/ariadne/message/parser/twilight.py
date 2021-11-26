@@ -31,7 +31,7 @@ class Sparkle:
 
     def __init__(
         self,
-        check_args: Iterable[Match] = (),
+        check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
         matches: Optional[Union[Dict[str, Match], Iterable[Tuple[str, Match]]]] = None,
     ):
         if matches is None or isinstance(matches, dict):
@@ -40,8 +40,6 @@ class Sparkle:
             }
         else:
             match_map: Dict[str, Match] = {k: v for k, v in matches}
-        check_map = {f"_check_{i}": val for i, val in enumerate(check_args)}
-        match_map = {**check_map, **match_map}  # ensure check args come first
 
         if any(
             k.startswith("_")
@@ -52,7 +50,7 @@ class Sparkle:
             raise ValueError("Invalid Match object name!")
 
         group_cnt: int = 0
-        pattern_list: List[str] = []
+        match_pattern_list: List[str] = []
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
@@ -67,21 +65,34 @@ class Sparkle:
                 else:
                     self._regex_match_list.append((k, v, group_cnt + 1))
                     group_cnt += re.compile(v.gen_regex()).groups
-                    pattern_list.append(v.gen_regex())
+                    match_pattern_list.append(v.gen_regex())
         if (
             not all(v[0].pattern[0].startswith("-") for v in self._args_map.values())
             and self._regex_match_list
         ):
             raise ValueError("ArgumentMatch's pattern can't start with '-'!")
 
-        self._regex_pattern = "".join(pattern_list)
+        self._regex_pattern = "".join(match_pattern_list)
         self._regex = re.compile(self._regex_pattern)
+
+        self._check_pattern: str = "".join(
+            check_match.gen_regex() for check_match in check_args
+        )
+        self._check_regex = re.compile(self._check_pattern)
 
     def __repr__(self) -> str:
         repr_dict: Dict[str, Match] = {
             k: v for k, v in self.__dict__.items() if isinstance(v, Match)
         }
         return f"<Sparkle: {repr_dict}>"
+
+    def run_check(self, string: str) -> List[str]:
+        if not self._check_pattern:
+            return split(string)
+        if match := self._check_regex.match(string):
+            return split(string[match.end() :])
+        else:
+            raise ValueError(f"Not matching regex: {self._check_pattern}")
 
     def parse_arg_list(self, args: List[str]) -> List[str]:
         if not self._args_map:  # Optimization: skip if no ArgumentMatch
@@ -179,8 +190,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         sparkle = deepcopy(self.sparkle_root)
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         token = ArgumentMatch.elem_mapping_ctx.set(chain)
-        str_list = split(mapping_str)
         try:
+            str_list = sparkle.run_check(mapping_str)
             arg_list = sparkle.parse_arg_list(str_list)
         except Exception:
             raise
@@ -217,12 +228,3 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
                 match: Match = getattr(sparkle, interface.name)
                 if isinstance(match, interface.annotation):
                     return match
-
-    def afterExecution(
-        self,
-        interface: "DispatcherInterface",
-        exception: Optional[Exception],
-        tb: Optional[TracebackType],
-    ):
-        if "sparkle" in interface.broadcast.decorator_interface.local_storage:
-            del interface.broadcast.decorator_interface.local_storage["sparkle"]

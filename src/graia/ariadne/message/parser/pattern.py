@@ -16,6 +16,8 @@ from typing import (
     Union,
 )
 
+from pydantic.utils import Representation
+
 from .util import gen_flags_repr
 
 if TYPE_CHECKING:
@@ -43,7 +45,7 @@ class BoxParameter(ParamPattern):
     "可以被指定传入消息的参数, 但只有一个."
 
 
-class Match(abc.ABC):
+class Match(abc.ABC, Representation):
     pattern: str
     optional: bool
     matched: Optional[bool]
@@ -56,14 +58,6 @@ class Match(abc.ABC):
         self.matched = None
         if self.__class__ == Match:
             raise ValueError("You can't instantiate Match class directly!")
-
-    def __repr__(self) -> str:
-        values = {
-            k: v
-            for k, v in self.__dict__.items()
-            if not k.startswith("_") and not callable(v)
-        }
-        return f"<{self.__class__.__qualname__} {values})>"
 
     def clone(self, result: "MessageChain", matched: bool) -> "Self":
         new_instance = copy.copy(self)
@@ -174,7 +168,7 @@ class ArgumentMatch(Match):
     action: Union[str, Type[Action]]
     const: Optional[T_const]
     default: Optional[T_default]
-    regex: Optional[str]
+    regex: Optional[re.Pattern]
     result: Union["MessageChain", Any]
     add_arg_data: Dict[str, Any]
     elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")

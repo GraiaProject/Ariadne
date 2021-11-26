@@ -1,12 +1,8 @@
 import asyncio
 import os
 
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-
-from graia.ariadne.message.element import At, Plain
-
-
 from graia.broadcast import Broadcast
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter
@@ -14,6 +10,7 @@ from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.element import At, Plain
 from graia.ariadne.message.parser.literature import Literature
 from graia.ariadne.message.parser.pattern import RegexMatch, WildcardMatch
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
@@ -31,7 +28,7 @@ if __name__ == "__main__":
     app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5)
 
     @bcc.receiver(FriendMessage)
-    async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
+    async def _(app: Ariadne, chain: MessageChain, friend: Friend):
         await app.sendFriendMessage(friend, chain)
 
     @bcc.receiver(MessageEvent, dispatchers=[Literature(".test")])
@@ -48,7 +45,7 @@ if __name__ == "__main__":
 
     @bcc.receiver(GroupMessage)
     async def reply(app: Ariadne, chain: MessageChain, group: Group, member: Member):
-        if chain.hasText("Hi!") and chain.has(At):
+        if "Hi!" in chain and chain.has(At):
             await app.sendGroupMessage(
                 group,
                 MessageChain.create(

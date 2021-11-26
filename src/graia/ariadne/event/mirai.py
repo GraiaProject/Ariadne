@@ -327,7 +327,7 @@ class NudgeEvent(MiraiEvent):
     friend_id: Optional[int] = None
     group_id: Optional[int] = None
 
-    context_type: Literal["friend", "group"] = None
+    context_type: Literal["friend", "group", None] = None
 
     @validator("friend_id", pre=True, always=True)
     def subject_handle_friend_id(cls, v, values, **kwargs):

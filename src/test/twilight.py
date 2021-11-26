@@ -1,7 +1,4 @@
-import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
+from itertools import permutations
 
 import devtools
 
@@ -13,34 +10,27 @@ from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 
 class SparkleTest(Sparkle):
     arg_a = ArgumentMatch("--foo")
-    arg_b = ArgumentMatch("--bar", action="append", regex="\d+")
+    arg_b = ArgumentMatch("--bar", action="append", regex=r"\d+")
     regex_a = RegexMatch(r"\d+")
-    space = FullMatch(" ")
     regex_b = RegexMatch(r"\d+")
-    full_non_optional_a = FullMatch("NecessaryTest")
+    full_non_optional_a = FullMatch("Necessary")
     full_optional = FullMatch("Universe", optional=True)
-    full_non_optional_b = FullMatch("NecessaryTest_2")
+    full_non_optional_b = FullMatch("Neck")
 
 
 if __name__ == "__main__":
     twilight = Twilight(SparkleTest)
-    tw_1 = twilight.gen_sparkle(
-        MessageChain.create("80 80NecessaryTestNecessaryTest_2")
-    )
+    tw_1 = twilight.gen_sparkle(MessageChain.create("80 80NecessaryNeck"))
     devtools.debug(tw_1)
     devtools.debug(
         twilight.gen_sparkle(
-            MessageChain.create(
-                "80 80NecessaryTestUniverseNecessaryTest_2 --foo hey --bar 00121"
-            )
+            MessageChain.create("80 80NecessaryUniverseNeck --foo hey --bar 00121")
         )
     )
     try:
         devtools.debug(
             twilight.gen_sparkle(
-                MessageChain.create(
-                    "80 80NecessaryTestUniverseNecessaryTest_2 --foo hey --bar nope"
-                )
+                MessageChain.create("80 80NecessaryUniverseNeck --foo hey --bar nope")
             )
         )
     except Exception as e:
@@ -52,11 +42,29 @@ if __name__ == "__main__":
             {"param": ArgumentMatch("--option"), "at": ElementMatch(At, optional=True)},
         )
     )
+
     sparkle_kwargs = twilight_args_kwargs.gen_sparkle(
         MessageChain.create(".command --option foo ", At(123))
     )
     devtools.debug(sparkle_kwargs)
+
+    try:
+        twilight_args_kwargs.gen_sparkle(MessageChain.create(".coroutine hahaha"))
+    except Exception as e:
+        devtools.debug(e)
+
     sparkle_mixed = Twilight(
-        Sparkle(matches={"foo": ArgumentMatch("foo"), "bar": ArgumentMatch("--bar")})
+        Sparkle(matches={"foo": ArgumentMatch("foo"), "bar": ArgumentMatch("bar")})
     ).gen_sparkle(MessageChain.create("test --bar opq"))
     devtools.debug(sparkle_mixed)
+
+    sparkle_next = Twilight(
+        Sparkle([FullMatch(".command")], matches={"foo": ArgumentMatch("foo")})
+    ).gen_sparkle(MessageChain.create(".command opq"))
+    devtools.debug(sparkle_next)
+
+    twilight_assert = Twilight(
+        Sparkle([RegexMatch(r"(?=.*a)(?=.*b)(?=.*c)(?=.*d)(?=.*e)")])
+    )
+
+    devtools.debug(twilight_assert.gen_sparkle(MessageChain.create("abcde")))

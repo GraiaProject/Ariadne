@@ -35,16 +35,16 @@ from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
-    ClassVar,
     Dict,
-    Iterable,
     List,
-    Literal,
     Optional,
+    Sequence,
     Type,
     TypeVar,
     Union,
 )
+
+from pydantic.utils import Representation
 
 from .util import gen_flags_repr
 
@@ -73,7 +73,7 @@ class BoxParameter(ParamPattern):
     &#34;可以被指定传入消息的参数, 但只有一个.&#34;
 
 
-class Match(abc.ABC):
+class Match(abc.ABC, Representation):
     pattern: str
     optional: bool
     matched: Optional[bool]
@@ -86,14 +86,6 @@ class Match(abc.ABC):
         self.matched = None
         if self.__class__ == Match:
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
-
-    def __repr__(self) -&gt; str:
-        values = {
-            k: v
-            for k, v in self.__dict__.items()
-            if not k.startswith(&#34;_&#34;) and not callable(v)
-        }
-        return f&#34;&lt;{self.__class__.__qualname__} {values})&gt;&#34;
 
     def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
         new_instance = copy.copy(self)
@@ -186,7 +178,7 @@ class ElementMatch(Match):
 
     def gen_regex(self) -&gt; str:
         return (
-            f&#34;(\b\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\b){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+            f&#34;(\x02\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\x03){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
             f&#34;{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
         )
 
@@ -198,13 +190,13 @@ T_default = TypeVar(&#34;T_default&#34;)
 class ArgumentMatch(Match):
     &#34;&#34;&#34;参数匹配.&#34;&#34;&#34;
 
-    pattern: Iterable[str]
+    pattern: Sequence[str]
     name: str
     nargs: Union[str, int]
     action: Union[str, Type[Action]]
     const: Optional[T_const]
     default: Optional[T_default]
-    regex: Optional[str]
+    regex: Optional[re.Pattern]
     result: Union[&#34;MessageChain&#34;, Any]
     add_arg_data: Dict[str, Any]
     elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
@@ -237,7 +229,8 @@ class ArgumentMatch(Match):
             data[&#34;const&#34;] = const
         if default is not ...:
             data[&#34;default&#34;] = default
-        data[&#34;required&#34;] = not optional
+        if pattern[0].startswith(&#34;-&#34;):
+            data[&#34;required&#34;] = not optional
         self.add_arg_data = data</code></pre>
 </details>
 </section>
@@ -263,13 +256,13 @@ class ArgumentMatch(Match):
 <pre><code class="python">class ArgumentMatch(Match):
     &#34;&#34;&#34;参数匹配.&#34;&#34;&#34;
 
-    pattern: Iterable[str]
+    pattern: Sequence[str]
     name: str
     nargs: Union[str, int]
     action: Union[str, Type[Action]]
     const: Optional[T_const]
     default: Optional[T_default]
-    regex: Optional[str]
+    regex: Optional[re.Pattern]
     result: Union[&#34;MessageChain&#34;, Any]
     add_arg_data: Dict[str, Any]
     elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
@@ -302,13 +295,15 @@ class ArgumentMatch(Match):
             data[&#34;const&#34;] = const
         if default is not ...:
             data[&#34;default&#34;] = default
-        data[&#34;required&#34;] = not optional
+        if pattern[0].startswith(&#34;-&#34;):
+            data[&#34;required&#34;] = not optional
         self.add_arg_data = data</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -340,11 +335,11 @@ class ArgumentMatch(Match):
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.pattern"><code class="name">var <span class="ident">pattern</span> : Iterable[str]</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.pattern"><code class="name">var <span class="ident">pattern</span> : Sequence[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.regex"><code class="name">var <span class="ident">regex</span> : Optional[str]</code></dt>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.regex"><code class="name">var <span class="ident">regex</span> : Optional[re.Pattern]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -419,7 +414,7 @@ class BoxParameter(ParamPattern):
 
     def gen_regex(self) -&gt; str:
         return (
-            f&#34;(\b\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\b){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+            f&#34;(\x02\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\x03){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
             f&#34;{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
         )</code></pre>
 </details>
@@ -427,6 +422,7 @@ class BoxParameter(ParamPattern):
 <ul class="hlist">
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -452,7 +448,7 @@ class BoxParameter(ParamPattern):
 </summary>
 <pre><code class="python">def gen_regex(self) -&gt; str:
     return (
-        f&#34;(\b\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\b){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+        f&#34;(\x02\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\x03){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
         f&#34;{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
     )</code></pre>
 </details>
@@ -485,6 +481,7 @@ class BoxParameter(ParamPattern):
 <ul class="hlist">
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -533,7 +530,7 @@ inheritance.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Match(abc.ABC):
+<pre><code class="python">class Match(abc.ABC, Representation):
     pattern: str
     optional: bool
     matched: Optional[bool]
@@ -547,14 +544,6 @@ inheritance.</p></div>
         if self.__class__ == Match:
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
-    def __repr__(self) -&gt; str:
-        values = {
-            k: v
-            for k, v in self.__dict__.items()
-            if not k.startswith(&#34;_&#34;) and not callable(v)
-        }
-        return f&#34;&lt;{self.__class__.__qualname__} {values})&gt;&#34;
-
     def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
         new_instance = copy.copy(self)
         new_instance.result = result
@@ -567,6 +556,7 @@ inheritance.</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
@@ -718,6 +708,7 @@ class ParamPattern:
 <ul class="hlist">
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -835,6 +826,7 @@ class SwitchParameter(ParamPattern):
 <ul class="hlist">
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
 </ul>
 <h3>Class variables</h3>
 <dl>

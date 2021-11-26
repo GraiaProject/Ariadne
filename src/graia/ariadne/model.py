@@ -77,7 +77,7 @@ class ChatLogConfig(AriadneBaseModel):
     )
 
     def __init__(
-        __pydantic_self__,
+        self,
         enabled: bool = True,
         log_level: str = "INFO",
         **msg_format: str,
@@ -184,8 +184,8 @@ class MiraiSession(AriadneBaseModel):
 
     def __init__(
         self,
-        host: AnyHttpUrl,
-        account: Optional[int] = None,
+        host: Union[AnyHttpUrl, str],
+        account: Optional[Union[int, str]] = None,
         verify_key: Optional[str] = None,
         *,
         single_mode: bool = False,

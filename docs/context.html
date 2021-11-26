@@ -36,14 +36,13 @@ if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
     from graia.broadcast import Broadcast
-    from graia.broadcast.entities.event import Dispatchable
 
     from .adapter import Adapter
     from .app import Ariadne
     from .event import MiraiEvent
 
 
-application_ctx: ContextVar[&#34;Ariadne&#34;] = ContextVar(&#34;application&#34;)
+ariadne_ctx: ContextVar[&#34;Ariadne&#34;] = ContextVar(&#34;application&#34;)
 adapter_ctx: ContextVar[&#34;Adapter&#34;] = ContextVar(&#34;adapter&#34;)
 event_ctx: ContextVar[&#34;MiraiEvent&#34;] = ContextVar(&#34;event&#34;)
 event_loop_ctx: ContextVar[&#34;AbstractEventLoop&#34;] = ContextVar(&#34;event_loop&#34;)
@@ -59,7 +58,7 @@ def enter_message_send_context(method: UploadMethod):
 
 
 @contextmanager
-def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; = None):
+def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;MiraiEvent&#34; = None):
     token_app = None
     token_event = None
     token_loop = None
@@ -67,7 +66,7 @@ def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; =
     token_adapter = None
 
     if app:
-        token_app = application_ctx.set(app)
+        token_app = ariadne_ctx.set(app)
         token_loop = event_loop_ctx.set(app.broadcast.loop)
         token_bcc = broadcast_ctx.set(app.broadcast)
         token_adapter = adapter_ctx.set(app.adapter)
@@ -78,12 +77,14 @@ def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; =
 
     try:
         if token_app:
-            application_ctx.reset(token_app)
+            ariadne_ctx.reset(token_app)
         if token_adapter:
             adapter_ctx.reset(token_adapter)
-        if all([token_event, token_loop, token_bcc]):
+        if token_event:
             event_ctx.reset(token_event)
+        if token_loop:
             event_loop_ctx.reset(token_loop)
+        if token_bcc:
             broadcast_ctx.reset(token_bcc)
     except ValueError:
         pass</code></pre>
@@ -97,7 +98,7 @@ def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; =
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="ariadne.context.enter_context"><code class="name flex">
-<span>def <span class="ident">enter_context</span></span>(<span>app: Ariadne = None, event: Dispatchable = None)</span>
+<span>def <span class="ident">enter_context</span></span>(<span>app: Ariadne = None, event: MiraiEvent = None)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -106,7 +107,7 @@ def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; =
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@contextmanager
-def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; = None):
+def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;MiraiEvent&#34; = None):
     token_app = None
     token_event = None
     token_loop = None
@@ -114,7 +115,7 @@ def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; =
     token_adapter = None
 
     if app:
-        token_app = application_ctx.set(app)
+        token_app = ariadne_ctx.set(app)
         token_loop = event_loop_ctx.set(app.broadcast.loop)
         token_bcc = broadcast_ctx.set(app.broadcast)
         token_adapter = adapter_ctx.set(app.adapter)
@@ -125,12 +126,14 @@ def enter_context(app: &#34;Ariadne&#34; = None, event: &#34;Dispatchable&#34; =
 
     try:
         if token_app:
-            application_ctx.reset(token_app)
+            ariadne_ctx.reset(token_app)
         if token_adapter:
             adapter_ctx.reset(token_adapter)
-        if all([token_event, token_loop, token_bcc]):
+        if token_event:
             event_ctx.reset(token_event)
+        if token_loop:
             event_loop_ctx.reset(token_loop)
+        if token_bcc:
             broadcast_ctx.reset(token_bcc)
     except ValueError:
         pass</code></pre>

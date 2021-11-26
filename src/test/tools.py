@@ -3,11 +3,11 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
-from devtools import debug, version
+from devtools import debug
 
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.component import Component
-from graia.ariadne.message.element import At, P, Plain
+from graia.ariadne.message.element import At, Plain
 from graia.ariadne.message.formatter import Formatter
 
 debug(

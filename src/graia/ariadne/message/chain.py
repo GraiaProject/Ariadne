@@ -398,6 +398,10 @@ class MessageChain(AriadneBaseModel):
     def split(self, pattern: str, raw_string: bool = False) -> List["MessageChain"]:
         """和 `str.split` 差不多, 提供一个字符串, 然后返回分割结果.
 
+        Args:
+            pattern (str): 分隔符.
+            raw_string (bool): 是否要包含 "空" 的文本元素.
+
         Returns:
             List["MessageChain"]: 分割结果, 行为和 `str.split` 差不多.
         """
@@ -757,12 +761,15 @@ class MessageChain(AriadneBaseModel):
                     header.append(element)
                 else:
                     elements.append(element)
+        if copy:
+            header = deepcopy(header)
+            elements = deepcopy(elements)
         if not elements or not isinstance(elements[0], Plain):
             return self if not copy else self.copy()
         if elements[0].text.startswith(prefix):
             elements[0].text = elements[0].text[len(prefix) :]
             if copy:
-                return MessageChain(deepcopy(header + elements), inline=True)
+                return MessageChain(header + elements, inline=True)
             else:
                 self.__root__ = header + elements
 
@@ -776,14 +783,17 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 修改后的消息链, 若未移除则原样返回.
         """
-        elements = self.__root__[:]
+        if copy:
+            elements = deepcopy(self.__root__)
+        else:
+            elements = self.__root__
         if not elements or not isinstance(elements[-1], Plain):
             return self if not copy else self.copy()
         last_elem: Plain = elements[-1]
         if last_elem.text.endswith(suffix):
             last_elem.text = last_elem.text[: -len(suffix)]
             if copy:
-                return MessageChain(deepcopy(elements), inline=True)
+                return MessageChain(elements, inline=True)
             else:
                 self.__root__ = elements
 

@@ -146,6 +146,10 @@ class Sparkle(Representation):
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
 
+    def get_help(self) -> str:
+        # TODO
+        ...
+
 
 T_Sparkle = TypeVar("T_Sparkle", bound=Sparkle)
 

@@ -6,7 +6,7 @@
 
 ## 缘起
 
-想必 [`v4`](/appendix/terms/#v4) 用户都或多或少的知道 `Kanata` 吧.
+想必 [`v4`](../../appendix/terms/#v4) 用户都或多或少的知道 `Kanata` 吧.
 
 其介绍的正则表达式匹配非常的有趣, 而 `Twilight` 在其基础上增加了对 `argparse` 中部分功能的支持.
 

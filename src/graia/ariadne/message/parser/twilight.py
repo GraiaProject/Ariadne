@@ -18,6 +18,7 @@ from typing import (
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from pydantic.utils import Representation
 
 from ...event.message import MessageEvent
 from ..chain import MessageChain
@@ -26,7 +27,7 @@ from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
 from .util import ArgumentMatchType, TwilightParser, split
 
 
-class Sparkle:
+class Sparkle(Representation):
     __dict__: Dict[str, Match]
 
     def __init__(
@@ -80,11 +81,8 @@ class Sparkle:
         )
         self._check_regex = re.compile(self._check_pattern)
 
-    def __repr__(self) -> str:
-        repr_dict: Dict[str, Match] = {
-            k: v for k, v in self.__dict__.items() if isinstance(v, Match)
-        }
-        return f"<Sparkle: {repr_dict}>"
+    def __repr_args__(self):
+        return [(k, v) for k, v in self.__dict__.items() if isinstance(v, Match)]
 
     def run_check(self, string: str) -> List[str]:
         if not self._check_pattern:

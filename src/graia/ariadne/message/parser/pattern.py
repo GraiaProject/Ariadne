@@ -65,6 +65,13 @@ class Match(abc.ABC, Representation):
         new_instance.matched = matched
         return new_instance
 
+    def __repr_args__(self):
+        return [
+            ("matched", self.matched),
+            ("result", self.result),
+            ("pattern", self.pattern),
+        ]
+
     def gen_regex(self) -> str:
         ...
 

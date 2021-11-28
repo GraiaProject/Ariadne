@@ -24,9 +24,7 @@ class Formatter:
         element_list: List[Element] = []
 
         for i in re.split("([\x02\x03][\\d\\w]+[\x02\x03])", result):
-            if match := re.fullmatch(
-                "(?P<header>[\x02\x03])(?P<content>\\w+)(?P=header)", i
-            ):
+            if match := re.fullmatch("(?P<header>[\x02\x03])(?P<content>\\w+)(?P=header)", i):
                 header = match.group("header")
                 if header not in ("\x02", "\x03"):
                     raise ValueError(r"Header didn't start with \x02 or \x03!")

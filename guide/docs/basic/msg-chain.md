@@ -21,28 +21,19 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 === "基础"
 
     ```py
-    message_chain = MessageChain.create([
-        AtAll(),
-        Plain("Hello World!"),
-    ])
+    message_chain = MessageChain.create([AtAll(), Plain("Hello World!")])
     ```
 
 === "使用 `str` 代替 `Plain`"
 
     ```py
-    message_chain = MessageChain.create([
-        AtAll(),
-        "Hello World!",
-    ])
+    message_chain = MessageChain.create([AtAll(), "Hello World!"])
     ```
 
 === "省略 `[ ]`"
 
     ```py
-    message_chain = MessageChain.create(
-        AtAll(),
-        "Hello World!",
-    )
+    message_chain = MessageChain.create(AtAll(), "Hello World!")
     ```
 
 ### 消息链的字符串表示
@@ -63,8 +54,7 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 可以使用 for 循环遍历消息链中的消息组件.
 
 ```py
-for element in message_chain:
-    print(repr(element))
+for element in message_chain: ...
 ```
 
 ### 比较
@@ -72,9 +62,8 @@ for element in message_chain:
 可以使用 `==` 运算符比较两个消息链是否相同.
 
 ```py
->>> another_msg_chain = MessageChain([AtAll(), Plain("Hello World!")])
->>> message_chain == another_msg_chain
-True
+another_msg_chain = MessageChain([AtAll(), Plain("Hello World!")])
+assert message_chain == another_msg_chain
 ```
 
 ### 检查子链
@@ -87,35 +76,23 @@ True
 4. 是否有某个消息链. (From **0.4.2** )
 
 ```py
->>> AtAll in message_chain
-True
->>> At(bot.qq) in message_chain
-False
->>> 'Hello' in message_chain
-True
->>> MessageChain([AtAll(), "Hello World!"]) in message_chain
-True
+AtAll in message_chain
+
+At(bot.qq) in message_chain
+
+'Hello' in message_chain
+
+MessageChain([AtAll(), "Hello World!"]) in message_chain
 ```
 
 消息链的 `has` 方法和 `in` 等价.
 
-```py
->>> message_chain.has(AtAll)
-True
-```
-
 你可以使用 `onlyContains` 方法检查消息链是否只有某些元素类型.
 
-```py
->>> message_chain.onlyContains(Plain)
-False
-```
-
-你还可以使用 `find_subchain` 方法寻找可能的消息链子链起始点.
+还可以使用 `find_subchain` 方法寻找可能的消息链子链起始点.
 
 ```py
->>> message_chain.findSubChain(MessageChain(["Hello"]))
-[1]
+assert message_chain.findSubChain(MessageChain(["Hello"])) == [1]
 ```
 
 ### 索引与切片
@@ -123,22 +100,19 @@ False
 消息链对索引操作进行了增强.以元素类型为索引, 获取消息链中的全部该类型的消息组件.
 
 ```py
->>> message_chain[Plain]
-[Plain("Hello World!")]
+assert message_chain[Plain] == [Plain("Hello World!")]
 ```
 
-以 `类型, 数量` 为索引, 获取前至多多少个该类型的元素.
+以 `类型, 数量` 为索引, 获取前 **至多** 多少个该类型的元素.
 
 ```py
->>> message_chain[Plain, 1]
-[Plain("Hello World!")]
+assert message_chain[Plain, 1] == [Plain("Hello World!")]
 ```
 
-以 `下标` 为索引, 获取底层对应下标的元素.
+以 `下标` 为索引, 获取对应下标的元素.
 
 ```py
->>> message_chain[0]
-Plain("Hello World!")
+assert message_chain[0] == Plain("Hello World!")
 ```
 
 以 `切片对象` 为索引, 相当于调用 `message_chain.subchain()`.
@@ -150,41 +124,31 @@ Plain("Hello World!")
 消息链的 `get` 方法和索引操作等价.
 
 ```py
->>> message_chain.get(Plain)
-[Plain("Hello World!")]
+assert message_chain.get(Plain) == [Plain("Hello World!")]
 ```
 
-消息链的 `get` 方法还可指定第二个参数 `count`, 这相当于以 `类型, 数量` 为索引.
+消息链的 `get` 方法可指定第二个参数 `count`, 相当于以 `类型, 数量` 为索引.
 
 ```py
-plain_list_first = message_chain.get(Plain, 1)
-# 这等价于
-plain_list_first = message_chain[Plain, 1]
+assert message_chain.get(Plain, 1) == message_chain[Plain, 1]
 ```
 
 ### 获取元素
 
 在 `MessageChain` 对象上, 有以下几种获取元素的方式:
 
-`message_chain.getFirst(T_Element)` 获取第一个类型为 `T_Element` 的元素.
-`message_chain.get(T_Element)` 获取所有类型为 `T_Element` 的元素, 聚合为列表.
-`message_chain.getOne(T_Element, index)` 获取第 `index` 个类型为 `T_Element` 的元素。
-`message_chain.get(T_Element, count)` 获取前 `count` 个类型为 `T_element` 的元素, 聚合为列表.
+`getFirst(T_Element)` 获取第一个类型为 `T_Element` 的元素.
+`get(T_Element)` 获取所有类型为 `T_Element` 的元素, 聚合为列表.
+`getOne(T_Element, index)` 获取第 `index` 个类型为 `T_Element` 的元素。
+`get(T_Element, count)` 获取前 `count` 个类型为 `T_element` 的元素, 聚合为列表.
 
 ### 连接与复制
 
-可以用加号连接两个消息链.
+可以用 `+` 连接两个消息链, 用 `*` 复制消息链.
 
 ```py
-MessageChain(['Hello World!']) + MessageChain(['Goodbye World!'])
->>> MessageChain([Plain("Hello World!"), Plain("Goodbye World!")])
-```
-
-可以用 `*` 运算符复制消息链.
-
-```py
->>> MessageChain(['Hello World!']) * 2
-MessageChain([Plain("Hello World!"), Plain("Hello World!")])
+assert MessageChain(['Hello World!']) + MessageChain(['Goodbye World!']) == MessageChain([Plain("Hello World!"), Plain("Goodbye World!")])
+assert MessageChain(['Hello World!']) * 2 == MessageChain([Plain("Hello World!"), Plain("Hello World!")])
 ```
 
 ### 其他
@@ -192,20 +156,16 @@ MessageChain([Plain("Hello World!"), Plain("Hello World!")])
 除此之外, 消息链还支持很多 list 拥有的操作, 比如 `index` 和 `count`.
 
 ```py
->>> message_chain = MessageChain([AtAll()"Hello World!"])
->>> message_chain.index(Plain)
-0
->>> message_chain.count(Plain)
-1
+message_chain = MessageChain([AtAll(), "Hello World!"])
+assert message_chain.index(Plain) == 0
+assert message_chain.count(Plain) == 1
 ```
 
 ## 多媒体元素
 
 相信你在 `docstring` 与函数签名的辅助下, 能够很快掌握 `Plain` `At` `AtAll` 三种元素类型.
 
-接下来, 我将介绍多媒体元素: `Image` `FlashImage` `Voice`.
-
-这三种元素均继承自 `MultimediaElement`.
+接下来将介绍继承自 `MultimediaElement` 的多媒体元素: `Image` `FlashImage` `Voice`.
 
 ### 实例化
 

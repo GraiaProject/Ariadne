@@ -40,6 +40,10 @@ pydeps = "^1.10.12"
 [tool.isort]
 profile = "black"
 
+[tool.black]
+line-length = 110
+target-version = ['py38']
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

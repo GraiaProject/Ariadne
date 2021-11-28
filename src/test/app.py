@@ -14,12 +14,11 @@ from graia.ariadne.message.element import At, Plain
 from graia.ariadne.message.parser.literature import Literature
 from graia.ariadne.message.parser.pattern import RegexMatch, WildcardMatch
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
+from graia.ariadne.message.parser.pattern import FullMatch
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 if __name__ == "__main__":
-    url, account, verify_key = (
-        open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
-    )
+    url, account, verify_key = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     ALL_FLAG = True
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
@@ -28,34 +27,32 @@ if __name__ == "__main__":
     app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5)
 
     @bcc.receiver(FriendMessage)
-    async def _(app: Ariadne, chain: MessageChain, friend: Friend):
+    async def send(app: Ariadne, chain: MessageChain, friend: Friend):
         await app.sendFriendMessage(friend, chain)
 
-    @bcc.receiver(MessageEvent, dispatchers=[Literature(".test")])
-    async def _(app: Ariadne, dii: DispatcherInterface):
+    @bcc.receiver(MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")]))])
+    async def reply1(app: Ariadne, dii: DispatcherInterface):
         await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
 
     @bcc.receiver(NewFriendRequestEvent)
-    async def _(event: NewFriendRequestEvent):
+    async def accept(event: NewFriendRequestEvent):
         await event.accept("Welcome!")
 
-    @bcc.receiver(MessageEvent, dispatchers=[Literature("/test")])
-    async def _(app: Ariadne, dii: DispatcherInterface):
-        await app.sendMessage(dii.event, MessageChain.create("Auto reply to /test!"))
+    @bcc.receiver(MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")]))])
+    async def reply2(app: Ariadne, event: MessageEvent):
+        await app.sendMessage(event, MessageChain.create("Auto reply to /test!"))
 
     @bcc.receiver(GroupMessage)
-    async def reply(app: Ariadne, chain: MessageChain, group: Group, member: Member):
+    async def reply3(app: Ariadne, chain: MessageChain, group: Group, member: Member):
         if "Hi!" in chain and chain.has(At):
             await app.sendGroupMessage(
                 group,
-                MessageChain.create(
-                    [At(chain.getFirst(At).target), Plain("Hello World!")]
-                ),
+                MessageChain.create([At(chain.getFirst(At).target), Plain("Hello World!")]),
             )  # WARNING: May raise UnknownTarget
 
     @bcc.receiver(
         FriendMessage,
-        dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop"), WildcardMatch()]))],
+        dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop")]))],
     )
     async def stop(app: Ariadne):
         await app.stop()

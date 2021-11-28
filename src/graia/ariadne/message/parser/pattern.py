@@ -103,9 +103,7 @@ class RegexMatch(Match):
             f"{'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
         )
 
-    def clone(
-        self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None
-    ) -> "Self":
+    def clone(self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None) -> "Self":
         new_instance: RegexMatch = super().clone(result, matched)
         new_instance.regex_match = re_match
         return new_instance
@@ -116,9 +114,7 @@ class WildcardMatch(Match):
 
     preserve_space: bool
 
-    def __init__(
-        self, greed: bool = True, optional: bool = False, preserve_space: bool = True
-    ) -> None:
+    def __init__(self, *, greed: bool = True, optional: bool = False, preserve_space: bool = True) -> None:
         super().__init__(f".*", optional=optional)
         self.greed = greed
         self.preserve_space = preserve_space
@@ -130,9 +126,7 @@ class WildcardMatch(Match):
 class FullMatch(Match):
     """全匹配."""
 
-    def __init__(
-        self, pattern: str, *, optional: bool = False, preserve_space: bool = True
-    ) -> None:
+    def __init__(self, pattern: str, *, optional: bool = False, preserve_space: bool = True) -> None:
         super().__init__(pattern, optional)
         self.preserve_space = preserve_space
 

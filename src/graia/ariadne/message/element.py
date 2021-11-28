@@ -42,9 +42,7 @@ class Element(AriadneBaseModel, abc.ABC):
         return ""
 
     def asPersistentString(self) -> str:
-        return (
-            f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type'})))}]"
-        )
+        return f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type'})))}]"
 
     def prepare(self) -> None:
         """
@@ -156,9 +154,7 @@ class At(Element):
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    "you cannot use this element in this method: {0}".format(
-                        upload_method_ctx.get().value
-                    )
+                    "you cannot use this element in this method: {0}".format(upload_method_ctx.get().value)
                 )
         except LookupError:
             pass
@@ -178,9 +174,7 @@ class AtAll(Element):
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    "you cannot use this element in this method: {0}".format(
-                        upload_method_ctx.get().value
-                    )
+                    "you cannot use this element in this method: {0}".format(upload_method_ctx.get().value)
                 )
         except LookupError:
             pass
@@ -196,9 +190,7 @@ class Face(Element):
         return f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
 
     def __eq__(self, other: "Face") -> bool:
-        return isinstance(other, Face) and (
-            self.faceId == other.faceId or self.name == other.name
-        )
+        return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
 
 
 class Xml(Element):
@@ -234,12 +226,6 @@ class App(Element):
 
     def asDisplay(self) -> str:
         return "[APP消息]"
-
-
-"""
-    def asPersistentString(self) -> str:
-        return ""
-"""
 
 
 class PokeMethods(Enum):
@@ -432,9 +418,9 @@ class MultimediaElement(Element):
             return False
         if self.uuid and self.uuid == other.uuid:
             return True
-        elif self.url and self.url == other.url:
+        if self.url and self.url == other.url:
             return True
-        elif self.base64 and self.base64 == other.base64:
+        if self.base64 and self.base64 == other.base64:
             return True
         return False
 

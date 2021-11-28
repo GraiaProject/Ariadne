@@ -64,17 +64,15 @@ class ChatLogConfig(AriadneBaseModel):
 
     enabled: bool = True
     log_level: str = "INFO"
-    group_message_log_format: str = "{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -> {message_string}"
-    friend_message_log_format: str = (
-        "{bot_id}: [{friend_name}({friend_id})] -> {message_string}"
+    group_message_log_format: str = (
+        "{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -> {message_string}"
     )
-    temp_message_log_format: str = "{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -> {message_string}"
-    other_client_message_log_format: str = (
-        "{bot_id}: [{platform_name}({platform_id})] -> {message_string}"
+    friend_message_log_format: str = "{bot_id}: [{friend_name}({friend_id})] -> {message_string}"
+    temp_message_log_format: str = (
+        "{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -> {message_string}"
     )
-    stranger_message_log_format: str = (
-        "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
-    )
+    other_client_message_log_format: str = "{bot_id}: [{platform_name}({platform_id})] -> {message_string}"
+    stranger_message_log_format: str = "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
 
     def __init__(
         self,
@@ -190,9 +188,7 @@ class MiraiSession(AriadneBaseModel):
         *,
         single_mode: bool = False,
     ) -> None:
-        super().__init__(
-            host=host, account=account, verify_key=verify_key, single_mode=single_mode
-        )
+        super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
 
     def url_gen(self, route: str) -> str:
         return str(URL(self.host) / route)

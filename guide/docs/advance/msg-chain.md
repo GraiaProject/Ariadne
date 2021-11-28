@@ -13,14 +13,7 @@
 示例:
 
 ```python
->>> (MessageChain.create("hello world"))[(0,3):]
-MessageChain([Plain(text='lo world')])
-
->>> (MessageChain.create("hello world"))[:(1,7)]
-MessageChain([Plain(text='hello w')])
-
->>> (MessageChain.create("hello world"))[(0,3):(1,7)]
-MessageChain([Plain(text='lo w')])
+assert (MessageChain.create("hello world"))[(0,3):(1,7)] == MessageChain([Plain(text='lo w')])
 ```
 
 !!! warning "注意"
@@ -38,13 +31,9 @@ MessageChain([Plain(text='lo w')])
 使用 `include` 与 `exclude` 方法可以筛选消息链中的元素.
 
 ```py
->>> msg_chain = MessageChain.create("Hello", At(target=12345))
-
->>> msg_chain.include(Plain)
-MessageChain([Plain(text='Hello')])
-
->>> msg_chain.exclude(Plain)
-MessageChain([At(target=12345)])
+msg_chain = MessageChain.create("Hello", At(target=12345))
+assert msg_chain.include(Plain) == MessageChain([Plain(text='Hello')])
+assert msg_chain.exclude(Plain) == MessageChain([At(target=12345)])
 ```
 
 ### 分割
@@ -54,16 +43,9 @@ MessageChain([At(target=12345)])
 `raw_string` 参数用于指示是否要保留 "空" 的文本元素.
 
 ```py
->>> msg_chain = MessageChain.create("Hello world!", At(target=12345))
-
->>> msg_chain.split(" ")
-[MessageChain([Plain(text='Hello')]), MessageChain([Plain(text='world!'), At(target=12345)])]
-
->>> msg_chain.split("world!", raw_string=True)
-[MessageChain([Plain(text='Hello ')]), MessageChain([Plain(text=''), At(target=12345)])]
-
->>> msg_chain.split("world!")
-[MessageChain([Plain(text='Hello ')]), MessageChain([At(target=12345)])]
+msg_chain = MessageChain.create("Hello world!", At(target=12345))
+assert msg_chain.split("world!", raw_string=True) == [MessageChain([Plain(text='Hello ')]), MessageChain([Plain(text=''), At(target=12345)])]
+assert msg_chain.split("world!") == [MessageChain([Plain(text='Hello ')]), MessageChain([At(target=12345)])]
 ```
 
 ### 前缀与后缀操作
@@ -75,19 +57,10 @@ MessageChain([At(target=12345)])
     消息链在执行这些方法时 **不会去掉其他元素**.
 
 ```py
->>> msg_chain = MessageChain.create("Hello world!", At(target=12345))
-
->>> msg_chain.removeprefix("Hello")
-MessageChain([Plain(text=' world!'), At(target=12345)])
-
->>> msg_chain.removesuffix("world!")
-MessageChain([Plain(text='Hello world!'), At(target=12345)])
-
->>> msg_chain.startswith("Hello")
-True
-
->>> msg_chain.endswith("world!")
-False
+msg_chain = MessageChain.create("Hello world!", At(target=12345))
+assert msg_chain.removeprefix("Hello") == MessageChain([Plain(text=' world!'), At(target=12345)])
+assert msg_chain.removesuffix("world!") == MessageChain([Plain(text='Hello world!'), At(target=12345)])
+assert not msg_chain.endswith("world!")
 ```
 
 ???+ info "提示"
@@ -102,19 +75,14 @@ False
 
 ### 映射字符串
 
-或许你曾为 `MessageChain` 无法像 CQ 码 一样直接进行操作, 而笨重的 `PersistentString` 又无法满足你的需要. 此时, 映射字符串就派上用场了.
+映射字符串部分解决了 `MessageChain` 与 `str` 的互操作性问题. 其核心思想为 将 `Element` 看作一个特殊的字符序列.
 
 ```python
->>> msg_chain = MessageChain.create("Hello world!", At(target=12345))
-
->>> msg_chain.asMappingString()
-('Hello world!\x021_At\x03', {1: At(target=12345)})
+msg_chain = MessageChain.create("Hello world!", At(target=12345))
+assert msg_chain.asMappingString() == ('Hello world!\x021_At\x03', {1: At(target=12345)})
 ```
 
-诶诶诶, 为什么返回的是一个元组? 后面还有个字典? `"\x02" "\x03"` 又是怎么回事?
-
-别着急, 为了明确的分开元素与常规文本, 我们使用 `\x02(\\d+)_(\\w+)\x03` 的正则表达式形式
-标记元素.
+为了明确的分开元素与常规文本, 我们使用 `\x02(\\d+)_(\\w+)\x03` 的正则表达式标记元素.
 
 !!! info "这是一个 Python 的正常字符串, 而非原始字符串 (r-string)."
 
@@ -124,19 +92,19 @@ False
 
 !!! note "这个特性在 [Twilight](./twilight.md) 中被使用."
 
-`\x02 \x03` 并没有任何含义, 我们选择它们只是因为其在 ASCII 中代表 `正文开始` 与 `正文结束`.
-
 在完成操作后 (当然不能破坏元素标记的结构), 可以利用 `MessageChain.fromMappingString` 方法构造原来的消息链.
 
 ```py
->>> msg_chain = MessageChain.create("Hello world!", At(target=12345))
-
->>> string, mapping = msg_chain.asMappingString()
-
->>> new_string = string.removeprefix("Hello world")
->>> new_string
-'!\x021_At\x03'
-
->>> MessageChain.fromMappingString(new_string, mapping)
-MessageChain([Plain(text='!'), At(target=12345)])
+msg_chain = MessageChain.create("Hello world!", At(target=12345))
+string, mapping = msg_chain.asMappingString()
+new_string = string.removeprefix("Hello world") # new_string = "!\x021_At\x03"
+assert MessageChain.fromMappingString(new_string, mapping) == MessageChain([Plain(text='!'), At(target=12345)])
 ```
+
+!!! example "又及"
+
+    `MessageChain.asMappingString` 有以下参数:
+
+    - remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
+    - remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
+    - remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.

@@ -8,39 +8,20 @@
 
 ## 生命周期管理
 
-如你在 [`app.py`](https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/app.py) 中所见, `Ariadne` 有以下几个方法.
-
-```python
-class Ariadne(...):
-    async def launch(self): ...
-    async def lifecycle(self): ...
-    async def stop(self): ...
-```
-
-也很容易想到这几个方法的用途:
 
 `launch()` 用于启动 `Ariadne` 实例, `stop()` 用于停止 `Ariadne` 实例.
 
-!!! question "问题"
+`lifecycle()` 通过 `await self.daemon_task`, 即等待 `Adapter` 的守护任务, 达到封装 `launch()` 与 `stop()` 的目的.
 
-    但 `lifecycle()` 怎么使用呢?
+!!! note "提示"
 
-别急, 让我们看看 `lifecycle()` 的源码.
+    其实 `Ariadne` 也可以作为 `async context manager` 使用.
 
-```python hl_lines="2 8"
-async def lifecycle(self):
-    await self.launch()
-    try:
-        if self.daemon_task:
-            await self.daemon_task
-    except CancelledError:
-        pass
-    await self.stop()
-```
+    在 `__aenter__` 中执行 `launch()`, 在 `__aexit__` 中执行 `stop()`.
 
-真相大白. **`lifecycle()` 只是对 `launch()` 与 `stop()` 的封装**.
+???+ note "对于 Graia Application 用户"
 
-至于为什么要 `await self.daemon_task`, 之后我们会提到.
+    请使用 `loop.run_until_complete(app.lifecycle())` 代替 `app.launch_blocking()`.
 
 ## 交互方法
 
@@ -51,12 +32,9 @@ async def lifecycle(self):
 - 注: 获取数据的方法统一以 `get` 开头.
 - 为 `async` 异步函数.
 
-其他的信息你应该可以从 `doc string` 里得到. 此处不再赘述.
+其他的信息你应该可以从 `doc string` 里得到.
 
 !!!info "对于 Graia Application 用户"
 
     你可以直接使用 `app.sendMessage(sender_or_event, message, ...)` 发送信息.
 
-!!!note "提示"
-
-    `MessageChain` 如何使用会在下一节介绍.

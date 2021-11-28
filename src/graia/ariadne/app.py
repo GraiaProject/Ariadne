@@ -103,20 +103,14 @@ class MessageMixin(AriadneMixin):
                     "sessionKey": self.session_key,
                     "target": target.id if isinstance(target, Friend) else target,
                     "messageChain": new_msg.dict()["__root__"],
-                    **(
-                        {"quote": quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
                 "[BOT {bot_id}] Friend({friend_id}) <- {message}".format_map(
                     {
                         "bot_id": self.mirai_session.account,
-                        "friend_id": target.id
-                        if isinstance(target, Friend)
-                        else target,
+                        "friend_id": target.id if isinstance(target, Friend) else target,
                         "message": new_msg.asDisplay(),
                     }
                 )
@@ -151,11 +145,7 @@ class MessageMixin(AriadneMixin):
                     "sessionKey": self.session_key,
                     "target": target.id if isinstance(target, Group) else target,
                     "messageChain": new_msg.dict()["__root__"],
-                    **(
-                        {"quote": quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
@@ -203,20 +193,14 @@ class MessageMixin(AriadneMixin):
                     "group": group.id if isinstance(group, Group) else group,
                     "qq": target.id if isinstance(target, Member) else target,
                     "messageChain": new_msg.dict()["__root__"],
-                    **(
-                        {"quote": quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
                 "[BOT {bot_id}] Member({member_id}, in {group_id}) <- {message}".format_map(
                     {
                         "bot_id": self.mirai_session.account,
-                        "member_id": target.id
-                        if isinstance(target, Member)
-                        else target,
+                        "member_id": target.id if isinstance(target, Member) else target,
                         "group_id": group.id if isinstance(group, Group) else group,
                         "message": new_msg.asDisplay(),
                     }
@@ -263,12 +247,9 @@ class MessageMixin(AriadneMixin):
             return await self.sendFriendMessage(**data)
         if isinstance(data["target"], Group):
             return await self.sendGroupMessage(**data)
-        elif isinstance(data["target"], Member):
+        if isinstance(data["target"], Member):
             return await self.sendTempMessage(**data)
-        else:
-            raise NotImplementedError(
-                f"Unable to send message with {target} as target."
-            )
+        raise NotImplementedError(f"Unable to send message with {target} as target.")
 
     @app_ctx_manager
     async def sendNudge(self, target: Union[Friend, Member]) -> None:
@@ -380,9 +361,7 @@ class RelationshipMixin(AriadneMixin):
         return [Member.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getMember(
-        self, group: Union[Group, int], member_id: int
-    ) -> Optional[Member]:
+    async def getMember(self, group: Union[Group, int], member_id: int) -> Optional[Member]:
         """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
 
         Args:
@@ -463,9 +442,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def muteMember(
-        self, group: Union[Group, int], member: Union[Member, int], time: int
-    ):
+    async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int):
         """
         在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
         当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -559,9 +536,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def kickMember(
-        self, group: Union[Group, int], member: Union[Member, int], message: str = ""
-    ):
+    async def kickMember(self, group: Union[Group, int], member: Union[Member, int], message: str = ""):
         """
         将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
 
@@ -688,9 +663,7 @@ class OperationMixin(AriadneMixin):
             MemberInfo: 指定群组成员的可修改状态
         """
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                "you should give a Member instance if you cannot give a Group instance to me."
-            )
+            raise TypeError("you should give a Member instance if you cannot give a Group instance to me.")
         if isinstance(member, Member) and not group:
             group: Group = member.group
         result = await self.adapter.call_api(
@@ -727,9 +700,7 @@ class OperationMixin(AriadneMixin):
             None: 没有返回.
         """
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                "you should give a Member instance if you cannot give a Group instance to me."
-            )
+            raise TypeError("you should give a Member instance if you cannot give a Group instance to me.")
         if isinstance(member, Member) and not group:
             group: Group = member.group
         await self.adapter.call_api(
@@ -766,9 +737,7 @@ class OperationMixin(AriadneMixin):
             None: 没有返回.
         """
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                "you should give a Member instance if you cannot give a Group instance to me."
-            )
+            raise TypeError("you should give a Member instance if you cannot give a Group instance to me.")
         if isinstance(member, Member) and not group:
             group: Group = member.group
 
@@ -823,9 +792,7 @@ class FileMixin(AriadneMixin):
                 "sessionKey": self.session_key,
                 "id": id,
                 "target": target,
-                "withDownloadInfo": str(
-                    with_download_info
-                ),  # yarl don't accept boolean
+                "withDownloadInfo": str(with_download_info),  # yarl don't accept boolean
                 "offset": offset,
                 "size": size,
             },
@@ -864,9 +831,7 @@ class FileMixin(AriadneMixin):
                 "sessionKey": self.session_key,
                 "id": id,
                 "target": target,
-                "withDownloadInfo": str(
-                    with_download_info
-                ),  # yarl don't accept boolean
+                "withDownloadInfo": str(with_download_info),  # yarl don't accept boolean
             },
         )
 
@@ -1107,9 +1072,7 @@ class MultimediaMixin(AriadneMixin):
 T = TypeVar("T")
 
 
-class Ariadne(
-    MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin
-):
+class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin):
     """
     艾莉亚德妮 (Ariadne).
 
@@ -1169,9 +1132,7 @@ class Ariadne(
 
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
-            chat_log_config
-            if chat_log_config
-            else ChatLogConfig(enabled=chat_log_enabled)
+            chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
@@ -1247,22 +1208,16 @@ class Ariadne(
             self.running = True
             start_time = time.time()
             logger.info("Launching app...")
-            self.broadcast.dispatcher_interface.inject_global_raw(
-                ApplicationMiddlewareDispatcher(self)
-            )
+            self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
-            self.daemon_task = self.loop.create_task(
-                self.daemon(), name="ariadne_daemon"
-            )
+            self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
             self.remote_version = await self.getVersion()
             logger.info(f"Remote version: {self.remote_version}")
             if not self.remote_version.startswith("2"):
-                raise RuntimeError(
-                    f"You are using an unsupported version: {self.remote_version}!"
-                )
+                raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
             self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
 
@@ -1299,9 +1254,7 @@ class Ariadne(
     async def getVersion(self, auto_set: bool = True):
         if self.mirai_session.version:
             return self.mirai_session.version
-        result = await self.adapter.call_api.__wrapped__(
-            self.adapter, "about", CallMethod.GET
-        )
+        result = await self.adapter.call_api.__wrapped__(self.adapter, "about", CallMethod.GET)
         version = result["version"]
         if auto_set:
             self.mirai_session.version = version
@@ -1312,11 +1265,5 @@ class Ariadne(
 
         return self
 
-    async def __aexit__(self, exc_type, exc, tb):
-        try:
-            await self.stop()
-        except:
-            pass
-
-        if tb is not None:
-            raise exc
+    async def __aexit__(self, *exc):
+        await self.stop()

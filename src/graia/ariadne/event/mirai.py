@@ -162,10 +162,10 @@ class BotMuteEvent(GroupEvent, BotEvent):
         mixin = [ApplicationDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface):
+        async def catch(interface: DispatcherInterface["BotMuteEvent"]):
             if interface.annotation is Member:
                 return interface.event.operator
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.group
 
 
@@ -191,7 +191,7 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
         async def catch(interface: DispatcherInterface["BotUnmuteEvent"]):
             if interface.annotation is Member:
                 return interface.event.operator
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.group
 
 
@@ -287,7 +287,7 @@ class GroupRecallEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["GroupRecallEvent"]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -368,7 +368,7 @@ class GroupNameChangeEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["GroupNameChangeEvent"]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -398,7 +398,7 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
         ):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -426,7 +426,7 @@ class GroupMuteAllEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["GroupMuteAllEvent"]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -454,7 +454,7 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["GroupAllowAnonymousChatEvent"]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -482,7 +482,7 @@ class GroupAllowConfessTalkEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["GroupAllowConfessTalkEvent"]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -510,7 +510,7 @@ class GroupAllowMemberInviteEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["GroupAllowMemberInviteEvent"]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -536,7 +536,7 @@ class MemberJoinEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["MemberJoinEvent"]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -563,9 +563,9 @@ class MemberLeaveEventKick(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberLeaveEventKick"]):
             if interface.annotation is Member:
-                if interface.default == "target":
+                if interface.name == "target":
                     return interface.event.member
-                elif interface.default == "operator":
+                if interface.name == "operator":
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group
@@ -592,7 +592,7 @@ class MemberLeaveEventQuit(GroupEvent):
         async def catch(interface: DispatcherInterface["MemberLeaveEventQuit"]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -621,10 +621,12 @@ class MemberCardChangeEvent(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberCardChangeEvent"]):
             if interface.annotation is Member:
-                if interface.default == "target":
+                if interface.name == "target":
                     return interface.event.member
-                elif interface.default == "operator":
+                if interface.name == "operator":
                     return interface.event.operator
+            elif interface.annotation is Group:
+                return interface.event.member.group
 
 
 class MemberSpecialTitleChangeEvent(GroupEvent):
@@ -652,7 +654,7 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
         ):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -679,7 +681,7 @@ class MemberPermissionChangeEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["MemberPermissionChangeEvent"]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -707,9 +709,9 @@ class MemberMuteEvent(MiraiEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberMuteEvent"]):
             if interface.annotation is Member:
-                if interface.default == "target":
+                if interface.name == "target":
                     return interface.event.member
-                elif interface.default == "operator":
+                if interface.name == "operator":
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group
@@ -738,9 +740,9 @@ class MemberUnmuteEvent(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberUnmuteEvent"]):
             if interface.annotation is Member:
-                if interface.default == "target":
+                if interface.name == "target":
                     return interface.event.member
-                elif interface.default == "operator":
+                if interface.name == "operator":
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group
@@ -769,7 +771,7 @@ class MemberHonorChangeEvent(GroupEvent):
         async def catch(interface: DispatcherInterface["MemberHonorChangeEvent"]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 

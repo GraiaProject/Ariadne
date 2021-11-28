@@ -74,9 +74,7 @@ def loguru_excepthook(cls, val, tb, *_, **__):
 
 
 def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
-    logger.opt(exception=(Exception, ctx["message"], ctx["source_traceback"])).error(
-        f"Exception:"
-    )
+    logger.opt(exception=(Exception, ctx["message"], ctx["source_traceback"])).error(f"Exception:")
 
 
 def inject_loguru_traceback(loop: AbstractEventLoop):

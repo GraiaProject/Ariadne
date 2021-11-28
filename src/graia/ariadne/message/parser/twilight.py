@@ -1,7 +1,6 @@
 import re
 import string
 from copy import deepcopy
-from types import TracebackType
 from typing import (
     Dict,
     Generic,
@@ -43,9 +42,7 @@ class Sparkle(Representation):
             match_map: Dict[str, Match] = {k: v for k, v in matches}
 
         if any(
-            k.startswith("_")
-            and not re.fullmatch(r"_check_(\d+)", k)
-            or k[0] in string.digits
+            k.startswith("_") and not re.fullmatch(r"_check_(\d+)", k) or k[0] in string.digits
             for k in match_map.keys()
         ):
             raise ValueError("Invalid Match object name!")
@@ -76,9 +73,7 @@ class Sparkle(Representation):
         self._regex_pattern = "".join(match_pattern_list)
         self._regex = re.compile(self._regex_pattern)
 
-        self._check_pattern: str = "".join(
-            check_match.gen_regex() for check_match in check_args
-        )
+        self._check_pattern: str = "".join(check_match.gen_regex() for check_match in check_args)
         self._check_regex = re.compile(self._check_pattern)
 
     def __repr_args__(self):
@@ -107,18 +102,14 @@ class Sparkle(Representation):
                 )
         return rest
 
-    def match_regex(
-        self, elem_mapping: Dict[str, Element], arg_list: List[str]
-    ) -> None:
+    def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(" ".join(arg_list)):
                 for name, match, index in self._regex_match_list:
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
-                            index = re.fullmatch("\x02(\\d+)_\\w+\x03", current).group(
-                                1
-                            )
+                            index = re.fullmatch("\x02(\\d+)_\\w+\x03", current).group(1)
                             result = elem_mapping[int(index)]
                         else:
                             result = None
@@ -205,21 +196,15 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
-        local_storage: _TwilightLocalStorage = (
-            interface.broadcast.decorator_interface.local_storage
-        )
+        local_storage: _TwilightLocalStorage = interface.broadcast.decorator_interface.local_storage
         chain: MessageChain = interface.event.messageChain
         try:
             local_storage["sparkle"] = self.gen_sparkle(chain)
         except:
             raise ExecutionStop
 
-    async def catch(
-        self, interface: "DispatcherInterface[MessageEvent]"
-    ) -> Optional[T_Sparkle]:
-        local_storage: _TwilightLocalStorage = (
-            interface.broadcast.decorator_interface.local_storage
-        )
+    async def catch(self, interface: "DispatcherInterface[MessageEvent]") -> Optional[T_Sparkle]:
+        local_storage: _TwilightLocalStorage = interface.broadcast.decorator_interface.local_storage
         sparkle = local_storage["sparkle"]
         if issubclass(interface.annotation, Sparkle):
             return sparkle

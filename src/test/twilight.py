@@ -1,5 +1,3 @@
-from itertools import permutations
-
 import devtools
 
 from graia.ariadne.message.chain import MessageChain
@@ -23,15 +21,11 @@ if __name__ == "__main__":
     tw_1 = twilight.gen_sparkle(MessageChain.create("80 80NecessaryNeck"))
     devtools.debug(tw_1)
     devtools.debug(
-        twilight.gen_sparkle(
-            MessageChain.create("80 80NecessaryUniverseNeck --foo hey --bar 00121")
-        )
+        twilight.gen_sparkle(MessageChain.create("80 80NecessaryUniverseNeck --foo hey --bar 00121"))
     )
     try:
         devtools.debug(
-            twilight.gen_sparkle(
-                MessageChain.create("80 80NecessaryUniverseNeck --foo hey --bar nope")
-            )
+            twilight.gen_sparkle(MessageChain.create("80 80NecessaryUniverseNeck --foo hey --bar nope"))
         )
     except Exception as e:
         devtools.debug(e)
@@ -43,9 +37,7 @@ if __name__ == "__main__":
         )
     )
 
-    sparkle_kwargs = twilight_args_kwargs.gen_sparkle(
-        MessageChain.create(".command --option foo ", At(123))
-    )
+    sparkle_kwargs = twilight_args_kwargs.gen_sparkle(MessageChain.create(".command --option foo ", At(123)))
     devtools.debug(sparkle_kwargs)
 
     try:
@@ -63,8 +55,16 @@ if __name__ == "__main__":
     ).gen_sparkle(MessageChain.create(".command opq"))
     devtools.debug(sparkle_next)
 
-    twilight_assert = Twilight(
-        Sparkle([RegexMatch(r"(?=.*a)(?=.*b)(?=.*c)(?=.*d)(?=.*e)")])
-    )
+    twilight_assert = Twilight(Sparkle([RegexMatch(r"(?=.*a)(?=.*b)(?=.*c)(?=.*d)(?=.*e)")]))
 
     devtools.debug(twilight_assert.gen_sparkle(MessageChain.create("abcde")))
+
+    class FooSparkle(Sparkle):
+        help = ArgumentMatch("--help", "-h", action="store_true")
+        bar_match = FullMatch("_bar_")
+        regex_match = RegexMatch(r"\d+")
+        wildcard = WildcardMatch()
+
+    twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
+
+    devtools.debug(twilight.gen_sparkle(MessageChain(["!header _bar_ 123 --help external"])))

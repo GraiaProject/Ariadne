@@ -17,9 +17,7 @@ def split(string: str) -> List[str]:
         if char in "'\"":
             if not quote:
                 quote = char
-            elif (
-                char == quote and index and string[index - 1] != "\\"
-            ):  # is current quote, not transfigured
+            elif char == quote and index and string[index - 1] != "\\":  # is current quote, not transfigured
                 quote = ""
             else:
                 cache.append(char)
@@ -70,9 +68,7 @@ class TwilightParser(argparse.ArgumentParser):
 
     def accept_type(self, action: Union[str, type]) -> bool:
         if isinstance(action, str):
-            action_cls: Type[argparse.Action] = self._registry_get(
-                "action", action, action
-            )
+            action_cls: Type[argparse.Action] = self._registry_get("action", action, action)
         elif issubclass(action, argparse.Action):
             action_cls = action
         else:

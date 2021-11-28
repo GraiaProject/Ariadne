@@ -7,6 +7,7 @@ from typing import (
     Iterable,
     List,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypedDict,
@@ -52,13 +53,18 @@ class Sparkle(Representation):
 
         self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-        self._parser = TwilightParser(add_help=False)
+        self._parser = TwilightParser(prog="\x01TWILIGHT\x01", add_help=False)
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
                     self._args_map[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
-                        v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
+                        if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
+                            v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
+                        if isinstance(v.add_arg_data["type"], type) and issubclass(
+                            v.add_arg_data["type"], Element
+                        ):
+                            raise ValueError("Can't use Element as argument type!")
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 else:
                     self._regex_match_list.append((k, v, group_cnt + 1))
@@ -137,7 +143,7 @@ class Sparkle(Representation):
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
 
-    def get_help(self) -> str:
+    def get_help(self, indent: int = 0) -> str:
         # TODO
         ...
 

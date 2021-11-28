@@ -92,17 +92,15 @@ class ChatLogConfig(AriadneBaseModel):
 
     enabled: bool = True
     log_level: str = &#34;INFO&#34;
-    group_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
-    friend_message_log_format: str = (
-        &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    group_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
     )
-    temp_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
-    other_client_message_log_format: str = (
-        &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    friend_message_log_format: str = &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    temp_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
     )
-    stranger_message_log_format: str = (
-        &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
-    )
+    other_client_message_log_format: str = &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    stranger_message_log_format: str = &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
 
     def __init__(
         self,
@@ -218,9 +216,7 @@ class MiraiSession(AriadneBaseModel):
         *,
         single_mode: bool = False,
     ) -&gt; None:
-        super().__init__(
-            host=host, account=account, verify_key=verify_key, single_mode=single_mode
-        )
+        super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
 
     def url_gen(self, route: str) -&gt; str:
         return str(URL(self.host) / route)
@@ -631,17 +627,15 @@ class BotMessage(AriadneBaseModel):
 
     enabled: bool = True
     log_level: str = &#34;INFO&#34;
-    group_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
-    friend_message_log_format: str = (
-        &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    group_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
     )
-    temp_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
-    other_client_message_log_format: str = (
-        &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    friend_message_log_format: str = &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    temp_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
     )
-    stranger_message_log_format: str = (
-        &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
-    )
+    other_client_message_log_format: str = &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    stranger_message_log_format: str = &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
 
     def __init__(
         self,
@@ -1587,9 +1581,7 @@ implement default like this::</p>
         *,
         single_mode: bool = False,
     ) -&gt; None:
-        super().__init__(
-            host=host, account=account, verify_key=verify_key, single_mode=single_mode
-        )
+        super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
 
     def url_gen(self, route: str) -&gt; str:
         return str(URL(self.host) / route)</code></pre>

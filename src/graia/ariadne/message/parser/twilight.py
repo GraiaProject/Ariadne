@@ -7,7 +7,6 @@ from typing import (
     Iterable,
     List,
     Optional,
-    Sequence,
     Tuple,
     Type,
     TypedDict,
@@ -23,7 +22,14 @@ from pydantic.utils import Representation
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import ArgumentMatch, ElementMatch, FullMatch, Match, RegexMatch
+from .pattern import (
+    ArgumentMatch,
+    ElementMatch,
+    FullMatch,
+    Match,
+    RegexMatch,
+    WildcardMatch,
+)
 from .util import ArgumentMatchType, TwilightParser, split
 
 
@@ -51,9 +57,11 @@ class Sparkle(Representation):
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
-        self._regex_match_list: List[Tuple[str, Union[RegexMatch, FullMatch], int]] = []
+        self._regex_match_list: List[
+            Tuple[str, Union[RegexMatch, FullMatch, WildcardMatch, ElementMatch], int]
+        ] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
-        self._parser = TwilightParser(prog="\x01TWILIGHT\x01", add_help=False)
+        self._parser = TwilightParser(prog="", add_help=False)
         for k, v in match_map.items():
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):
@@ -79,6 +87,7 @@ class Sparkle(Representation):
         self._regex_pattern = "".join(match_pattern_list)
         self._regex = re.compile(self._regex_pattern)
 
+        self._check_args = check_args
         self._check_pattern: str = "".join(check_match.gen_regex() for check_match in check_args)
         self._check_regex = re.compile(self._check_pattern)
 
@@ -143,9 +152,34 @@ class Sparkle(Representation):
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
 
-    def get_help(self, indent: int = 0) -> str:
-        # TODO
-        ...
+    def get_help(
+        self,
+    ) -> str:
+        header: List[str] = ["使用方法:"]
+
+        for match in self._check_args:
+            header.append(match.get_help())
+
+        for name, match, _ in self._regex_match_list:
+            header.append(match.get_help())
+
+        formatter = self._parser._get_formatter()
+
+        formatter.add_usage(None, self._parser._actions, [], prefix=" ".join(header) + " ")
+
+        positional, optional, *_ = self._parser._action_groups
+        formatter.start_section("位置匹配")
+        for name, match, _ in self._regex_match_list:
+            formatter.add_text(f"{name} -> 匹配 {match.get_help()}{' : ' + match.help if match.help else ''}")
+        formatter.add_arguments(positional._group_actions)
+        formatter.end_section()
+
+        formatter.start_section("参数匹配")
+        formatter.add_arguments(optional._group_actions)
+        formatter.end_section()
+
+        # determine help from format above
+        return formatter.format_help()
 
 
 T_Sparkle = TypeVar("T_Sparkle", bound=Sparkle)

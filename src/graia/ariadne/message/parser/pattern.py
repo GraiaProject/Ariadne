@@ -78,6 +78,9 @@ class Match(abc.ABC, Representation):
     def gen_regex(self) -> str:
         ...
 
+    def get_help(self) -> str:
+        return self.pattern.replace("( )?", " ")
+
 
 class RegexMatch(Match):
     "基础的正则表达式匹配器"
@@ -160,6 +163,9 @@ class ElementMatch(Match):
             f"{'( )?' if self.preserve_space else ''}"
         )
 
+    def get_help(self) -> str:
+        return self.pattern.__name__
+
 
 T_const = TypeVar("T_const")
 T_default = TypeVar("T_default")
@@ -211,6 +217,8 @@ class ArgumentMatch(Match):
             data["default"] = default
         if type is not ...:
             data["type"] = type
+        if help is not ...:
+            data["help"] = help
         if pattern[0].startswith("-"):
             data["required"] = not optional
         self.add_arg_data = data

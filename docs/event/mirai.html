@@ -190,10 +190,10 @@ class BotMuteEvent(GroupEvent, BotEvent):
         mixin = [ApplicationDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface):
+        async def catch(interface: DispatcherInterface[&#34;BotMuteEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.operator
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.group
 
 
@@ -219,7 +219,7 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
         async def catch(interface: DispatcherInterface[&#34;BotUnmuteEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.operator
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.group
 
 
@@ -315,7 +315,7 @@ class GroupRecallEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;GroupRecallEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -396,7 +396,7 @@ class GroupNameChangeEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;GroupNameChangeEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -426,7 +426,7 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
         ):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -454,7 +454,7 @@ class GroupMuteAllEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;GroupMuteAllEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -482,7 +482,7 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;GroupAllowAnonymousChatEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -510,7 +510,7 @@ class GroupAllowConfessTalkEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;GroupAllowConfessTalkEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -538,7 +538,7 @@ class GroupAllowMemberInviteEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;GroupAllowMemberInviteEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator
 
 
@@ -564,7 +564,7 @@ class MemberJoinEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;MemberJoinEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -591,9 +591,9 @@ class MemberLeaveEventKick(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberLeaveEventKick&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group
@@ -620,7 +620,7 @@ class MemberLeaveEventQuit(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;MemberLeaveEventQuit&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -649,10 +649,12 @@ class MemberCardChangeEvent(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberCardChangeEvent&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
+            elif interface.annotation is Group:
+                return interface.event.member.group
 
 
 class MemberSpecialTitleChangeEvent(GroupEvent):
@@ -680,7 +682,7 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
         ):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -707,7 +709,7 @@ class MemberPermissionChangeEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;MemberPermissionChangeEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -735,9 +737,9 @@ class MemberMuteEvent(MiraiEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberMuteEvent&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group
@@ -766,9 +768,9 @@ class MemberUnmuteEvent(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberUnmuteEvent&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group
@@ -797,7 +799,7 @@ class MemberHonorChangeEvent(GroupEvent):
         async def catch(interface: DispatcherInterface[&#34;MemberHonorChangeEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group
 
 
@@ -1713,10 +1715,10 @@ Group (annotation, optional = None): 发生该事件的群组</p>
         mixin = [ApplicationDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface):
+        async def catch(interface: DispatcherInterface[&#34;BotMuteEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.operator
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2058,7 +2060,7 @@ Group (annotation, optional = None): 发生该事件的群组</p>
         async def catch(interface: DispatcherInterface[&#34;BotUnmuteEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.operator
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2441,7 +2443,7 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
         async def catch(interface: DispatcherInterface[&#34;GroupAllowAnonymousChatEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2523,7 +2525,7 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
         async def catch(interface: DispatcherInterface[&#34;GroupAllowConfessTalkEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2605,7 +2607,7 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
         async def catch(interface: DispatcherInterface[&#34;GroupAllowMemberInviteEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2689,7 +2691,7 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
         ):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2837,7 +2839,7 @@ Member (annotation, return:optional): 作出此操作的管理员/群主, 若为
         async def catch(interface: DispatcherInterface[&#34;GroupMuteAllEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -2919,7 +2921,7 @@ Member (annotation): 更改群名称的成员, 权限必定为管理员或是群
         async def catch(interface: DispatcherInterface[&#34;GroupNameChangeEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3002,7 +3004,7 @@ Group (annotation): 发生该事件的群组</p>
         async def catch(interface: DispatcherInterface[&#34;GroupRecallEvent&#34;]):
             if interface.annotation is Group:
                 return interface.event.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.operator</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3091,10 +3093,12 @@ Member (annotation):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberCardChangeEvent&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
-                    return interface.event.operator</code></pre>
+                if interface.name == &#34;operator&#34;:
+                    return interface.event.operator
+            elif interface.annotation is Group:
+                return interface.event.member.group</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -3174,7 +3178,7 @@ Member (annotation): 获得/失去荣誉的成员</p>
         async def catch(interface: DispatcherInterface[&#34;MemberHonorChangeEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3250,7 +3254,7 @@ Member (annotation): 关于该用户的成员实例</p>
         async def catch(interface: DispatcherInterface[&#34;MemberJoinEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3723,9 +3727,9 @@ Member (annotation):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberLeaveEventKick&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group</code></pre>
@@ -3798,7 +3802,7 @@ Member (annotation): 主动退出群组的成员</p>
         async def catch(interface: DispatcherInterface[&#34;MemberLeaveEventQuit&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -3870,9 +3874,9 @@ Member (annotation):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberMuteEvent&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group</code></pre>
@@ -3950,7 +3954,7 @@ Member (annotation): 被调整权限的群组成员</p>
         async def catch(interface: DispatcherInterface[&#34;MemberPermissionChangeEvent&#34;]):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -4029,7 +4033,7 @@ Member (annotation): 被更改群头衔的群组成员</p>
         ):
             if interface.annotation is Member:
                 return interface.event.member
-            elif interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.member.group</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -4108,9 +4112,9 @@ Member (annotation):
         @staticmethod
         async def catch(interface: DispatcherInterface[&#34;MemberUnmuteEvent&#34;]):
             if interface.annotation is Member:
-                if interface.default == &#34;target&#34;:
+                if interface.name == &#34;target&#34;:
                     return interface.event.member
-                elif interface.default == &#34;operator&#34;:
+                if interface.name == &#34;operator&#34;:
                     return interface.event.operator
             elif interface.annotation is Group:
                 return interface.event.member.group</code></pre>

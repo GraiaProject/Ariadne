@@ -131,20 +131,14 @@ class MessageMixin(AriadneMixin):
                     &#34;sessionKey&#34;: self.session_key,
                     &#34;target&#34;: target.id if isinstance(target, Friend) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                    **(
-                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
                 &#34;[BOT {bot_id}] Friend({friend_id}) &lt;- {message}&#34;.format_map(
                     {
                         &#34;bot_id&#34;: self.mirai_session.account,
-                        &#34;friend_id&#34;: target.id
-                        if isinstance(target, Friend)
-                        else target,
+                        &#34;friend_id&#34;: target.id if isinstance(target, Friend) else target,
                         &#34;message&#34;: new_msg.asDisplay(),
                     }
                 )
@@ -179,11 +173,7 @@ class MessageMixin(AriadneMixin):
                     &#34;sessionKey&#34;: self.session_key,
                     &#34;target&#34;: target.id if isinstance(target, Group) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                    **(
-                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
@@ -231,20 +221,14 @@ class MessageMixin(AriadneMixin):
                     &#34;group&#34;: group.id if isinstance(group, Group) else group,
                     &#34;qq&#34;: target.id if isinstance(target, Member) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                    **(
-                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
                 &#34;[BOT {bot_id}] Member({member_id}, in {group_id}) &lt;- {message}&#34;.format_map(
                     {
                         &#34;bot_id&#34;: self.mirai_session.account,
-                        &#34;member_id&#34;: target.id
-                        if isinstance(target, Member)
-                        else target,
+                        &#34;member_id&#34;: target.id if isinstance(target, Member) else target,
                         &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
                         &#34;message&#34;: new_msg.asDisplay(),
                     }
@@ -291,12 +275,9 @@ class MessageMixin(AriadneMixin):
             return await self.sendFriendMessage(**data)
         if isinstance(data[&#34;target&#34;], Group):
             return await self.sendGroupMessage(**data)
-        elif isinstance(data[&#34;target&#34;], Member):
+        if isinstance(data[&#34;target&#34;], Member):
             return await self.sendTempMessage(**data)
-        else:
-            raise NotImplementedError(
-                f&#34;Unable to send message with {target} as target.&#34;
-            )
+        raise NotImplementedError(f&#34;Unable to send message with {target} as target.&#34;)
 
     @app_ctx_manager
     async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
@@ -408,9 +389,7 @@ class RelationshipMixin(AriadneMixin):
         return [Member.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getMember(
-        self, group: Union[Group, int], member_id: int
-    ) -&gt; Optional[Member]:
+    async def getMember(self, group: Union[Group, int], member_id: int) -&gt; Optional[Member]:
         &#34;&#34;&#34;尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
 
         Args:
@@ -491,9 +470,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def muteMember(
-        self, group: Union[Group, int], member: Union[Member, int], time: int
-    ):
+    async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int):
         &#34;&#34;&#34;
         在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
         当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -587,9 +564,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def kickMember(
-        self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;
-    ):
+    async def kickMember(self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;):
         &#34;&#34;&#34;
         将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
 
@@ -716,9 +691,7 @@ class OperationMixin(AriadneMixin):
             MemberInfo: 指定群组成员的可修改状态
         &#34;&#34;&#34;
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-            )
+            raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
         if isinstance(member, Member) and not group:
             group: Group = member.group
         result = await self.adapter.call_api(
@@ -755,9 +728,7 @@ class OperationMixin(AriadneMixin):
             None: 没有返回.
         &#34;&#34;&#34;
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-            )
+            raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
         if isinstance(member, Member) and not group:
             group: Group = member.group
         await self.adapter.call_api(
@@ -794,9 +765,7 @@ class OperationMixin(AriadneMixin):
             None: 没有返回.
         &#34;&#34;&#34;
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-            )
+            raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
         if isinstance(member, Member) and not group:
             group: Group = member.group
 
@@ -851,9 +820,7 @@ class FileMixin(AriadneMixin):
                 &#34;sessionKey&#34;: self.session_key,
                 &#34;id&#34;: id,
                 &#34;target&#34;: target,
-                &#34;withDownloadInfo&#34;: str(
-                    with_download_info
-                ),  # yarl don&#39;t accept boolean
+                &#34;withDownloadInfo&#34;: str(with_download_info),  # yarl don&#39;t accept boolean
                 &#34;offset&#34;: offset,
                 &#34;size&#34;: size,
             },
@@ -892,9 +859,7 @@ class FileMixin(AriadneMixin):
                 &#34;sessionKey&#34;: self.session_key,
                 &#34;id&#34;: id,
                 &#34;target&#34;: target,
-                &#34;withDownloadInfo&#34;: str(
-                    with_download_info
-                ),  # yarl don&#39;t accept boolean
+                &#34;withDownloadInfo&#34;: str(with_download_info),  # yarl don&#39;t accept boolean
             },
         )
 
@@ -1135,9 +1100,7 @@ class MultimediaMixin(AriadneMixin):
 T = TypeVar(&#34;T&#34;)
 
 
-class Ariadne(
-    MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin
-):
+class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin):
     &#34;&#34;&#34;
     艾莉亚德妮 (Ariadne).
 
@@ -1197,9 +1160,7 @@ class Ariadne(
 
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
-            chat_log_config
-            if chat_log_config
-            else ChatLogConfig(enabled=chat_log_enabled)
+            chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
@@ -1275,22 +1236,16 @@ class Ariadne(
             self.running = True
             start_time = time.time()
             logger.info(&#34;Launching app...&#34;)
-            self.broadcast.dispatcher_interface.inject_global_raw(
-                ApplicationMiddlewareDispatcher(self)
-            )
+            self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
-            self.daemon_task = self.loop.create_task(
-                self.daemon(), name=&#34;ariadne_daemon&#34;
-            )
+            self.daemon_task = self.loop.create_task(self.daemon(), name=&#34;ariadne_daemon&#34;)
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
             self.remote_version = await self.getVersion()
             logger.info(f&#34;Remote version: {self.remote_version}&#34;)
             if not self.remote_version.startswith(&#34;2&#34;):
-                raise RuntimeError(
-                    f&#34;You are using an unsupported version: {self.remote_version}!&#34;
-                )
+                raise RuntimeError(f&#34;You are using an unsupported version: {self.remote_version}!&#34;)
             self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
 
@@ -1327,9 +1282,7 @@ class Ariadne(
     async def getVersion(self, auto_set: bool = True):
         if self.mirai_session.version:
             return self.mirai_session.version
-        result = await self.adapter.call_api.__wrapped__(
-            self.adapter, &#34;about&#34;, CallMethod.GET
-        )
+        result = await self.adapter.call_api.__wrapped__(self.adapter, &#34;about&#34;, CallMethod.GET)
         version = result[&#34;version&#34;]
         if auto_set:
             self.mirai_session.version = version
@@ -1340,14 +1293,8 @@ class Ariadne(
 
         return self
 
-    async def __aexit__(self, exc_type, exc, tb):
-        try:
-            await self.stop()
-        except:
-            pass
-
-        if tb is not None:
-            raise exc</code></pre>
+    async def __aexit__(self, *exc):
+        await self.stop()</code></pre>
 </details>
 </section>
 <section>
@@ -1394,9 +1341,7 @@ class Ariadne(
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Ariadne(
-    MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin
-):
+<pre><code class="python">class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin):
     &#34;&#34;&#34;
     艾莉亚德妮 (Ariadne).
 
@@ -1456,9 +1401,7 @@ class Ariadne(
 
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
-            chat_log_config
-            if chat_log_config
-            else ChatLogConfig(enabled=chat_log_enabled)
+            chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
         )
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
@@ -1534,22 +1477,16 @@ class Ariadne(
             self.running = True
             start_time = time.time()
             logger.info(&#34;Launching app...&#34;)
-            self.broadcast.dispatcher_interface.inject_global_raw(
-                ApplicationMiddlewareDispatcher(self)
-            )
+            self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
-            self.daemon_task = self.loop.create_task(
-                self.daemon(), name=&#34;ariadne_daemon&#34;
-            )
+            self.daemon_task = self.loop.create_task(self.daemon(), name=&#34;ariadne_daemon&#34;)
             while not self.adapter.session_activated:
                 await asyncio.sleep(0.001)
             self.remote_version = await self.getVersion()
             logger.info(f&#34;Remote version: {self.remote_version}&#34;)
             if not self.remote_version.startswith(&#34;2&#34;):
-                raise RuntimeError(
-                    f&#34;You are using an unsupported version: {self.remote_version}!&#34;
-                )
+                raise RuntimeError(f&#34;You are using an unsupported version: {self.remote_version}!&#34;)
             self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
 
@@ -1586,9 +1523,7 @@ class Ariadne(
     async def getVersion(self, auto_set: bool = True):
         if self.mirai_session.version:
             return self.mirai_session.version
-        result = await self.adapter.call_api.__wrapped__(
-            self.adapter, &#34;about&#34;, CallMethod.GET
-        )
+        result = await self.adapter.call_api.__wrapped__(self.adapter, &#34;about&#34;, CallMethod.GET)
         version = result[&#34;version&#34;]
         if auto_set:
             self.mirai_session.version = version
@@ -1599,14 +1534,8 @@ class Ariadne(
 
         return self
 
-    async def __aexit__(self, exc_type, exc, tb):
-        try:
-            await self.stop()
-        except:
-            pass
-
-        if tb is not None:
-            raise exc</code></pre>
+    async def __aexit__(self, *exc):
+        await self.stop()</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1741,9 +1670,7 @@ class Ariadne(
 async def getVersion(self, auto_set: bool = True):
     if self.mirai_session.version:
         return self.mirai_session.version
-    result = await self.adapter.call_api.__wrapped__(
-        self.adapter, &#34;about&#34;, CallMethod.GET
-    )
+    result = await self.adapter.call_api.__wrapped__(self.adapter, &#34;about&#34;, CallMethod.GET)
     version = result[&#34;version&#34;]
     if auto_set:
         self.mirai_session.version = version
@@ -1764,22 +1691,16 @@ async def getVersion(self, auto_set: bool = True):
         self.running = True
         start_time = time.time()
         logger.info(&#34;Launching app...&#34;)
-        self.broadcast.dispatcher_interface.inject_global_raw(
-            ApplicationMiddlewareDispatcher(self)
-        )
+        self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
         if self.chat_log_cfg.enabled:
             self.chat_log_cfg.initialize(self)
-        self.daemon_task = self.loop.create_task(
-            self.daemon(), name=&#34;ariadne_daemon&#34;
-        )
+        self.daemon_task = self.loop.create_task(self.daemon(), name=&#34;ariadne_daemon&#34;)
         while not self.adapter.session_activated:
             await asyncio.sleep(0.001)
         self.remote_version = await self.getVersion()
         logger.info(f&#34;Remote version: {self.remote_version}&#34;)
         if not self.remote_version.startswith(&#34;2&#34;):
-            raise RuntimeError(
-                f&#34;You are using an unsupported version: {self.remote_version}!&#34;
-            )
+            raise RuntimeError(f&#34;You are using an unsupported version: {self.remote_version}!&#34;)
         self.broadcast.postEvent(ApplicationLaunched(self))
         logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)</code></pre>
 </details>
@@ -1996,9 +1917,7 @@ def session_key(self) -&gt; Optional[str]:
                 &#34;sessionKey&#34;: self.session_key,
                 &#34;id&#34;: id,
                 &#34;target&#34;: target,
-                &#34;withDownloadInfo&#34;: str(
-                    with_download_info
-                ),  # yarl don&#39;t accept boolean
+                &#34;withDownloadInfo&#34;: str(with_download_info),  # yarl don&#39;t accept boolean
                 &#34;offset&#34;: offset,
                 &#34;size&#34;: size,
             },
@@ -2037,9 +1956,7 @@ def session_key(self) -&gt; Optional[str]:
                 &#34;sessionKey&#34;: self.session_key,
                 &#34;id&#34;: id,
                 &#34;target&#34;: target,
-                &#34;withDownloadInfo&#34;: str(
-                    with_download_info
-                ),  # yarl don&#39;t accept boolean
+                &#34;withDownloadInfo&#34;: str(with_download_info),  # yarl don&#39;t accept boolean
             },
         )
 
@@ -2363,9 +2280,7 @@ async def getFileInfo(
             &#34;sessionKey&#34;: self.session_key,
             &#34;id&#34;: id,
             &#34;target&#34;: target,
-            &#34;withDownloadInfo&#34;: str(
-                with_download_info
-            ),  # yarl don&#39;t accept boolean
+            &#34;withDownloadInfo&#34;: str(with_download_info),  # yarl don&#39;t accept boolean
         },
     )
 
@@ -2436,9 +2351,7 @@ async def getFileList(
             &#34;sessionKey&#34;: self.session_key,
             &#34;id&#34;: id,
             &#34;target&#34;: target,
-            &#34;withDownloadInfo&#34;: str(
-                with_download_info
-            ),  # yarl don&#39;t accept boolean
+            &#34;withDownloadInfo&#34;: str(with_download_info),  # yarl don&#39;t accept boolean
             &#34;offset&#34;: offset,
             &#34;size&#34;: size,
         },
@@ -2743,20 +2656,14 @@ async def uploadFile(
                     &#34;sessionKey&#34;: self.session_key,
                     &#34;target&#34;: target.id if isinstance(target, Friend) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                    **(
-                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
                 &#34;[BOT {bot_id}] Friend({friend_id}) &lt;- {message}&#34;.format_map(
                     {
                         &#34;bot_id&#34;: self.mirai_session.account,
-                        &#34;friend_id&#34;: target.id
-                        if isinstance(target, Friend)
-                        else target,
+                        &#34;friend_id&#34;: target.id if isinstance(target, Friend) else target,
                         &#34;message&#34;: new_msg.asDisplay(),
                     }
                 )
@@ -2791,11 +2698,7 @@ async def uploadFile(
                     &#34;sessionKey&#34;: self.session_key,
                     &#34;target&#34;: target.id if isinstance(target, Group) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                    **(
-                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
@@ -2843,20 +2746,14 @@ async def uploadFile(
                     &#34;group&#34;: group.id if isinstance(group, Group) else group,
                     &#34;qq&#34;: target.id if isinstance(target, Member) else target,
                     &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                    **(
-                        {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                        if quote
-                        else {}
-                    ),
+                    **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
             logger.info(
                 &#34;[BOT {bot_id}] Member({member_id}, in {group_id}) &lt;- {message}&#34;.format_map(
                     {
                         &#34;bot_id&#34;: self.mirai_session.account,
-                        &#34;member_id&#34;: target.id
-                        if isinstance(target, Member)
-                        else target,
+                        &#34;member_id&#34;: target.id if isinstance(target, Member) else target,
                         &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
                         &#34;message&#34;: new_msg.asDisplay(),
                     }
@@ -2903,12 +2800,9 @@ async def uploadFile(
             return await self.sendFriendMessage(**data)
         if isinstance(data[&#34;target&#34;], Group):
             return await self.sendGroupMessage(**data)
-        elif isinstance(data[&#34;target&#34;], Member):
+        if isinstance(data[&#34;target&#34;], Member):
             return await self.sendTempMessage(**data)
-        else:
-            raise NotImplementedError(
-                f&#34;Unable to send message with {target} as target.&#34;
-            )
+        raise NotImplementedError(f&#34;Unable to send message with {target} as target.&#34;)
 
     @app_ctx_manager
     async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
@@ -3089,20 +2983,14 @@ async def sendFriendMessage(
                 &#34;sessionKey&#34;: self.session_key,
                 &#34;target&#34;: target.id if isinstance(target, Friend) else target,
                 &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                **(
-                    {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                    if quote
-                    else {}
-                ),
+                **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
             },
         )
         logger.info(
             &#34;[BOT {bot_id}] Friend({friend_id}) &lt;- {message}&#34;.format_map(
                 {
                     &#34;bot_id&#34;: self.mirai_session.account,
-                    &#34;friend_id&#34;: target.id
-                    if isinstance(target, Friend)
-                    else target,
+                    &#34;friend_id&#34;: target.id if isinstance(target, Friend) else target,
                     &#34;message&#34;: new_msg.asDisplay(),
                 }
             )
@@ -3161,11 +3049,7 @@ async def sendGroupMessage(
                 &#34;sessionKey&#34;: self.session_key,
                 &#34;target&#34;: target.id if isinstance(target, Group) else target,
                 &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                **(
-                    {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                    if quote
-                    else {}
-                ),
+                **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
             },
         )
         logger.info(
@@ -3244,12 +3128,9 @@ async def sendMessage(
         return await self.sendFriendMessage(**data)
     if isinstance(data[&#34;target&#34;], Group):
         return await self.sendGroupMessage(**data)
-    elif isinstance(data[&#34;target&#34;], Member):
+    if isinstance(data[&#34;target&#34;], Member):
         return await self.sendTempMessage(**data)
-    else:
-        raise NotImplementedError(
-            f&#34;Unable to send message with {target} as target.&#34;
-        )</code></pre>
+    raise NotImplementedError(f&#34;Unable to send message with {target} as target.&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.app.MessageMixin.sendNudge"><code class="name flex">
@@ -3353,20 +3234,14 @@ async def sendTempMessage(
                 &#34;group&#34;: group.id if isinstance(group, Group) else group,
                 &#34;qq&#34;: target.id if isinstance(target, Member) else target,
                 &#34;messageChain&#34;: new_msg.dict()[&#34;__root__&#34;],
-                **(
-                    {&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote}
-                    if quote
-                    else {}
-                ),
+                **({&#34;quote&#34;: quote.id if isinstance(quote, Source) else quote} if quote else {}),
             },
         )
         logger.info(
             &#34;[BOT {bot_id}] Member({member_id}, in {group_id}) &lt;- {message}&#34;.format_map(
                 {
                     &#34;bot_id&#34;: self.mirai_session.account,
-                    &#34;member_id&#34;: target.id
-                    if isinstance(target, Member)
-                    else target,
+                    &#34;member_id&#34;: target.id if isinstance(target, Member) else target,
                     &#34;group_id&#34;: group.id if isinstance(group, Group) else group,
                     &#34;message&#34;: new_msg.asDisplay(),
                 }
@@ -3588,9 +3463,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
         )
 
     @app_ctx_manager
-    async def muteMember(
-        self, group: Union[Group, int], member: Union[Member, int], time: int
-    ):
+    async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int):
         &#34;&#34;&#34;
         在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
         当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -3684,9 +3557,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
         )
 
     @app_ctx_manager
-    async def kickMember(
-        self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;
-    ):
+    async def kickMember(self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;):
         &#34;&#34;&#34;
         将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
 
@@ -3813,9 +3684,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
             MemberInfo: 指定群组成员的可修改状态
         &#34;&#34;&#34;
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-            )
+            raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
         if isinstance(member, Member) and not group:
             group: Group = member.group
         result = await self.adapter.call_api(
@@ -3852,9 +3721,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
             None: 没有返回.
         &#34;&#34;&#34;
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-            )
+            raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
         if isinstance(member, Member) and not group:
             group: Group = member.group
         await self.adapter.call_api(
@@ -3891,9 +3758,7 @@ async def uploadVoice(self, data: bytes, method: UploadMethod) -&gt; &#34;Voice&
             None: 没有返回.
         &#34;&#34;&#34;
         if not group and not isinstance(member, Member):
-            raise TypeError(
-                &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-            )
+            raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
         if isinstance(member, Member) and not group:
             group: Group = member.group
 
@@ -4062,9 +3927,7 @@ async def getMemberInfo(
         MemberInfo: 指定群组成员的可修改状态
     &#34;&#34;&#34;
     if not group and not isinstance(member, Member):
-        raise TypeError(
-            &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-        )
+        raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
     if isinstance(member, Member) and not group:
         group: Group = member.group
     result = await self.adapter.call_api(
@@ -4104,9 +3967,7 @@ async def getMemberInfo(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@app_ctx_manager
-async def kickMember(
-    self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;
-):
+async def kickMember(self, group: Union[Group, int], member: Union[Member, int], message: str = &#34;&#34;):
     &#34;&#34;&#34;
     将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
 
@@ -4226,9 +4087,7 @@ async def modifyMemberAdmin(
         None: 没有返回.
     &#34;&#34;&#34;
     if not group and not isinstance(member, Member):
-        raise TypeError(
-            &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-        )
+        raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
     if isinstance(member, Member) and not group:
         group: Group = member.group
 
@@ -4294,9 +4153,7 @@ async def modifyMemberInfo(
         None: 没有返回.
     &#34;&#34;&#34;
     if not group and not isinstance(member, Member):
-        raise TypeError(
-            &#34;you should give a Member instance if you cannot give a Group instance to me.&#34;
-        )
+        raise TypeError(&#34;you should give a Member instance if you cannot give a Group instance to me.&#34;)
     if isinstance(member, Member) and not group:
         group: Group = member.group
     await self.adapter.call_api(
@@ -4380,9 +4237,7 @@ async def muteAll(self, group: Union[Group, int]):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@app_ctx_manager
-async def muteMember(
-    self, group: Union[Group, int], member: Union[Member, int], time: int
-):
+async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int):
     &#34;&#34;&#34;
     在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
     当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -4665,9 +4520,7 @@ async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int
         return [Member.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getMember(
-        self, group: Union[Group, int], member_id: int
-    ) -&gt; Optional[Member]:
+    async def getMember(self, group: Union[Group, int], member_id: int) -&gt; Optional[Member]:
         &#34;&#34;&#34;尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
 
         Args:
@@ -4924,9 +4777,7 @@ async def getGroupList(self) -&gt; List[Group]:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@app_ctx_manager
-async def getMember(
-    self, group: Union[Group, int], member_id: int
-) -&gt; Optional[Member]:
+async def getMember(self, group: Union[Group, int], member_id: int) -&gt; Optional[Member]:
     &#34;&#34;&#34;尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
 
     Args:

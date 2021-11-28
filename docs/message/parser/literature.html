@@ -134,9 +134,7 @@ class Literature(BaseDispatcher):
             map_with_bar[k]: (
                 MessageChain.create(
                     [
-                        Plain(i)
-                        if not re.match(r&#34;^\$\d+$&#34;, i)
-                        else id_elem_map[int(i[1:])]
+                        Plain(i) if not re.match(r&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
                         for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                         if i
                     ]
@@ -184,28 +182,21 @@ class Literature(BaseDispatcher):
             return
         for index, current_prefix in enumerate(self.prefixs):
             current_frame = chain_frames[index]
-            if (
-                not current_frame.__root__
-                or type(current_frame.__root__[0]) is not Plain
-            ):
+            if not current_frame.__root__ or type(current_frame.__root__[0]) is not Plain:
                 return
             if current_frame.__root__[0].text != current_prefix:
                 return
 
         chain_frames = chain_frames[len(self.prefixs) :]
         return MessageChain.create(
-            list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[
-                :-1
-            ]
+            list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
     async def beforeExecution(self, interface: DispatcherInterface):
         message_chain: MessageChain = await interface.lookup_param(
             &#34;__literature_messagechain__&#34;, MessageChain, None
         )
-        if set([i.__class__ for i in message_chain.__root__]).intersection(
-            BLOCKING_ELEMENTS
-        ):
+        if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)
         if noprefix is None:
@@ -219,9 +210,7 @@ class Literature(BaseDispatcher):
         if interface.name == &#34;__literature_messagechain__&#34;:
             return
 
-        result = interface.broadcast.decorator_interface.local_storage.get(
-            &#34;literature_detect_result&#34;
-        )
+        result = interface.broadcast.decorator_interface.local_storage.get(&#34;literature_detect_result&#34;)
         if result:
             match_result, variargs = result
             if interface.default == &#34;__literature_variables__&#34;:
@@ -238,13 +227,8 @@ class Literature(BaseDispatcher):
                     return match_value
 
     async def beforeTargetExec(self, interface: &#34;DispatcherInterface&#34;, e, tb):
-        if (
-            &#34;literature_detect_result&#34;
-            in interface.broadcast.decorator_interface.local_storage
-        ):
-            del interface.broadcast.decorator_interface.local_storage[
-                &#34;literature_detect_result&#34;
-            ]</code></pre>
+        if &#34;literature_detect_result&#34; in interface.broadcast.decorator_interface.local_storage:
+            del interface.broadcast.decorator_interface.local_storage[&#34;literature_detect_result&#34;]</code></pre>
 </details>
 </section>
 <section>
@@ -357,9 +341,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
             map_with_bar[k]: (
                 MessageChain.create(
                     [
-                        Plain(i)
-                        if not re.match(r&#34;^\$\d+$&#34;, i)
-                        else id_elem_map[int(i[1:])]
+                        Plain(i) if not re.match(r&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
                         for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                         if i
                     ]
@@ -407,28 +389,21 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
             return
         for index, current_prefix in enumerate(self.prefixs):
             current_frame = chain_frames[index]
-            if (
-                not current_frame.__root__
-                or type(current_frame.__root__[0]) is not Plain
-            ):
+            if not current_frame.__root__ or type(current_frame.__root__[0]) is not Plain:
                 return
             if current_frame.__root__[0].text != current_prefix:
                 return
 
         chain_frames = chain_frames[len(self.prefixs) :]
         return MessageChain.create(
-            list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[
-                :-1
-            ]
+            list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
     async def beforeExecution(self, interface: DispatcherInterface):
         message_chain: MessageChain = await interface.lookup_param(
             &#34;__literature_messagechain__&#34;, MessageChain, None
         )
-        if set([i.__class__ for i in message_chain.__root__]).intersection(
-            BLOCKING_ELEMENTS
-        ):
+        if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)
         if noprefix is None:
@@ -442,9 +417,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
         if interface.name == &#34;__literature_messagechain__&#34;:
             return
 
-        result = interface.broadcast.decorator_interface.local_storage.get(
-            &#34;literature_detect_result&#34;
-        )
+        result = interface.broadcast.decorator_interface.local_storage.get(&#34;literature_detect_result&#34;)
         if result:
             match_result, variargs = result
             if interface.default == &#34;__literature_variables__&#34;:
@@ -461,13 +434,8 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
                     return match_value
 
     async def beforeTargetExec(self, interface: &#34;DispatcherInterface&#34;, e, tb):
-        if (
-            &#34;literature_detect_result&#34;
-            in interface.broadcast.decorator_interface.local_storage
-        ):
-            del interface.broadcast.decorator_interface.local_storage[
-                &#34;literature_detect_result&#34;
-            ]</code></pre>
+        if &#34;literature_detect_result&#34; in interface.broadcast.decorator_interface.local_storage:
+            del interface.broadcast.decorator_interface.local_storage[&#34;literature_detect_result&#34;]</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -502,16 +470,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
 <span>async def <span class="ident">beforeExecution</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)开始前被调用</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
-<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
-</dl>
-<ul>
-<li>当前解析中的参数的信息;</li>
-<li>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</li>
-</ul></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -520,9 +479,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
     message_chain: MessageChain = await interface.lookup_param(
         &#34;__literature_messagechain__&#34;, MessageChain, None
     )
-    if set([i.__class__ for i in message_chain.__root__]).intersection(
-        BLOCKING_ELEMENTS
-    ):
+    if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
         raise ExecutionStop()
     noprefix = self.prefix_match(message_chain)
     if noprefix is None:
@@ -543,13 +500,8 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">async def beforeTargetExec(self, interface: &#34;DispatcherInterface&#34;, e, tb):
-    if (
-        &#34;literature_detect_result&#34;
-        in interface.broadcast.decorator_interface.local_storage
-    ):
-        del interface.broadcast.decorator_interface.local_storage[
-            &#34;literature_detect_result&#34;
-        ]</code></pre>
+    if &#34;literature_detect_result&#34; in interface.broadcast.decorator_interface.local_storage:
+        del interface.broadcast.decorator_interface.local_storage[&#34;literature_detect_result&#34;]</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.parser.literature.Literature.catch"><code class="name flex">
@@ -575,9 +527,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
     if interface.name == &#34;__literature_messagechain__&#34;:
         return
 
-    result = interface.broadcast.decorator_interface.local_storage.get(
-        &#34;literature_detect_result&#34;
-    )
+    result = interface.broadcast.decorator_interface.local_storage.get(&#34;literature_detect_result&#34;)
     if result:
         match_result, variargs = result
         if interface.default == &#34;__literature_variables__&#34;:
@@ -689,9 +639,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
         map_with_bar[k]: (
             MessageChain.create(
                 [
-                    Plain(i)
-                    if not re.match(r&#34;^\$\d+$&#34;, i)
-                    else id_elem_map[int(i[1:])]
+                    Plain(i) if not re.match(r&#34;^\$\d+$&#34;, i) else id_elem_map[int(i[1:])]
                     for i in re.split(r&#34;((?&lt;!\\)\$[0-9]+)&#34;, v)
                     if i
                 ]
@@ -749,19 +697,14 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
         return
     for index, current_prefix in enumerate(self.prefixs):
         current_frame = chain_frames[index]
-        if (
-            not current_frame.__root__
-            or type(current_frame.__root__[0]) is not Plain
-        ):
+        if not current_frame.__root__ or type(current_frame.__root__[0]) is not Plain:
             return
         if current_frame.__root__[0].text != current_prefix:
             return
 
     chain_frames = chain_frames[len(self.prefixs) :]
     return MessageChain.create(
-        list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[
-            :-1
-        ]
+        list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[:-1]
     ).merge(copy=True)</code></pre>
 </details>
 </dd>

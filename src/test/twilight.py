@@ -60,11 +60,11 @@ if __name__ == "__main__":
     devtools.debug(twilight_assert.gen_sparkle(MessageChain.create("abcde")))
 
     class FooSparkle(Sparkle):
-        help = ArgumentMatch("--help", "-h", action="store_true")
-        bar_match = FullMatch("_bar_")
-        regex_match = RegexMatch(r"\d+")
-        wildcard = WildcardMatch()
+        help = ArgumentMatch("--help", "-h", action="store_true", help="显示本帮助")
+        foo = ArgumentMatch("foo", help="Foo help!")
 
     twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
-    devtools.debug(twilight.gen_sparkle(MessageChain(["!header _bar_ 123 --help external"])))
+    devtools.debug(twilight.gen_sparkle(MessageChain(["!header --help hello"])))
+    devtools.debug(twilight.sparkle_root._parser._actions)
+    print(twilight.sparkle_root.get_help())

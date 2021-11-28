@@ -40,7 +40,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
         >>> twilight.gen_sparkle(MessageChain(["!header _bar_ 123 --help pwq external"]))
 
         FooSparkle(
-            help=ArgumentMatch(matched=True, result=True, pattern=...), 
+            help=ArgumentMatch(matched=True, result=True, pattern=...),
             bar_match=FullMatch(matched=True, result=MessageChain([Plain(text='_bar_')]), pattern=...),
             regex_match=RegexMatch(matched=True, result=MessageChain([Plain(text='123')]), pattern=...),
             wildcard=WildcardMatch(matched=True, result=MessageChain([Plain(text='external')]), pattern=...)
@@ -61,7 +61,8 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 - `pattern` : 匹配项, 为一个字符串 (`ArgumentMatch` 可为多个, `ElementMatch` 应传入类型而非字符串). **在 `WildcardMatch` 上不可用**
 - `optional` : 是否可选, 在 `ArgumentMatch` 上会通过传入的 `pattern` 确定是否有效.
-- `preserve_space` : 是否要预留尾随空格.  **在 `ArgumentMatch` 上不可用**
+- `preserve_space` : 是否要预留尾随空格. **在 `ArgumentMatch` 上不可用**
+- `help` : 帮助字符串, 在 `Sparkle.get_help` 中使用.
 
 在完成 `Sparkle` 生成后, `Sparkle` 附带的 `Match` 有以下属性:
 
@@ -84,7 +85,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 `Twilight` 在实例化时, 接受以下参数:
 
 - `sparkle`: `Sparkle` 类 或 `Sparkle` 对象.
-- `remove_source` ,  `remove_quote` , `remove_extra_space`: 
+- `remove_source` , `remove_quote` , `remove_extra_space`:
   与 `Message.asMappingString` 中的含义相同, 但这些参数并不会影响通过 `MessageChain` 类型标注获取的消息链.
 
 ## 配合 Broadcast 使用
@@ -97,19 +98,11 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 一旦匹配失败 (`gen_sparkle` 抛出异常), `Broadcast` 的本次执行就会被取消.
 
-## Sparkle 的解析过程
-
-在解析消息链时, `Twilight.gen_sparkle` 会依照如下流程解析:
-
-- 使用 `Sparkle.run_check` 解析 `Sparkle` 的 `check_args`, 并返回剩下部分的列表. (使用 `split` 方法)
-- 使用 `Sparkle.parse_arg_list` 解析 `ArgumentMatch` 并从 `argparse.Namespace` 提取结果, 向 `ArgumentMatch.result` 赋值.
-- 使用 `Sparkle.match_regex` 解析剩下的 `Match` 对象.
-
 ## 创建帮助
 
+通过 `Sparkle.get_help` 方法可以方便的获取帮助.
 
-
-??? example "示例"
+???+ example "示例"
 
     假设你想要创建一个可以显示通过 日期 显示 星期 的命令:
 
@@ -117,22 +110,29 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
     class CommandSparkle(Sparkle):
         date = RegexMatch(r"(?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)")
         help = ArgumentMatch(
-            "--help", "-h", action="store_true"
+            "--help", "-h", action="store_true", help="显示本帮助."
         )  # 语法与 argparse.ArgumentParser.add_argument 基本相同
         # 注意 help 是手动添加的
 
-    bcc: Broadcast = ...
-
-    @bcc.receiver(
-        MessageEvent,
-        dispatchers=Twilight(CommandSparkle([RegexMatch("[.!/]convert[_-]date")])),
-    )
-    async def convert(app: Ariadne, event: MessageEvent, date: RegexMatch, sparkle: CommandSparkle):
-        if not date.matched or sparkle.help.result:
-             await app.sendMessage(event, MessageChain.create(sparkle.get_help()))
-            return
-
-        weekday = ... # 你可以使用 datetime 模块实现这个.
-
-        await app.sendMessage(MessageChain.create(f"{date.regex_match.group()}是 星期 {weekday}"))
+    print(CommandSparkle().get_help()) # 注意需要在 Sparkle 实例上调用.
     ```
+
+    效果如下:
+
+    ```
+    使用方法:  (?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+) [--help]
+
+    位置匹配:
+    date -> 匹配 (?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)
+
+    参数匹配:
+    --help, -h  显示本帮助.
+    ```
+
+## Sparkle 的解析过程
+
+在解析消息链时, `Twilight.gen_sparkle` 会依照如下流程解析:
+
+- 使用 `Sparkle.run_check` 解析 `Sparkle` 的 `check_args`, 并返回剩下部分的列表. (使用 `split` 方法)
+- 使用 `Sparkle.parse_arg_list` 解析 `ArgumentMatch` 并从 `argparse.Namespace` 提取结果, 向 `ArgumentMatch.result` 赋值.
+- 使用 `Sparkle.match_regex` 解析剩下的 `Match` 对象.

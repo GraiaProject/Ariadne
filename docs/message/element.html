@@ -70,9 +70,7 @@ class Element(AriadneBaseModel, abc.ABC):
         return &#34;&#34;
 
     def asPersistentString(self) -&gt; str:
-        return (
-            f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
-        )
+        return f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
 
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
@@ -184,9 +182,7 @@ class At(Element):
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    &#34;you cannot use this element in this method: {0}&#34;.format(
-                        upload_method_ctx.get().value
-                    )
+                    &#34;you cannot use this element in this method: {0}&#34;.format(upload_method_ctx.get().value)
                 )
         except LookupError:
             pass
@@ -206,9 +202,7 @@ class AtAll(Element):
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    &#34;you cannot use this element in this method: {0}&#34;.format(
-                        upload_method_ctx.get().value
-                    )
+                    &#34;you cannot use this element in this method: {0}&#34;.format(upload_method_ctx.get().value)
                 )
         except LookupError:
             pass
@@ -224,9 +218,7 @@ class Face(Element):
         return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
 
     def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
-        return isinstance(other, Face) and (
-            self.faceId == other.faceId or self.name == other.name
-        )
+        return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
 
 
 class Xml(Element):
@@ -262,12 +254,6 @@ class App(Element):
 
     def asDisplay(self) -&gt; str:
         return &#34;[APP消息]&#34;
-
-
-&#34;&#34;&#34;
-    def asPersistentString(self) -&gt; str:
-        return &#34;&#34;
-&#34;&#34;&#34;
 
 
 class PokeMethods(Enum):
@@ -460,9 +446,9 @@ class MultimediaElement(Element):
             return False
         if self.uuid and self.uuid == other.uuid:
             return True
-        elif self.url and self.url == other.url:
+        if self.url and self.url == other.url:
             return True
-        elif self.base64 and self.base64 == other.base64:
+        if self.base64 and self.base64 == other.base64:
             return True
         return False
 
@@ -627,9 +613,7 @@ def _update_forward_refs():
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    &#34;you cannot use this element in this method: {0}&#34;.format(
-                        upload_method_ctx.get().value
-                    )
+                    &#34;you cannot use this element in this method: {0}&#34;.format(upload_method_ctx.get().value)
                 )
         except LookupError:
             pass
@@ -709,9 +693,7 @@ def _update_forward_refs():
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    &#34;you cannot use this element in this method: {0}&#34;.format(
-                        upload_method_ctx.get().value
-                    )
+                    &#34;you cannot use this element in this method: {0}&#34;.format(upload_method_ctx.get().value)
                 )
         except LookupError:
             pass</code></pre>
@@ -846,9 +828,7 @@ type (str): 元素类型</p>
         return &#34;&#34;
 
     def asPersistentString(self) -&gt; str:
-        return (
-            f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
-        )
+        return f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
 
     def prepare(self) -&gt; None:
         &#34;&#34;&#34;
@@ -923,9 +903,7 @@ type (str): 元素类型</p>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def asPersistentString(self) -&gt; str:
-    return (
-        f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;
-    )</code></pre>
+    return f&#34;[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={&#39;type&#39;})))}]&#34;</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.element.Element.prepare"><code class="name flex">
@@ -983,9 +961,7 @@ type (str): 元素类型</p>
         return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
 
     def __eq__(self, other: &#34;Face&#34;) -&gt; bool:
-        return isinstance(other, Face) and (
-            self.faceId == other.faceId or self.name == other.name
-        )</code></pre>
+        return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1674,9 +1650,9 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
             return False
         if self.uuid and self.uuid == other.uuid:
             return True
-        elif self.url and self.url == other.url:
+        if self.url and self.url == other.url:
             return True
-        elif self.base64 and self.base64 == other.base64:
+        if self.base64 and self.base64 == other.base64:
             return True
         return False</code></pre>
 </details>

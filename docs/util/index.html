@@ -103,9 +103,7 @@ def loguru_excepthook(cls, val, tb, *_, **__):
 
 
 def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
-    logger.opt(exception=(Exception, ctx[&#34;message&#34;], ctx[&#34;source_traceback&#34;])).error(
-        f&#34;Exception:&#34;
-    )
+    logger.opt(exception=(Exception, ctx[&#34;message&#34;], ctx[&#34;source_traceback&#34;])).error(f&#34;Exception:&#34;)
 
 
 def inject_loguru_traceback(loop: AbstractEventLoop):
@@ -387,9 +385,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
-    logger.opt(exception=(Exception, ctx[&#34;message&#34;], ctx[&#34;source_traceback&#34;])).error(
-        f&#34;Exception:&#34;
-    )</code></pre>
+    logger.opt(exception=(Exception, ctx[&#34;message&#34;], ctx[&#34;source_traceback&#34;])).error(f&#34;Exception:&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.loguru_excepthook"><code class="name flex">
@@ -498,26 +494,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <span>def <span class="ident">afterExecution</span></span>(<span>self, interface: DispatcherInterface, exception, tb)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)完成(包含因异常被抛出而退出)后被调用.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
-<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
-</dl>
-<ul>
-<li>当前解析中的参数的信息;</li>
-<li>
-<dl>
-<dt>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</dt>
-<dt><strong><code>exception</code></strong> :&ensp;<code>Optional[Exception]</code></dt>
-<dd>可能存在的异常对象, 若为 None 则表示无异常被抛出, 执行顺利完成.</dd>
-</dl>
-</li>
-</ul>
-<dl>
-<dt><strong><code>tb</code></strong> :&ensp;<code>Optional[TracebackType]</code></dt>
-<dd>可能存在的异常堆栈对象, 若为 None 则表示无异常被抛出, 执行顺利完成.</dd>
-</dl></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -530,16 +507,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <span>def <span class="ident">beforeExecution</span></span>(<span>self, interface: DispatcherInterface)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>生命周期钩子: 在整个执行流程(包括参数解析)开始前被调用</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>interface</code></strong> :&ensp;<code>DispatcherInterface</code></dt>
-<dd><code>Dispatcher</code> 服务的主要对象, 可以从其中获取以下信息:</dd>
-</dl>
-<ul>
-<li>当前解析中的参数的信息;</li>
-<li>当前执行的信息, 比如正在处理的事件, <code>Listener</code>/<code>ExecTarget</code> etc.;</li>
-</ul></div>
+<div class="desc"></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>

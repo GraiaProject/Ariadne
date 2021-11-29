@@ -45,9 +45,7 @@ def split(string: str) -&gt; List[str]:
         if char in &#34;&#39;\&#34;&#34;:
             if not quote:
                 quote = char
-            elif (
-                char == quote and index and string[index - 1] != &#34;\\&#34;
-            ):  # is current quote, not transfigured
+            elif char == quote and index and string[index - 1] != &#34;\\&#34;:  # is current quote, not transfigured
                 quote = &#34;&#34;
             else:
                 cache.append(char)
@@ -98,9 +96,7 @@ class TwilightParser(argparse.ArgumentParser):
 
     def accept_type(self, action: Union[str, type]) -&gt; bool:
         if isinstance(action, str):
-            action_cls: Type[argparse.Action] = self._registry_get(
-                &#34;action&#34;, action, action
-            )
+            action_cls: Type[argparse.Action] = self._registry_get(&#34;action&#34;, action, action)
         elif issubclass(action, argparse.Action):
             action_cls = action
         else:
@@ -162,9 +158,7 @@ class TwilightParser(argparse.ArgumentParser):
         if char in &#34;&#39;\&#34;&#34;:
             if not quote:
                 quote = char
-            elif (
-                char == quote and index and string[index - 1] != &#34;\\&#34;
-            ):  # is current quote, not transfigured
+            elif char == quote and index and string[index - 1] != &#34;\\&#34;:  # is current quote, not transfigured
                 quote = &#34;&#34;
             else:
                 cache.append(char)
@@ -238,9 +232,7 @@ error info when an error occurs</p></div>
 
     def accept_type(self, action: Union[str, type]) -&gt; bool:
         if isinstance(action, str):
-            action_cls: Type[argparse.Action] = self._registry_get(
-                &#34;action&#34;, action, action
-            )
+            action_cls: Type[argparse.Action] = self._registry_get(&#34;action&#34;, action, action)
         elif issubclass(action, argparse.Action):
             action_cls = action
         else:
@@ -269,9 +261,7 @@ error info when an error occurs</p></div>
 </summary>
 <pre><code class="python">def accept_type(self, action: Union[str, type]) -&gt; bool:
     if isinstance(action, str):
-        action_cls: Type[argparse.Action] = self._registry_get(
-            &#34;action&#34;, action, action
-        )
+        action_cls: Type[argparse.Action] = self._registry_get(&#34;action&#34;, action, action)
     elif issubclass(action, argparse.Action):
         action_cls = action
     else:

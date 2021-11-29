@@ -52,10 +52,10 @@ class Formatter:
         element_list: List[Element] = []
 
         for i in re.split(&#34;([\x02\x03][\\d\\w]+[\x02\x03])&#34;, result):
-            if match := re.fullmatch(
-                &#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i
-            ):
-                header: Literal[&#34;\x02&#34;, &#34;\x03&#34;] = match.group(&#34;header&#34;)
+            if match := re.fullmatch(&#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i):
+                header = match.group(&#34;header&#34;)
+                if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
+                    raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
                 content: str = match.group(&#34;content&#34;)
                 full: str = match.group(0)
                 if header == &#34;\x02&#34;:  # from args
@@ -105,10 +105,10 @@ class Formatter:
         element_list: List[Element] = []
 
         for i in re.split(&#34;([\x02\x03][\\d\\w]+[\x02\x03])&#34;, result):
-            if match := re.fullmatch(
-                &#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i
-            ):
-                header: Literal[&#34;\x02&#34;, &#34;\x03&#34;] = match.group(&#34;header&#34;)
+            if match := re.fullmatch(&#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i):
+                header = match.group(&#34;header&#34;)
+                if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
+                    raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
                 content: str = match.group(&#34;content&#34;)
                 full: str = match.group(0)
                 if header == &#34;\x02&#34;:  # from args
@@ -150,10 +150,10 @@ class Formatter:
     element_list: List[Element] = []
 
     for i in re.split(&#34;([\x02\x03][\\d\\w]+[\x02\x03])&#34;, result):
-        if match := re.fullmatch(
-            &#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i
-        ):
-            header: Literal[&#34;\x02&#34;, &#34;\x03&#34;] = match.group(&#34;header&#34;)
+        if match := re.fullmatch(&#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i):
+            header = match.group(&#34;header&#34;)
+            if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
+                raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
             content: str = match.group(&#34;content&#34;)
             full: str = match.group(0)
             if header == &#34;\x02&#34;:  # from args

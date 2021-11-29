@@ -1,6 +1,11 @@
 from typing import TYPE_CHECKING, Generic, Optional, Tuple, TypeVar
 
+from typing_extensions import ParamSpec, TypeGuard
+
 if TYPE_CHECKING:
+    P = ParamSpec("P")
+    R = TypeVar("R")
+
     Self = TypeVar("Self")
 
     T_start = TypeVar("T_start")

@@ -8,14 +8,13 @@ if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
     from graia.broadcast import Broadcast
-    from graia.broadcast.entities.event import Dispatchable
 
     from .adapter import Adapter
     from .app import Ariadne
     from .event import MiraiEvent
 
 
-application_ctx: ContextVar["Ariadne"] = ContextVar("application")
+ariadne_ctx: ContextVar["Ariadne"] = ContextVar("application")
 adapter_ctx: ContextVar["Adapter"] = ContextVar("adapter")
 event_ctx: ContextVar["MiraiEvent"] = ContextVar("event")
 event_loop_ctx: ContextVar["AbstractEventLoop"] = ContextVar("event_loop")
@@ -31,7 +30,7 @@ def enter_message_send_context(method: UploadMethod):
 
 
 @contextmanager
-def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
+def enter_context(app: "Ariadne" = None, event: "MiraiEvent" = None):
     token_app = None
     token_event = None
     token_loop = None
@@ -39,7 +38,7 @@ def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
     token_adapter = None
 
     if app:
-        token_app = application_ctx.set(app)
+        token_app = ariadne_ctx.set(app)
         token_loop = event_loop_ctx.set(app.broadcast.loop)
         token_bcc = broadcast_ctx.set(app.broadcast)
         token_adapter = adapter_ctx.set(app.adapter)
@@ -50,12 +49,14 @@ def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
 
     try:
         if token_app:
-            application_ctx.reset(token_app)
+            ariadne_ctx.reset(token_app)
         if token_adapter:
             adapter_ctx.reset(token_adapter)
-        if all([token_event, token_loop, token_bcc]):
+        if token_event:
             event_ctx.reset(token_event)
+        if token_loop:
             event_loop_ctx.reset(token_loop)
+        if token_bcc:
             broadcast_ctx.reset(token_bcc)
     except ValueError:
         pass

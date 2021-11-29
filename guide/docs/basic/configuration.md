@@ -1,11 +1,5 @@
 # 配置相关
 
-!!!info "注意"
-
-    这里介绍的是 `Ariadne` 的 配置, 而非 `Mirai-API-HTTP` 的.
-
-## 让我们从 "签名" 开始
-
 这里是 `Ariadne` 的 `__init__()` 签名:
 
 ```python hl_lines="8-10"
@@ -26,7 +20,7 @@ def __init__(
 
 这个部分是用于控制 Ariadne 的 聊天日志的.
 
-如果你不喜欢启用聊天日志输出, 设置为 `False` 即可.
+设置为 `False` 即可禁用聊天日志输出.
 
 你可以从 `graia.ariadne.model` 导入 `ChatLogConfig`, 进行更细致的控制.
 
@@ -37,10 +31,7 @@ def __init__(
 `Graia Framework` 默认使用 [`traceback`](https://docs.python.org/zh-cn/3/library/traceback.html) 中的
 [`traceback.print_exc()`](https://docs.python.org/zh-cn/3/library/traceback.html#traceback.print_exc) 函数输出执行中的异常追踪.
 
-这并没有什么问题, 但是...
-
-- 无法直接记录至日志中.
-- 异常回溯有时候并不直观. (尤其是函数调用经过了多个包装器时)
+但是其无法直接记录异常至日志中, 且异常回溯有时候并不直观, 导致难以调试.
 
 设置 `use_loguru_traceback` 后, `Ariadne` 会调用 `util.inject_loguru_traceback()` 替换
 [`traceback.print_exception()`](https://docs.python.org/zh-cn/3/library/traceback.html#traceback.print_exception) 与
@@ -48,7 +39,8 @@ def __init__(
 
 ### use_bypass_listener
 
-你可能想过这样写:
+以下代码在 `Graia Broadcast` 的正常流程中不能正常运作,
+因为其默认事件分发器只支持原事件 (`listening_event is posted_event`:
 
 ```python
 @bcc.receiver(MessageEvent)
@@ -56,17 +48,7 @@ async def reply(app: Ariadne, event: MessageEvent):
     await app.sendMessage(event, MessageChain.create("Hello!"))
 ```
 
-不幸的是, `Graia Broadcast` 的默认事件分发器只支持原事件 (`listening_event is posted_event`).
-
-所以你的代码并不能正常监听到 `FriendMessage`, `GroupMessage` 等子事件.
-
-设置 `use_bypass_listener` 后, `Ariadne` 会通过某些魔法支持子事件解析 (事件透传).
-
-现在, 事件分发就能支持子事件了. (`posted_event is instance of listening event`)
-
-!!! note "提示"
-
-    如果你真的非常关心实现细节, 它在 `util.inject_inject_bypass_listener()` 里.
+设置 `use_bypass_listener` 后, `Ariadne` 会通过 `inject_bypass_listener` 支持子事件解析 (事件透传).
 
 ### max_retry
 

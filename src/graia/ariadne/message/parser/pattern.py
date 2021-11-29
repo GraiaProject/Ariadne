@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
+    Callable,
     Dict,
     List,
     Optional,
@@ -15,6 +16,8 @@ from typing import (
     TypeVar,
     Union,
 )
+
+from pydantic.utils import Representation
 
 from .util import gen_flags_repr
 
@@ -43,27 +46,21 @@ class BoxParameter(ParamPattern):
     "可以被指定传入消息的参数, 但只有一个."
 
 
-class Match(abc.ABC):
+class Match(abc.ABC, Representation):
     pattern: str
     optional: bool
+    help: str
     matched: Optional[bool]
     result: Optional["MessageChain"]
 
-    def __init__(self, pattern, optional: bool = False) -> None:
+    def __init__(self, pattern, optional: bool = False, help: str = "") -> None:
         self.pattern = pattern
         self.optional = optional
+        self.help = help
         self.result = None
         self.matched = None
         if self.__class__ == Match:
             raise ValueError("You can't instantiate Match class directly!")
-
-    def __repr__(self) -> str:
-        values = {
-            k: v
-            for k, v in self.__dict__.items()
-            if not k.startswith("_") and not callable(v)
-        }
-        return f"<{self.__class__.__qualname__} {values})>"
 
     def clone(self, result: "MessageChain", matched: bool) -> "Self":
         new_instance = copy.copy(self)
@@ -71,8 +68,18 @@ class Match(abc.ABC):
         new_instance.matched = matched
         return new_instance
 
+    def __repr_args__(self):
+        return [
+            ("matched", self.matched),
+            ("result", self.result),
+            ("pattern", self.pattern),
+        ]
+
     def gen_regex(self) -> str:
         ...
+
+    def get_help(self) -> str:
+        return self.pattern.replace("( )?", " ")
 
 
 class RegexMatch(Match):
@@ -89,8 +96,9 @@ class RegexMatch(Match):
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
         preserve_space: bool = True,
+        help: str = "",
     ) -> None:
-        super().__init__(pattern, optional)
+        super().__init__(pattern, optional, help)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
@@ -102,9 +110,7 @@ class RegexMatch(Match):
             f"{'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
         )
 
-    def clone(
-        self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None
-    ) -> "Self":
+    def clone(self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None) -> "Self":
         new_instance: RegexMatch = super().clone(result, matched)
         new_instance.regex_match = re_match
         return new_instance
@@ -116,9 +122,9 @@ class WildcardMatch(Match):
     preserve_space: bool
 
     def __init__(
-        self, greed: bool = True, optional: bool = False, preserve_space: bool = True
+        self, *, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = ""
     ) -> None:
-        super().__init__(f".*", optional=optional)
+        super().__init__(".*", optional, help)
         self.greed = greed
         self.preserve_space = preserve_space
 
@@ -130,9 +136,9 @@ class FullMatch(Match):
     """全匹配."""
 
     def __init__(
-        self, pattern: str, *, optional: bool = False, preserve_space: bool = True
+        self, pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = ""
     ) -> None:
-        super().__init__(pattern, optional)
+        super().__init__(pattern, optional, help)
         self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
@@ -146,12 +152,9 @@ class ElementMatch(Match):
     result: "Element"
 
     def __init__(
-        self,
-        pattern: Type["Element"],
-        optional: bool = False,
-        preserve_space: bool = True,
+        self, pattern: Type["Element"], optional: bool = False, preserve_space: bool = True, help: str = ""
     ) -> None:
-        super().__init__(pattern, optional=optional)
+        super().__init__(pattern, optional, help)
         self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
@@ -159,6 +162,9 @@ class ElementMatch(Match):
             f"(\x02\\d+_{self.pattern.__fields__['type'].default}\x03){'?' if self.optional else ''}"
             f"{'( )?' if self.preserve_space else ''}"
         )
+
+    def get_help(self) -> str:
+        return self.pattern.__name__
 
 
 T_const = TypeVar("T_const")
@@ -174,7 +180,7 @@ class ArgumentMatch(Match):
     action: Union[str, Type[Action]]
     const: Optional[T_const]
     default: Optional[T_default]
-    regex: Optional[str]
+    regex: Optional[re.Pattern]
     result: Union["MessageChain", Any]
     add_arg_data: Dict[str, Any]
     elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
@@ -187,11 +193,13 @@ class ArgumentMatch(Match):
         default: Optional[T_default] = ...,
         nargs: Union[str, int] = ...,
         action: Union[str, Type[Action]] = ...,
+        type: Callable = ...,
         regex: Optional[str] = None,
+        help: str = "",
     ) -> None:
         if not pattern:
             raise ValueError("Expected at least 1 pattern!")
-        super().__init__(pattern, optional)
+        super().__init__(pattern, optional, help)
         self.name = pattern[0].lstrip("-").replace("-", "_")
         self.nargs = nargs
         self.action = action
@@ -207,6 +215,10 @@ class ArgumentMatch(Match):
             data["const"] = const
         if default is not ...:
             data["default"] = default
+        if type is not ...:
+            data["type"] = type
+        if help is not ...:
+            data["help"] = help
         if pattern[0].startswith("-"):
             data["required"] = not optional
         self.add_arg_data = data

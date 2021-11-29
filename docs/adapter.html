@@ -34,7 +34,18 @@ from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.locks import Event
 from asyncio.tasks import Task
-from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Set, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    NoReturn,
+    Optional,
+    Set,
+    TypeVar,
+    Union,
+)
 
 import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
@@ -43,7 +54,7 @@ from aiohttp.http_websocket import WSMsgType
 from graia.broadcast import Broadcast
 from graia.broadcast.utilles import run_always_await
 from loguru import logger
-from typing_extensions import Concatenate, ParamSpec
+from typing_extensions import Concatenate
 from yarl import URL
 
 from .context import enter_context
@@ -55,16 +66,14 @@ from .util import validate_response
 
 if TYPE_CHECKING:
     from .app import Ariadne
-
-P = ParamSpec(&#34;P&#34;)
-R = TypeVar(&#34;R&#34;)
+    from .typing import P, R, Self
 
 
 def require_verified(
-    func: Callable[Concatenate[&#34;Adapter&#34;, P], R]
-) -&gt; Callable[Concatenate[&#34;Adapter&#34;, P], R]:
+    func: &#34;Callable[Concatenate[Adapter, P], R]&#34;,
+) -&gt; &#34;Callable[Concatenate[Adapter, P], R]&#34;:
     @functools.wraps(func)
-    def wrapper(self: &#34;Adapter&#34;, *args: P.args, **kwargs: P.kwargs):
+    def wrapper(self: &#34;Adapter&#34;, *args: &#34;P.args&#34;, **kwargs: &#34;P.kwargs&#34;) -&gt; &#34;R&#34;:
         if not self.mirai_session.session_key:
             raise InvalidSession(&#34;you must verify the session before action.&#34;)
         return func(self, *args, **kwargs)
@@ -73,33 +82,25 @@ def require_verified(
 
 
 def error_wrapper(
-    network_action_callable: Callable[Concatenate[&#34;Adapter&#34;, P], R]
-) -&gt; Callable[Concatenate[&#34;Adapter&#34;, P], R]:
+    network_action_callable: &#34;Callable[Concatenate[Self, P], Awaitable[R]]&#34;,
+) -&gt; &#34;Callable[Concatenate[Self, P], Awaitable[R]]&#34;:
     @functools.wraps(network_action_callable)
-    async def wrapped_network_action_callable(
-        self: &#34;Adapter&#34;, *args: P.args, **kwargs: P.kwargs
-    ) -&gt; R:
+    async def wrapped_network_action_callable(self: &#34;Adapter&#34;, *args: &#34;P.args&#34;, **kwargs: &#34;P.kwargs&#34;) -&gt; &#34;R&#34;:
         running_count = 0
 
         while running_count &lt; 5:
             running_count += 1
             try:
-                return await network_action_callable(self, *args, **kwargs)
+                result = await network_action_callable(self, *args, **kwargs)
             except InvalidSession as invalid_session_exc:
-                logger.error(
-                    &#34;Invalid session detected, asking daemon to restart adapter...&#34;
-                )
+                logger.error(&#34;Invalid session detected, asking daemon to restart adapter...&#34;)
                 logger.exception(invalid_session_exc)
                 await self.stop()
             except aiohttp.web_exceptions.HTTPNotFound:
-                raise NotSupportedAction(
-                    f&#34;{network_action_callable.__name__}: this action not supported&#34;
-                )
+                raise NotSupportedAction(f&#34;{network_action_callable.__name__}: this action not supported&#34;)
             except aiohttp.web_exceptions.HTTPInternalServerError as e:
                 self.broadcast.postEvent(RemoteException())
-                logger.error(
-                    &#34;An exception has thrown by remote, please check the console!&#34;
-                )
+                logger.error(&#34;An exception has thrown by remote, please check the console!&#34;)
                 raise
             except (
                 aiohttp.web_exceptions.HTTPMethodNotAllowed,
@@ -117,7 +118,10 @@ def error_wrapper(
                     f&#34;timeout on {network_action_callable.__name__}, retry after 5 seconds...&#34;.format()
                 )
                 await asyncio.sleep(5)
-                continue
+                raise
+            else:
+                return result
+        raise TimeoutError(f&#34;Failed after 5 try on {network_action_callable.__name__}.&#34;)
 
     return wrapped_network_action_callable
 
@@ -181,24 +185,20 @@ class Adapter(abc.ABC):
         event_type: Optional[str] = data.get(&#34;type&#34;)
         if not event_type or not isinstance(event_type, str):
             raise InvalidArgument(&#34;Unable to find &#39;type&#39; field for automatic parsing&#34;)
-        event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)
+        event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)  # type: ignore
         if not event_class:
-            logger.error(
-                &#34;An event is not recognized! Please report with your log to help us diagnose.&#34;
-            )
+            logger.error(&#34;An event is not recognized! Please report with your log to help us diagnose.&#34;)
             raise ValueError(f&#34;Unable to find event: {event_type}&#34;, data)
         data = {k: v for k, v in data.items() if k != &#34;type&#34;}
-        obj = event_class.parse_obj(data)
-        return await run_always_await(obj)
+        event = event_class.parse_obj(data)
+        return event
 
     async def start(self):
         if not self.session:
             self.session = ClientSession()
         if not self.fetch_task or self.fetch_task.done():
             self.running = True
-            self.fetch_task = self.loop.create_task(
-                self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;
-            )
+            self.fetch_task = self.loop.create_task(self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;)
 
     @property
     def session_activated(self) -&gt; bool:
@@ -242,39 +242,44 @@ class HttpAdapter(Adapter):
     @require_verified
     @error_wrapper
     async def call_api(
-        self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
+        self,
+        action: str,
+        method: CallMethod,
+        data: Optional[Union[Dict[str, Any], str]] = None,
     ) -&gt; Union[dict, list]:
-        data = data or dict()
+        if not data:
+            data = dict()
+        if not self.session:
+            raise RuntimeError(&#34;Unable to get session!&#34;)
+
         if method == CallMethod.GET or method == CallMethod.RESTGET:
             if isinstance(data, str):
                 data = json.loads(data)
-            async with self.session.get(
-                URL(self.mirai_session.url_gen(action)).with_query(data)
-            ) as response:
+            async with self.session.get(URL(self.mirai_session.url_gen(action)).with_query(data)) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
+
         elif method == CallMethod.POST or method == CallMethod.RESTPOST:
             if not isinstance(data, str):
                 data = json.dumps(data, cls=DatetimeEncoder)
-            async with self.session.post(
-                self.mirai_session.url_gen(action), data=data
-            ) as response:
+            async with self.session.post(self.mirai_session.url_gen(action), data=data) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
+
         else:  # MULTIPART
             form = FormData()
-            data: Dict[str, Any]
+            if not isinstance(data, dict):
+                raise ValueError(&#34;Data must be a dict in multipart call!&#34;)
             for k, v in data.items():
                 form.add_fields(k, v)
-            async with self.session.post(
-                self.mirai_session.url_gen(action), data=form
-            ) as response:
+            async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
         if &#34;data&#34; in resp_json:
             resp = resp_json[&#34;data&#34;]
         else:
             resp = resp_json
+
         validate_response(resp)
         return resp
 
@@ -304,9 +309,7 @@ class WebsocketAdapter(Adapter):
             super().__init__(loop=loop)
             self.response: Optional[dict] = None
 
-    def __init__(
-        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
-    ) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
         super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
@@ -322,8 +325,8 @@ class WebsocketAdapter(Adapter):
                 try:
                     await self.ws_conn.ping()
                     logger.debug(&#34;websocket: ping&#34;)
-                except:
-                    logger.exception(&#34;websocket: ping failed&#34;)
+                except Exception as e:
+                    logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
                 else:
                     logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                     await asyncio.sleep(interval)
@@ -352,9 +355,7 @@ class WebsocketAdapter(Adapter):
         elif method == CallMethod.RESTPOST:
             content[&#34;subCommand&#34;] = &#34;update&#34;
         elif method == CallMethod.MULTIPART:
-            raise NotImplementedError(
-                f&#34;Unsupported operation for WebsocketAdapter: {method}&#34;
-            )
+            raise NotImplementedError(f&#34;Unsupported operation for WebsocketAdapter: {method}&#34;)
 
         await self.ws_conn.send_str(json.dumps(content, cls=DatetimeEncoder))
         logger.debug(f&#34;websocket：sent with sync id: {sync_id}&#34;)
@@ -366,8 +367,7 @@ class WebsocketAdapter(Adapter):
         validate_response(value)
         if &#34;data&#34; in value:
             return value[&#34;data&#34;]
-        else:
-            return value
+        return value
 
     async def raw_data_parser(self, raw_data: dict) -&gt; None:
         sync_id: str = raw_data[&#34;syncId&#34;]
@@ -397,9 +397,7 @@ class WebsocketAdapter(Adapter):
             self.ws_conn = connection
 
             if self.ping:
-                self.ping_task = self.loop.create_task(
-                    self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;
-                )
+                self.ping_task = self.loop.create_task(self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;)
                 logger.info(&#34;websocket: ping task created&#34;)
             try:
                 while self.running:
@@ -414,11 +412,7 @@ class WebsocketAdapter(Adapter):
                     elif ws_message.type is WSMsgType.PONG:
                         logger.debug(&#34;websocket: received pong&#34;)
                     else:
-                        logger.debug(
-                            &#34;websocket: unknown message type - {}&#34;.format(
-                                ws_message.type
-                            )
-                        )
+                        logger.debug(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
             except Exception as e:
                 logger.exception(e)
             finally:
@@ -440,9 +434,7 @@ class CombinedAdapter(Adapter):
         ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
-    def __init__(
-        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
-    ) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
         super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
@@ -509,7 +501,7 @@ class DebugAdapter(DefaultAdapter):
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="ariadne.adapter.error_wrapper"><code class="name flex">
-<span>def <span class="ident">error_wrapper</span></span>(<span>network_action_callable: Callable[[ForwardRef('<a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a>'), ~P], ~R]) ‑> Callable[[<a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a>, ~P], ~R]</span>
+<span>def <span class="ident">error_wrapper</span></span>(<span>network_action_callable: Callable[Concatenate[Self, P], Awaitable[R]]) ‑> Callable[Concatenate[Self, P], Awaitable[R]]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -518,33 +510,25 @@ class DebugAdapter(DefaultAdapter):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def error_wrapper(
-    network_action_callable: Callable[Concatenate[&#34;Adapter&#34;, P], R]
-) -&gt; Callable[Concatenate[&#34;Adapter&#34;, P], R]:
+    network_action_callable: &#34;Callable[Concatenate[Self, P], Awaitable[R]]&#34;,
+) -&gt; &#34;Callable[Concatenate[Self, P], Awaitable[R]]&#34;:
     @functools.wraps(network_action_callable)
-    async def wrapped_network_action_callable(
-        self: &#34;Adapter&#34;, *args: P.args, **kwargs: P.kwargs
-    ) -&gt; R:
+    async def wrapped_network_action_callable(self: &#34;Adapter&#34;, *args: &#34;P.args&#34;, **kwargs: &#34;P.kwargs&#34;) -&gt; &#34;R&#34;:
         running_count = 0
 
         while running_count &lt; 5:
             running_count += 1
             try:
-                return await network_action_callable(self, *args, **kwargs)
+                result = await network_action_callable(self, *args, **kwargs)
             except InvalidSession as invalid_session_exc:
-                logger.error(
-                    &#34;Invalid session detected, asking daemon to restart adapter...&#34;
-                )
+                logger.error(&#34;Invalid session detected, asking daemon to restart adapter...&#34;)
                 logger.exception(invalid_session_exc)
                 await self.stop()
             except aiohttp.web_exceptions.HTTPNotFound:
-                raise NotSupportedAction(
-                    f&#34;{network_action_callable.__name__}: this action not supported&#34;
-                )
+                raise NotSupportedAction(f&#34;{network_action_callable.__name__}: this action not supported&#34;)
             except aiohttp.web_exceptions.HTTPInternalServerError as e:
                 self.broadcast.postEvent(RemoteException())
-                logger.error(
-                    &#34;An exception has thrown by remote, please check the console!&#34;
-                )
+                logger.error(&#34;An exception has thrown by remote, please check the console!&#34;)
                 raise
             except (
                 aiohttp.web_exceptions.HTTPMethodNotAllowed,
@@ -562,13 +546,16 @@ class DebugAdapter(DefaultAdapter):
                     f&#34;timeout on {network_action_callable.__name__}, retry after 5 seconds...&#34;.format()
                 )
                 await asyncio.sleep(5)
-                continue
+                raise
+            else:
+                return result
+        raise TimeoutError(f&#34;Failed after 5 try on {network_action_callable.__name__}.&#34;)
 
     return wrapped_network_action_callable</code></pre>
 </details>
 </dd>
 <dt id="ariadne.adapter.require_verified"><code class="name flex">
-<span>def <span class="ident">require_verified</span></span>(<span>func: Callable[[ForwardRef('<a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a>'), ~P], ~R]) ‑> Callable[[<a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a>, ~P], ~R]</span>
+<span>def <span class="ident">require_verified</span></span>(<span>func: Callable[Concatenate[<a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a>, P], R]) ‑> Callable[Concatenate[<a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a>, P], R]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -577,10 +564,10 @@ class DebugAdapter(DefaultAdapter):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def require_verified(
-    func: Callable[Concatenate[&#34;Adapter&#34;, P], R]
-) -&gt; Callable[Concatenate[&#34;Adapter&#34;, P], R]:
+    func: &#34;Callable[Concatenate[Adapter, P], R]&#34;,
+) -&gt; &#34;Callable[Concatenate[Adapter, P], R]&#34;:
     @functools.wraps(func)
-    def wrapper(self: &#34;Adapter&#34;, *args: P.args, **kwargs: P.kwargs):
+    def wrapper(self: &#34;Adapter&#34;, *args: &#34;P.args&#34;, **kwargs: &#34;P.kwargs&#34;) -&gt; &#34;R&#34;:
         if not self.mirai_session.session_key:
             raise InvalidSession(&#34;you must verify the session before action.&#34;)
         return func(self, *args, **kwargs)
@@ -668,24 +655,20 @@ class DebugAdapter(DefaultAdapter):
         event_type: Optional[str] = data.get(&#34;type&#34;)
         if not event_type or not isinstance(event_type, str):
             raise InvalidArgument(&#34;Unable to find &#39;type&#39; field for automatic parsing&#34;)
-        event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)
+        event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)  # type: ignore
         if not event_class:
-            logger.error(
-                &#34;An event is not recognized! Please report with your log to help us diagnose.&#34;
-            )
+            logger.error(&#34;An event is not recognized! Please report with your log to help us diagnose.&#34;)
             raise ValueError(f&#34;Unable to find event: {event_type}&#34;, data)
         data = {k: v for k, v in data.items() if k != &#34;type&#34;}
-        obj = event_class.parse_obj(data)
-        return await run_always_await(obj)
+        event = event_class.parse_obj(data)
+        return event
 
     async def start(self):
         if not self.session:
             self.session = ClientSession()
         if not self.fetch_task or self.fetch_task.done():
             self.running = True
-            self.fetch_task = self.loop.create_task(
-                self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;
-            )
+            self.fetch_task = self.loop.create_task(self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;)
 
     @property
     def session_activated(self) -&gt; bool:
@@ -774,15 +757,13 @@ def session_activated(self) -&gt; bool:
     event_type: Optional[str] = data.get(&#34;type&#34;)
     if not event_type or not isinstance(event_type, str):
         raise InvalidArgument(&#34;Unable to find &#39;type&#39; field for automatic parsing&#34;)
-    event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)
+    event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)  # type: ignore
     if not event_class:
-        logger.error(
-            &#34;An event is not recognized! Please report with your log to help us diagnose.&#34;
-        )
+        logger.error(&#34;An event is not recognized! Please report with your log to help us diagnose.&#34;)
         raise ValueError(f&#34;Unable to find event: {event_type}&#34;, data)
     data = {k: v for k, v in data.items() if k != &#34;type&#34;}
-    obj = event_class.parse_obj(data)
-    return await run_always_await(obj)</code></pre>
+    event = event_class.parse_obj(data)
+    return event</code></pre>
 </details>
 </dd>
 <dt id="ariadne.adapter.Adapter.call_api"><code class="name flex">
@@ -858,9 +839,7 @@ async def fetch_cycle(self) -&gt; None:
         self.session = ClientSession()
     if not self.fetch_task or self.fetch_task.done():
         self.running = True
-        self.fetch_task = self.loop.create_task(
-            self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;
-        )</code></pre>
+        self.fetch_task = self.loop.create_task(self.fetch_cycle(), name=&#34;ariadne_adapter_fetch_cycle&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.adapter.Adapter.stop"><code class="name flex">
@@ -917,9 +896,7 @@ async def fetch_cycle(self) -&gt; None:
         ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
-    def __init__(
-        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
-    ) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
         super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
@@ -957,7 +934,7 @@ async def fetch_cycle(self) -&gt; None:
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.adapter.CombinedAdapter.call_api"><code class="name flex">
-<span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: <a title="ariadne.model.CallMethod" href="model.html#ariadne.model.CallMethod">CallMethod</a>, data: Union[dict, str, ForwardRef(None)] = None) ‑> Union[dict, list]</span>
+<span>async def <span class="ident">call_api</span></span>(<span>self, action: str, method: <a title="ariadne.model.CallMethod" href="model.html#ariadne.model.CallMethod">CallMethod</a>, data: Union[Dict[str, Any], str, ForwardRef(None)] = None) ‑> Union[dict, list]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -968,39 +945,44 @@ async def fetch_cycle(self) -&gt; None:
 <pre><code class="python">@require_verified
 @error_wrapper
 async def call_api(
-    self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
+    self,
+    action: str,
+    method: CallMethod,
+    data: Optional[Union[Dict[str, Any], str]] = None,
 ) -&gt; Union[dict, list]:
-    data = data or dict()
+    if not data:
+        data = dict()
+    if not self.session:
+        raise RuntimeError(&#34;Unable to get session!&#34;)
+
     if method == CallMethod.GET or method == CallMethod.RESTGET:
         if isinstance(data, str):
             data = json.loads(data)
-        async with self.session.get(
-            URL(self.mirai_session.url_gen(action)).with_query(data)
-        ) as response:
+        async with self.session.get(URL(self.mirai_session.url_gen(action)).with_query(data)) as response:
             response.raise_for_status()
             resp_json: dict = await response.json()
+
     elif method == CallMethod.POST or method == CallMethod.RESTPOST:
         if not isinstance(data, str):
             data = json.dumps(data, cls=DatetimeEncoder)
-        async with self.session.post(
-            self.mirai_session.url_gen(action), data=data
-        ) as response:
+        async with self.session.post(self.mirai_session.url_gen(action), data=data) as response:
             response.raise_for_status()
             resp_json: dict = await response.json()
+
     else:  # MULTIPART
         form = FormData()
-        data: Dict[str, Any]
+        if not isinstance(data, dict):
+            raise ValueError(&#34;Data must be a dict in multipart call!&#34;)
         for k, v in data.items():
             form.add_fields(k, v)
-        async with self.session.post(
-            self.mirai_session.url_gen(action), data=form
-        ) as response:
+        async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
             response.raise_for_status()
             resp_json: dict = await response.json()
     if &#34;data&#34; in resp_json:
         resp = resp_json[&#34;data&#34;]
     else:
         resp = resp_json
+
     validate_response(resp)
     return resp</code></pre>
 </details>
@@ -1023,9 +1005,7 @@ async def call_api(
         self.ws_conn = connection
 
         if self.ping:
-            self.ping_task = self.loop.create_task(
-                self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;
-            )
+            self.ping_task = self.loop.create_task(self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;)
             logger.info(&#34;websocket: ping task created&#34;)
         try:
             while self.running:
@@ -1040,11 +1020,7 @@ async def call_api(
                 elif ws_message.type is WSMsgType.PONG:
                     logger.debug(&#34;websocket: received pong&#34;)
                 else:
-                    logger.debug(
-                        &#34;websocket: unknown message type - {}&#34;.format(
-                            ws_message.type
-                        )
-                    )
+                    logger.debug(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
         except Exception as e:
             logger.exception(e)
         finally:
@@ -1091,8 +1067,8 @@ async def call_api(
             try:
                 await self.ws_conn.ping()
                 logger.debug(&#34;websocket: ping&#34;)
-            except:
-                logger.exception(&#34;websocket: ping failed&#34;)
+            except Exception as e:
+                logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
             else:
                 logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                 await asyncio.sleep(interval)
@@ -1132,9 +1108,7 @@ async def call_api(
         ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
-    def __init__(
-        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
-    ) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
         super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
@@ -1207,8 +1181,8 @@ async def call_api(
             try:
                 await self.ws_conn.ping()
                 logger.debug(&#34;websocket: ping&#34;)
-            except:
-                logger.exception(&#34;websocket: ping failed&#34;)
+            except Exception as e:
+                logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
             else:
                 logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                 await asyncio.sleep(interval)
@@ -1326,39 +1300,44 @@ Note: Working In Progress</p></div>
     @require_verified
     @error_wrapper
     async def call_api(
-        self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
+        self,
+        action: str,
+        method: CallMethod,
+        data: Optional[Union[Dict[str, Any], str]] = None,
     ) -&gt; Union[dict, list]:
-        data = data or dict()
+        if not data:
+            data = dict()
+        if not self.session:
+            raise RuntimeError(&#34;Unable to get session!&#34;)
+
         if method == CallMethod.GET or method == CallMethod.RESTGET:
             if isinstance(data, str):
                 data = json.loads(data)
-            async with self.session.get(
-                URL(self.mirai_session.url_gen(action)).with_query(data)
-            ) as response:
+            async with self.session.get(URL(self.mirai_session.url_gen(action)).with_query(data)) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
+
         elif method == CallMethod.POST or method == CallMethod.RESTPOST:
             if not isinstance(data, str):
                 data = json.dumps(data, cls=DatetimeEncoder)
-            async with self.session.post(
-                self.mirai_session.url_gen(action), data=data
-            ) as response:
+            async with self.session.post(self.mirai_session.url_gen(action), data=data) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
+
         else:  # MULTIPART
             form = FormData()
-            data: Dict[str, Any]
+            if not isinstance(data, dict):
+                raise ValueError(&#34;Data must be a dict in multipart call!&#34;)
             for k, v in data.items():
                 form.add_fields(k, v)
-            async with self.session.post(
-                self.mirai_session.url_gen(action), data=form
-            ) as response:
+            async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()
         if &#34;data&#34; in resp_json:
             resp = resp_json[&#34;data&#34;]
         else:
             resp = resp_json
+
         validate_response(resp)
         return resp</code></pre>
 </details>
@@ -1415,9 +1394,7 @@ Note: Working In Progress</p></div>
             super().__init__(loop=loop)
             self.response: Optional[dict] = None
 
-    def __init__(
-        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True
-    ) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
         super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
@@ -1433,8 +1410,8 @@ Note: Working In Progress</p></div>
                 try:
                     await self.ws_conn.ping()
                     logger.debug(&#34;websocket: ping&#34;)
-                except:
-                    logger.exception(&#34;websocket: ping failed&#34;)
+                except Exception as e:
+                    logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
                 else:
                     logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                     await asyncio.sleep(interval)
@@ -1463,9 +1440,7 @@ Note: Working In Progress</p></div>
         elif method == CallMethod.RESTPOST:
             content[&#34;subCommand&#34;] = &#34;update&#34;
         elif method == CallMethod.MULTIPART:
-            raise NotImplementedError(
-                f&#34;Unsupported operation for WebsocketAdapter: {method}&#34;
-            )
+            raise NotImplementedError(f&#34;Unsupported operation for WebsocketAdapter: {method}&#34;)
 
         await self.ws_conn.send_str(json.dumps(content, cls=DatetimeEncoder))
         logger.debug(f&#34;websocket：sent with sync id: {sync_id}&#34;)
@@ -1477,8 +1452,7 @@ Note: Working In Progress</p></div>
         validate_response(value)
         if &#34;data&#34; in value:
             return value[&#34;data&#34;]
-        else:
-            return value
+        return value
 
     async def raw_data_parser(self, raw_data: dict) -&gt; None:
         sync_id: str = raw_data[&#34;syncId&#34;]
@@ -1508,9 +1482,7 @@ Note: Working In Progress</p></div>
             self.ws_conn = connection
 
             if self.ping:
-                self.ping_task = self.loop.create_task(
-                    self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;
-                )
+                self.ping_task = self.loop.create_task(self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;)
                 logger.info(&#34;websocket: ping task created&#34;)
             try:
                 while self.running:
@@ -1525,11 +1497,7 @@ Note: Working In Progress</p></div>
                     elif ws_message.type is WSMsgType.PONG:
                         logger.debug(&#34;websocket: received pong&#34;)
                     else:
-                        logger.debug(
-                            &#34;websocket: unknown message type - {}&#34;.format(
-                                ws_message.type
-                            )
-                        )
+                        logger.debug(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
             except Exception as e:
                 logger.exception(e)
             finally:
@@ -1605,8 +1573,8 @@ false.</p></div>
             try:
                 await self.ws_conn.ping()
                 logger.debug(&#34;websocket: ping&#34;)
-            except:
-                logger.exception(&#34;websocket: ping failed&#34;)
+            except Exception as e:
+                logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
             else:
                 logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                 await asyncio.sleep(interval)

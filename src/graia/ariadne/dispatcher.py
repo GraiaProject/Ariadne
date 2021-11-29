@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from .context import application_ctx
+from .context import ariadne_ctx
 
 if TYPE_CHECKING:
     from .event.message import MessageEvent
@@ -22,8 +22,8 @@ class MessageChainDispatcher(BaseDispatcher):
 class ApplicationDispatcher(BaseDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if getattr(interface.annotation, "__name__", None) == "GraiaMiraiApplication":
-            return application_ctx.get()
+        if getattr(interface.annotation, "__name__", None) == "Ariadne":
+            return ariadne_ctx.get()
 
 
 class SourceDispatcher(BaseDispatcher):

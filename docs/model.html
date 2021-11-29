@@ -92,20 +92,18 @@ class ChatLogConfig(AriadneBaseModel):
 
     enabled: bool = True
     log_level: str = &#34;INFO&#34;
-    group_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
-    friend_message_log_format: str = (
-        &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    group_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
     )
-    temp_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
-    other_client_message_log_format: str = (
-        &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    friend_message_log_format: str = &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    temp_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
     )
-    stranger_message_log_format: str = (
-        &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
-    )
+    other_client_message_log_format: str = &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    stranger_message_log_format: str = &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
 
     def __init__(
-        __pydantic_self__,
+        self,
         enabled: bool = True,
         log_level: str = &#34;INFO&#34;,
         **msg_format: str,
@@ -212,15 +210,13 @@ class MiraiSession(AriadneBaseModel):
 
     def __init__(
         self,
-        host: AnyHttpUrl,
-        account: Optional[int] = None,
+        host: Union[AnyHttpUrl, str],
+        account: Optional[Union[int, str]] = None,
         verify_key: Optional[str] = None,
         *,
         single_mode: bool = False,
     ) -&gt; None:
-        super().__init__(
-            host=host, account=account, verify_key=verify_key, single_mode=single_mode
-        )
+        super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
 
     def url_gen(self, route: str) -&gt; str:
         return str(URL(self.host) / route)
@@ -631,20 +627,18 @@ class BotMessage(AriadneBaseModel):
 
     enabled: bool = True
     log_level: str = &#34;INFO&#34;
-    group_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
-    friend_message_log_format: str = (
-        &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    group_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -&gt; {message_string}&#34;
     )
-    temp_message_log_format: str = &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
-    other_client_message_log_format: str = (
-        &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    friend_message_log_format: str = &#34;{bot_id}: [{friend_name}({friend_id})] -&gt; {message_string}&#34;
+    temp_message_log_format: str = (
+        &#34;{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -&gt; {message_string}&#34;
     )
-    stranger_message_log_format: str = (
-        &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
-    )
+    other_client_message_log_format: str = &#34;{bot_id}: [{platform_name}({platform_id})] -&gt; {message_string}&#34;
+    stranger_message_log_format: str = &#34;{bot_id}: [{stranger_name}({stranger_id})] -&gt; {message_string}&#34;
 
     def __init__(
-        __pydantic_self__,
+        self,
         enabled: bool = True,
         log_level: str = &#34;INFO&#34;,
         **msg_format: str,
@@ -1540,7 +1534,7 @@ implement default like this::</p>
 </dd>
 <dt id="ariadne.model.MiraiSession"><code class="flex name class">
 <span>class <span class="ident">MiraiSession</span></span>
-<span>(</span><span>host: pydantic.networks.AnyHttpUrl, account: Optional[int] = None, verify_key: Optional[str] = None, *, single_mode: bool = False)</span>
+<span>(</span><span>host: Union[pydantic.networks.AnyHttpUrl, str], account: Union[int, str, ForwardRef(None)] = None, verify_key: Optional[str] = None, *, single_mode: bool = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>用于描述与上游接口会话, 并存储会话状态的实体类.</p>
@@ -1581,15 +1575,13 @@ implement default like this::</p>
 
     def __init__(
         self,
-        host: AnyHttpUrl,
-        account: Optional[int] = None,
+        host: Union[AnyHttpUrl, str],
+        account: Optional[Union[int, str]] = None,
         verify_key: Optional[str] = None,
         *,
         single_mode: bool = False,
     ) -&gt; None:
-        super().__init__(
-            host=host, account=account, verify_key=verify_key, single_mode=single_mode
-        )
+        super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
 
     def url_gen(self, route: str) -&gt; str:
         return str(URL(self.host) / route)</code></pre>

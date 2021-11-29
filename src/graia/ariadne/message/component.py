@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from ..typing import Slice
 
     ElementClass = Union[Iterable[Type[Element]], Type[Element]]
-    Item = Union[Slice[ElementClass, Optional[int]], ElementClass]
+    Item = Union[Slice[ElementClass, Optional[int], None], ElementClass]
 
 
 class Component(Decorator):
@@ -19,7 +19,7 @@ class Component(Decorator):
 
     def __init__(
         self,
-        filter: Union[Tuple[Type[Element]], Callable[[Element], bool]],
+        filter: Union[Tuple[Type[Element], ...], Callable[[Element], bool]],
         match_time: int = -1,
     ) -> None:
         if not callable(filter):

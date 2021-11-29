@@ -9,6 +9,11 @@ theme:
     repo: fontawesome/brands/git-alt
     logo: material/file-document-multiple-outline
   favicon: images/favicon.png
+
+  font:
+    text: Noto Sans Simplified Chinese
+    code: JetBrains Mono
+
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -23,6 +28,8 @@ theme:
 
 repo_url: https://github.com/GraiaProject/Ariadne
 repo_name: GraiaProject/Ariadne
+edit_uri: blob/master/guide/docs/
+
 copyright: Copyright &copy; 2021 Graia Project.
 extra:
   social:

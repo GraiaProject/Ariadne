@@ -28,7 +28,12 @@
 </summary>
 <pre><code class="python">from typing import TYPE_CHECKING, Generic, Optional, Tuple, TypeVar
 
+from typing_extensions import ParamSpec, TypeGuard
+
 if TYPE_CHECKING:
+    P = ParamSpec(&#34;P&#34;)
+    R = TypeVar(&#34;R&#34;)
+
     Self = TypeVar(&#34;Self&#34;)
 
     T_start = TypeVar(&#34;T_start&#34;)

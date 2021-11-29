@@ -39,6 +39,8 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
 
     @validator(&#34;type&#34;, allow_reuse=True)
     def validate_event_type(cls, v):
+        if not isinstance(cls, type):
+            raise TypeError(&#34;cls must be a class!&#34;)
         if cls.type != v:
             raise InvalidEventTypeDefinition(
                 &#34;{0}&#39;s type must be &#39;{1}&#39;, not &#39;{2}&#39;&#34;.format(cls.__name__, cls.type, v)
@@ -96,6 +98,8 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
 
     @validator(&#34;type&#34;, allow_reuse=True)
     def validate_event_type(cls, v):
+        if not isinstance(cls, type):
+            raise TypeError(&#34;cls must be a class!&#34;)
         if cls.type != v:
             raise InvalidEventTypeDefinition(
                 &#34;{0}&#39;s type must be &#39;{1}&#39;, not &#39;{2}&#39;&#34;.format(cls.__name__, cls.type, v)
@@ -155,6 +159,8 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
 </summary>
 <pre><code class="python">@validator(&#34;type&#34;, allow_reuse=True)
 def validate_event_type(cls, v):
+    if not isinstance(cls, type):
+        raise TypeError(&#34;cls must be a class!&#34;)
     if cls.type != v:
         raise InvalidEventTypeDefinition(
             &#34;{0}&#39;s type must be &#39;{1}&#39;, not &#39;{2}&#39;&#34;.format(cls.__name__, cls.type, v)

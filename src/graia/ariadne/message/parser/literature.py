@@ -106,9 +106,7 @@ class Literature(BaseDispatcher):
             map_with_bar[k]: (
                 MessageChain.create(
                     [
-                        Plain(i)
-                        if not re.match(r"^\$\d+$", i)
-                        else id_elem_map[int(i[1:])]
+                        Plain(i) if not re.match(r"^\$\d+$", i) else id_elem_map[int(i[1:])]
                         for i in re.split(r"((?<!\\)\$[0-9]+)", v)
                         if i
                     ]
@@ -156,28 +154,21 @@ class Literature(BaseDispatcher):
             return
         for index, current_prefix in enumerate(self.prefixs):
             current_frame = chain_frames[index]
-            if (
-                not current_frame.__root__
-                or type(current_frame.__root__[0]) is not Plain
-            ):
+            if not current_frame.__root__ or type(current_frame.__root__[0]) is not Plain:
                 return
             if current_frame.__root__[0].text != current_prefix:
                 return
 
         chain_frames = chain_frames[len(self.prefixs) :]
         return MessageChain.create(
-            list(itertools.chain(*[[*i.__root__, Plain(" ")] for i in chain_frames]))[
-                :-1
-            ]
+            list(itertools.chain(*[[*i.__root__, Plain(" ")] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
     async def beforeExecution(self, interface: DispatcherInterface):
         message_chain: MessageChain = await interface.lookup_param(
             "__literature_messagechain__", MessageChain, None
         )
-        if set([i.__class__ for i in message_chain.__root__]).intersection(
-            BLOCKING_ELEMENTS
-        ):
+        if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)
         if noprefix is None:
@@ -191,9 +182,7 @@ class Literature(BaseDispatcher):
         if interface.name == "__literature_messagechain__":
             return
 
-        result = interface.broadcast.decorator_interface.local_storage.get(
-            "literature_detect_result"
-        )
+        result = interface.broadcast.decorator_interface.local_storage.get("literature_detect_result")
         if result:
             match_result, variargs = result
             if interface.default == "__literature_variables__":
@@ -210,10 +199,5 @@ class Literature(BaseDispatcher):
                     return match_value
 
     async def beforeTargetExec(self, interface: "DispatcherInterface", e, tb):
-        if (
-            "literature_detect_result"
-            in interface.broadcast.decorator_interface.local_storage
-        ):
-            del interface.broadcast.decorator_interface.local_storage[
-                "literature_detect_result"
-            ]
+        if "literature_detect_result" in interface.broadcast.decorator_interface.local_storage:
+            del interface.broadcast.decorator_interface.local_storage["literature_detect_result"]

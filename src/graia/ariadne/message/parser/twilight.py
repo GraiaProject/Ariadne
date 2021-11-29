@@ -12,6 +12,7 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
+    overload,
 )
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -36,29 +37,36 @@ from .util import ArgumentMatchType, TwilightParser, split
 class Sparkle(Representation):
     __dict__: Dict[str, Match]
 
+    @overload
+    def __init__(self, check_args: Dict[str, Match]):
+        ...
+
+    @overload
     def __init__(
         self,
         check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
-        matches: Optional[Union[Dict[str, Match], Iterable[Tuple[str, Match]]]] = None,
+        matches: Optional[Dict[str, Match]] = None,
     ):
-        if matches is None or isinstance(matches, dict):
-            match_map: Dict[str, Match] = matches or {
-                k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)
-            }
-        else:
-            match_map: Dict[str, Match] = {k: v for k, v in matches}
+        ...
 
-        if any(
-            k.startswith("_") and not re.fullmatch(r"_check_(\d+)", k) or k[0] in string.digits
-            for k in match_map.keys()
-        ):
+    def __init__(
+        self,
+        check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
+        matches: Optional[Dict[str, Match]] = None,
+    ):
+        if isinstance(check_args, dict):
+            matches, check_args = check_args, matches
+        match_map = {k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)}
+        match_map.update(matches if matches else {})
+
+        if any(k.startswith("_") or k[0] in string.digits for k in match_map.keys()):
             raise ValueError("Invalid Match object name!")
 
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
         self._regex_match_list: List[
-            Tuple[str, Union[RegexMatch, FullMatch, WildcardMatch, ElementMatch], int]
+            Tuple[Union[RegexMatch, FullMatch, WildcardMatch, ElementMatch], int, str]
         ] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
         self._parser = TwilightParser(prog="", add_help=False)
@@ -75,7 +83,7 @@ class Sparkle(Representation):
                             raise ValueError("Can't use Element as argument type!")
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 else:
-                    self._regex_match_list.append((k, v, group_cnt + 1))
+                    self._regex_match_list.append((v, group_cnt + 1, k))
                     group_cnt += re.compile(v.gen_regex()).groups
                     match_pattern_list.append(v.gen_regex())
         if (
@@ -87,18 +95,42 @@ class Sparkle(Representation):
         self._regex_pattern = "".join(match_pattern_list)
         self._regex = re.compile(self._regex_pattern)
 
-        self._check_args = check_args
+        self._check_args: List[Tuple[Match, int]] = []
+
+        group_cnt = 0
+
+        for check_match in check_args:
+            self._check_args.append((check_match, group_cnt + 1))
+            group_cnt += re.compile(check_match.gen_regex()).groups
         self._check_pattern: str = "".join(check_match.gen_regex() for check_match in check_args)
         self._check_regex = re.compile(self._check_pattern)
+        self._check_match = None
 
     def __repr_args__(self):
-        return [(k, v) for k, v in self.__dict__.items() if isinstance(v, Match)]
+        check = [(None, [item[0] for item in self._check_args])]
+        return check + [(k, v) for k, v in self.__dict__.items() if isinstance(v, Match)]
 
-    def run_check(self, string: str) -> List[str]:
+    def run_check(self, string: str, elem_mapping: Dict[int, Element]) -> List[str]:
         if not self._check_pattern:
             return split(string)
-        if match := self._check_regex.match(string):
-            return split(string[match.end() :])
+        if regex_match := self._check_regex.match(string):
+            for match, index in self._check_args:
+                current = regex_match.group(index) or ""
+                if isinstance(match, ElementMatch):
+                    if current:
+                        index = re.fullmatch("\x02(\\d+)_\\w+\x03", current).group(1)
+                        result = elem_mapping[int(index)]
+                    else:
+                        result = None
+                else:
+                    result = MessageChain.fromMappingString(current, elem_mapping)
+
+                match.result = result
+                match.result = bool(current)
+
+                if isinstance(match, RegexMatch):
+                    match.regex_match = re.fullmatch(match.pattern, current)
+            return split(string[regex_match.end() :])
         else:
             raise ValueError(f"Not matching regex: {self._check_pattern}")
 
@@ -120,7 +152,7 @@ class Sparkle(Representation):
     def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(" ".join(arg_list)):
-                for name, match, index in self._regex_match_list:
+                for match, index, _ in self._regex_match_list:
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
@@ -130,25 +162,13 @@ class Sparkle(Representation):
                             result = None
                     else:
                         result = MessageChain.fromMappingString(current, elem_mapping)
+
+                    match.result = result
+                    match.result = bool(current)
+
                     if isinstance(match, RegexMatch):
-                        setattr(  # sparkle.{name} = toMessageChain(current)
-                            self,
-                            name,
-                            match.clone(
-                                result=result,
-                                matched=bool(current),
-                                re_match=re.match(match.pattern, current),
-                            ),
-                        )
-                    else:
-                        setattr(
-                            self,
-                            name,
-                            match.clone(
-                                result=result,
-                                matched=bool(current),
-                            ),
-                        )
+                        match.regex_match = re.fullmatch(match.pattern, current)
+
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
 
@@ -157,10 +177,10 @@ class Sparkle(Representation):
     ) -> str:
         header: List[str] = ["使用方法:"]
 
-        for match in self._check_args:
+        for match, *_ in self._check_args:
             header.append(match.get_help())
 
-        for name, match, _ in self._regex_match_list:
+        for match, *_ in self._regex_match_list:
             header.append(match.get_help())
 
         formatter = self._parser._get_formatter()
@@ -169,7 +189,7 @@ class Sparkle(Representation):
 
         positional, optional, *_ = self._parser._action_groups
         formatter.start_section("位置匹配")
-        for name, match, _ in self._regex_match_list:
+        for match, _, name in self._regex_match_list:
             formatter.add_text(f"{name} -> 匹配 {match.get_help()}{' : ' + match.help if match.help else ''}")
         formatter.add_arguments(positional._group_actions)
         formatter.end_section()
@@ -180,6 +200,12 @@ class Sparkle(Representation):
 
         # determine help from format above
         return formatter.format_help()
+
+    def __getitem__(self, item: Union[str, int]) -> Match:
+        if isinstance(item, str):
+            return getattr(self, item)
+        else:
+            return self._check_args[item][0]
 
 
 T_Sparkle = TypeVar("T_Sparkle", bound=Sparkle)
@@ -224,7 +250,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
         token = ArgumentMatch.elem_mapping_ctx.set(chain)
         try:
-            str_list = sparkle.run_check(mapping_str)
+            str_list = sparkle.run_check(mapping_str, elem_mapping)
             arg_list = sparkle.parse_arg_list(str_list)
         except Exception:
             raise

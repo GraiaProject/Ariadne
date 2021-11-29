@@ -35,7 +35,7 @@ if __name__ == "__main__":
     print(f"Literature: {RUN / (ed-st):.2f}msg/s")
 
     debug(twi.gen_sparkle(msg))
-
+    print(repr(twi.gen_sparkle(msg)))
     st = time.time()
     for _ in range(RUN):
         twi.gen_sparkle(msg)
@@ -55,6 +55,8 @@ if __name__ == "__main__":
     print(f"Literature: {RUN / (ed-st):.2f}msg/s")
 
     debug(twi.gen_sparkle(msg))
+
+    debug(twi.gen_sparkle(msg)[0])
 
     st = time.time()
     for _ in range(RUN):

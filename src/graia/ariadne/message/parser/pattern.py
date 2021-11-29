@@ -1,5 +1,4 @@
 import abc
-import copy
 import re
 from argparse import Action
 from contextvars import ContextVar
@@ -62,12 +61,6 @@ class Match(abc.ABC, Representation):
         if self.__class__ == Match:
             raise ValueError("You can't instantiate Match class directly!")
 
-    def clone(self, result: "MessageChain", matched: bool) -> "Self":
-        new_instance = copy.copy(self)
-        new_instance.result = result
-        new_instance.matched = matched
-        return new_instance
-
     def __repr_args__(self):
         return [
             ("matched", self.matched),
@@ -109,11 +102,6 @@ class RegexMatch(Match):
             f"({f'?{self.flags_repr}:' if self.flags_repr else ''}{self.pattern})"
             f"{'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
         )
-
-    def clone(self, result: "MessageChain", matched: bool, re_match: Optional[re.Match] = None) -> "Self":
-        new_instance: RegexMatch = super().clone(result, matched)
-        new_instance.regex_match = re_match
-        return new_instance
 
 
 class WildcardMatch(Match):

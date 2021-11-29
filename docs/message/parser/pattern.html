@@ -27,7 +27,6 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import abc
-import copy
 import re
 from argparse import Action
 from contextvars import ContextVar
@@ -90,12 +89,6 @@ class Match(abc.ABC, Representation):
         if self.__class__ == Match:
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
-    def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
-        new_instance = copy.copy(self)
-        new_instance.result = result
-        new_instance.matched = matched
-        return new_instance
-
     def __repr_args__(self):
         return [
             (&#34;matched&#34;, self.matched),
@@ -137,11 +130,6 @@ class RegexMatch(Match):
             f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
             f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
         )
-
-    def clone(self, result: &#34;MessageChain&#34;, matched: bool, re_match: Optional[re.Match] = None) -&gt; &#34;Self&#34;:
-        new_instance: RegexMatch = super().clone(result, matched)
-        new_instance.regex_match = re_match
-        return new_instance
 
 
 class WildcardMatch(Match):
@@ -587,12 +575,6 @@ inheritance.</p></div>
         if self.__class__ == Match:
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
-    def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
-        new_instance = copy.copy(self)
-        new_instance.result = result
-        new_instance.matched = matched
-        return new_instance
-
     def __repr_args__(self):
         return [
             (&#34;matched&#34;, self.matched),
@@ -644,22 +626,6 @@ inheritance.</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="ariadne.message.parser.pattern.Match.clone"><code class="name flex">
-<span>def <span class="ident">clone</span></span>(<span>self, result: MessageChain, matched: bool) ‑> Self</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def clone(self, result: &#34;MessageChain&#34;, matched: bool) -&gt; &#34;Self&#34;:
-    new_instance = copy.copy(self)
-    new_instance.result = result
-    new_instance.matched = matched
-    return new_instance</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.parser.pattern.Match.gen_regex"><code class="name flex">
 <span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
 </code></dt>
@@ -766,12 +732,7 @@ class ParamPattern:
         return (
             f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
             f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
-        )
-
-    def clone(self, result: &#34;MessageChain&#34;, matched: bool, re_match: Optional[re.Match] = None) -&gt; &#34;Self&#34;:
-        new_instance: RegexMatch = super().clone(result, matched)
-        new_instance.regex_match = re_match
-        return new_instance</code></pre>
+        )</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -800,21 +761,6 @@ class ParamPattern:
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="ariadne.message.parser.pattern.RegexMatch.clone"><code class="name flex">
-<span>def <span class="ident">clone</span></span>(<span>self, result: MessageChain, matched: bool, re_match: Optional[re.Match] = None) ‑> Self</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def clone(self, result: &#34;MessageChain&#34;, matched: bool, re_match: Optional[re.Match] = None) -&gt; &#34;Self&#34;:
-    new_instance: RegexMatch = super().clone(result, matched)
-    new_instance.regex_match = re_match
-    return new_instance</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.parser.pattern.RegexMatch.gen_regex"><code class="name flex">
 <span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
 </code></dt>
@@ -982,7 +928,6 @@ class SwitchParameter(ParamPattern):
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></code></h4>
 <ul class="two-column">
-<li><code><a title="ariadne.message.parser.pattern.Match.clone" href="#ariadne.message.parser.pattern.Match.clone">clone</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.Match.gen_regex" href="#ariadne.message.parser.pattern.Match.gen_regex">gen_regex</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.Match.get_help" href="#ariadne.message.parser.pattern.Match.get_help">get_help</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.Match.help" href="#ariadne.message.parser.pattern.Match.help">help</a></code></li>
@@ -1003,8 +948,7 @@ class SwitchParameter(ParamPattern):
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></code></h4>
-<ul class="two-column">
-<li><code><a title="ariadne.message.parser.pattern.RegexMatch.clone" href="#ariadne.message.parser.pattern.RegexMatch.clone">clone</a></code></li>
+<ul class="">
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.flags" href="#ariadne.message.parser.pattern.RegexMatch.flags">flags</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.flags_repr" href="#ariadne.message.parser.pattern.RegexMatch.flags_repr">flags_repr</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.gen_regex" href="#ariadne.message.parser.pattern.RegexMatch.gen_regex">gen_regex</a></code></li>

@@ -40,6 +40,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
         >>> twilight.gen_sparkle(MessageChain(["!header _bar_ 123 --help pwq external"]))
 
         FooSparkle(
+            [RegexMatch(matched=True, result=MessageChain([Plain(text='!header')]), pattern=...)], # 注意这个.
             help=ArgumentMatch(matched=True, result=True, pattern=...),
             bar_match=FullMatch(matched=True, result=MessageChain([Plain(text='_bar_')]), pattern=...),
             regex_match=RegexMatch(matched=True, result=MessageChain([Plain(text='123')]), pattern=...),
@@ -53,14 +54,14 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 - `FullMatch` : 严格全匹配.
 - `RegexMatch` : 正则表达式匹配, 支持传入 `re.Flag`.
-- `ElementMatch` : 元素匹配, 通过
+- `ElementMatch` : 元素匹配, 可匹配 `Plain` 以外的元素类型.
 - `WildcardMatch` : 任意匹配, 可以通过 `greed` 参数确定是否贪婪匹配.
 - `ArgumentMatch` : 参数匹配, 在 **`match` 字典 或 类变量** 中没有以上三种匹配时才允许不以 "-" 打头.
 
 这些 `Match` 类可接受以下参数:
 
 - `pattern` : 匹配项, 为一个字符串 (`ArgumentMatch` 可为多个, `ElementMatch` 应传入类型而非字符串). **在 `WildcardMatch` 上不可用**
-- `optional` : 是否可选, 在 `ArgumentMatch` 上会通过传入的 `pattern` 确定是否有效.
+- `optional` : 是否可选, 在 `ArgumentMatch` 上会通过传入的 `pattern` 确定是否有效. (在非 `ArgumentMatch` 上默认为 False)
 - `preserve_space` : 是否要预留尾随空格. **在 `ArgumentMatch` 上不可用**
 - `help` : 帮助字符串, 在 `Sparkle.get_help` 中使用.
 
@@ -72,21 +73,53 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 ## Twilight 与 Sparkle 的实例化
 
-`Sparkle` 在实例化时, 可接受一个 额外 **序列** `check_args` 与 额外字典 `matches`, 作用如下：
+`Sparkle` 在实例化时, 可接受一个 额外 **可迭代对象** `check_args` 与 额外字典 `matches`, 作用如下：
 
 - `check_args` 仅应当容纳 `RegexMatch` 与 `FullMatch` 对象, 用于对 `MessageChain` 进行预先检查
 
 - `matches` 为一个 `Dict[str, Match]` 映射, 相当于拓展 `sparkle.__class__.__dict__`
 
+!!! error "注意"
+
+    在 `0.4.4` 前, `check_args` 仅可传入 `Iterable[Match]`.
+
+    `0.4.4` 后, `Sparkle` 在必要时会自动交换 `check_args` 与 `matches`.
+
+比如, 这两种写法其实在 **运行时** 等价.
+
+=== "使用 派生类"
+
+    ```py
+    class TSparkle(Sparkle):
+        match = RegexMatch(r"\d+")
+
+    s = TSparkle([RegexMatch(r"[!.]header")])
+    ```
+
+=== "直接 实例化"
+
+    ```py
+    s = Sparkle([RegexMatch(r"[!.]header")], {"match": RegexMatch(r"\d+")})
+    ```
+
 !!! warning "注意"
 
     如果你想要检查 "命令头", 请使用 `check_args` 而非向 `Sparkle` 添加类变量.
+
+    在 `check_args` 中的 `Match` 对象 `optional` 参数是无效的 (永远为 False).
 
 `Twilight` 在实例化时, 接受以下参数:
 
 - `sparkle`: `Sparkle` 类 或 `Sparkle` 对象.
 - `remove_source` , `remove_quote` , `remove_extra_space`:
   与 `Message.asMappingString` 中的含义相同, 但这些参数并不会影响通过 `MessageChain` 类型标注获取的消息链.
+
+## 提取 Match 对象
+
+`Match` 对象可以通过以下几种方式提取:
+
+- 若是在实例化 `Sparkle` 时添加的, 那只能通过 `Sparkle[int]` 的形式提取.
+- 否则, 可通过 `Sparkle[match_name]` 与 `Sparkle.match_name` 两种方式提取.
 
 ## 配合 Broadcast 使用
 
@@ -98,7 +131,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 一旦匹配失败 (`gen_sparkle` 抛出异常), `Broadcast` 的本次执行就会被取消.
 
-## 创建帮助
+## 创建帮助 (0.4.3+)
 
 通过 `Sparkle.get_help` 方法可以方便的获取帮助.
 
@@ -108,7 +141,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
     ```py
     class CommandSparkle(Sparkle):
-        date = RegexMatch(r"(?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)")
+        date = RegexMatch(r"(?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)", help="日期的字符串")
         help = ArgumentMatch(
             "--help", "-h", action="store_true", help="显示本帮助."
         )  # 语法与 argparse.ArgumentParser.add_argument 基本相同
@@ -120,13 +153,13 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
     效果如下:
 
     ```
-    使用方法:  (?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+) [--help]
+    使用方法: (?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+) [--help]
 
     位置匹配:
-    date -> 匹配 (?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)
+      date -> 匹配 (?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+) : 日期的字符串
 
     参数匹配:
-    --help, -h  显示本帮助.
+      --help, -h  显示本帮助.
     ```
 
 ## Sparkle 的解析过程
@@ -135,4 +168,10 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 - 使用 `Sparkle.run_check` 解析 `Sparkle` 的 `check_args`, 并返回剩下部分的列表. (使用 `split` 方法)
 - 使用 `Sparkle.parse_arg_list` 解析 `ArgumentMatch` 并从 `argparse.Namespace` 提取结果, 向 `ArgumentMatch.result` 赋值.
-- 使用 `Sparkle.match_regex` 解析剩下的 `Match` 对象.
+- 使用 `Sparkle.match_regex` 解析并赋值剩下的 `Match` 对象.
+
+## 最佳实践
+
+对于复杂的命令, 继承一个 `Sparkle` 类是最好的.
+
+无论是简单还是复杂的命令, 你应该且仅仅只应该把命令头放到 `match_args` 参数中, 任何程序应访问的 `match` 对象都应放在 **类变量** 或 **`matches` 字典** 里.

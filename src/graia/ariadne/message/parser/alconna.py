@@ -441,13 +441,13 @@ class AlconnaParser(BaseDispatcher):
         self.alconna = alconna
 
     def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
-        local_storage = interface.broadcast.decorator_interface.local_storage
+        local_storage = interface.execution_contexts[-1].local_storage
         chain: MessageChain = interface.event.messageChain
         result = self.alconna.analysis_message(chain)
         local_storage["arpamar"] = result
 
     async def catch(self, interface: DispatcherInterface[MessageEvent]) -> Arpamar:
-        local_storage = interface.broadcast.decorator_interface.local_storage
+        local_storage = interface.execution_contexts[-1].local_storage
         arpamar = local_storage["arpamar"]
         if issubclass(interface.annotation, Arpamar):
             return arpamar
@@ -460,5 +460,5 @@ class AlconnaParser(BaseDispatcher):
         exception: Optional[Exception],
         tb: Optional[TracebackType],
     ):
-        if "arpamar" in interface.broadcast.decorator_interface.local_storage:
-            interface.broadcast.decorator_interface.local_storage["arpamar"] = {}
+        if "arpamar" in interface.execution_contexts[-1].local_storage:
+            interface.execution_contexts[-1].local_storage["arpamar"] = {}

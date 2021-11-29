@@ -461,4 +461,4 @@ class AlconnaParser(BaseDispatcher):
         tb: Optional[TracebackType],
     ):
         if "arpamar" in interface.broadcast.decorator_interface.local_storage:
-            interface.broadcast.decorator_interface.local_storage["arpamar"] = None
+            interface.broadcast.decorator_interface.local_storage["arpamar"] = {}

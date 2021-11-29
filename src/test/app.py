@@ -29,9 +29,11 @@ if __name__ == "__main__":
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):
         await app.sendFriendMessage(friend, chain)
 
-    @bcc.receiver(MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")]))])
-    async def reply1(app: Ariadne, dii: DispatcherInterface):
-        await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
+    @bcc.receiver(
+        MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")], {"arg": WildcardMatch()}))]
+    )
+    async def reply1(app: Ariadne, event: MessageEvent, arg: WildcardMatch):
+        await app.sendMessage(event, MessageChain.create("Auto reply to ") + arg.result)
 
     @bcc.receiver(NewFriendRequestEvent)
     async def accept(event: NewFriendRequestEvent):

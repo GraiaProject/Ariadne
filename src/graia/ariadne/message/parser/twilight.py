@@ -152,7 +152,7 @@ class Sparkle(Representation):
     def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(" ".join(arg_list)):
-                for match, index, _ in self._regex_match_list:
+                for match, index, name in self._regex_match_list:
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
@@ -164,10 +164,13 @@ class Sparkle(Representation):
                         result = MessageChain.fromMappingString(current, elem_mapping)
 
                     match.result = result
-                    match.result = bool(current)
+                    match.matched = bool(current)
 
                     if isinstance(match, RegexMatch):
                         match.regex_match = re.fullmatch(match.pattern, current)
+
+                    if getattr(self, name, None) is None:
+                        setattr(self, name, match)
 
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")

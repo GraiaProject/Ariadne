@@ -127,6 +127,19 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 在 `receiver` 函数的类型标注中, 通过 标注参数为 `Sparkle` 获取当前 `Sparkle`, 通过 `name: Match` 的形式获取 `name` 对应的匹配对象.
 
+像这样:
+
+```py hl_lines="2"
+@bcc.receiver(MessageEvent, dispatchers=[
+    Twilight(Sparkle(
+        [FullMatch(".command")],
+        {"arg": RegexMatch(r"\d+", optional=True)}
+    ))
+    ])
+async def reply(..., arg: RegexMatch):
+    ...
+```
+
 !!! note "使用 `Sparkle` 与 `Match` 的子类进行标注也是可以的."
 
 一旦匹配失败 (`gen_sparkle` 抛出异常), `Broadcast` 的本次执行就会被取消.

@@ -180,7 +180,7 @@ class Sparkle(Representation):
     def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -&gt; None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
-                for match, index, _ in self._regex_match_list:
+                for match, index, name in self._regex_match_list:
                     current = regex_match.group(index) or &#34;&#34;
                     if isinstance(match, ElementMatch):
                         if current:
@@ -192,10 +192,13 @@ class Sparkle(Representation):
                         result = MessageChain.fromMappingString(current, elem_mapping)
 
                     match.result = result
-                    match.result = bool(current)
+                    match.matched = bool(current)
 
                     if isinstance(match, RegexMatch):
                         match.regex_match = re.fullmatch(match.pattern, current)
+
+                    if getattr(self, name, None) is None:
+                        setattr(self, name, match)
 
             else:
                 raise ValueError(f&#34;Regex not matching: {self._regex_pattern}&#34;)
@@ -450,7 +453,7 @@ of objects.</p></div>
     def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -&gt; None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
-                for match, index, _ in self._regex_match_list:
+                for match, index, name in self._regex_match_list:
                     current = regex_match.group(index) or &#34;&#34;
                     if isinstance(match, ElementMatch):
                         if current:
@@ -462,10 +465,13 @@ of objects.</p></div>
                         result = MessageChain.fromMappingString(current, elem_mapping)
 
                     match.result = result
-                    match.result = bool(current)
+                    match.matched = bool(current)
 
                     if isinstance(match, RegexMatch):
                         match.regex_match = re.fullmatch(match.pattern, current)
+
+                    if getattr(self, name, None) is None:
+                        setattr(self, name, match)
 
             else:
                 raise ValueError(f&#34;Regex not matching: {self._regex_pattern}&#34;)
@@ -562,7 +568,7 @@ of objects.</p></div>
 <pre><code class="python">def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -&gt; None:
     if self._regex_pattern:
         if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
-            for match, index, _ in self._regex_match_list:
+            for match, index, name in self._regex_match_list:
                 current = regex_match.group(index) or &#34;&#34;
                 if isinstance(match, ElementMatch):
                     if current:
@@ -574,10 +580,13 @@ of objects.</p></div>
                     result = MessageChain.fromMappingString(current, elem_mapping)
 
                 match.result = result
-                match.result = bool(current)
+                match.matched = bool(current)
 
                 if isinstance(match, RegexMatch):
                     match.regex_match = re.fullmatch(match.pattern, current)
+
+                if getattr(self, name, None) is None:
+                    setattr(self, name, match)
 
         else:
             raise ValueError(f&#34;Regex not matching: {self._regex_pattern}&#34;)</code></pre>

@@ -38,3 +38,12 @@
 
     你可以直接使用 `app.sendMessage(sender_or_event, message, ...)` 发送信息.
 
+## 获取实例所管账号(0.4.6+)
+
+`Ariadne`通过一个只读属性`account`来帮助用户获取当前机器人实例的QQ号
+```python
+# 0.4.6以前
+account = app.adapter.mirai_session.account
+# 0.4.6之后
+account = app.account
+```

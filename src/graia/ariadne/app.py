@@ -1267,3 +1267,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
     async def __aexit__(self, *exc):
         await self.stop()
+
+    @property
+    def account(self) -> Optional[int]:
+        return self.adapter.mirai_session.account

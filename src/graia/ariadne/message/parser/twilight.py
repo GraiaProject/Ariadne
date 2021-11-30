@@ -126,7 +126,7 @@ class Sparkle(Representation):
                     result = MessageChain.fromMappingString(current, elem_mapping)
 
                 match.result = result
-                match.result = bool(current)
+                match.matched = bool(current)
 
                 if isinstance(match, RegexMatch):
                     match.regex_match = re.fullmatch(match.pattern, current)
@@ -142,11 +142,12 @@ class Sparkle(Representation):
             match, sparkle_name = val_tuple
             namespace_val = getattr(namespace, arg_name, None)
             if arg_name in namespace.__dict__:
-                setattr(
-                    self,
-                    sparkle_name,
-                    match.clone(namespace_val, bool(namespace_val)),
-                )
+                match.result = namespace_val
+                match.matched = bool(namespace_val)
+
+            if getattr(self, sparkle_name, None) is None:
+                setattr(self, sparkle_name, match)
+
         return rest
 
     def match_regex(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:

@@ -1294,7 +1294,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return self
 
     async def __aexit__(self, *exc):
-        await self.stop()</code></pre>
+        await self.stop()
+
+    @property
+    def account(self) -&gt; Optional[int]:
+        return self.adapter.mirai_session.account</code></pre>
 </details>
 </section>
 <section>
@@ -1535,7 +1539,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return self
 
     async def __aexit__(self, *exc):
-        await self.stop()</code></pre>
+        await self.stop()
+
+    @property
+    def account(self) -&gt; Optional[int]:
+        return self.adapter.mirai_session.account</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -1559,6 +1567,21 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 <dt id="ariadne.app.Ariadne.mirai_session"><code class="name">var <span class="ident">mirai_session</span> : <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a></code></dt>
 <dd>
 <div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="ariadne.app.Ariadne.account"><code class="name">var <span class="ident">account</span> : Optional[int]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def account(self) -&gt; Optional[int]:
+    return self.adapter.mirai_session.account</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -4863,6 +4886,7 @@ async def getMemberProfile(
 <li>
 <h4><code><a title="ariadne.app.Ariadne" href="#ariadne.app.Ariadne">Ariadne</a></code></h4>
 <ul class="two-column">
+<li><code><a title="ariadne.app.Ariadne.account" href="#ariadne.app.Ariadne.account">account</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.adapter" href="#ariadne.app.Ariadne.adapter">adapter</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.broadcast" href="#ariadne.app.Ariadne.broadcast">broadcast</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.create" href="#ariadne.app.Ariadne.create">create</a></code></li>

@@ -103,7 +103,10 @@ def loguru_excepthook(cls, val, tb, *_, **__):
 
 
 def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
-    logger.opt(exception=(Exception, ctx[&#34;message&#34;], ctx[&#34;source_traceback&#34;])).error(f&#34;Exception:&#34;)
+    if &#34;exception&#34; in ctx:
+        logger.opt(exception=ctx[&#34;exception&#34;]).error(&#34;Exception:&#34;)
+    else:
+        logger.error(f&#34;Exception: {ctx}&#34;)
 
 
 def inject_loguru_traceback(loop: AbstractEventLoop):
@@ -385,7 +388,10 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
-    logger.opt(exception=(Exception, ctx[&#34;message&#34;], ctx[&#34;source_traceback&#34;])).error(f&#34;Exception:&#34;)</code></pre>
+    if &#34;exception&#34; in ctx:
+        logger.opt(exception=ctx[&#34;exception&#34;]).error(&#34;Exception:&#34;)
+    else:
+        logger.error(f&#34;Exception: {ctx}&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.loguru_excepthook"><code class="name flex">

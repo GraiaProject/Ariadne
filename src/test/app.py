@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.tasks import wait_for
 import os
 
 from graia.broadcast import Broadcast
@@ -11,7 +12,6 @@ from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEven
 from graia.ariadne.event.mirai import NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Plain
-from graia.ariadne.message.parser.literature import Literature
 from graia.ariadne.message.parser.pattern import FullMatch, RegexMatch, WildcardMatch
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
@@ -23,11 +23,14 @@ if __name__ == "__main__":
     loop.set_debug(True)
     bcc = Broadcast(loop=loop)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5)
+    app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5, await_task=True)
 
     @bcc.receiver(FriendMessage)
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):
-        await app.sendFriendMessage(friend, chain)
+        if chain.asDisplay().startswith(".wait"):
+            await app.sendFriendMessage(friend, MessageChain.create("Wait for 5s!"))
+            await asyncio.sleep(5.0)
+            await app.sendFriendMessage(friend, MessageChain.create("Complete!"))
 
     @bcc.receiver(
         MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")], {"arg": WildcardMatch()}))]
@@ -56,7 +59,7 @@ if __name__ == "__main__":
         dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop")]))],
     )
     async def stop(app: Ariadne):
-        await app.stop()
+        await app.request_stop()
 
     async def main():
         await app.launch()
@@ -77,4 +80,4 @@ if __name__ == "__main__":
     try:
         loop.run_until_complete(main())
     except KeyboardInterrupt:
-        loop.run_until_complete(app.stop())
+        loop.run_until_complete(app.wait_for_stop())

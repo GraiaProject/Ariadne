@@ -9,13 +9,12 @@ from asyncio.tasks import Task
 from typing import (
     TYPE_CHECKING,
     Any,
+    AsyncGenerator,
     Awaitable,
     Callable,
     Dict,
-    NoReturn,
     Optional,
     Set,
-    TypeVar,
     Union,
 )
 
@@ -23,13 +22,13 @@ import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
 from aiohttp.client_ws import ClientWebSocketResponse
 from aiohttp.http_websocket import WSMsgType
+from asyncio.queues import Queue
 from graia.broadcast import Broadcast
-from graia.broadcast.utilles import run_always_await
+from graia.broadcast.entities.event import Dispatchable
 from loguru import logger
 from typing_extensions import Concatenate
 from yarl import URL
 
-from .context import enter_context
 from .event import MiraiEvent
 from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
@@ -37,7 +36,6 @@ from .model import CallMethod, DatetimeEncoder, MiraiSession
 from .util import validate_response
 
 if TYPE_CHECKING:
-    from .app import Ariadne
     from .typing import P, R, Self
 
 
@@ -110,17 +108,25 @@ class Adapter(abc.ABC):
     def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -> None:
         self.broadcast = broadcast
         self.loop: AbstractEventLoop = broadcast.loop
+        self.running: bool = False
         self.mirai_session: MiraiSession = mirai_session
         self.session: Optional[ClientSession] = None
-        self.running: bool = False
         self.fetch_task: Optional[Task] = None
-        self.app: Optional["Ariadne"] = None
+        self.queue: Optional[Queue[Dispatchable]] = None
 
     @abc.abstractmethod
     async def fetch_cycle(self) -> None:
         """
-        负责接收并处理数据, 广播事件.
+        负责接收并处理数据, 向事件队列发送事件.
         """
+        self.running = True
+        self.session = ClientSession()
+        if not self.queue:
+            self.queue = Queue()
+        while self.running:
+            await self.queue.put(Dispatchable())
+        self.mirai_session.session_key = None
+        await self.session.close()
 
     @abc.abstractmethod
     @require_verified
@@ -165,29 +171,13 @@ class Adapter(abc.ABC):
         event = event_class.parse_obj(data)
         return event
 
-    async def start(self):
-        if not self.session:
-            self.session = ClientSession()
-        if not self.fetch_task or self.fetch_task.done():
-            self.running = True
-            self.fetch_task = self.loop.create_task(self.fetch_cycle(), name="ariadne_adapter_fetch_cycle")
-
     @property
     def session_activated(self) -> bool:
         return bool(self.mirai_session.session_key)
 
-    async def stop(self):
-        """
-        停止适配器, 并等待 `fetch_cycle` 方法完成.
-        """
-        self.running = False
-        if self.fetch_task and not self.fetch_task.done():
-            try:
-                await self.fetch_task
-            except CancelledError:
-                pass
-        self.fetch_task = None
-        self.mirai_session.session_key = None
+    async def wait_for_session(self):
+        while not self.session_activated:
+            await asyncio.sleep(0.001)
 
 
 class HttpAdapter(Adapter):
@@ -207,9 +197,15 @@ class HttpAdapter(Adapter):
         self.fetch_interval = fetch_interval
         raise NotImplementedError("HTTP Adapter is not supported yet!")
 
-    async def fetch_cycle(self):
+    async def fetch_cycle(self) -> None:
+        self.running = True
+        self.session = ClientSession()
+        if not self.queue:
+            self.queue = Queue()
         while self.running:
             await asyncio.sleep(self.fetch_interval)
+        self.mirai_session.session_key = None
+        await self.session.close()
 
     @require_verified
     @error_wrapper
@@ -341,7 +337,7 @@ class WebsocketAdapter(Adapter):
             return value["data"]
         return value
 
-    async def raw_data_parser(self, raw_data: dict) -> None:
+    async def raw_data_parser(self, raw_data: dict) -> Optional[Dispatchable]:
         sync_id: str = raw_data["syncId"]
         received_data: dict = raw_data["data"]
         validate_response(received_data)
@@ -352,8 +348,7 @@ class WebsocketAdapter(Adapter):
         sync_id = int(sync_id)
         if sync_id not in self.SyncIdManager.allocated:
             event = await self.build_event(received_data)
-            with enter_context(app=self.app, event=event):
-                self.broadcast.postEvent(event)
+            return event
         else:
             if sync_id in self.sync_event:
                 response = self.sync_event[sync_id]
@@ -361,6 +356,10 @@ class WebsocketAdapter(Adapter):
                 response.set()
 
     async def fetch_cycle(self) -> None:
+        self.session = ClientSession()
+        self.running = True
+        if not self.queue:
+            self.queue = Queue()
         async with self.session.ws_connect(
             str(URL(self.mirai_session.url_gen("all")).with_query(self.query_dict)),
             autoping=False,
@@ -372,12 +371,19 @@ class WebsocketAdapter(Adapter):
                 self.ping_task = self.loop.create_task(self.ws_ping(), name="ariadne_adapter_ws_ping")
                 logger.info("websocket: ping task created")
             try:
+                last_tsk = None
                 while self.running:
-                    ws_message = await connection.receive()
+                    last_tsk = last_tsk or {asyncio.create_task(connection.receive())}
+                    done, last_tsk = await asyncio.wait(last_tsk, timeout=0.2)
+                    if not done:
+                        continue
+                    for t in done:
+                        ws_message = await t
                     if ws_message.type is WSMsgType.TEXT:
                         original_data: dict = json.loads(ws_message.data)
-                        await self.raw_data_parser(original_data)
-
+                        event = await self.raw_data_parser(original_data)
+                        if event:
+                            await self.queue.put(event)
                     elif ws_message.type is WSMsgType.CLOSED:
                         logger.info("websocket: connection has been closed.")
                         return
@@ -393,6 +399,8 @@ class WebsocketAdapter(Adapter):
                     self.ping_task = None
                     logger.debug("websocket: ping task complete")
         logger.info("websocket: disconnected")
+        self.mirai_session.session_key = None
+        await self.session.close()
 
 
 class CombinedAdapter(Adapter):
@@ -419,16 +427,14 @@ class CombinedAdapter(Adapter):
 
     call_api = HttpAdapter.call_api
 
-    async def raw_data_parser(self, raw_data: dict) -> None:
+    async def raw_data_parser(self, raw_data: dict) -> Optional[Dispatchable]:
         received_data = raw_data["data"]
         validate_response(received_data)
-        if not self.mirai_session.session_key:
-            if session_key := received_data.get("session", None):
-                self.mirai_session.session_key = session_key
+        if session_key := received_data.get("session", None):
+            self.mirai_session.session_key = session_key
             return
         event = await self.build_event(received_data)
-        with enter_context(app=self.app, event=event):
-            self.broadcast.postEvent(event)
+        return event
 
     fetch_cycle = WebsocketAdapter.fetch_cycle
 

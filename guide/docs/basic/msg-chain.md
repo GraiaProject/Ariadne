@@ -78,7 +78,7 @@ assert message_chain == another_msg_chain
 ```py
 AtAll in message_chain
 
-At(bot.qq) in message_chain
+At(app.account) in message_chain
 
 'Hello' in message_chain
 

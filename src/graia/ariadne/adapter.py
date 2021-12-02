@@ -5,6 +5,7 @@ import json
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.locks import Event
+from asyncio.queues import Queue
 from asyncio.tasks import Task
 from typing import (
     TYPE_CHECKING,
@@ -22,7 +23,6 @@ import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
 from aiohttp.client_ws import ClientWebSocketResponse
 from aiohttp.http_websocket import WSMsgType
-from asyncio.queues import Queue
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.event import Dispatchable
 from loguru import logger

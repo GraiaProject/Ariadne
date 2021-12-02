@@ -2,7 +2,7 @@
 
 这里是 `Ariadne` 的 `__init__()` 签名:
 
-```python hl_lines="8-10"
+```python hl_lines="8-13"
 def __init__(
     self,
     connect_info: Union[Adapter, MiraiSession],
@@ -13,7 +13,10 @@ def __init__(
     chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
     use_loguru_traceback: Optional[bool] = True,
     use_bypass_listener: Optional[bool] = False,
-    ):
+    await_task: bool = False,
+    disable_telemetry: bool = False,
+    disable_logo: bool = False,
+):
 ```
 
 ### chat_log_config
@@ -54,3 +57,13 @@ async def reply(app: Ariadne, event: MessageEvent):
 
 `Ariadne` 默认会尝试无限重启 `Adapter`,
 设置 `max_retry` 可以确保在 **连续至少** `max_retry` 次连接失败后自动退出 `daemon` (前提是你使用 `Ariadne.lifecycle()`)
+
+### disable_telemetry
+
+设置为 `True` 后即会禁用启动时的版本检测.
+
+!!! example "你可以在根文件的 TELEMETRY_LIST 下查看检查了哪些包的版本."
+
+### disable_logo
+
+设置为 `True` 后即会禁用启动时的 logo 打印.

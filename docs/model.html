@@ -384,7 +384,15 @@ class BotMessage(AriadneBaseModel):
     指示 Bot 发出的消息.
     &#34;&#34;&#34;
 
-    messageId: int</code></pre>
+    messageId: int
+
+
+class AriadneStatus(Enum):
+    STOP = &#34;stop&#34;
+    LAUNCH = &#34;launch&#34;
+    RUNNING = &#34;running&#34;
+    SHUTDOWN = &#34;shutdown&#34;
+    CLEANUP = &#34;cleanup&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -517,6 +525,51 @@ class BotMessage(AriadneBaseModel):
         exclude_none=True,
     )</code></pre>
 </details>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.model.AriadneStatus"><code class="flex name class">
+<span>class <span class="ident">AriadneStatus</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AriadneStatus(Enum):
+    STOP = &#34;stop&#34;
+    LAUNCH = &#34;launch&#34;
+    RUNNING = &#34;running&#34;
+    SHUTDOWN = &#34;shutdown&#34;
+    CLEANUP = &#34;cleanup&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.model.AriadneStatus.CLEANUP"><code class="name">var <span class="ident">CLEANUP</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.model.AriadneStatus.LAUNCH"><code class="name">var <span class="ident">LAUNCH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.model.AriadneStatus.RUNNING"><code class="name">var <span class="ident">RUNNING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.model.AriadneStatus.SHUTDOWN"><code class="name">var <span class="ident">SHUTDOWN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.model.AriadneStatus.STOP"><code class="name">var <span class="ident">STOP</span></code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </dd>
@@ -1821,6 +1874,16 @@ implement default like this::</p>
 <ul class="">
 <li><code><a title="ariadne.model.AriadneBaseModel.Config" href="#ariadne.model.AriadneBaseModel.Config">Config</a></code></li>
 <li><code><a title="ariadne.model.AriadneBaseModel.dict" href="#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.model.AriadneStatus" href="#ariadne.model.AriadneStatus">AriadneStatus</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.model.AriadneStatus.CLEANUP" href="#ariadne.model.AriadneStatus.CLEANUP">CLEANUP</a></code></li>
+<li><code><a title="ariadne.model.AriadneStatus.LAUNCH" href="#ariadne.model.AriadneStatus.LAUNCH">LAUNCH</a></code></li>
+<li><code><a title="ariadne.model.AriadneStatus.RUNNING" href="#ariadne.model.AriadneStatus.RUNNING">RUNNING</a></code></li>
+<li><code><a title="ariadne.model.AriadneStatus.SHUTDOWN" href="#ariadne.model.AriadneStatus.SHUTDOWN">SHUTDOWN</a></code></li>
+<li><code><a title="ariadne.model.AriadneStatus.STOP" href="#ariadne.model.AriadneStatus.STOP">STOP</a></code></li>
 </ul>
 </li>
 <li>

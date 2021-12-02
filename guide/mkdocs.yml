@@ -75,7 +75,7 @@ nav:
   - "quickstart.md"
   - "基础":
       - "basic/configuration.md"
-      - "basic/application.md"
+      - "basic/instance.md"
       - "basic/msg-chain.md"
   - "进阶":
       - "advance/msg-chain.md"

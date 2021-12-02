@@ -1,4 +1,5 @@
 import asyncio
+import importlib.metadata
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
@@ -19,6 +20,8 @@ from typing import (
 from graia.broadcast import Broadcast
 from loguru import logger
 
+from graia.ariadne import ARIADNE_ASCII_LOGO, TELEMETRY_LIST
+
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
 from .event.lifecycle import (
@@ -29,7 +32,7 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import inject_bypass_listener, inject_loguru_traceback
+from .util import deprecated, inject_bypass_listener, inject_loguru_traceback
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -1099,6 +1102,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         use_loguru_traceback: Optional[bool] = True,
         use_bypass_listener: Optional[bool] = False,
         await_task: bool = False,
+        disable_telemetry: bool = False,
+        disable_logo: bool = False,
     ):
         """
         初始化 Ariadne.
@@ -1133,6 +1138,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.remote_version: str = ""
         self.max_retry: int = max_retry
         self.await_task: bool = await_task
+        self.disable_telemetry: bool = disable_telemetry
+        self.disable_logo: bool = disable_logo
 
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
@@ -1255,6 +1262,20 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             self.status = AriadneStatus.LAUNCH
             start_time = time.time()
             logger.info("Launching app...")
+
+            # Logo
+            if not self.disable_logo:
+                logger.info(ARIADNE_ASCII_LOGO)
+
+            # Telemetry
+            if not self.disable_telemetry:
+                for entry in TELEMETRY_LIST:
+                    try:
+                        version = importlib.metadata.version(entry)
+                    except importlib.metadata.PackageNotFoundError:
+                        version = "Not Found / Installed"
+                    logger.info(f"{entry} version: {version}")
+
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
@@ -1267,6 +1288,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
             self.broadcast.postEvent(ApplicationLaunched(self))
+
+    @deprecated("0.4.8")
+    async def stop(self):
+        logger.warning("Use request_stop() or wait_for_stop() instead!")
+        await self.request_stop()
 
     async def request_stop(self):
         """请求停止 Ariadne."""
@@ -1306,7 +1332,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return self
 
     async def __aexit__(self, *exc):
-        await self.stop()
+        await self.wait_for_stop()
 
     @property
     def account(self) -> Optional[int]:

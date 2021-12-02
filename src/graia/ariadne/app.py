@@ -32,7 +32,13 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import deprecated, inject_bypass_listener, inject_loguru_traceback
+from .util import (
+    await_predicate,
+    deprecated,
+    inject_bypass_listener,
+    inject_loguru_traceback,
+    yield_with_timeout,
+)
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -1190,28 +1196,23 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         retry_cnt: int = 0
 
         logger.debug("Ariadne daemon started.")
-        fetch_task = None
 
         while self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
             try:
                 self.broadcast.postEvent(AdapterLaunched(self))
                 try:
-                    fetch_task = asyncio.create_task(self.adapter.fetch_cycle())
-                    await self.adapter.wait_for_session()
+                    await self.adapter.start()
+                    await await_predicate(lambda: self.adapter.session_activated)
                     try:
-                        last_tsk = None
-                        while self.adapter.running and self.status in {
-                            AriadneStatus.RUNNING,
-                            AriadneStatus.LAUNCH,
-                        }:
-                            last_tsk = last_tsk or {asyncio.create_task(self.adapter.queue.get())}
-                            done, last_tsk = await asyncio.wait(last_tsk, timeout=0.2)
-                            if not done:
-                                continue
-                            for t in done:
-                                event = await t
-                                with enter_context(self, event):
-                                    self.broadcast.postEvent(event)
+                        async for event in yield_with_timeout(
+                            self.adapter.queue.get,
+                            lambda: (
+                                self.adapter.running
+                                and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
+                            ),
+                        ):
+                            with enter_context(self, event):
+                                self.broadcast.postEvent(event)
                     except CancelledError:
                         pass
                 except Exception as e:
@@ -1250,8 +1251,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 except Exception as e:
                     exceptions.append((e.__class__, e.args))
         self.adapter.running = False
-        if fetch_task:
-            await fetch_task
+        if self.adapter.fetch_task:
+            await self.adapter.fetch_task
         self.status = AriadneStatus.STOP
         logger.info("Stopped Ariadne.")
         return exceptions
@@ -1280,7 +1281,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
-            await self.adapter.wait_for_session()
+            await await_predicate(lambda: self.adapter.session_activated, 0.0001)
             self.status = AriadneStatus.RUNNING
             self.remote_version = await self.getVersion()
             logger.info(f"Remote version: {self.remote_version}")
@@ -1298,8 +1299,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """请求停止 Ariadne."""
         if self.status is AriadneStatus.RUNNING:
             self.status = AriadneStatus.SHUTDOWN
-            while self.status != AriadneStatus.CLEANUP:
-                await asyncio.sleep(0.001)
+            await await_predicate(lambda: self.status is AriadneStatus.CLEANUP)
 
     async def wait_for_stop(self):
         """等待直到 Ariadne 真正停止.
@@ -1307,8 +1307,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """
         if self.status is AriadneStatus.RUNNING:
             await self.request_stop()
-        while self.status != AriadneStatus.STOP:
-            await asyncio.sleep(0.001)
+            await await_predicate(lambda: self.status is AriadneStatus.STOP)
         await self.daemon_task
 
     async def lifecycle(self):

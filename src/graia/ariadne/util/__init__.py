@@ -2,11 +2,26 @@
 """
 
 # Utility Layout
+import asyncio
 import functools
 import sys
 import traceback
 from asyncio.events import AbstractEventLoop
-from typing import Callable, ContextManager, Dict, Generator, List, Type, TypeVar, Union
+from typing import (
+    AsyncGenerator,
+    AsyncIterable,
+    AsyncIterator,
+    Awaitable,
+    Callable,
+    ContextManager,
+    Coroutine,
+    Dict,
+    Generator,
+    List,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -183,6 +198,27 @@ def wrap_bracket(string: str) -> str:
 
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
+
+
+async def await_predicate(predicate: Callable[[], bool], interval: float = 0.05) -> None:
+    while not predicate():
+        await asyncio.sleep(interval)
+
+
+async def yield_with_timeout(
+    getter_coro: Callable[[], Coroutine[None, None, T]],
+    predicate: Callable[[], bool],
+    await_length: float = 0.2,
+) -> AsyncIterator[T]:
+    last_tsk = None
+    while predicate():
+        last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
+        done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)
+        if not done:
+            continue
+        for t in done:
+            res = await t
+            yield res
 
 
 def deprecated(remove_ver: str) -> Callable:

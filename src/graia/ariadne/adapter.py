@@ -33,7 +33,7 @@ from .event import MiraiEvent
 from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
 from .model import CallMethod, DatetimeEncoder, MiraiSession
-from .util import validate_response
+from .util import await_predicate, validate_response, yield_with_timeout
 
 if TYPE_CHECKING:
     from .typing import P, R, Self
@@ -105,7 +105,7 @@ class Adapter(abc.ABC):
         session: Session 实例, 存储了连接信息
     """
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -> None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, log: bool = True) -> None:
         self.broadcast = broadcast
         self.loop: AbstractEventLoop = broadcast.loop
         self.running: bool = False
@@ -113,6 +113,7 @@ class Adapter(abc.ABC):
         self.session: Optional[ClientSession] = None
         self.fetch_task: Optional[Task] = None
         self.queue: Optional[Queue[Dispatchable]] = None
+        self.log: bool = log
 
     @abc.abstractmethod
     async def fetch_cycle(self) -> None:
@@ -175,9 +176,16 @@ class Adapter(abc.ABC):
     def session_activated(self) -> bool:
         return bool(self.mirai_session.session_key)
 
-    async def wait_for_session(self):
-        while not self.session_activated:
-            await asyncio.sleep(0.001)
+    async def start(self):
+        if not self.running:
+            self.fetch_task = asyncio.create_task(self.fetch_cycle())
+            await await_predicate(lambda: self.running)
+
+    async def stop(self):
+        if self.running:
+            self.running = False
+            await self.fetch_task
+            self.fetch_task = None
 
 
 class HttpAdapter(Adapter):
@@ -292,15 +300,18 @@ class WebsocketAdapter(Adapter):
             try:
                 try:
                     await self.ws_conn.ping()
-                    logger.debug("websocket: ping")
+                    if self.log:
+                        logger.debug("websocket: ping")
                 except Exception as e:
                     logger.exception(f"websocket: ping failed: {e!r}")
                 else:
-                    logger.debug(f"websocket: ping success, delay {interval}s")
+                    if self.log:
+                        logger.debug(f"websocket: ping success, delay {interval}s")
                     await asyncio.sleep(interval)
             except asyncio.CancelledError:
-                logger.debug("websocket: pinger exit")
-                return
+                if self.log:
+                    logger.debug("websocket: pinger exit")
+                break
 
     @require_verified
     @error_wrapper
@@ -371,14 +382,7 @@ class WebsocketAdapter(Adapter):
                 self.ping_task = self.loop.create_task(self.ws_ping(), name="ariadne_adapter_ws_ping")
                 logger.info("websocket: ping task created")
             try:
-                last_tsk = None
-                while self.running:
-                    last_tsk = last_tsk or {asyncio.create_task(connection.receive())}
-                    done, last_tsk = await asyncio.wait(last_tsk, timeout=0.2)
-                    if not done:
-                        continue
-                    for t in done:
-                        ws_message = await t
+                async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                     if ws_message.type is WSMsgType.TEXT:
                         original_data: dict = json.loads(ws_message.data)
                         event = await self.raw_data_parser(original_data)
@@ -414,8 +418,10 @@ class CombinedAdapter(Adapter):
         ping(bool): 是否启用 ping 功能.
     """
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -> None:
-        super().__init__(broadcast, mirai_session)
+    def __init__(
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = True
+    ) -> None:
+        super().__init__(broadcast, mirai_session, log)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None

@@ -389,19 +389,21 @@ class WebsocketAdapter(Adapter):
                         if event:
                             await self.queue.put(event)
                     elif ws_message.type is WSMsgType.CLOSED:
-                        logger.info("websocket: connection has been closed.")
+                        logger.warning("websocket: connection has been closed.")
                         return
                     elif ws_message.type is WSMsgType.PONG:
-                        logger.debug("websocket: received pong")
+                        if self.log:
+                            logger.debug("websocket: received pong")
                     else:
-                        logger.debug("websocket: unknown message type - {}".format(ws_message.type))
+                        logger.warning("websocket: unknown message type - {}".format(ws_message.type))
             except Exception as e:
                 logger.exception(e)
             finally:
                 if self.ping_task:
                     self.ping_task.cancel()
                     self.ping_task = None
-                    logger.debug("websocket: ping task complete")
+                    if self.log:
+                        logger.debug("websocket: ping task complete")
         logger.info("websocket: disconnected")
         self.mirai_session.session_key = None
         await self.session.close()

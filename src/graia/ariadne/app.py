@@ -1299,7 +1299,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """请求停止 Ariadne."""
         if self.status is AriadneStatus.RUNNING:
             self.status = AriadneStatus.SHUTDOWN
-            await await_predicate(lambda: self.status is AriadneStatus.CLEANUP)
+            await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})
 
     async def wait_for_stop(self):
         """等待直到 Ariadne 真正停止.

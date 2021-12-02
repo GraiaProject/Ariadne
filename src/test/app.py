@@ -1,9 +1,7 @@
 import asyncio
 import os
-from asyncio.tasks import wait_for
 
 from graia.broadcast import Broadcast
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter
@@ -22,7 +20,7 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
     bcc = Broadcast(loop=loop)
-    adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
+    adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key), log=False)
     app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5, await_task=True)
 
     @bcc.receiver(FriendMessage)

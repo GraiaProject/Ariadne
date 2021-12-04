@@ -26,12 +26,10 @@ from ..element import Element
 from .pattern import (
     ArgumentMatch,
     ElementMatch,
-    FullMatch,
     Match,
     RegexMatch,
-    WildcardMatch,
 )
-from .util import ArgumentMatchType, TwilightParser, split
+from .util import ElementType, MessageChainType, TwilightParser, split
 
 
 class Sparkle(Representation):
@@ -74,11 +72,11 @@ class Sparkle(Representation):
                     self._args_map[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
                         if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
-                            v.add_arg_data["type"] = ArgumentMatchType(v, v.regex)
-                        if isinstance(v.add_arg_data["type"], type) and issubclass(
+                            v.add_arg_data["type"] = MessageChainType(v, v.regex)
+                        elif isinstance(v.add_arg_data["type"], type) and issubclass(
                             v.add_arg_data["type"], Element
                         ):
-                            raise ValueError("Can't use Element as argument type!")
+                            v.add_arg_data["type"] = ElementType(v, v.add_arg_data["type"])
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 elif isinstance(v, RegexMatch):
                     self._regex_match_list.append((v, group_cnt + 1, k))
@@ -243,7 +241,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             self.sparkle_root = sparkle
         else:
             self.sparkle_root = sparkle()
-        self.map_params = {
+        self._map_params = {
             "remove_source": remove_source,
             "remove_quote": remove_quote,
             "remove_extra_space": remove_extra_space,
@@ -251,7 +249,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
     def gen_sparkle(self, chain: MessageChain) -> T_Sparkle:
         sparkle = deepcopy(self.sparkle_root)
-        mapping_str, elem_mapping = chain.asMappingString(**self.map_params)
+        mapping_str, elem_mapping = chain.asMappingString(**self._map_params)
         token = ArgumentMatch.elem_mapping_ctx.set(chain)
         try:
             str_list = sparkle.run_check(mapping_str, elem_mapping)

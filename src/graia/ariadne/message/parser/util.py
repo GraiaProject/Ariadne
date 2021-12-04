@@ -3,7 +3,7 @@ import inspect
 import re
 from typing import TYPE_CHECKING, List, NoReturn, Type, Union
 
-from ..chain import MessageChain
+from ..chain import Element_T, MessageChain
 
 if TYPE_CHECKING:
     from .pattern import ArgumentMatch
@@ -51,7 +51,7 @@ def gen_flags_repr(flags: re.RegexFlag) -> str:
         flags_list.append("x")
 
 
-class ArgumentMatchType:
+class MessageChainType:
     def __init__(self, match: "ArgumentMatch", regex: re.Pattern):
         self.match = match
         self.regex: re.Pattern = regex
@@ -60,6 +60,17 @@ class ArgumentMatchType:
         if self.regex and not self.regex.fullmatch(string):
             raise ValueError(f"{string} not matching {self.regex.pattern}")
         return MessageChain.fromMappingString(string, self.match.elem_mapping_ctx.get())
+
+
+class ElementType:
+    def __init__(self, match: "ArgumentMatch", pattern: Type[Element_T]):
+        self.match = match
+        self.regex = re.compile(f"\x02(\\d+)_{pattern.__fields__['type'].default}\x03")
+
+    def __call__(self, string: str) -> MessageChain:
+        if not self.regex.fullmatch(string):
+            raise ValueError(f"{string} not matching {self.regex.pattern}")
+        return MessageChain.fromMappingString(string, self.match.elem_mapping_ctx.get())[0]
 
 
 class TwilightParser(argparse.ArgumentParser):

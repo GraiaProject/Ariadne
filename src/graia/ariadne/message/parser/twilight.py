@@ -44,14 +44,14 @@ class Sparkle(Representation):
     @overload
     def __init__(
         self,
-        check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
+        check_args: Iterable[RegexMatch] = (),
         matches: Optional[Dict[str, Match]] = None,
     ):
         ...
 
     def __init__(
         self,
-        check_args: Iterable[Union[FullMatch, RegexMatch]] = (),
+        check_args: Iterable[RegexMatch] = (),
         matches: Optional[Dict[str, Match]] = None,
     ):
         if isinstance(check_args, dict):
@@ -65,9 +65,7 @@ class Sparkle(Representation):
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
-        self._regex_match_list: List[
-            Tuple[Union[RegexMatch, FullMatch, WildcardMatch, ElementMatch], int, str]
-        ] = []
+        self._regex_match_list: List[Tuple[RegexMatch, int, str]] = []
         self._args_map: Dict[str, Tuple[ArgumentMatch, str]] = {}
         self._parser = TwilightParser(prog="", add_help=False)
         for k, v in match_map.items():
@@ -82,10 +80,12 @@ class Sparkle(Representation):
                         ):
                             raise ValueError("Can't use Element as argument type!")
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
-                else:
+                elif isinstance(v, RegexMatch):
                     self._regex_match_list.append((v, group_cnt + 1, k))
                     group_cnt += re.compile(v.gen_regex()).groups
                     match_pattern_list.append(v.gen_regex())
+                else:
+                    raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
         if (
             not all(v[0].pattern[0].startswith("-") for v in self._args_map.values())
             and self._regex_match_list
@@ -128,7 +128,7 @@ class Sparkle(Representation):
                 match.result = result
                 match.matched = bool(current)
 
-                if isinstance(match, RegexMatch):
+                if match.__class__ is RegexMatch:
                     match.regex_match = re.fullmatch(match.pattern, current)
             return split(string[regex_match.end() :])
         else:
@@ -167,7 +167,7 @@ class Sparkle(Representation):
                     match.result = result
                     match.matched = bool(current)
 
-                    if isinstance(match, RegexMatch):
+                    if match.__class__ is RegexMatch:
                         match.regex_match = re.fullmatch(match.pattern, current)
 
                     if getattr(self, name, None) is None:

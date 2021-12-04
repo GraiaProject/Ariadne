@@ -68,3 +68,11 @@ if __name__ == "__main__":
     devtools.debug(twilight.gen_sparkle(MessageChain(["!header --help hello"])))
     devtools.debug(twilight.sparkle_root._parser._actions)
     print(twilight.sparkle_root.get_help())
+
+    union_twi = Twilight(Sparkle(check_args=[UnionMatch(".hello", ".hi")]))
+    devtools.debug(union_twi.gen_sparkle(MessageChain([".hello"])))
+    devtools.debug(union_twi.gen_sparkle(MessageChain([".hi"])))
+    try:
+        devtools.debug(union_twi.gen_sparkle(MessageChain([".help"])))
+    except Exception as e:
+        devtools.debug(e)

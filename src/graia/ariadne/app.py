@@ -8,6 +8,7 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
+    Iterable,
     List,
     Literal,
     Optional,
@@ -1110,6 +1111,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         await_task: bool = False,
         disable_telemetry: bool = False,
         disable_logo: bool = False,
+        extra_telemetry: Iterable[str] = (),
     ):
         """
         初始化 Ariadne.
@@ -1146,6 +1148,14 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.await_task: bool = await_task
         self.disable_telemetry: bool = disable_telemetry
         self.disable_logo: bool = disable_logo
+        self.extra_telemetry: Iterable[str] = extra_telemetry
+        self.info: Dict[type, object] = {
+            Ariadne: self,
+            Broadcast: self.broadcast,
+            AbstractEventLoop: self.loop,
+            Adapter: self.adapter,
+            MiraiSession: self.mirai_session,
+        }
 
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
@@ -1156,25 +1166,19 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         if use_loguru_traceback:
             inject_loguru_traceback(self.loop)
 
-    def create(
-        self,
-        cls: Type[T],
-    ) -> T:
+    def create(self, cls: Type[T], reuse: bool = True) -> T:
         """利用 Ariadne 已有的信息协助创建实例.
 
         Args:
             cls (Type[T]): 需要创建的类.
+            reuse (bool, optional): 是否允许复用, 默认为 True.
 
         Returns:
             T: 创建的类.
         """
-        INFO = {
-            Ariadne: self,
-            Broadcast: self.broadcast,
-            AbstractEventLoop: self.loop,
-            Adapter: self.adapter,
-            MiraiSession: self.mirai_session,
-        }
+        self.info: Dict[Type[T], T]
+        if cls in self.info.keys():
+            return self.info[cls]
         call_args: list = []
         call_kwargs: Dict[str, Any] = {}
         import inspect
@@ -1182,15 +1186,18 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         init_sig = inspect.signature(cls)
 
         for name, param in init_sig.parameters.items():
-            if param.annotation in INFO and param.kind not in (
+            if param.annotation in self.info.keys() and param.kind not in (
                 param.VAR_KEYWORD,
                 param.VAR_POSITIONAL,
             ):
                 if param.kind is param.POSITIONAL_ONLY:
-                    call_args.append(INFO[param.annotation])
+                    call_args.append(self.info[param.annotation])
                 else:
-                    call_kwargs[name] = INFO[param.annotation]
-        return cls(*call_args, **call_kwargs)
+                    call_kwargs[name] = self.info[param.annotation]
+        obj: T = cls(*call_args, **call_kwargs)
+        if reuse:
+            self.info[cls] = obj
+        return obj
 
     async def daemon(self, retry_interval: float = 5.0):
         retry_cnt: int = 0
@@ -1262,11 +1269,10 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         if self.status is AriadneStatus.STOP:
             self.status = AriadneStatus.LAUNCH
             start_time = time.time()
-            logger.info("Launching app...")
 
             # Logo
             if not self.disable_logo:
-                logger.info(ARIADNE_ASCII_LOGO)
+                logger.opt(colors=True, raw=True).info(f"<cyan>{ARIADNE_ASCII_LOGO}</>")
 
             # Telemetry
             if not self.disable_telemetry:
@@ -1274,9 +1280,12 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     try:
                         version = importlib.metadata.version(entry)
                     except importlib.metadata.PackageNotFoundError:
-                        version = "Not Found / Installed"
-                    logger.info(f"{entry} version: {version}")
+                        version = "Not Installed"
+                    logger.opt(colors=True, raw=True).info(
+                        f"<magenta>{entry.split('-')[-1].title()}</> version: <yellow>{version}</>\n"
+                    )
 
+            logger.info("Launching app...")
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)

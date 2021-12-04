@@ -12,6 +12,10 @@ ARIADNE_ASCII_LOGO = r"""
    / /\ \ | '__| |/ _` |/ _` | '_ \ / _ \
   / ____ \| |  | | (_| | (_| | | | |  __/
  /_/    \_\_|  |_|\__,_|\__,_|_| |_|\___|
-"""
+""".lstrip(
+    "\n"
+)
+# remove first newline
+
 
 TELEMETRY_LIST = ["graia-ariadne", "graia-broadcast", "graia-scheduler", "graia-saya"]

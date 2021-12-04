@@ -16,12 +16,19 @@ from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 if __name__ == "__main__":
     url, account, verify_key = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
-    ALL_FLAG = True
+    ALL_FLAG = False
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
-    bcc = Broadcast(loop=loop)
-    adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key), log=False)
-    app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5, await_task=True)
+
+    app = Ariadne(
+        MiraiSession(url, account, verify_key),
+        loop=loop,
+        use_bypass_listener=True,
+        max_retry=5,
+        await_task=True,
+    )
+
+    bcc = app.create(Broadcast)
 
     @bcc.receiver(FriendMessage)
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):
@@ -77,6 +84,7 @@ if __name__ == "__main__":
 
 
 try:
+    loop.run_until_complete(main())
     loop.run_until_complete(main())
 except KeyboardInterrupt:
     loop.run_until_complete(app.wait_for_stop())

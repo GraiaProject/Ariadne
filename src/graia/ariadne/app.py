@@ -1111,7 +1111,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         await_task: bool = False,
         disable_telemetry: bool = False,
         disable_logo: bool = False,
-        extra_telemetry: Iterable[str] = (),
     ):
         """
         初始化 Ariadne.
@@ -1148,7 +1147,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.await_task: bool = await_task
         self.disable_telemetry: bool = disable_telemetry
         self.disable_logo: bool = disable_logo
-        self.extra_telemetry: Iterable[str] = extra_telemetry
         self.info: Dict[type, object] = {
             Ariadne: self,
             Broadcast: self.broadcast,

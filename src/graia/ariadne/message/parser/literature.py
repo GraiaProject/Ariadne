@@ -14,6 +14,7 @@ from graia.ariadne.util import deprecated
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
+from ...event.message import MessageEvent
 
 BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
 
@@ -167,10 +168,8 @@ class Literature(BaseDispatcher):
             list(itertools.chain(*[[*i.__root__, Plain(" ")] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
-    async def beforeExecution(self, interface: DispatcherInterface):
-        message_chain: MessageChain = await interface.lookup_param(
-            "__literature_messagechain__", MessageChain, None
-        )
+    async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
+        message_chain: MessageChain = interface.event.messageChain
         if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)

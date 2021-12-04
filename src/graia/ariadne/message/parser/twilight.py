@@ -188,13 +188,13 @@ class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
         match: Optional[Dict[str, Match]] = None,
         cls: Type["Twilight"] = None,
     ):
-        if not check:
-            check = ()
-
         if isinstance(check, dict):
             match, check = check, match  # swap
             check: Iterable[RegexMatch]
             match: Dict[str, Match]
+
+        if not check:
+            check = ()
 
         cls = cls or self.__class__
 

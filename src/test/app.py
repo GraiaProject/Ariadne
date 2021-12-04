@@ -7,7 +7,7 @@ from loguru import logger
 from graia.ariadne.adapter import DebugAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
-from graia.ariadne.event.mirai import NewFriendRequestEvent
+from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Plain
 from graia.ariadne.message.parser.pattern import FullMatch, RegexMatch, WildcardMatch
@@ -20,8 +20,10 @@ if __name__ == "__main__":
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
 
+    bcc = Broadcast(loop=loop)
+
     app = Ariadne(
-        MiraiSession(url, account, verify_key),
+        DebugAdapter(bcc, MiraiSession(url, account, verify_key)),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
@@ -58,6 +60,11 @@ if __name__ == "__main__":
                 group,
                 MessageChain.create([At(chain.getFirst(At).target), Plain("Hello World!")]),
             )  # WARNING: May raise UnknownTarget
+
+    @bcc.receiver(GroupRecallEvent)
+    async def anti_recall(app: Ariadne, event: GroupRecallEvent):
+        msg = await app.getMessageFromId(event.messageId)
+        await app.sendGroupMessage(event.group, msg.messageChain)
 
     @bcc.receiver(
         FriendMessage,

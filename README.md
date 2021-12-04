@@ -33,18 +33,12 @@ _Another elegant framework for mirai and mirai-api-http v2._
 ## 开始使用
 
 ```python
-import asyncio
-
-from graia.broadcast import Broadcast
-
 from graia.ariadne.app import Ariadne
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import Plain
 from graia.ariadne.model import Friend, MiraiSession
 
-loop = asyncio.new_event_loop()
-
-app = Ariadne(MiraiSession(host="http://localhost:8080", verify_key="ServiceVerifyKey", account=123456789)))
+app = Ariadne(MiraiSession(host="http://localhost:8080", verify_key="ServiceVerifyKey", account=123456789))
 
 
 @app.broadcast.receiver("FriendMessage")
@@ -52,7 +46,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
     await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
 
 
-loop.run_until_complete(app.lifecycle())
+app.launch_blocking()
 ```
 
 更多信息请看 [文档](https://graia.readthedocs.io/zh_CN/latest/).

@@ -182,7 +182,7 @@ class AtAll(Element):
     "该消息元素用于群组中的管理员提醒群组中的所有成员"
     type: str = "AtAll"
 
-    def __init__(self) -> None:
+    def __init__(self, *_, **__) -> None:
         super().__init__()
 
     def asDisplay(self) -> str:
@@ -278,7 +278,7 @@ class Poke(Element):
     type = "Poke"
     name: PokeMethods
 
-    def __init__(self, name: PokeMethods) -> None:
+    def __init__(self, name: PokeMethods, *_, **__) -> None:
         super().__init__(name=name)
 
     def asDisplay(self) -> str:
@@ -290,7 +290,7 @@ class Dice(Element):
     type = "Dice"
     value: int
 
-    def __init__(self, value: int) -> None:
+    def __init__(self, value: int, *_, **__) -> None:
         super().__init__(value=value)
 
     def asDisplay(self) -> str:

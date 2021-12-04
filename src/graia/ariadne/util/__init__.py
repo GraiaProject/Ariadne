@@ -199,7 +199,7 @@ def wrap_bracket(string: str) -> str:
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-async def await_predicate(predicate: Callable[[], bool], interval: float = 0.05) -> None:
+async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -> None:
     while not predicate():
         await asyncio.sleep(interval)
 

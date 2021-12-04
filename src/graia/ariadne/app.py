@@ -1126,6 +1126,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """
         if broadcast:
             loop = broadcast.loop
+        elif isinstance(connect_info, Adapter):
+            broadcast = connect_info.broadcast
+            loop = broadcast.loop
         if not loop:
             try:
                 loop = asyncio.get_running_loop()
@@ -1321,6 +1324,12 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         await self.launch()
         await self.daemon_task
         await self.wait_for_stop()
+
+    def launch_blocking(self):
+        try:
+            self.loop.run_until_complete(self.lifecycle())
+        except KeyboardInterrupt:
+            self.loop.run_until_complete(self.wait_for_stop())
 
     @app_ctx_manager
     async def getVersion(self, auto_set: bool = True):

@@ -15,6 +15,7 @@ from typing import (
     Coroutine,
     Dict,
     Generator,
+    Generic,
     List,
     Type,
     TypeVar,
@@ -231,3 +232,8 @@ def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
         return wrapper
 
     return out_wrapper
+
+
+def cast_to(obj, typ: Type[T]) -> T:
+    if typ:
+        return obj

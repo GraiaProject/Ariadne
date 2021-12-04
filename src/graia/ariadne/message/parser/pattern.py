@@ -54,12 +54,13 @@ class Match(abc.ABC, Representation):
     matched: Optional[bool]
     result: Optional["MessageChain"]
 
-    def __init__(self, pattern, optional: bool = False, help: str = "") -> None:
+    def __init__(self, pattern, optional: bool = False, help: str = "", alt_help: str = "") -> None:
         self.pattern = pattern
         self.optional = optional
         self.help = help
         self.result = None
         self.matched = None
+        self.alt_help = alt_help
         if self.__class__ == Match:
             raise ValueError("You can't instantiate Match class directly!")
 
@@ -71,7 +72,7 @@ class Match(abc.ABC, Representation):
         ]
 
     def get_help(self) -> str:
-        return self.pattern.replace("( )?", " ")
+        return self.pattern.replace("( )?", " ") if not self.alt_help else self.alt_help
 
 
 class RegexMatch(Match):
@@ -87,8 +88,9 @@ class RegexMatch(Match):
         flags: re.RegexFlag = re.RegexFlag(0),
         preserve_space: bool = True,
         help: str = "",
+        alt_help: str = "",
     ) -> None:
-        super().__init__(pattern=pattern, optional=optional, help=help)
+        super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
@@ -107,9 +109,15 @@ class WildcardMatch(RegexMatch):
     preserve_space: bool
 
     def __init__(
-        self, *, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = ""
+        self,
+        *,
+        greed: bool = True,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
     ) -> None:
-        super().__init__(".*", optional=optional, help=help, preserve_space=preserve_space)
+        super().__init__(".*", optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
         self.greed = greed
 
     def gen_regex(self) -> str:
@@ -120,9 +128,17 @@ class FullMatch(RegexMatch):
     "全匹配."
 
     def __init__(
-        self, pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = ""
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
     ) -> None:
-        super().__init__(pattern, optional=optional, help=help, preserve_space=preserve_space)
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
         self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
@@ -136,9 +152,16 @@ class ElementMatch(RegexMatch):
     result: "Element"
 
     def __init__(
-        self, pattern: Type["Element"], optional: bool = False, preserve_space: bool = True, help: str = ""
+        self,
+        pattern: Type["Element"],
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
     ) -> None:
-        super().__init__(pattern, optional=optional, help=help, preserve_space=preserve_space)
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
 
     def gen_regex(self) -> str:
         return (
@@ -147,7 +170,7 @@ class ElementMatch(RegexMatch):
         )
 
     def get_help(self) -> str:
-        return self.pattern.__name__
+        return self.pattern.__name__ if not self.alt_help else self.alt_help
 
 
 class UnionMatch(RegexMatch):
@@ -161,11 +184,17 @@ class UnionMatch(RegexMatch):
         optional: bool = False,
         preserve_space: bool = True,
         help: str = "",
+        alt_help: str = "",
     ) -> None:
-        super().__init__(patterns, optional=optional, preserve_space=preserve_space, help=help)
+        super().__init__(
+            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+        )
 
     def gen_regex(self) -> str:
         return f"({'|'.join(re.escape(i) for i in self.pattern)})"
+
+    def get_help(self) -> str:
+        return f"[{'|'.join(self.pattern)}]" if not self.alt_help else self.alt_help
 
 
 T_const = TypeVar("T_const")
@@ -184,7 +213,6 @@ class ArgumentMatch(Match):
     regex: Optional[re.Pattern]
     result: Union["MessageChain", Any]
     add_arg_data: Dict[str, Any]
-    elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
 
     def __init__(
         self,

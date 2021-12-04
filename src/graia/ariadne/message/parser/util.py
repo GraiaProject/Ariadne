@@ -1,4 +1,5 @@
 import argparse
+from contextvars import ContextVar
 import inspect
 import re
 from typing import TYPE_CHECKING, List, NoReturn, Type, Union
@@ -7,6 +8,8 @@ from ..chain import Element_T, MessageChain
 
 if TYPE_CHECKING:
     from .pattern import ArgumentMatch
+
+elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
 
 
 def split(string: str) -> List[str]:
@@ -59,7 +62,7 @@ class MessageChainType:
     def __call__(self, string: str) -> MessageChain:
         if self.regex and not self.regex.fullmatch(string):
             raise ValueError(f"{string} not matching {self.regex.pattern}")
-        return MessageChain.fromMappingString(string, self.match.elem_mapping_ctx.get())
+        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())
 
 
 class ElementType:
@@ -70,7 +73,7 @@ class ElementType:
     def __call__(self, string: str) -> MessageChain:
         if not self.regex.fullmatch(string):
             raise ValueError(f"{string} not matching {self.regex.pattern}")
-        return MessageChain.fromMappingString(string, self.match.elem_mapping_ctx.get())[0]
+        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())[0]
 
 
 class TwilightParser(argparse.ArgumentParser):

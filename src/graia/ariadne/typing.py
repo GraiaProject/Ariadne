@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     T_stop = TypeVar("T_stop")
     T_step = TypeVar("T_step")
 
-    class Slice(slice, Generic[T_start, T_stop, T_step]):
+    class Slice(Generic[T_start, T_stop, T_step]):
         start: T_start
         stop: T_stop
         step: T_step

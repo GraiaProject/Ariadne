@@ -19,7 +19,7 @@ from graia.ariadne.message.parser.pattern import (
 )
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 
-RUN = 2000
+RUN = 10000
 
 if __name__ == "__main__":
     print("Run 1:")
@@ -34,11 +34,11 @@ if __name__ == "__main__":
 
     print(f"Literature: {RUN / (ed-st):.2f}msg/s")
 
-    debug(twi.gen_sparkle(msg))
-    print(repr(twi.gen_sparkle(msg)))
+    debug(twi.generate(msg))
+    print(repr(twi.generate(msg)))
     st = time.time()
     for _ in range(RUN):
-        twi.gen_sparkle(msg)
+        twi.generate(msg)
     ed = time.time()
 
     print(f"Twilight: {RUN / (ed-st):.2f}msg/s")
@@ -54,13 +54,13 @@ if __name__ == "__main__":
 
     print(f"Literature: {RUN / (ed-st):.2f}msg/s")
 
-    debug(twi.gen_sparkle(msg))
+    debug(twi.generate(msg))
 
-    debug(twi.gen_sparkle(msg)[0])
+    debug(twi.generate(msg)[0])
 
     st = time.time()
     for _ in range(RUN):
-        twi.gen_sparkle(msg)
+        twi.generate(msg)
     ed = time.time()
 
     print(f"Twilight: {RUN / (ed-st):.2f}msg/s")

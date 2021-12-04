@@ -29,12 +29,15 @@
 <pre><code class="python">import argparse
 import inspect
 import re
+from contextvars import ContextVar
 from typing import TYPE_CHECKING, List, NoReturn, Type, Union
 
-from ..chain import MessageChain
+from ..chain import Element_T, MessageChain
 
 if TYPE_CHECKING:
     from .pattern import ArgumentMatch
+
+elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
 
 
 def split(string: str) -&gt; List[str]:
@@ -79,7 +82,7 @@ def gen_flags_repr(flags: re.RegexFlag) -&gt; str:
         flags_list.append(&#34;x&#34;)
 
 
-class ArgumentMatchType:
+class MessageChainType:
     def __init__(self, match: &#34;ArgumentMatch&#34;, regex: re.Pattern):
         self.match = match
         self.regex: re.Pattern = regex
@@ -87,7 +90,18 @@ class ArgumentMatchType:
     def __call__(self, string: str) -&gt; MessageChain:
         if self.regex and not self.regex.fullmatch(string):
             raise ValueError(f&#34;{string} not matching {self.regex.pattern}&#34;)
-        return MessageChain.fromMappingString(string, self.match.elem_mapping_ctx.get())
+        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())
+
+
+class ElementType:
+    def __init__(self, match: &#34;ArgumentMatch&#34;, pattern: Type[Element_T]):
+        self.match = match
+        self.regex = re.compile(f&#34;\x02(\\d+)_{pattern.__fields__[&#39;type&#39;].default}\x03&#34;)
+
+    def __call__(self, string: str) -&gt; MessageChain:
+        if not self.regex.fullmatch(string):
+            raise ValueError(f&#34;{string} not matching {self.regex.pattern}&#34;)
+        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())[0]
 
 
 class TwilightParser(argparse.ArgumentParser):
@@ -179,8 +193,29 @@ class TwilightParser(argparse.ArgumentParser):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="ariadne.message.parser.util.ArgumentMatchType"><code class="flex name class">
-<span>class <span class="ident">ArgumentMatchType</span></span>
+<dt id="ariadne.message.parser.util.ElementType"><code class="flex name class">
+<span>class <span class="ident">ElementType</span></span>
+<span>(</span><span>match: ArgumentMatch, pattern: Type[~Element_T])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ElementType:
+    def __init__(self, match: &#34;ArgumentMatch&#34;, pattern: Type[Element_T]):
+        self.match = match
+        self.regex = re.compile(f&#34;\x02(\\d+)_{pattern.__fields__[&#39;type&#39;].default}\x03&#34;)
+
+    def __call__(self, string: str) -&gt; MessageChain:
+        if not self.regex.fullmatch(string):
+            raise ValueError(f&#34;{string} not matching {self.regex.pattern}&#34;)
+        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())[0]</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.util.MessageChainType"><code class="flex name class">
+<span>class <span class="ident">MessageChainType</span></span>
 <span>(</span><span>match: ArgumentMatch, regex: re.Pattern)</span>
 </code></dt>
 <dd>
@@ -189,7 +224,7 @@ class TwilightParser(argparse.ArgumentParser):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ArgumentMatchType:
+<pre><code class="python">class MessageChainType:
     def __init__(self, match: &#34;ArgumentMatch&#34;, regex: re.Pattern):
         self.match = match
         self.regex: re.Pattern = regex
@@ -197,7 +232,7 @@ class TwilightParser(argparse.ArgumentParser):
     def __call__(self, string: str) -&gt; MessageChain:
         if self.regex and not self.regex.fullmatch(string):
             raise ValueError(f&#34;{string} not matching {self.regex.pattern}&#34;)
-        return MessageChain.fromMappingString(string, self.match.elem_mapping_ctx.get())</code></pre>
+        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.parser.util.TwilightParser"><code class="flex name class">
@@ -314,7 +349,10 @@ should either exit or raise an exception.</p></div>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="ariadne.message.parser.util.ArgumentMatchType" href="#ariadne.message.parser.util.ArgumentMatchType">ArgumentMatchType</a></code></h4>
+<h4><code><a title="ariadne.message.parser.util.ElementType" href="#ariadne.message.parser.util.ElementType">ElementType</a></code></h4>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.util.MessageChainType" href="#ariadne.message.parser.util.MessageChainType">MessageChainType</a></code></h4>
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.util.TwilightParser" href="#ariadne.message.parser.util.TwilightParser">TwilightParser</a></code></h4>

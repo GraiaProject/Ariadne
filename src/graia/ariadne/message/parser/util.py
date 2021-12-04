@@ -1,7 +1,7 @@
 import argparse
-from contextvars import ContextVar
 import inspect
 import re
+from contextvars import ContextVar
 from typing import TYPE_CHECKING, List, NoReturn, Type, Union
 
 from ..chain import Element_T, MessageChain

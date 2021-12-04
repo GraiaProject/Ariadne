@@ -61,7 +61,7 @@ from .event import MiraiEvent
 from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
 from .model import CallMethod, DatetimeEncoder, MiraiSession
-from .util import validate_response
+from .util import await_predicate, validate_response, yield_with_timeout
 
 if TYPE_CHECKING:
     from .typing import P, R, Self
@@ -133,7 +133,7 @@ class Adapter(abc.ABC):
         session: Session 实例, 存储了连接信息
     &#34;&#34;&#34;
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, log: bool = True) -&gt; None:
         self.broadcast = broadcast
         self.loop: AbstractEventLoop = broadcast.loop
         self.running: bool = False
@@ -141,6 +141,7 @@ class Adapter(abc.ABC):
         self.session: Optional[ClientSession] = None
         self.fetch_task: Optional[Task] = None
         self.queue: Optional[Queue[Dispatchable]] = None
+        self.log: bool = log
 
     @abc.abstractmethod
     async def fetch_cycle(self) -&gt; None:
@@ -203,9 +204,16 @@ class Adapter(abc.ABC):
     def session_activated(self) -&gt; bool:
         return bool(self.mirai_session.session_key)
 
-    async def wait_for_session(self):
-        while not self.session_activated:
-            await asyncio.sleep(0.001)
+    async def start(self):
+        if not self.running:
+            self.fetch_task = asyncio.create_task(self.fetch_cycle())
+            await await_predicate(lambda: self.running)
+
+    async def stop(self):
+        if self.running:
+            self.running = False
+            await self.fetch_task
+            self.fetch_task = None
 
 
 class HttpAdapter(Adapter):
@@ -320,15 +328,18 @@ class WebsocketAdapter(Adapter):
             try:
                 try:
                     await self.ws_conn.ping()
-                    logger.debug(&#34;websocket: ping&#34;)
+                    if self.log:
+                        logger.debug(&#34;websocket: ping&#34;)
                 except Exception as e:
                     logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
                 else:
-                    logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
+                    if self.log:
+                        logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                     await asyncio.sleep(interval)
             except asyncio.CancelledError:
-                logger.debug(&#34;websocket: pinger exit&#34;)
-                return
+                if self.log:
+                    logger.debug(&#34;websocket: pinger exit&#34;)
+                break
 
     @require_verified
     @error_wrapper
@@ -399,33 +410,28 @@ class WebsocketAdapter(Adapter):
                 self.ping_task = self.loop.create_task(self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;)
                 logger.info(&#34;websocket: ping task created&#34;)
             try:
-                last_tsk = None
-                while self.running:
-                    last_tsk = last_tsk or {asyncio.create_task(connection.receive())}
-                    done, last_tsk = await asyncio.wait(last_tsk, timeout=0.2)
-                    if not done:
-                        continue
-                    for t in done:
-                        ws_message = await t
+                async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                     if ws_message.type is WSMsgType.TEXT:
                         original_data: dict = json.loads(ws_message.data)
                         event = await self.raw_data_parser(original_data)
                         if event:
                             await self.queue.put(event)
                     elif ws_message.type is WSMsgType.CLOSED:
-                        logger.info(&#34;websocket: connection has been closed.&#34;)
+                        logger.warning(&#34;websocket: connection has been closed.&#34;)
                         return
                     elif ws_message.type is WSMsgType.PONG:
-                        logger.debug(&#34;websocket: received pong&#34;)
+                        if self.log:
+                            logger.debug(&#34;websocket: received pong&#34;)
                     else:
-                        logger.debug(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
+                        logger.warning(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
             except Exception as e:
                 logger.exception(e)
             finally:
                 if self.ping_task:
                     self.ping_task.cancel()
                     self.ping_task = None
-                    logger.debug(&#34;websocket: ping task complete&#34;)
+                    if self.log:
+                        logger.debug(&#34;websocket: ping task complete&#34;)
         logger.info(&#34;websocket: disconnected&#34;)
         self.mirai_session.session_key = None
         await self.session.close()
@@ -442,8 +448,10 @@ class CombinedAdapter(Adapter):
         ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
-        super().__init__(broadcast, mirai_session)
+    def __init__(
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = True
+    ) -&gt; None:
+        super().__init__(broadcast, mirai_session, log)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -588,7 +596,7 @@ class DebugAdapter(DefaultAdapter):
 <dl>
 <dt id="ariadne.adapter.Adapter"><code class="flex name class">
 <span>class <span class="ident">Adapter</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, log: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>适配器抽象基类.</p>
@@ -611,7 +619,7 @@ class DebugAdapter(DefaultAdapter):
         session: Session 实例, 存储了连接信息
     &#34;&#34;&#34;
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession) -&gt; None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, log: bool = True) -&gt; None:
         self.broadcast = broadcast
         self.loop: AbstractEventLoop = broadcast.loop
         self.running: bool = False
@@ -619,6 +627,7 @@ class DebugAdapter(DefaultAdapter):
         self.session: Optional[ClientSession] = None
         self.fetch_task: Optional[Task] = None
         self.queue: Optional[Queue[Dispatchable]] = None
+        self.log: bool = log
 
     @abc.abstractmethod
     async def fetch_cycle(self) -&gt; None:
@@ -681,9 +690,16 @@ class DebugAdapter(DefaultAdapter):
     def session_activated(self) -&gt; bool:
         return bool(self.mirai_session.session_key)
 
-    async def wait_for_session(self):
-        while not self.session_activated:
-            await asyncio.sleep(0.001)</code></pre>
+    async def start(self):
+        if not self.running:
+            self.fetch_task = asyncio.create_task(self.fetch_cycle())
+            await await_predicate(lambda: self.running)
+
+    async def stop(self):
+        if self.running:
+            self.running = False
+            await self.fetch_task
+            self.fetch_task = None</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -831,8 +847,8 @@ async def fetch_cycle(self) -&gt; None:
     await self.session.close()</code></pre>
 </details>
 </dd>
-<dt id="ariadne.adapter.Adapter.wait_for_session"><code class="name flex">
-<span>async def <span class="ident">wait_for_session</span></span>(<span>self)</span>
+<dt id="ariadne.adapter.Adapter.start"><code class="name flex">
+<span>async def <span class="ident">start</span></span>(<span>self)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -840,16 +856,33 @@ async def fetch_cycle(self) -&gt; None:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def wait_for_session(self):
-    while not self.session_activated:
-        await asyncio.sleep(0.001)</code></pre>
+<pre><code class="python">async def start(self):
+    if not self.running:
+        self.fetch_task = asyncio.create_task(self.fetch_cycle())
+        await await_predicate(lambda: self.running)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.adapter.Adapter.stop"><code class="name flex">
+<span>async def <span class="ident">stop</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def stop(self):
+    if self.running:
+        self.running = False
+        await self.fetch_task
+        self.fetch_task = None</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">CombinedAdapter</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True, log: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
@@ -876,8 +909,10 @@ async def fetch_cycle(self) -&gt; None:
         ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
-        super().__init__(broadcast, mirai_session)
+    def __init__(
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = True
+    ) -&gt; None:
+        super().__init__(broadcast, mirai_session, log)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -990,33 +1025,28 @@ async def call_api(
             self.ping_task = self.loop.create_task(self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;)
             logger.info(&#34;websocket: ping task created&#34;)
         try:
-            last_tsk = None
-            while self.running:
-                last_tsk = last_tsk or {asyncio.create_task(connection.receive())}
-                done, last_tsk = await asyncio.wait(last_tsk, timeout=0.2)
-                if not done:
-                    continue
-                for t in done:
-                    ws_message = await t
+            async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                 if ws_message.type is WSMsgType.TEXT:
                     original_data: dict = json.loads(ws_message.data)
                     event = await self.raw_data_parser(original_data)
                     if event:
                         await self.queue.put(event)
                 elif ws_message.type is WSMsgType.CLOSED:
-                    logger.info(&#34;websocket: connection has been closed.&#34;)
+                    logger.warning(&#34;websocket: connection has been closed.&#34;)
                     return
                 elif ws_message.type is WSMsgType.PONG:
-                    logger.debug(&#34;websocket: received pong&#34;)
+                    if self.log:
+                        logger.debug(&#34;websocket: received pong&#34;)
                 else:
-                    logger.debug(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
+                    logger.warning(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
         except Exception as e:
             logger.exception(e)
         finally:
             if self.ping_task:
                 self.ping_task.cancel()
                 self.ping_task = None
-                logger.debug(&#34;websocket: ping task complete&#34;)
+                if self.log:
+                    logger.debug(&#34;websocket: ping task complete&#34;)
     logger.info(&#34;websocket: disconnected&#34;)
     self.mirai_session.session_key = None
     await self.session.close()</code></pre>
@@ -1055,22 +1085,25 @@ async def call_api(
         try:
             try:
                 await self.ws_conn.ping()
-                logger.debug(&#34;websocket: ping&#34;)
+                if self.log:
+                    logger.debug(&#34;websocket: ping&#34;)
             except Exception as e:
                 logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
             else:
-                logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
+                if self.log:
+                    logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                 await asyncio.sleep(interval)
         except asyncio.CancelledError:
-            logger.debug(&#34;websocket: pinger exit&#34;)
-            return</code></pre>
+            if self.log:
+                logger.debug(&#34;websocket: pinger exit&#34;)
+            break</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="ariadne.adapter.CombinedAdapter"><code class="flex name class">
 <span>class <span class="ident">DefaultAdapter</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True, log: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
@@ -1097,8 +1130,10 @@ async def call_api(
         ping(bool): 是否启用 ping 功能.
     &#34;&#34;&#34;
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -&gt; None:
-        super().__init__(broadcast, mirai_session)
+    def __init__(
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = True
+    ) -&gt; None:
+        super().__init__(broadcast, mirai_session, log)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None
@@ -1165,15 +1200,18 @@ async def call_api(
         try:
             try:
                 await self.ws_conn.ping()
-                logger.debug(&#34;websocket: ping&#34;)
+                if self.log:
+                    logger.debug(&#34;websocket: ping&#34;)
             except Exception as e:
                 logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
             else:
-                logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
+                if self.log:
+                    logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                 await asyncio.sleep(interval)
         except asyncio.CancelledError:
-            logger.debug(&#34;websocket: pinger exit&#34;)
-            return</code></pre>
+            if self.log:
+                logger.debug(&#34;websocket: pinger exit&#34;)
+            break</code></pre>
 </details>
 </dd>
 </dl>
@@ -1190,7 +1228,7 @@ async def call_api(
 </dd>
 <dt id="ariadne.adapter.DebugAdapter"><code class="flex name class">
 <span>class <span class="ident">DebugAdapter</span></span>
-<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True)</span>
+<span>(</span><span>broadcast: graia.broadcast.Broadcast, mirai_session: <a title="ariadne.model.MiraiSession" href="model.html#ariadne.model.MiraiSession">MiraiSession</a>, ping: bool = True, log: bool = True)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Debugging adapter</p></div>
@@ -1397,15 +1435,18 @@ Note: Working In Progress</p></div>
             try:
                 try:
                     await self.ws_conn.ping()
-                    logger.debug(&#34;websocket: ping&#34;)
+                    if self.log:
+                        logger.debug(&#34;websocket: ping&#34;)
                 except Exception as e:
                     logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
                 else:
-                    logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
+                    if self.log:
+                        logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                     await asyncio.sleep(interval)
             except asyncio.CancelledError:
-                logger.debug(&#34;websocket: pinger exit&#34;)
-                return
+                if self.log:
+                    logger.debug(&#34;websocket: pinger exit&#34;)
+                break
 
     @require_verified
     @error_wrapper
@@ -1476,33 +1517,28 @@ Note: Working In Progress</p></div>
                 self.ping_task = self.loop.create_task(self.ws_ping(), name=&#34;ariadne_adapter_ws_ping&#34;)
                 logger.info(&#34;websocket: ping task created&#34;)
             try:
-                last_tsk = None
-                while self.running:
-                    last_tsk = last_tsk or {asyncio.create_task(connection.receive())}
-                    done, last_tsk = await asyncio.wait(last_tsk, timeout=0.2)
-                    if not done:
-                        continue
-                    for t in done:
-                        ws_message = await t
+                async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                     if ws_message.type is WSMsgType.TEXT:
                         original_data: dict = json.loads(ws_message.data)
                         event = await self.raw_data_parser(original_data)
                         if event:
                             await self.queue.put(event)
                     elif ws_message.type is WSMsgType.CLOSED:
-                        logger.info(&#34;websocket: connection has been closed.&#34;)
+                        logger.warning(&#34;websocket: connection has been closed.&#34;)
                         return
                     elif ws_message.type is WSMsgType.PONG:
-                        logger.debug(&#34;websocket: received pong&#34;)
+                        if self.log:
+                            logger.debug(&#34;websocket: received pong&#34;)
                     else:
-                        logger.debug(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
+                        logger.warning(&#34;websocket: unknown message type - {}&#34;.format(ws_message.type))
             except Exception as e:
                 logger.exception(e)
             finally:
                 if self.ping_task:
                     self.ping_task.cancel()
                     self.ping_task = None
-                    logger.debug(&#34;websocket: ping task complete&#34;)
+                    if self.log:
+                        logger.debug(&#34;websocket: ping task complete&#34;)
         logger.info(&#34;websocket: disconnected&#34;)
         self.mirai_session.session_key = None
         await self.session.close()</code></pre>
@@ -1571,15 +1607,18 @@ false.</p></div>
         try:
             try:
                 await self.ws_conn.ping()
-                logger.debug(&#34;websocket: ping&#34;)
+                if self.log:
+                    logger.debug(&#34;websocket: ping&#34;)
             except Exception as e:
                 logger.exception(f&#34;websocket: ping failed: {e!r}&#34;)
             else:
-                logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
+                if self.log:
+                    logger.debug(f&#34;websocket: ping success, delay {interval}s&#34;)
                 await asyncio.sleep(interval)
         except asyncio.CancelledError:
-            logger.debug(&#34;websocket: pinger exit&#34;)
-            return</code></pre>
+            if self.log:
+                logger.debug(&#34;websocket: pinger exit&#34;)
+            break</code></pre>
 </details>
 </dd>
 </dl>
@@ -1618,12 +1657,13 @@ false.</p></div>
 <ul>
 <li>
 <h4><code><a title="ariadne.adapter.Adapter" href="#ariadne.adapter.Adapter">Adapter</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="ariadne.adapter.Adapter.build_event" href="#ariadne.adapter.Adapter.build_event">build_event</a></code></li>
 <li><code><a title="ariadne.adapter.Adapter.call_api" href="#ariadne.adapter.Adapter.call_api">call_api</a></code></li>
 <li><code><a title="ariadne.adapter.Adapter.fetch_cycle" href="#ariadne.adapter.Adapter.fetch_cycle">fetch_cycle</a></code></li>
 <li><code><a title="ariadne.adapter.Adapter.session_activated" href="#ariadne.adapter.Adapter.session_activated">session_activated</a></code></li>
-<li><code><a title="ariadne.adapter.Adapter.wait_for_session" href="#ariadne.adapter.Adapter.wait_for_session">wait_for_session</a></code></li>
+<li><code><a title="ariadne.adapter.Adapter.start" href="#ariadne.adapter.Adapter.start">start</a></code></li>
+<li><code><a title="ariadne.adapter.Adapter.stop" href="#ariadne.adapter.Adapter.stop">stop</a></code></li>
 </ul>
 </li>
 <li>

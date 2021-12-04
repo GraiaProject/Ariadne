@@ -39,6 +39,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -74,18 +75,20 @@ class BoxParameter(ParamPattern):
 
 
 class Match(abc.ABC, Representation):
+    &#34;匹配器的抽象基类.&#34;
     pattern: str
     optional: bool
     help: str
     matched: Optional[bool]
     result: Optional[&#34;MessageChain&#34;]
 
-    def __init__(self, pattern, optional: bool = False, help: str = &#34;&#34;) -&gt; None:
+    def __init__(self, pattern, optional: bool = False, help: str = &#34;&#34;, alt_help: str = &#34;&#34;) -&gt; None:
         self.pattern = pattern
         self.optional = optional
         self.help = help
         self.result = None
         self.matched = None
+        self.alt_help = alt_help
         if self.__class__ == Match:
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
@@ -96,17 +99,12 @@ class Match(abc.ABC, Representation):
             (&#34;pattern&#34;, self.pattern),
         ]
 
-    def gen_regex(self) -&gt; str:
-        ...
-
     def get_help(self) -&gt; str:
-        return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;)
+        return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;) if not self.alt_help else self.alt_help
 
 
 class RegexMatch(Match):
-    &#34;基础的正则表达式匹配器&#34;
-    flags: re.RegexFlag
-    flags_repr: str
+    &#34;基础的正则表达式匹配.&#34;
     regex_match: Optional[re.Match]
     preserve_space: bool
 
@@ -118,8 +116,9 @@ class RegexMatch(Match):
         flags: re.RegexFlag = re.RegexFlag(0),
         preserve_space: bool = True,
         help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(pattern, optional, help)
+        super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
@@ -132,46 +131,65 @@ class RegexMatch(Match):
         )
 
 
-class WildcardMatch(Match):
-    &#34;&#34;&#34;泛匹配.&#34;&#34;&#34;
+class WildcardMatch(RegexMatch):
+    &#34;泛匹配.&#34;
 
     preserve_space: bool
 
     def __init__(
-        self, *, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = &#34;&#34;
+        self,
+        *,
+        greed: bool = True,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(&#34;.*&#34;, optional, help)
+        super().__init__(&#34;.*&#34;, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
         self.greed = greed
-        self.preserve_space = preserve_space
 
     def gen_regex(self) -&gt; str:
         return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
 
 
-class FullMatch(Match):
-    &#34;&#34;&#34;全匹配.&#34;&#34;&#34;
+class FullMatch(RegexMatch):
+    &#34;全匹配.&#34;
 
     def __init__(
-        self, pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = &#34;&#34;
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(pattern, optional, help)
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
         self.preserve_space = preserve_space
 
     def gen_regex(self) -&gt; str:
         return f&#34;({re.escape(self.pattern)}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
 
 
-class ElementMatch(Match):
-    &#34;&#34;&#34;元素类型匹配.&#34;&#34;&#34;
+class ElementMatch(RegexMatch):
+    &#34;元素类型匹配.&#34;
 
     pattern: Type[&#34;Element&#34;]
     result: &#34;Element&#34;
 
     def __init__(
-        self, pattern: Type[&#34;Element&#34;], optional: bool = False, preserve_space: bool = True, help: str = &#34;&#34;
+        self,
+        pattern: Type[&#34;Element&#34;],
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(pattern, optional, help)
-        self.preserve_space = preserve_space
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
 
     def gen_regex(self) -&gt; str:
         return (
@@ -180,7 +198,31 @@ class ElementMatch(Match):
         )
 
     def get_help(self) -&gt; str:
-        return self.pattern.__name__
+        return self.pattern.__name__ if not self.alt_help else self.alt_help
+
+
+class UnionMatch(RegexMatch):
+    &#34;多重匹配.&#34;
+
+    pattern: Tuple[str, ...]
+
+    def __init__(
+        self,
+        *patterns: str,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+        )
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({&#39;|&#39;.join(re.escape(i) for i in self.pattern)})&#34;
+
+    def get_help(self) -&gt; str:
+        return f&#34;[{&#39;|&#39;.join(self.pattern)}]&#34; if not self.alt_help else self.alt_help
 
 
 T_const = TypeVar(&#34;T_const&#34;)
@@ -199,7 +241,6 @@ class ArgumentMatch(Match):
     regex: Optional[re.Pattern]
     result: Union[&#34;MessageChain&#34;, Any]
     add_arg_data: Dict[str, Any]
-    elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
 
     def __init__(
         self,
@@ -271,7 +312,6 @@ class ArgumentMatch(Match):
     regex: Optional[re.Pattern]
     result: Union[&#34;MessageChain&#34;, Any]
     add_arg_data: Dict[str, Any]
-    elem_mapping_ctx: ContextVar[&#34;MessageChain&#34;] = ContextVar(&#34;elem_mapping_ctx&#34;)
 
     def __init__(
         self,
@@ -332,10 +372,6 @@ class ArgumentMatch(Match):
 <div class="desc"></div>
 </dd>
 <dt id="ariadne.message.parser.pattern.ArgumentMatch.default"><code class="name">var <span class="ident">default</span> : Optional[~T_default]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.parser.pattern.ArgumentMatch.elem_mapping_ctx"><code class="name">var <span class="ident">elem_mapping_ctx</span> : ContextVar</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -401,7 +437,7 @@ class BoxParameter(ParamPattern):
 </dd>
 <dt id="ariadne.message.parser.pattern.ElementMatch"><code class="flex name class">
 <span>class <span class="ident">ElementMatch</span></span>
-<span>(</span><span>pattern: Type[ForwardRef('Element')], optional: bool = False, preserve_space: bool = True, help: str = '')</span>
+<span>(</span><span>pattern: Type[ForwardRef('Element')], optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>元素类型匹配.</p></div>
@@ -409,17 +445,23 @@ class BoxParameter(ParamPattern):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class ElementMatch(Match):
-    &#34;&#34;&#34;元素类型匹配.&#34;&#34;&#34;
+<pre><code class="python">class ElementMatch(RegexMatch):
+    &#34;元素类型匹配.&#34;
 
     pattern: Type[&#34;Element&#34;]
     result: &#34;Element&#34;
 
     def __init__(
-        self, pattern: Type[&#34;Element&#34;], optional: bool = False, preserve_space: bool = True, help: str = &#34;&#34;
+        self,
+        pattern: Type[&#34;Element&#34;],
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(pattern, optional, help)
-        self.preserve_space = preserve_space
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
 
     def gen_regex(self) -&gt; str:
         return (
@@ -428,10 +470,11 @@ class BoxParameter(ParamPattern):
         )
 
     def get_help(self) -&gt; str:
-        return self.pattern.__name__</code></pre>
+        return self.pattern.__name__ if not self.alt_help else self.alt_help</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
 <li>pydantic.utils.Representation</li>
@@ -475,14 +518,14 @@ class BoxParameter(ParamPattern):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_help(self) -&gt; str:
-    return self.pattern.__name__</code></pre>
+    return self.pattern.__name__ if not self.alt_help else self.alt_help</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="ariadne.message.parser.pattern.FullMatch"><code class="flex name class">
 <span>class <span class="ident">FullMatch</span></span>
-<span>(</span><span>pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = '')</span>
+<span>(</span><span>pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>全匹配.</p></div>
@@ -490,13 +533,21 @@ class BoxParameter(ParamPattern):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FullMatch(Match):
-    &#34;&#34;&#34;全匹配.&#34;&#34;&#34;
+<pre><code class="python">class FullMatch(RegexMatch):
+    &#34;全匹配.&#34;
 
     def __init__(
-        self, pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = &#34;&#34;
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(pattern, optional, help)
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
         self.preserve_space = preserve_space
 
     def gen_regex(self) -&gt; str:
@@ -504,29 +555,18 @@ class BoxParameter(ParamPattern):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
 <li>pydantic.utils.Representation</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.parser.pattern.FullMatch.help"><code class="name">var <span class="ident">help</span> : str</code></dt>
+<dt id="ariadne.message.parser.pattern.FullMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="ariadne.message.parser.pattern.FullMatch.matched"><code class="name">var <span class="ident">matched</span> : Optional[bool]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.parser.pattern.FullMatch.optional"><code class="name">var <span class="ident">optional</span> : bool</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.parser.pattern.FullMatch.pattern"><code class="name">var <span class="ident">pattern</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.parser.pattern.FullMatch.result"><code class="name">var <span class="ident">result</span> : Optional[MessageChain]</code></dt>
+<dt id="ariadne.message.parser.pattern.FullMatch.regex_match"><code class="name">var <span class="ident">regex_match</span> : Optional[re.Match]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -550,28 +590,29 @@ class BoxParameter(ParamPattern):
 </dd>
 <dt id="ariadne.message.parser.pattern.Match"><code class="flex name class">
 <span>class <span class="ident">Match</span></span>
-<span>(</span><span>pattern, optional: bool = False, help: str = '')</span>
+<span>(</span><span>pattern, optional: bool = False, help: str = '', alt_help: str = '')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>匹配器的抽象基类.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Match(abc.ABC, Representation):
+    &#34;匹配器的抽象基类.&#34;
     pattern: str
     optional: bool
     help: str
     matched: Optional[bool]
     result: Optional[&#34;MessageChain&#34;]
 
-    def __init__(self, pattern, optional: bool = False, help: str = &#34;&#34;) -&gt; None:
+    def __init__(self, pattern, optional: bool = False, help: str = &#34;&#34;, alt_help: str = &#34;&#34;) -&gt; None:
         self.pattern = pattern
         self.optional = optional
         self.help = help
         self.result = None
         self.matched = None
+        self.alt_help = alt_help
         if self.__class__ == Match:
             raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
 
@@ -582,11 +623,8 @@ inheritance.</p></div>
             (&#34;pattern&#34;, self.pattern),
         ]
 
-    def gen_regex(self) -&gt; str:
-        ...
-
     def get_help(self) -&gt; str:
-        return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;)</code></pre>
+        return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;) if not self.alt_help else self.alt_help</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -596,10 +634,7 @@ inheritance.</p></div>
 <h3>Subclasses</h3>
 <ul class="hlist">
 <li><a title="ariadne.message.parser.pattern.ArgumentMatch" href="#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a></li>
-<li><a title="ariadne.message.parser.pattern.ElementMatch" href="#ariadne.message.parser.pattern.ElementMatch">ElementMatch</a></li>
-<li><a title="ariadne.message.parser.pattern.FullMatch" href="#ariadne.message.parser.pattern.FullMatch">FullMatch</a></li>
 <li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
-<li><a title="ariadne.message.parser.pattern.WildcardMatch" href="#ariadne.message.parser.pattern.WildcardMatch">WildcardMatch</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -626,19 +661,6 @@ inheritance.</p></div>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="ariadne.message.parser.pattern.Match.gen_regex"><code class="name flex">
-<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def gen_regex(self) -&gt; str:
-    ...</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.parser.pattern.Match.get_help"><code class="name flex">
 <span>def <span class="ident">get_help</span></span>(<span>self) ‑> str</span>
 </code></dt>
@@ -649,7 +671,7 @@ inheritance.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_help(self) -&gt; str:
-    return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;)</code></pre>
+    return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;) if not self.alt_help else self.alt_help</code></pre>
 </details>
 </dd>
 </dl>
@@ -698,18 +720,16 @@ class ParamPattern:
 </dd>
 <dt id="ariadne.message.parser.pattern.RegexMatch"><code class="flex name class">
 <span>class <span class="ident">RegexMatch</span></span>
-<span>(</span><span>pattern: str, *, optional: bool = False, flags: re.RegexFlag = , preserve_space: bool = True, help: str = '')</span>
+<span>(</span><span>pattern: str, *, optional: bool = False, flags: re.RegexFlag = , preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>基础的正则表达式匹配器</p></div>
+<div class="desc"><p>基础的正则表达式匹配.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RegexMatch(Match):
-    &#34;基础的正则表达式匹配器&#34;
-    flags: re.RegexFlag
-    flags_repr: str
+    &#34;基础的正则表达式匹配.&#34;
     regex_match: Optional[re.Match]
     preserve_space: bool
 
@@ -721,8 +741,9 @@ class ParamPattern:
         flags: re.RegexFlag = re.RegexFlag(0),
         preserve_space: bool = True,
         help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(pattern, optional, help)
+        super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
         self.flags = flags
         self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
@@ -740,16 +761,15 @@ class ParamPattern:
 <li>abc.ABC</li>
 <li>pydantic.utils.Representation</li>
 </ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.ElementMatch" href="#ariadne.message.parser.pattern.ElementMatch">ElementMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.FullMatch" href="#ariadne.message.parser.pattern.FullMatch">FullMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.UnionMatch" href="#ariadne.message.parser.pattern.UnionMatch">UnionMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.WildcardMatch" href="#ariadne.message.parser.pattern.WildcardMatch">WildcardMatch</a></li>
+</ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="ariadne.message.parser.pattern.RegexMatch.flags"><code class="name">var <span class="ident">flags</span> : re.RegexFlag</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="ariadne.message.parser.pattern.RegexMatch.flags_repr"><code class="name">var <span class="ident">flags_repr</span> : str</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="ariadne.message.parser.pattern.RegexMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
 <dd>
 <div class="desc"></div>
@@ -810,9 +830,86 @@ class SwitchParameter(ParamPattern):
 </dd>
 </dl>
 </dd>
+<dt id="ariadne.message.parser.pattern.UnionMatch"><code class="flex name class">
+<span>class <span class="ident">UnionMatch</span></span>
+<span>(</span><span>*patterns: str, optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>多重匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnionMatch(RegexMatch):
+    &#34;多重匹配.&#34;
+
+    pattern: Tuple[str, ...]
+
+    def __init__(
+        self,
+        *patterns: str,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+        )
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({&#39;|&#39;.join(re.escape(i) for i in self.pattern)})&#34;
+
+    def get_help(self) -&gt; str:
+        return f&#34;[{&#39;|&#39;.join(self.pattern)}]&#34; if not self.alt_help else self.alt_help</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.UnionMatch.pattern"><code class="name">var <span class="ident">pattern</span> : Tuple[str, ...]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.UnionMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return f&#34;({&#39;|&#39;.join(re.escape(i) for i in self.pattern)})&#34;</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.pattern.UnionMatch.get_help"><code class="name flex">
+<span>def <span class="ident">get_help</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_help(self) -&gt; str:
+    return f&#34;[{&#39;|&#39;.join(self.pattern)}]&#34; if not self.alt_help else self.alt_help</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 <dt id="ariadne.message.parser.pattern.WildcardMatch"><code class="flex name class">
 <span>class <span class="ident">WildcardMatch</span></span>
-<span>(</span><span>*, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = '')</span>
+<span>(</span><span>*, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>泛匹配.</p></div>
@@ -820,23 +917,29 @@ class SwitchParameter(ParamPattern):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class WildcardMatch(Match):
-    &#34;&#34;&#34;泛匹配.&#34;&#34;&#34;
+<pre><code class="python">class WildcardMatch(RegexMatch):
+    &#34;泛匹配.&#34;
 
     preserve_space: bool
 
     def __init__(
-        self, *, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = &#34;&#34;
+        self,
+        *,
+        greed: bool = True,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
     ) -&gt; None:
-        super().__init__(&#34;.*&#34;, optional, help)
+        super().__init__(&#34;.*&#34;, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
         self.greed = greed
-        self.preserve_space = preserve_space
 
     def gen_regex(self) -&gt; str:
         return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
 <li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
 <li>abc.ABC</li>
 <li>pydantic.utils.Representation</li>
@@ -888,7 +991,6 @@ class SwitchParameter(ParamPattern):
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.add_arg_data" href="#ariadne.message.parser.pattern.ArgumentMatch.add_arg_data">add_arg_data</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.const" href="#ariadne.message.parser.pattern.ArgumentMatch.const">const</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.default" href="#ariadne.message.parser.pattern.ArgumentMatch.default">default</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.elem_mapping_ctx" href="#ariadne.message.parser.pattern.ArgumentMatch.elem_mapping_ctx">elem_mapping_ctx</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.name" href="#ariadne.message.parser.pattern.ArgumentMatch.name">name</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.nargs" href="#ariadne.message.parser.pattern.ArgumentMatch.nargs">nargs</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.pattern" href="#ariadne.message.parser.pattern.ArgumentMatch.pattern">pattern</a></code></li>
@@ -916,19 +1018,15 @@ class SwitchParameter(ParamPattern):
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.FullMatch" href="#ariadne.message.parser.pattern.FullMatch">FullMatch</a></code></h4>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="ariadne.message.parser.pattern.FullMatch.gen_regex" href="#ariadne.message.parser.pattern.FullMatch.gen_regex">gen_regex</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.FullMatch.help" href="#ariadne.message.parser.pattern.FullMatch.help">help</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.FullMatch.matched" href="#ariadne.message.parser.pattern.FullMatch.matched">matched</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.FullMatch.optional" href="#ariadne.message.parser.pattern.FullMatch.optional">optional</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.FullMatch.pattern" href="#ariadne.message.parser.pattern.FullMatch.pattern">pattern</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.FullMatch.result" href="#ariadne.message.parser.pattern.FullMatch.result">result</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.FullMatch.preserve_space" href="#ariadne.message.parser.pattern.FullMatch.preserve_space">preserve_space</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.FullMatch.regex_match" href="#ariadne.message.parser.pattern.FullMatch.regex_match">regex_match</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></code></h4>
 <ul class="two-column">
-<li><code><a title="ariadne.message.parser.pattern.Match.gen_regex" href="#ariadne.message.parser.pattern.Match.gen_regex">gen_regex</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.Match.get_help" href="#ariadne.message.parser.pattern.Match.get_help">get_help</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.Match.help" href="#ariadne.message.parser.pattern.Match.help">help</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.Match.matched" href="#ariadne.message.parser.pattern.Match.matched">matched</a></code></li>
@@ -949,8 +1047,6 @@ class SwitchParameter(ParamPattern):
 <li>
 <h4><code><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></code></h4>
 <ul class="">
-<li><code><a title="ariadne.message.parser.pattern.RegexMatch.flags" href="#ariadne.message.parser.pattern.RegexMatch.flags">flags</a></code></li>
-<li><code><a title="ariadne.message.parser.pattern.RegexMatch.flags_repr" href="#ariadne.message.parser.pattern.RegexMatch.flags_repr">flags_repr</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.gen_regex" href="#ariadne.message.parser.pattern.RegexMatch.gen_regex">gen_regex</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.preserve_space" href="#ariadne.message.parser.pattern.RegexMatch.preserve_space">preserve_space</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.RegexMatch.regex_match" href="#ariadne.message.parser.pattern.RegexMatch.regex_match">regex_match</a></code></li>
@@ -961,6 +1057,14 @@ class SwitchParameter(ParamPattern):
 <ul class="">
 <li><code><a title="ariadne.message.parser.pattern.SwitchParameter.auto_reverse" href="#ariadne.message.parser.pattern.SwitchParameter.auto_reverse">auto_reverse</a></code></li>
 <li><code><a title="ariadne.message.parser.pattern.SwitchParameter.default" href="#ariadne.message.parser.pattern.SwitchParameter.default">default</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.UnionMatch" href="#ariadne.message.parser.pattern.UnionMatch">UnionMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.UnionMatch.gen_regex" href="#ariadne.message.parser.pattern.UnionMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.UnionMatch.get_help" href="#ariadne.message.parser.pattern.UnionMatch.get_help">get_help</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.UnionMatch.pattern" href="#ariadne.message.parser.pattern.UnionMatch.pattern">pattern</a></code></li>
 </ul>
 </li>
 <li>

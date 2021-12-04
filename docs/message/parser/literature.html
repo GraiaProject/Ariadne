@@ -37,6 +37,8 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from graia.ariadne.util import deprecated
+
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
@@ -56,6 +58,7 @@ class Literature(BaseDispatcher):
     allow_quote: bool
     skip_one_at_in_quote: bool
 
+    @deprecated(&#34;0.5.0&#34;)
     def __init__(
         self,
         *prefixs: str,
@@ -263,6 +266,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
     allow_quote: bool
     skip_one_at_in_quote: bool
 
+    @deprecated(&#34;0.5.0&#34;)
     def __init__(
         self,
         *prefixs: str,

@@ -31,11 +31,25 @@
 &#34;&#34;&#34;
 
 # Utility Layout
+import asyncio
 import functools
 import sys
 import traceback
+import warnings
 from asyncio.events import AbstractEventLoop
-from typing import Callable, ContextManager, Dict, Generator, List, Type, TypeVar, Union
+from typing import (
+    AsyncIterator,
+    Callable,
+    ContextManager,
+    Coroutine,
+    Dict,
+    Generator,
+    Generic,
+    List,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -214,17 +228,44 @@ def wrap_bracket(string: str) -&gt; str:
 T_Callable = TypeVar(&#34;T_Callable&#34;, bound=Callable)
 
 
-def deprecated(remove_ver: str) -&gt; Callable:
+async def await_predicate(predicate: Callable[[], bool], interval: float = 0.05) -&gt; None:
+    while not predicate():
+        await asyncio.sleep(interval)
+
+
+async def yield_with_timeout(
+    getter_coro: Callable[[], Coroutine[None, None, T]],
+    predicate: Callable[[], bool],
+    await_length: float = 0.2,
+) -&gt; AsyncIterator[T]:
+    last_tsk = None
+    while predicate():
+        last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
+        done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)
+        if not done:
+            continue
+        for t in done:
+            res = await t
+            yield res
+
+
+def deprecated(remove_ver: str) -&gt; Callable[[T_Callable], T_Callable]:
     def out_wrapper(func: T_Callable) -&gt; T_Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            warnings.warn(DeprecationWarning(f&#34;{func.__qualname__} will be removed in {remove_ver}!&#34;))
             logger.warning(f&#34;Deprecated function: {func.__qualname__}&#34;)
             logger.warning(f&#34;{func.__qualname__} will be removed in {remove_ver}!&#34;)
             return func(*args, **kwargs)
 
         return wrapper
 
-    return out_wrapper</code></pre>
+    return out_wrapper
+
+
+def cast_to(obj, typ: Type[T]) -&gt; T:
+    if typ:
+        return obj</code></pre>
 </details>
 </section>
 <section>
@@ -259,8 +300,8 @@ def deprecated(remove_ver: str) -&gt; Callable:
     return wrapper</code></pre>
 </details>
 </dd>
-<dt id="ariadne.util.deprecated"><code class="name flex">
-<span>def <span class="ident">deprecated</span></span>(<span>remove_ver: str) ‑> Callable</span>
+<dt id="ariadne.util.await_predicate"><code class="name flex">
+<span>async def <span class="ident">await_predicate</span></span>(<span>predicate: Callable[[], bool], interval: float = 0.05) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -268,10 +309,39 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def deprecated(remove_ver: str) -&gt; Callable:
+<pre><code class="python">async def await_predicate(predicate: Callable[[], bool], interval: float = 0.05) -&gt; None:
+    while not predicate():
+        await asyncio.sleep(interval)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.cast_to"><code class="name flex">
+<span>def <span class="ident">cast_to</span></span>(<span>obj, typ: Type[~T]) ‑> ~T</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cast_to(obj, typ: Type[T]) -&gt; T:
+    if typ:
+        return obj</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.deprecated"><code class="name flex">
+<span>def <span class="ident">deprecated</span></span>(<span>remove_ver: str) ‑> Callable[[~T_Callable], ~T_Callable]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deprecated(remove_ver: str) -&gt; Callable[[T_Callable], T_Callable]:
     def out_wrapper(func: T_Callable) -&gt; T_Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            warnings.warn(DeprecationWarning(f&#34;{func.__qualname__} will be removed in {remove_ver}!&#34;))
             logger.warning(f&#34;Deprecated function: {func.__qualname__}&#34;)
             logger.warning(f&#34;{func.__qualname__} will be removed in {remove_ver}!&#34;)
             return func(*args, **kwargs)
@@ -444,6 +514,31 @@ def deprecated(remove_ver: str) -&gt; Callable:
     return string.replace(&#34;[&#34;, &#34;\\u005b&#34;).replace(&#34;]&#34;, &#34;\\u005d&#34;)</code></pre>
 </details>
 </dd>
+<dt id="ariadne.util.yield_with_timeout"><code class="name flex">
+<span>async def <span class="ident">yield_with_timeout</span></span>(<span>getter_coro: Callable[[], Coroutine[None, None, ~T]], predicate: Callable[[], bool], await_length: float = 0.2) ‑> AsyncIterator[~T]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def yield_with_timeout(
+    getter_coro: Callable[[], Coroutine[None, None, T]],
+    predicate: Callable[[], bool],
+    await_length: float = 0.2,
+) -&gt; AsyncIterator[T]:
+    last_tsk = None
+    while predicate():
+        last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
+        done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)
+        if not done:
+            continue
+        for t in done:
+            res = await t
+            yield res</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 <section>
@@ -573,6 +668,8 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="ariadne.util.app_ctx_manager" href="#ariadne.util.app_ctx_manager">app_ctx_manager</a></code></li>
+<li><code><a title="ariadne.util.await_predicate" href="#ariadne.util.await_predicate">await_predicate</a></code></li>
+<li><code><a title="ariadne.util.cast_to" href="#ariadne.util.cast_to">cast_to</a></code></li>
 <li><code><a title="ariadne.util.deprecated" href="#ariadne.util.deprecated">deprecated</a></code></li>
 <li><code><a title="ariadne.util.gen_subclass" href="#ariadne.util.gen_subclass">gen_subclass</a></code></li>
 <li><code><a title="ariadne.util.inject_bypass_listener" href="#ariadne.util.inject_bypass_listener">inject_bypass_listener</a></code></li>
@@ -581,6 +678,7 @@ def deprecated(remove_ver: str) -&gt; Callable:
 <li><code><a title="ariadne.util.loguru_excepthook" href="#ariadne.util.loguru_excepthook">loguru_excepthook</a></code></li>
 <li><code><a title="ariadne.util.validate_response" href="#ariadne.util.validate_response">validate_response</a></code></li>
 <li><code><a title="ariadne.util.wrap_bracket" href="#ariadne.util.wrap_bracket">wrap_bracket</a></code></li>
+<li><code><a title="ariadne.util.yield_with_timeout" href="#ariadne.util.yield_with_timeout">yield_with_timeout</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>

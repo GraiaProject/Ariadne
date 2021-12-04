@@ -1,5 +1,6 @@
 import re
 import string
+import warnings
 from copy import deepcopy
 from typing import (
     Dict,
@@ -14,7 +15,6 @@ from typing import (
     Union,
     overload,
 )
-import warnings
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
@@ -26,13 +26,8 @@ from graia.ariadne.util import cast_to, deprecated
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import (
-    ArgumentMatch,
-    ElementMatch,
-    Match,
-    RegexMatch,
-)
-from .util import ElementType, MessageChainType, TwilightParser, split, elem_mapping_ctx
+from .pattern import ArgumentMatch, ElementMatch, Match, RegexMatch
+from .util import ElementType, MessageChainType, TwilightParser, elem_mapping_ctx, split
 
 
 class _TwilightLocalStorage(TypedDict):

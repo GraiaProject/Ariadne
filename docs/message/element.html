@@ -32,7 +32,7 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union, overload
 
 from pydantic import validator
 from pydantic.fields import Field
@@ -40,7 +40,14 @@ from typing_extensions import ParamSpec
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
-from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
+from ..model import (
+    AriadneBaseModel,
+    Friend,
+    Member,
+    Stranger,
+    UploadMethod,
+    datetime_encoder,
+)
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:
@@ -167,6 +174,14 @@ class At(Element):
     target: int
     display: Optional[str] = None
 
+    def __init__(self, target: Union[int, Member] = ..., **data) -&gt; None:
+        if target is not ...:
+            if isinstance(target, int):
+                data.update(target=target)
+            else:
+                data.update(target=target.id)
+        super().__init__(**data)
+
     def __init__(self, target: int, **kwargs) -&gt; None:
         &#34;&#34;&#34;实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
 
@@ -195,6 +210,9 @@ class AtAll(Element):
     &#34;该消息元素用于群组中的管理员提醒群组中的所有成员&#34;
     type: str = &#34;AtAll&#34;
 
+    def __init__(self) -&gt; None:
+        super().__init__()
+
     def asDisplay(self) -&gt; str:
         return &#34;@全体成员&#34;
 
@@ -213,6 +231,13 @@ class Face(Element):
     type: str = &#34;Face&#34;
     faceId: Optional[int] = None
     name: Optional[str] = None
+
+    def __init__(self, id: int = ..., name: str = ..., **data) -&gt; None:
+        if id is not ...:
+            data.update(id=id)
+        if name is not ...:
+            data.update(name=name)
+        super().__init__(**data)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
@@ -281,6 +306,9 @@ class Poke(Element):
     type = &#34;Poke&#34;
     name: PokeMethods
 
+    def __init__(self, name: PokeMethods) -&gt; None:
+        super().__init__(name=name)
+
     def asDisplay(self) -&gt; str:
         return f&#34;[戳一戳:{self.name}]&#34;
 
@@ -289,6 +317,9 @@ class Dice(Element):
     &#34;表示消息中骰子消息元素&#34;
     type = &#34;Dice&#34;
     value: int
+
+    def __init__(self, value: int) -&gt; None:
+        super().__init__(value=value)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[骰子:{self.value}]&#34;
@@ -317,6 +348,31 @@ class ForwardNode(AriadneBaseModel):
     messageChain: Optional[&#34;MessageChain&#34;]
     messageId: Optional[int]
 
+    def __init__(
+        self,
+        target: Union[int, Friend, Member, Stranger] = ...,
+        time: datetime = ...,
+        message: &#34;MessageChain&#34; = ...,
+        name: str = ...,
+        **data,
+    ) -&gt; None:
+        if target is not ...:
+            if isinstance(target, int):
+                data.update(senderId=target)
+            else:
+                data.update(senderId=target.id)
+                if isinstance(target, Member):
+                    data.update(senderName=target.name)
+                else:
+                    data.update(senderName=target.nickname)
+        if time is not ...:
+            data.update(time=time)
+        if name is not ...:
+            data.update(senderName=name)
+        if message is not ...:
+            data.update(messageChain=message)
+        super().__init__(**data)
+
     class Config:
         json_encoders = {
             datetime: datetime_encoder,
@@ -332,6 +388,17 @@ class Forward(Element):
 
     type = &#34;Forward&#34;
     nodeList: List[ForwardNode]
+
+    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -&gt; None:
+        if nodes:
+            nodeList: List[ForwardNode] = []
+            for i in nodes:
+                if isinstance(i, ForwardNode):
+                    nodeList.append(i)
+                else:
+                    nodeList.extend(i)
+            data.update(nodeList=nodeList)
+        super().__init__(**data)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[合并转发:共{len(self.nodeList)}条]&#34;
@@ -352,6 +419,12 @@ class File(Element):
 
     def asPersistentString(self) -&gt; str:
         return &#34;&#34;
+
+
+class MiraiCode(Element):
+    &#34;Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口.&#34;
+    type = &#34;MiraiCode&#34;
+    code: str
 
 
 class ImageType(Enum):
@@ -598,6 +671,14 @@ def _update_forward_refs():
     target: int
     display: Optional[str] = None
 
+    def __init__(self, target: Union[int, Member] = ..., **data) -&gt; None:
+        if target is not ...:
+            if isinstance(target, int):
+                data.update(target=target)
+            else:
+                data.update(target=target.id)
+        super().__init__(**data)
+
     def __init__(self, target: int, **kwargs) -&gt; None:
         &#34;&#34;&#34;实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
 
@@ -672,7 +753,6 @@ def _update_forward_refs():
 </dd>
 <dt id="ariadne.message.element.AtAll"><code class="flex name class">
 <span>class <span class="ident">AtAll</span></span>
-<span>(</span><span>**data: Any)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>该消息元素用于群组中的管理员提醒群组中的所有成员</p>
@@ -685,6 +765,9 @@ def _update_forward_refs():
 <pre><code class="python">class AtAll(Element):
     &#34;该消息元素用于群组中的管理员提醒群组中的所有成员&#34;
     type: str = &#34;AtAll&#34;
+
+    def __init__(self) -&gt; None:
+        super().__init__()
 
     def asDisplay(self) -&gt; str:
         return &#34;@全体成员&#34;
@@ -741,7 +824,7 @@ def _update_forward_refs():
 </dd>
 <dt id="ariadne.message.element.Dice"><code class="flex name class">
 <span>class <span class="ident">Dice</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>value: int)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>表示消息中骰子消息元素</p>
@@ -755,6 +838,9 @@ def _update_forward_refs():
     &#34;表示消息中骰子消息元素&#34;
     type = &#34;Dice&#34;
     value: int
+
+    def __init__(self, value: int) -&gt; None:
+        super().__init__(value=value)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[骰子:{self.value}]&#34;</code></pre>
@@ -863,6 +949,7 @@ type (str): 元素类型</p>
 <li><a title="ariadne.message.element.File" href="#ariadne.message.element.File">File</a></li>
 <li><a title="ariadne.message.element.Forward" href="#ariadne.message.element.Forward">Forward</a></li>
 <li><a title="ariadne.message.element.Json" href="#ariadne.message.element.Json">Json</a></li>
+<li><a title="ariadne.message.element.MiraiCode" href="#ariadne.message.element.MiraiCode">MiraiCode</a></li>
 <li><a title="ariadne.message.element.MultimediaElement" href="#ariadne.message.element.MultimediaElement">MultimediaElement</a></li>
 <li><a title="ariadne.message.element.MusicShare" href="#ariadne.message.element.MusicShare">MusicShare</a></li>
 <li><a title="ariadne.message.element.Plain" href="#ariadne.message.element.Plain">Plain</a></li>
@@ -941,7 +1028,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.Face"><code class="flex name class">
 <span>class <span class="ident">Face</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>id: int = Ellipsis, name: str = Ellipsis, **data)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>表示消息中所附带的表情, 这些表情大多都是聊天工具内置的.</p>
@@ -956,6 +1043,13 @@ type (str): 元素类型</p>
     type: str = &#34;Face&#34;
     faceId: Optional[int] = None
     name: Optional[str] = None
+
+    def __init__(self, id: int = ..., name: str = ..., **data) -&gt; None:
+        if id is not ...:
+            data.update(id=id)
+        if name is not ...:
+            data.update(name=name)
+        super().__init__(**data)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[表情:{f&#39;{self.name}&#39; if self.name else {self.faceId}}]&#34;
@@ -1201,7 +1295,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </dd>
 <dt id="ariadne.message.element.Forward"><code class="flex name class">
 <span>class <span class="ident">Forward</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>*nodes: Union[Iterable[<a title="ariadne.message.element.ForwardNode" href="#ariadne.message.element.ForwardNode">ForwardNode</a>], <a title="ariadne.message.element.ForwardNode" href="#ariadne.message.element.ForwardNode">ForwardNode</a>], **data)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>指示合并转发信息</p>
@@ -1221,6 +1315,17 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 
     type = &#34;Forward&#34;
     nodeList: List[ForwardNode]
+
+    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -&gt; None:
+        if nodes:
+            nodeList: List[ForwardNode] = []
+            for i in nodes:
+                if isinstance(i, ForwardNode):
+                    nodeList.append(i)
+                else:
+                    nodeList.extend(i)
+            data.update(nodeList=nodeList)
+        super().__init__(**data)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[合并转发:共{len(self.nodeList)}条]&#34;
@@ -1284,7 +1389,7 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </dd>
 <dt id="ariadne.message.element.ForwardNode"><code class="flex name class">
 <span>class <span class="ident">ForwardNode</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>target: Union[int, <a title="ariadne.model.Friend" href="../model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="../model.html#ariadne.model.Member">Member</a>, <a title="ariadne.model.Stranger" href="../model.html#ariadne.model.Stranger">Stranger</a>] = Ellipsis, time: datetime.datetime = Ellipsis, message: MessageChain = Ellipsis, name: str = Ellipsis, **data)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>表示合并转发中的一个节点</p>
@@ -1301,6 +1406,31 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
     senderName: str
     messageChain: Optional[&#34;MessageChain&#34;]
     messageId: Optional[int]
+
+    def __init__(
+        self,
+        target: Union[int, Friend, Member, Stranger] = ...,
+        time: datetime = ...,
+        message: &#34;MessageChain&#34; = ...,
+        name: str = ...,
+        **data,
+    ) -&gt; None:
+        if target is not ...:
+            if isinstance(target, int):
+                data.update(senderId=target)
+            else:
+                data.update(senderId=target.id)
+                if isinstance(target, Member):
+                    data.update(senderName=target.name)
+                else:
+                    data.update(senderName=target.nickname)
+        if time is not ...:
+            data.update(time=time)
+        if name is not ...:
+            data.update(senderName=name)
+        if message is not ...:
+            data.update(messageChain=message)
+        super().__init__(**data)
 
     class Config:
         json_encoders = {
@@ -1550,6 +1680,48 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
 <pre><code class="python">def asDisplay(self) -&gt; str:
     return &#34;[JSON消息]&#34;</code></pre>
 </details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></b></code>:
+<ul class="hlist">
+<li><code><a title="ariadne.message.element.Element.dict" href="../model.html#ariadne.model.AriadneBaseModel.dict">dict</a></code></li>
+<li><code><a title="ariadne.message.element.Element.prepare" href="#ariadne.message.element.Element.prepare">prepare</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="ariadne.message.element.MiraiCode"><code class="flex name class">
+<span>class <span class="ident">MiraiCode</span></span>
+<span>(</span><span>**data: Any)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口.</p>
+<p>Create a new model by parsing and validating input data from keyword arguments.</p>
+<p>Raises ValidationError if the input data cannot be parsed to form a valid model.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MiraiCode(Element):
+    &#34;Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口.&#34;
+    type = &#34;MiraiCode&#34;
+    code: str</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.element.Element" href="#ariadne.message.element.Element">Element</a></li>
+<li><a title="ariadne.model.AriadneBaseModel" href="../model.html#ariadne.model.AriadneBaseModel">AriadneBaseModel</a></li>
+<li>pydantic.main.BaseModel</li>
+<li>pydantic.utils.Representation</li>
+<li>abc.ABC</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.element.MiraiCode.code"><code class="name">var <span class="ident">code</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 <h3>Inherited members</h3>
@@ -1980,7 +2152,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.Poke"><code class="flex name class">
 <span>class <span class="ident">Poke</span></span>
-<span>(</span><span>**data: Any)</span>
+<span>(</span><span>name: <a title="ariadne.message.element.PokeMethods" href="#ariadne.message.element.PokeMethods">PokeMethods</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>表示消息中戳一戳消息元素</p>
@@ -1994,6 +2166,9 @@ type (str): 元素类型</p>
     &#34;表示消息中戳一戳消息元素&#34;
     type = &#34;Poke&#34;
     name: PokeMethods
+
+    def __init__(self, name: PokeMethods) -&gt; None:
+        super().__init__(name=name)
 
     def asDisplay(self) -&gt; str:
         return f&#34;[戳一戳:{self.name}]&#34;</code></pre>
@@ -2609,6 +2784,12 @@ type (str): 元素类型</p>
 <ul class="">
 <li><code><a title="ariadne.message.element.Json.Json" href="#ariadne.message.element.Json.Json">Json</a></code></li>
 <li><code><a title="ariadne.message.element.Json.asDisplay" href="#ariadne.message.element.Json.asDisplay">asDisplay</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.element.MiraiCode" href="#ariadne.message.element.MiraiCode">MiraiCode</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.element.MiraiCode.code" href="#ariadne.message.element.MiraiCode.code">code</a></code></li>
 </ul>
 </li>
 <li>

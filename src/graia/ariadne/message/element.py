@@ -12,7 +12,14 @@ from typing_extensions import ParamSpec
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
-from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod, datetime_encoder
+from ..model import (
+    AriadneBaseModel,
+    Friend,
+    Member,
+    Stranger,
+    UploadMethod,
+    datetime_encoder,
+)
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:

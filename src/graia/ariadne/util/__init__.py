@@ -6,12 +6,10 @@ import asyncio
 import functools
 import sys
 import traceback
+import warnings
 from asyncio.events import AbstractEventLoop
 from typing import (
-    AsyncGenerator,
-    AsyncIterable,
     AsyncIterator,
-    Awaitable,
     Callable,
     ContextManager,
     Coroutine,
@@ -221,10 +219,11 @@ async def yield_with_timeout(
             yield res
 
 
-def deprecated(remove_ver: str) -> Callable:
+def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
     def out_wrapper(func: T_Callable) -> T_Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
             logger.warning(f"Deprecated function: {func.__qualname__}")
             logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
             return func(*args, **kwargs)

@@ -9,6 +9,8 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from graia.ariadne.util import deprecated
+
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
@@ -28,6 +30,7 @@ class Literature(BaseDispatcher):
     allow_quote: bool
     skip_one_at_in_quote: bool
 
+    @deprecated("0.5.0")
     def __init__(
         self,
         *prefixs: str,

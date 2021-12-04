@@ -22,10 +22,21 @@ if __name__ == "__main__":
     async def pap(result: MessageChain = DetectSuffix("end")):
         devtools.debug(result)
 
+    @bcc.receiver(MessageEvent, decorators=[DetectPrefix(".system")])
+    async def trigger(result: MessageChain):
+        print("Triggered:")
+        devtools.debug(result)
+
     async def main():
         bcc.postEvent(
             MessageEvent(
                 messageChain=MessageChain.create(".test option end"),
+                sender=Friend(id=123, nickname="opq", remark="test"),
+            )
+        )
+        bcc.postEvent(
+            MessageEvent(
+                messageChain=MessageChain.create(".system abstract"),
                 sender=Friend(id=123, nickname="opq", remark="test"),
             )
         )

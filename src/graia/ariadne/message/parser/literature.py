@@ -11,10 +11,10 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from graia.ariadne.util import deprecated
 
+from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
-from ...event.message import MessageEvent
 
 BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
 

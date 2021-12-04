@@ -216,13 +216,13 @@ class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
         match: Optional[Dict[str, Match]] = None,
         cls: Type[&#34;Twilight&#34;] = None,
     ):
-        if not check:
-            check = ()
-
         if isinstance(check, dict):
             match, check = check, match  # swap
             check: Iterable[RegexMatch]
             match: Dict[str, Match]
+
+        if not check:
+            check = ()
 
         cls = cls or self.__class__
 
@@ -649,13 +649,13 @@ class Sparkle(Twilight):
         match: Optional[Dict[str, Match]] = None,
         cls: Type[&#34;Twilight&#34;] = None,
     ):
-        if not check:
-            check = ()
-
         if isinstance(check, dict):
             match, check = check, match  # swap
             check: Iterable[RegexMatch]
             match: Dict[str, Match]
+
+        if not check:
+            check = ()
 
         cls = cls or self.__class__
 
@@ -1042,13 +1042,13 @@ def gen_sparkle(self, chain: MessageChain) -&gt; T_Twilight:
     match: Optional[Dict[str, Match]] = None,
     cls: Type[&#34;Twilight&#34;] = None,
 ):
-    if not check:
-        check = ()
-
     if isinstance(check, dict):
         match, check = check, match  # swap
         check: Iterable[RegexMatch]
         match: Dict[str, Match]
+
+    if not check:
+        check = ()
 
     cls = cls or self.__class__
 

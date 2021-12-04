@@ -39,6 +39,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from graia.ariadne.util import deprecated
 
+from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
@@ -195,10 +196,8 @@ class Literature(BaseDispatcher):
             list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
-    async def beforeExecution(self, interface: DispatcherInterface):
-        message_chain: MessageChain = await interface.lookup_param(
-            &#34;__literature_messagechain__&#34;, MessageChain, None
-        )
+    async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
+        message_chain: MessageChain = interface.event.messageChain
         if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)
@@ -403,10 +402,8 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
             list(itertools.chain(*[[*i.__root__, Plain(&#34; &#34;)] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
-    async def beforeExecution(self, interface: DispatcherInterface):
-        message_chain: MessageChain = await interface.lookup_param(
-            &#34;__literature_messagechain__&#34;, MessageChain, None
-        )
+    async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
+        message_chain: MessageChain = interface.event.messageChain
         if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)
@@ -471,7 +468,7 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.message.parser.literature.Literature.beforeExecution"><code class="name flex">
-<span>async def <span class="ident">beforeExecution</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface)</span>
+<span>async def <span class="ident">beforeExecution</span></span>(<span>self, interface: graia.broadcast.interfaces.dispatcher.DispatcherInterface[<a title="ariadne.event.message.MessageEvent" href="../../event/message.html#ariadne.event.message.MessageEvent">MessageEvent</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -479,10 +476,8 @@ Ariadne Migrated&gt; 如果使用中发现任何属因移植过程发生的错�
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def beforeExecution(self, interface: DispatcherInterface):
-    message_chain: MessageChain = await interface.lookup_param(
-        &#34;__literature_messagechain__&#34;, MessageChain, None
-    )
+<pre><code class="python">async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
+    message_chain: MessageChain = interface.event.messageChain
     if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
         raise ExecutionStop()
     noprefix = self.prefix_match(message_chain)

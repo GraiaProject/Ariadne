@@ -1,6 +1,6 @@
 # Twilight - 混合式消息链处理器
 
-> 本模块名字取自 [`My Little Pony`](https://mlp.fandom.com/wiki/My_Little_Pony_Friendship_is_Magic_Wiki) 中的 [`Twilight Twilight`](https://mlp.fandom.com/wiki/Twilight_Sparkle).
+> 本模块名字取自 [`My Little Pony`](https://mlp.fandom.com/wiki/My_Little_Pony_Friendship_is_Magic_Wiki) 中的 [`Twilight Sparkle`](https://mlp.fandom.com/wiki/Twilight_Sparkle).
 >
 > Friendship is magic!
 

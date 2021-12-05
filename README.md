@@ -59,8 +59,8 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 ## 文档
 
-[API 文档](https://graiaproject.github.io/Ariadne/)
-[![PDoc Deploy](https://img.shields.io/github/deployments/GraiaProject/Ariadne/github-pages)](https://graiaproject.github.io/Ariadne/)
+[API 文档](https://graiaproject.github.io/Ariadne/ariadne)
+[![PDoc Deploy](https://img.shields.io/github/deployments/GraiaProject/Ariadne/github-pages)](https://graiaproject.github.io/Ariadne/ariadne)
 
 [文档](https://graia.readthedocs.io/zh_CN/latest/)
 [![Read The Docs Deploy](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.readthedocs.io/zh_CN/latest/)

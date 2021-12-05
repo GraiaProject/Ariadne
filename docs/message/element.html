@@ -210,7 +210,7 @@ class AtAll(Element):
     &#34;该消息元素用于群组中的管理员提醒群组中的所有成员&#34;
     type: str = &#34;AtAll&#34;
 
-    def __init__(self) -&gt; None:
+    def __init__(self, *_, **__) -&gt; None:
         super().__init__()
 
     def asDisplay(self) -&gt; str:
@@ -306,7 +306,7 @@ class Poke(Element):
     type = &#34;Poke&#34;
     name: PokeMethods
 
-    def __init__(self, name: PokeMethods) -&gt; None:
+    def __init__(self, name: PokeMethods, *_, **__) -&gt; None:
         super().__init__(name=name)
 
     def asDisplay(self) -&gt; str:
@@ -318,7 +318,7 @@ class Dice(Element):
     type = &#34;Dice&#34;
     value: int
 
-    def __init__(self, value: int) -&gt; None:
+    def __init__(self, value: int, *_, **__) -&gt; None:
         super().__init__(value=value)
 
     def asDisplay(self) -&gt; str:
@@ -753,6 +753,7 @@ def _update_forward_refs():
 </dd>
 <dt id="ariadne.message.element.AtAll"><code class="flex name class">
 <span>class <span class="ident">AtAll</span></span>
+<span>(</span><span>*_, **__)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>该消息元素用于群组中的管理员提醒群组中的所有成员</p>
@@ -766,7 +767,7 @@ def _update_forward_refs():
     &#34;该消息元素用于群组中的管理员提醒群组中的所有成员&#34;
     type: str = &#34;AtAll&#34;
 
-    def __init__(self) -&gt; None:
+    def __init__(self, *_, **__) -&gt; None:
         super().__init__()
 
     def asDisplay(self) -&gt; str:
@@ -824,7 +825,7 @@ def _update_forward_refs():
 </dd>
 <dt id="ariadne.message.element.Dice"><code class="flex name class">
 <span>class <span class="ident">Dice</span></span>
-<span>(</span><span>value: int)</span>
+<span>(</span><span>value: int, *_, **__)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>表示消息中骰子消息元素</p>
@@ -839,7 +840,7 @@ def _update_forward_refs():
     type = &#34;Dice&#34;
     value: int
 
-    def __init__(self, value: int) -&gt; None:
+    def __init__(self, value: int, *_, **__) -&gt; None:
         super().__init__(value=value)
 
     def asDisplay(self) -&gt; str:
@@ -2152,7 +2153,7 @@ type (str): 元素类型</p>
 </dd>
 <dt id="ariadne.message.element.Poke"><code class="flex name class">
 <span>class <span class="ident">Poke</span></span>
-<span>(</span><span>name: <a title="ariadne.message.element.PokeMethods" href="#ariadne.message.element.PokeMethods">PokeMethods</a>)</span>
+<span>(</span><span>name: <a title="ariadne.message.element.PokeMethods" href="#ariadne.message.element.PokeMethods">PokeMethods</a>, *_, **__)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>表示消息中戳一戳消息元素</p>
@@ -2167,7 +2168,7 @@ type (str): 元素类型</p>
     type = &#34;Poke&#34;
     name: PokeMethods
 
-    def __init__(self, name: PokeMethods) -&gt; None:
+    def __init__(self, name: PokeMethods, *_, **__) -&gt; None:
         super().__init__(name=name)
 
     def asDisplay(self) -&gt; str:

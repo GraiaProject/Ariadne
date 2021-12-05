@@ -1123,6 +1123,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持.
             await_task (bool): 是否等待所有 Executor 任务完成再退出.
+            disable_telemetry (bool): 是否禁用版本记录.
+            disable_logo (bool): 是否禁用 logo 显示.
         """
         if broadcast:
             loop = broadcast.loop
@@ -1211,20 +1213,18 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 try:
                     await self.adapter.start()
                     await await_predicate(lambda: self.adapter.session_activated)
-                    try:
-                        async for event in yield_with_timeout(
-                            self.adapter.queue.get,
-                            lambda: (
-                                self.adapter.running
-                                and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
-                            ),
-                        ):
-                            with enter_context(self, event):
-                                self.broadcast.postEvent(event)
-                    except CancelledError:
-                        pass
+                    async for event in yield_with_timeout(
+                        self.adapter.queue.get,
+                        lambda: (
+                            self.adapter.running
+                            and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
+                        ),
+                    ):
+                        with enter_context(self, event):
+                            self.broadcast.postEvent(event)
                 except Exception as e:
                     logger.exception(e)
+                    await self.adapter.stop()
                 if not self.session_key:
                     retry_cnt += 1
                 else:
@@ -1256,11 +1256,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     t.cancel()
                 try:
                     await t
-                except Exception as e:
+                except BaseException as e:
                     exceptions.append((e.__class__, e.args))
-        self.adapter.running = False
-        if self.adapter.fetch_task:
-            await self.adapter.fetch_task
+        await self.adapter.stop()
         self.status = AriadneStatus.STOP
         logger.info("Stopped Ariadne.")
         return exceptions
@@ -1318,7 +1316,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         if self.status is AriadneStatus.RUNNING:
             await self.request_stop()
             await await_predicate(lambda: self.status is AriadneStatus.STOP)
-        await self.daemon_task
+            await self.daemon_task
 
     async def lifecycle(self):
         await self.launch()

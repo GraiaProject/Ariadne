@@ -1,5 +1,7 @@
 <div align="center">
 
+## 本分支为开发分支, 对于贸然在生产环境中使用, 产生的一切损失概不负责.
+
 # Ariadne
 
 _Another elegant framework for mirai and mirai-api-http v2._

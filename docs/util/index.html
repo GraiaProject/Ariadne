@@ -228,7 +228,7 @@ def wrap_bracket(string: str) -&gt; str:
 T_Callable = TypeVar(&#34;T_Callable&#34;, bound=Callable)
 
 
-async def await_predicate(predicate: Callable[[], bool], interval: float = 0.05) -&gt; None:
+async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -&gt; None:
     while not predicate():
         await asyncio.sleep(interval)
 
@@ -301,7 +301,7 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
 </details>
 </dd>
 <dt id="ariadne.util.await_predicate"><code class="name flex">
-<span>async def <span class="ident">await_predicate</span></span>(<span>predicate: Callable[[], bool], interval: float = 0.05) ‑> None</span>
+<span>async def <span class="ident">await_predicate</span></span>(<span>predicate: Callable[[], bool], interval: float = 0.01) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -309,7 +309,7 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">async def await_predicate(predicate: Callable[[], bool], interval: float = 0.05) -&gt; None:
+<pre><code class="python">async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -&gt; None:
     while not predicate():
         await asyncio.sleep(interval)</code></pre>
 </details>

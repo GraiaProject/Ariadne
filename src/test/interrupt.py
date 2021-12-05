@@ -27,11 +27,12 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
                 return waiter1_event
 
     try:
-        await asyncio.wait_for(inc.wait(waiter1), timeout=30)
+        res = await asyncio.wait_for(inc.wait(waiter1), timeout=30)
     except asyncio.TimeoutError:
         await app.sendMessage(friend, MessageChain.create([Plain("Time Out!")]))
-
-    await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
+    else:
+        if res:
+            await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
 
 
 app.launch_blocking()

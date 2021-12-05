@@ -202,6 +202,14 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         if interface.annotation is Ariadne:
             return self.app
 
+        # FIXME
+        if interface.annotation is interface.event.__class__:
+            return interface.event
+        elif interface.annotation is Broadcast:
+            return interface.broadcast
+        elif interface.annotation is DispatcherInterface:
+            return interface
+
 
 def app_ctx_manager(func: Callable[P, R]) -&gt; Callable[P, R]:
     @functools.wraps(func)
@@ -572,7 +580,15 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
         from ..app import Ariadne
 
         if interface.annotation is Ariadne:
-            return self.app</code></pre>
+            return self.app
+
+        # FIXME
+        if interface.annotation is interface.event.__class__:
+            return interface.event
+        elif interface.annotation is Broadcast:
+            return interface.broadcast
+        elif interface.annotation is DispatcherInterface:
+            return interface</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -641,7 +657,15 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
     from ..app import Ariadne
 
     if interface.annotation is Ariadne:
-        return self.app</code></pre>
+        return self.app
+
+    # FIXME
+    if interface.annotation is interface.event.__class__:
+        return interface.event
+    elif interface.annotation is Broadcast:
+        return interface.broadcast
+    elif interface.annotation is DispatcherInterface:
+        return interface</code></pre>
 </details>
 </dd>
 </dl>

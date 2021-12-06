@@ -469,7 +469,7 @@ class MultimediaElement(Element):
         if sum([bool(url), bool(path), bool(base64)]) &gt; 1:
             raise ValueError(&#34;Too many binary initializers!&#34;)
         # Web initializer
-        data[&#34;id&#34;] = data[&#34;id&#34;] or id
+        data[&#34;id&#34;] = data[&#34;id&#34;] if &#34;id&#34; in data else id
         data[&#34;url&#34;] = url
         # Binary initializer
         if path:
@@ -1792,7 +1792,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
         if sum([bool(url), bool(path), bool(base64)]) &gt; 1:
             raise ValueError(&#34;Too many binary initializers!&#34;)
         # Web initializer
-        data[&#34;id&#34;] = data[&#34;id&#34;] or id
+        data[&#34;id&#34;] = data[&#34;id&#34;] if &#34;id&#34; in data else id
         data[&#34;url&#34;] = url
         # Binary initializer
         if path:

@@ -1298,11 +1298,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
             self.broadcast.postEvent(ApplicationLaunched(self))
 
-    @deprecated("0.4.8")
-    async def stop(self):
-        logger.warning("Use request_stop() or wait_for_stop() instead!")
-        await self.request_stop()
-
     async def request_stop(self):
         """请求停止 Ariadne."""
         if self.status is AriadneStatus.RUNNING:

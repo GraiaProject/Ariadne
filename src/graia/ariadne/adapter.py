@@ -247,7 +247,7 @@ class HttpAdapter(Adapter):
             if not isinstance(data, dict):
                 raise ValueError("Data must be a dict in multipart call!")
             for k, v in data.items():
-                form.add_fields(k, v)
+                form.add_field(k, v)
             async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()

@@ -1,8 +1,7 @@
-# Alconna - 命令行式消息链处理器
+# Alconna - A Command Analysis From Cesloi
 
-Alconna 表示想变得更~~可爱~~美观一点
 
-!!! warning "前言"
+!!! info "前言"
 
     在这之前，你应该已经熟悉了 Ariadne 的基础部分
 
@@ -49,32 +48,31 @@ async def friend_message_listener(app: Ariadne, friend: Friend, arpamar: Arpamar
 ![Example](../images/alconna.png)
 
 ## 用法
-通过阅读 Alconna 的签名可以得知 Alconna 支持四大类参数：
- - `main_argument` : 主参数，填入后当且仅当命令中含有该参数时才会成功解析
- - `options` : 命令选项，你的命令可选择的所有 option ,是一个包含 Subcommand 与 Option 的列表
- - `headers` : 呼叫该命令的命令头，一般是你的机器人的名字或者符号，与 command 至少有一个填写. 例如: / , !
+通过阅读 Alconna 的签名可以得知，Alconna 支持四大类参数：
+ - `headers` : 呼叫该命令的命令头，一般是你的机器人的名字或者符号，与 command 至少有一个填写. 例如: /, !
  - `command` : 命令名称，你的命令的名字，与 headers 至少有一个填写
+ - `options` : 命令选项，你的命令可选择的所有 option,是一个包含 Subcommand 与 Option 的列表
+ - `main_argument` : 主参数，填入后当且仅当命令中含有该参数时才会成功解析
 
+解析时，先判断命令头(即 headers + command ),再判断 options 与 main argument , 这里 options 与 main argument 在输入指令时是不分先后的
 
-
-
-
-### Option
-> 参数类型
->  | 参数名称 | 参数类型 | example |
->  | -------- | -------- |  ------- |
->   | name | 选项名称 | test |
->   | args | 选项可选值 |  test=AnyStr |
-> example: Option("参数名称", test=AnyStr)
-
-
-### Subcommand
-> 子命令类型
->   | 参数名称 | 参数类型 | example |
->   | -------- | -------- | ------- |
->   | name | 子命令名称 | test |
->   | args | 子命令选项 | List[Option]  |
->  example: Subcommand("参数名称", List[Option])
-
-解析时，先判断命令头(即 headers + command ),再判断 main argument 与 options , 这里 main argument 与 options 在输入指令时是不分先后的
-
+假设有个 Alconna 如下:
+```python
+Alconna(
+    headers=["/"],
+    command="name",
+    options=[
+        Subcommand("sub_name",Option("sub-opt", sub_arg="sub_arg"), args=sub_main_arg),
+        Option("opt", arg="arg")
+        ]
+    main_argument="main_argument"
+)
+```
+则它可以解析如下命令:
+```
+/name sub_name sub-opt sub_arg opt arg main_argument
+/name sub_name sub_main_arg opt arg main_argument
+/name main_argument opt arg
+/name main_argument
+```
+解析成功的命令的参数会保存在analysis_message 方法返回的 `Arpamar` 实例中

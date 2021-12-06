@@ -70,6 +70,11 @@ class Sparkle(Representation):
         self._description = description or self._description
         self._epilog = epilog or self._epilog
 
+        if check is ...:
+            check = ()
+        if match is ...:
+            match = {}
+
         if isinstance(check, dict):
             match, check = check, match  # swap
             check: Iterable[RegexMatch]
@@ -285,7 +290,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     def __init__(
         self,
         root: Iterable[RegexMatch],
-        match: Dict[str, Match],
+        match: Dict[str, Match] = ...,
         *,
         map_params: Optional[Dict[str, bool]] = None,
     ):

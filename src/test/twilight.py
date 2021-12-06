@@ -64,8 +64,8 @@ if __name__ == "__main__":
     twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
     devtools.debug(twilight.generate(MessageChain(["!header --help hello"])))
-    devtools.debug(twilight._root._parser._actions)
-    print(twilight._root.get_help())
+    devtools.debug(twilight.root._parser._actions)
+    print(twilight.root.get_help())
 
     union_twi = Twilight(Sparkle(check=[UnionMatch(".hello", ".hi")]))
     devtools.debug(union_twi.generate(MessageChain([".hello"])))
@@ -75,14 +75,14 @@ if __name__ == "__main__":
     except Exception as e:
         devtools.debug(e)
 
-    class FooCommand(Twilight):
+    class FooCommand(Sparkle):
         help = ArgumentMatch("--help", "-h", action="store_true")
         bar_match = FullMatch("_bar_")
         regex_match = RegexMatch(r"\d+")
         wildcard = WildcardMatch()
 
-    k = FooCommand([RegexMatch(r"[./!]header")]).generate(
+    k = Twilight(FooCommand([RegexMatch(r"[./!]header")])).generate(
         MessageChain(["!header _bar_ 123 --help pwq external"])
     )
 
-    print(repr(k))
+    devtools.debug(k)

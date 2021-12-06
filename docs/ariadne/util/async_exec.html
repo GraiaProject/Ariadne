@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ariadne.util.async_exec API documentation</title>
+<meta name="description" content="本模块提供并行执行器, 及方便函数 `io_bound`, `cpu_bound`." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ariadne.util.async_exec</code></h1>
+</header>
+<section id="section-intro">
+<p>本模块提供并行执行器, 及方便函数 <code><a title="ariadne.util.async_exec.io_bound" href="#ariadne.util.async_exec.io_bound">io_bound()</a></code>, <code><a title="ariadne.util.async_exec.cpu_bound" href="#ariadne.util.async_exec.cpu_bound">cpu_bound()</a></code>.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;本模块提供并行执行器, 及方便函数 `io_bound`, `cpu_bound`.
+&#34;&#34;&#34;
+import asyncio
+import functools
+import importlib
+from asyncio.events import AbstractEventLoop
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from typing import Awaitable, Callable, ClassVar, Dict, Tuple, TypeVar
+
+from typing_extensions import ParamSpec
+
+P = ParamSpec(&#34;P&#34;)
+
+R = TypeVar(&#34;R&#34;)
+
+
+class ParallelExecutor:
+    &#34;&#34;&#34;并行执行器.
+
+    推荐使用 Ariadne.create 以自动绑定事件循环.
+    &#34;&#34;&#34;
+
+    thread_exec: ThreadPoolExecutor
+    proc_exec: ProcessPoolExecutor
+    loop_ref_dict: ClassVar[Dict[AbstractEventLoop, &#34;ParallelExecutor&#34;]] = {}
+    func_mapping: ClassVar[Dict[str, Callable[P, R]]] = {}
+
+    def __init__(
+        self,
+        loop: AbstractEventLoop = None,
+        max_thread: int = None,
+        max_process: int = None,
+    ):
+        &#34;&#34;&#34;初始化并行执行器.
+
+        Args:
+            loop (AbstractEventLoop, optional): 要绑定的事件循环. Defaults to None.
+            max_thread (int, optional): 最大线程数. Defaults to None.
+            max_process (int, optional): 最大进程数. Defaults to None.
+
+        `max_thread` 与 `max_process` 参数默认值请参阅 `concurrent.futures`.
+        &#34;&#34;&#34;
+        self.thread_exec = ThreadPoolExecutor(max_workers=max_thread)
+        self.proc_exec = ProcessPoolExecutor(max_workers=max_process)
+        if loop:
+            self.bind_loop(loop)
+
+    @classmethod
+    def get(cls, loop: AbstractEventLoop):
+        if loop not in cls.loop_ref_dict:
+            cls.loop_ref_dict[loop] = ParallelExecutor()
+        return cls.loop_ref_dict[loop]
+
+    def bind_loop(self, loop: AbstractEventLoop):
+        self.loop_ref_dict[loop] = self
+
+    @classmethod
+    def shutdown(cls):
+        for exec in cls.loop_ref_dict.values():
+            exec.thread_exec.shutdown()
+            exec.proc_exec.shutdown()
+
+    @classmethod
+    def run_func(cls, name: str, module: str, args: tuple, kwargs: dict) -&gt; R:
+        importlib.import_module(module)
+        return cls.func_mapping[name](*args, **kwargs)
+
+
+def io_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
+    ParallelExecutor.func_mapping[func.__qualname__] = func
+
+    @functools.wraps(func)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -&gt; R:
+        loop = asyncio.get_running_loop()
+        executor = ParallelExecutor.get(loop)
+        return await loop.run_in_executor(
+            executor.thread_exec,
+            ParallelExecutor.run_func,
+            func.__qualname__,
+            func.__module__,
+            args,
+            kwargs,
+        )
+
+    return wrapper
+
+
+def cpu_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
+    ParallelExecutor.func_mapping[func.__qualname__] = func
+
+    @functools.wraps(func)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -&gt; R:
+        loop = asyncio.get_running_loop()
+        executor = ParallelExecutor.get(loop)
+        return await loop.run_in_executor(
+            executor.proc_exec,
+            ParallelExecutor.run_func,
+            func.__qualname__,
+            func.__module__,
+            args,
+            kwargs,
+        )
+
+    return wrapper</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="ariadne.util.async_exec.cpu_bound"><code class="name flex">
+<span>def <span class="ident">cpu_bound</span></span>(<span>func: Callable[[~P], ~R]) ‑> Callable[[~P], Awaitable[~R]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cpu_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
+    ParallelExecutor.func_mapping[func.__qualname__] = func
+
+    @functools.wraps(func)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -&gt; R:
+        loop = asyncio.get_running_loop()
+        executor = ParallelExecutor.get(loop)
+        return await loop.run_in_executor(
+            executor.proc_exec,
+            ParallelExecutor.run_func,
+            func.__qualname__,
+            func.__module__,
+            args,
+            kwargs,
+        )
+
+    return wrapper</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.async_exec.io_bound"><code class="name flex">
+<span>def <span class="ident">io_bound</span></span>(<span>func: Callable[[~P], ~R]) ‑> Callable[[~P], Awaitable[~R]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def io_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
+    ParallelExecutor.func_mapping[func.__qualname__] = func
+
+    @functools.wraps(func)
+    async def wrapper(*args: P.args, **kwargs: P.kwargs) -&gt; R:
+        loop = asyncio.get_running_loop()
+        executor = ParallelExecutor.get(loop)
+        return await loop.run_in_executor(
+            executor.thread_exec,
+            ParallelExecutor.run_func,
+            func.__qualname__,
+            func.__module__,
+            args,
+            kwargs,
+        )
+
+    return wrapper</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ariadne.util.async_exec.ParallelExecutor"><code class="flex name class">
+<span>class <span class="ident">ParallelExecutor</span></span>
+<span>(</span><span>loop: asyncio.events.AbstractEventLoop = None, max_thread: int = None, max_process: int = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>并行执行器.</p>
+<p>推荐使用 Ariadne.create 以自动绑定事件循环.</p>
+<p>初始化并行执行器.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>loop</code></strong> :&ensp;<code>AbstractEventLoop</code>, optional</dt>
+<dd>要绑定的事件循环. Defaults to None.</dd>
+<dt><strong><code>max_thread</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>最大线程数. Defaults to None.</dd>
+<dt><strong><code>max_process</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>最大进程数. Defaults to None.</dd>
+</dl>
+<p><code>max_thread</code> 与 <code>max_process</code> 参数默认值请参阅 <code>concurrent.futures</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ParallelExecutor:
+    &#34;&#34;&#34;并行执行器.
+
+    推荐使用 Ariadne.create 以自动绑定事件循环.
+    &#34;&#34;&#34;
+
+    thread_exec: ThreadPoolExecutor
+    proc_exec: ProcessPoolExecutor
+    loop_ref_dict: ClassVar[Dict[AbstractEventLoop, &#34;ParallelExecutor&#34;]] = {}
+    func_mapping: ClassVar[Dict[str, Callable[P, R]]] = {}
+
+    def __init__(
+        self,
+        loop: AbstractEventLoop = None,
+        max_thread: int = None,
+        max_process: int = None,
+    ):
+        &#34;&#34;&#34;初始化并行执行器.
+
+        Args:
+            loop (AbstractEventLoop, optional): 要绑定的事件循环. Defaults to None.
+            max_thread (int, optional): 最大线程数. Defaults to None.
+            max_process (int, optional): 最大进程数. Defaults to None.
+
+        `max_thread` 与 `max_process` 参数默认值请参阅 `concurrent.futures`.
+        &#34;&#34;&#34;
+        self.thread_exec = ThreadPoolExecutor(max_workers=max_thread)
+        self.proc_exec = ProcessPoolExecutor(max_workers=max_process)
+        if loop:
+            self.bind_loop(loop)
+
+    @classmethod
+    def get(cls, loop: AbstractEventLoop):
+        if loop not in cls.loop_ref_dict:
+            cls.loop_ref_dict[loop] = ParallelExecutor()
+        return cls.loop_ref_dict[loop]
+
+    def bind_loop(self, loop: AbstractEventLoop):
+        self.loop_ref_dict[loop] = self
+
+    @classmethod
+    def shutdown(cls):
+        for exec in cls.loop_ref_dict.values():
+            exec.thread_exec.shutdown()
+            exec.proc_exec.shutdown()
+
+    @classmethod
+    def run_func(cls, name: str, module: str, args: tuple, kwargs: dict) -&gt; R:
+        importlib.import_module(module)
+        return cls.func_mapping[name](*args, **kwargs)</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.util.async_exec.ParallelExecutor.func_mapping"><code class="name">var <span class="ident">func_mapping</span> : ClassVar[Dict[str, Callable[[~P], ~R]]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.util.async_exec.ParallelExecutor.loop_ref_dict"><code class="name">var <span class="ident">loop_ref_dict</span> : ClassVar[Dict[asyncio.events.AbstractEventLoop, <a title="ariadne.util.async_exec.ParallelExecutor" href="#ariadne.util.async_exec.ParallelExecutor">ParallelExecutor</a>]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.util.async_exec.ParallelExecutor.proc_exec"><code class="name">var <span class="ident">proc_exec</span> : concurrent.futures.process.ProcessPoolExecutor</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.util.async_exec.ParallelExecutor.thread_exec"><code class="name">var <span class="ident">thread_exec</span> : concurrent.futures.thread.ThreadPoolExecutor</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="ariadne.util.async_exec.ParallelExecutor.get"><code class="name flex">
+<span>def <span class="ident">get</span></span>(<span>loop: asyncio.events.AbstractEventLoop)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def get(cls, loop: AbstractEventLoop):
+    if loop not in cls.loop_ref_dict:
+        cls.loop_ref_dict[loop] = ParallelExecutor()
+    return cls.loop_ref_dict[loop]</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.async_exec.ParallelExecutor.run_func"><code class="name flex">
+<span>def <span class="ident">run_func</span></span>(<span>name: str, module: str, args: tuple, kwargs: dict) ‑> ~R</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def run_func(cls, name: str, module: str, args: tuple, kwargs: dict) -&gt; R:
+    importlib.import_module(module)
+    return cls.func_mapping[name](*args, **kwargs)</code></pre>
+</details>
+</dd>
+<dt id="ariadne.util.async_exec.ParallelExecutor.shutdown"><code class="name flex">
+<span>def <span class="ident">shutdown</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def shutdown(cls):
+    for exec in cls.loop_ref_dict.values():
+        exec.thread_exec.shutdown()
+        exec.proc_exec.shutdown()</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.util.async_exec.ParallelExecutor.bind_loop"><code class="name flex">
+<span>def <span class="ident">bind_loop</span></span>(<span>self, loop: asyncio.events.AbstractEventLoop)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bind_loop(self, loop: AbstractEventLoop):
+    self.loop_ref_dict[loop] = self</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ariadne.util" href="index.html">ariadne.util</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="ariadne.util.async_exec.cpu_bound" href="#ariadne.util.async_exec.cpu_bound">cpu_bound</a></code></li>
+<li><code><a title="ariadne.util.async_exec.io_bound" href="#ariadne.util.async_exec.io_bound">io_bound</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ariadne.util.async_exec.ParallelExecutor" href="#ariadne.util.async_exec.ParallelExecutor">ParallelExecutor</a></code></h4>
+<ul class="two-column">
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.bind_loop" href="#ariadne.util.async_exec.ParallelExecutor.bind_loop">bind_loop</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.func_mapping" href="#ariadne.util.async_exec.ParallelExecutor.func_mapping">func_mapping</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.get" href="#ariadne.util.async_exec.ParallelExecutor.get">get</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.loop_ref_dict" href="#ariadne.util.async_exec.ParallelExecutor.loop_ref_dict">loop_ref_dict</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.proc_exec" href="#ariadne.util.async_exec.ParallelExecutor.proc_exec">proc_exec</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.run_func" href="#ariadne.util.async_exec.ParallelExecutor.run_func">run_func</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.shutdown" href="#ariadne.util.async_exec.ParallelExecutor.shutdown">shutdown</a></code></li>
+<li><code><a title="ariadne.util.async_exec.ParallelExecutor.thread_exec" href="#ariadne.util.async_exec.ParallelExecutor.thread_exec">thread_exec</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

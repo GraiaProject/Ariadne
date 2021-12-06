@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, List, NoReturn, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union, overload
 
 from pydantic import validator
 from pydantic.fields import Field
@@ -12,7 +12,14 @@ from typing_extensions import ParamSpec
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
-from ..model import AriadneBaseModel, UploadMethod, datetime_encoder
+from ..model import (
+    AriadneBaseModel,
+    Friend,
+    Member,
+    Stranger,
+    UploadMethod,
+    datetime_encoder,
+)
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:
@@ -139,6 +146,14 @@ class At(Element):
     target: int
     display: Optional[str] = None
 
+    def __init__(self, target: Union[int, Member] = ..., **data) -> None:
+        if target is not ...:
+            if isinstance(target, int):
+                data.update(target=target)
+            else:
+                data.update(target=target.id)
+        super().__init__(**data)
+
     def __init__(self, target: int, **kwargs) -> None:
         """实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
 
@@ -167,6 +182,9 @@ class AtAll(Element):
     "该消息元素用于群组中的管理员提醒群组中的所有成员"
     type: str = "AtAll"
 
+    def __init__(self, *_, **__) -> None:
+        super().__init__()
+
     def asDisplay(self) -> str:
         return "@全体成员"
 
@@ -185,6 +203,13 @@ class Face(Element):
     type: str = "Face"
     faceId: Optional[int] = None
     name: Optional[str] = None
+
+    def __init__(self, id: int = ..., name: str = ..., **data) -> None:
+        if id is not ...:
+            data.update(id=id)
+        if name is not ...:
+            data.update(name=name)
+        super().__init__(**data)
 
     def asDisplay(self) -> str:
         return f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
@@ -253,6 +278,9 @@ class Poke(Element):
     type = "Poke"
     name: PokeMethods
 
+    def __init__(self, name: PokeMethods, *_, **__) -> None:
+        super().__init__(name=name)
+
     def asDisplay(self) -> str:
         return f"[戳一戳:{self.name}]"
 
@@ -261,6 +289,9 @@ class Dice(Element):
     "表示消息中骰子消息元素"
     type = "Dice"
     value: int
+
+    def __init__(self, value: int, *_, **__) -> None:
+        super().__init__(value=value)
 
     def asDisplay(self) -> str:
         return f"[骰子:{self.value}]"
@@ -289,6 +320,31 @@ class ForwardNode(AriadneBaseModel):
     messageChain: Optional["MessageChain"]
     messageId: Optional[int]
 
+    def __init__(
+        self,
+        target: Union[int, Friend, Member, Stranger] = ...,
+        time: datetime = ...,
+        message: "MessageChain" = ...,
+        name: str = ...,
+        **data,
+    ) -> None:
+        if target is not ...:
+            if isinstance(target, int):
+                data.update(senderId=target)
+            else:
+                data.update(senderId=target.id)
+                if isinstance(target, Member):
+                    data.update(senderName=target.name)
+                else:
+                    data.update(senderName=target.nickname)
+        if time is not ...:
+            data.update(time=time)
+        if name is not ...:
+            data.update(senderName=name)
+        if message is not ...:
+            data.update(messageChain=message)
+        super().__init__(**data)
+
     class Config:
         json_encoders = {
             datetime: datetime_encoder,
@@ -304,6 +360,17 @@ class Forward(Element):
 
     type = "Forward"
     nodeList: List[ForwardNode]
+
+    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -> None:
+        if nodes:
+            nodeList: List[ForwardNode] = []
+            for i in nodes:
+                if isinstance(i, ForwardNode):
+                    nodeList.append(i)
+                else:
+                    nodeList.extend(i)
+            data.update(nodeList=nodeList)
+        super().__init__(**data)
 
     def asDisplay(self) -> str:
         return f"[合并转发:共{len(self.nodeList)}条]"
@@ -324,6 +391,12 @@ class File(Element):
 
     def asPersistentString(self) -> str:
         return ""
+
+
+class MiraiCode(Element):
+    "Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口."
+    type = "MiraiCode"
+    code: str
 
 
 class ImageType(Enum):

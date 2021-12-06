@@ -1,4 +1,5 @@
 import asyncio
+import importlib.metadata
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
@@ -7,9 +8,11 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
+    Iterable,
     List,
     Literal,
     Optional,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -18,8 +21,10 @@ from typing import (
 from graia.broadcast import Broadcast
 from loguru import logger
 
+from graia.ariadne import ARIADNE_ASCII_LOGO, TELEMETRY_LIST
+
 from .adapter import Adapter, DefaultAdapter
-from .context import enter_message_send_context
+from .context import enter_context, enter_message_send_context
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -28,13 +33,20 @@ from .event.lifecycle import (
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .message.element import Source
-from .util import inject_bypass_listener, inject_loguru_traceback
+from .util import (
+    await_predicate,
+    deprecated,
+    inject_bypass_listener,
+    inject_loguru_traceback,
+    yield_with_timeout,
+)
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
 
 from .message.chain import MessageChain
 from .model import (
+    AriadneStatus,
     BotMessage,
     CallMethod,
     ChatLogConfig,
@@ -1096,6 +1108,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
         use_bypass_listener: Optional[bool] = False,
+        await_task: bool = False,
+        disable_telemetry: bool = False,
+        disable_logo: bool = False,
     ):
         """
         初始化 Ariadne.
@@ -1106,9 +1121,13 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
             chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法. 设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
-            use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持
+            use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持.
+            await_task (bool): 是否等待所有 Executor 任务完成再退出.
         """
         if broadcast:
+            loop = broadcast.loop
+        elif isinstance(connect_info, Adapter):
+            broadcast = connect_info.broadcast
             loop = broadcast.loop
         if not loop:
             try:
@@ -1122,13 +1141,22 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if isinstance(connect_info, Adapter)
             else DefaultAdapter(self.broadcast, connect_info)
         )
-        self.adapter.app = self
         self.mirai_session: MiraiSession = self.adapter.mirai_session
 
         self.daemon_task: Optional[Task] = None
-        self.running: bool = False
+        self.status: AriadneStatus = AriadneStatus.STOP
         self.remote_version: str = ""
         self.max_retry: int = max_retry
+        self.await_task: bool = await_task
+        self.disable_telemetry: bool = disable_telemetry
+        self.disable_logo: bool = disable_logo
+        self.info: Dict[type, object] = {
+            Ariadne: self,
+            Broadcast: self.broadcast,
+            AbstractEventLoop: self.loop,
+            Adapter: self.adapter,
+            MiraiSession: self.mirai_session,
+        }
 
         chat_log_enabled = True if chat_log_config is not False else False
         self.chat_log_cfg: ChatLogConfig = (
@@ -1139,25 +1167,19 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         if use_loguru_traceback:
             inject_loguru_traceback(self.loop)
 
-    def create(
-        self,
-        cls: Type[T],
-    ) -> T:
+    def create(self, cls: Type[T], reuse: bool = True) -> T:
         """利用 Ariadne 已有的信息协助创建实例.
 
         Args:
             cls (Type[T]): 需要创建的类.
+            reuse (bool, optional): 是否允许复用, 默认为 True.
 
         Returns:
             T: 创建的类.
         """
-        INFO = {
-            Ariadne: self,
-            Broadcast: self.broadcast,
-            AbstractEventLoop: self.loop,
-            Adapter: self.adapter,
-            MiraiSession: self.mirai_session,
-        }
+        self.info: Dict[Type[T], T]
+        if cls in self.info.keys():
+            return self.info[cls]
         call_args: list = []
         call_kwargs: Dict[str, Any] = {}
         import inspect
@@ -1165,90 +1187,149 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         init_sig = inspect.signature(cls)
 
         for name, param in init_sig.parameters.items():
-            if param.annotation in INFO and param.kind not in (
+            if param.annotation in self.info.keys() and param.kind not in (
                 param.VAR_KEYWORD,
                 param.VAR_POSITIONAL,
             ):
                 if param.kind is param.POSITIONAL_ONLY:
-                    call_args.append(INFO[param.annotation])
+                    call_args.append(self.info[param.annotation])
                 else:
-                    call_kwargs[name] = INFO[param.annotation]
-        return cls(*call_args, **call_kwargs)
+                    call_kwargs[name] = self.info[param.annotation]
+        obj: T = cls(*call_args, **call_kwargs)
+        if reuse:
+            self.info[cls] = obj
+        return obj
 
     async def daemon(self, retry_interval: float = 5.0):
         retry_cnt: int = 0
-        logger.debug("Application daemon started.")
-        while self.running:
+
+        logger.debug("Ariadne daemon started.")
+
+        while self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
             try:
-                await self.adapter.start()
                 self.broadcast.postEvent(AdapterLaunched(self))
                 try:
-                    if self.adapter.fetch_task:
-                        await self.adapter.fetch_task
+                    await self.adapter.start()
+                    await await_predicate(lambda: self.adapter.session_activated)
+                    try:
+                        async for event in yield_with_timeout(
+                            self.adapter.queue.get,
+                            lambda: (
+                                self.adapter.running
+                                and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
+                            ),
+                        ):
+                            with enter_context(self, event):
+                                self.broadcast.postEvent(event)
+                    except CancelledError:
+                        pass
                 except Exception as e:
                     logger.exception(e)
                 if not self.session_key:
                     retry_cnt += 1
                 else:
                     retry_cnt = 0
-                await self.adapter.stop()
                 self.broadcast.postEvent(AdapterShutdowned(self))
                 if retry_cnt == self.max_retry:
                     logger.critical(f"Max retry exceeded: {self.max_retry}")
                     break
-                logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
-                await asyncio.sleep(retry_interval)
-                logger.info("daemon: restarting adapter")
+                if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
+                    logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
+                    await asyncio.sleep(retry_interval)
+                    logger.info("daemon: restarting adapter")
             except CancelledError:
-                await self.adapter.stop()
-        logger.debug("Application daemon stopped.")
+                pass
+        logger.debug("Ariadne daemon stopped.")
+
+        exceptions: List[Tuple[Type[Exception], tuple]] = []
+
+        self.broadcast.postEvent(ApplicationShutdowned(self))
+        logger.info("Stopping Ariadne...")
+        self.status = AriadneStatus.CLEANUP
+        for t in asyncio.all_tasks(self.loop):
+            if (
+                t is not asyncio.current_task(self.loop)
+                and hasattr(t.get_coro(), "__qualname__")
+                and t.get_coro().__qualname__ == "Broadcast.Executor"
+            ):
+                if not self.await_task:
+                    t.cancel()
+                try:
+                    await t
+                except Exception as e:
+                    exceptions.append((e.__class__, e.args))
+        self.adapter.running = False
+        if self.adapter.fetch_task:
+            await self.adapter.fetch_task
+        self.status = AriadneStatus.STOP
+        logger.info("Stopped Ariadne.")
+        return exceptions
 
     async def launch(self):
-        if not self.running:
-            self.running = True
+        """启动 Ariadne."""
+        if self.status is AriadneStatus.STOP:
+            self.status = AriadneStatus.LAUNCH
             start_time = time.time()
+
+            # Logo
+            if not self.disable_logo:
+                logger.opt(colors=True, raw=True).info(f"<cyan>{ARIADNE_ASCII_LOGO}</>")
+
+            # Telemetry
+            if not self.disable_telemetry:
+                for entry in TELEMETRY_LIST:
+                    try:
+                        version = importlib.metadata.version(entry)
+                    except importlib.metadata.PackageNotFoundError:
+                        version = "Not Installed"
+                    logger.opt(colors=True, raw=True).info(
+                        f"<magenta>{entry.split('-')[-1].title()}</> version: <yellow>{version}</>\n"
+                    )
+
             logger.info("Launching app...")
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
-            while not self.adapter.session_activated:
-                await asyncio.sleep(0.001)
+            await await_predicate(lambda: self.adapter.session_activated, 0.0001)
+            self.status = AriadneStatus.RUNNING
             self.remote_version = await self.getVersion()
             logger.info(f"Remote version: {self.remote_version}")
             if not self.remote_version.startswith("2"):
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
-            self.broadcast.postEvent(ApplicationLaunched(self))
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
+            self.broadcast.postEvent(ApplicationLaunched(self))
 
+    @deprecated("0.4.8")
     async def stop(self):
-        if self.running:
-            self.broadcast.postEvent(ApplicationShutdowned(self))
-            self.running = False
-            if self.daemon_task:
-                self.daemon_task.cancel()
-                self.daemon_task = None
-            await self.adapter.stop()
-            for t in asyncio.all_tasks(self.loop):
-                if (
-                    t is not asyncio.current_task(self.loop)
-                    and not t.get_name().startswith("ariadne")
-                    and not t.get_name().startswith("_")
-                ):
-                    t.cancel()
-                    try:
-                        await t
-                    except asyncio.CancelledError:
-                        pass
+        logger.warning("Use request_stop() or wait_for_stop() instead!")
+        await self.request_stop()
+
+    async def request_stop(self):
+        """请求停止 Ariadne."""
+        if self.status is AriadneStatus.RUNNING:
+            self.status = AriadneStatus.SHUTDOWN
+            await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})
+
+    async def wait_for_stop(self):
+        """等待直到 Ariadne 真正停止.
+        不要在与 Broadcast 相关的任务中使用.
+        """
+        if self.status is AriadneStatus.RUNNING:
+            await self.request_stop()
+            await await_predicate(lambda: self.status is AriadneStatus.STOP)
+        await self.daemon_task
 
     async def lifecycle(self):
         await self.launch()
+        await self.daemon_task
+        await self.wait_for_stop()
+
+    def launch_blocking(self):
         try:
-            if self.daemon_task:
-                await self.daemon_task
-        except CancelledError:
-            pass
-        await self.stop()
+            self.loop.run_until_complete(self.lifecycle())
+        except KeyboardInterrupt:
+            self.loop.run_until_complete(self.wait_for_stop())
 
     @app_ctx_manager
     async def getVersion(self, auto_set: bool = True):
@@ -1266,4 +1347,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return self
 
     async def __aexit__(self, *exc):
-        await self.stop()
+        await self.wait_for_stop()
+
+    @property
+    def account(self) -> Optional[int]:
+        return self.adapter.mirai_session.account

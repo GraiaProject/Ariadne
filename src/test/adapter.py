@@ -16,6 +16,6 @@ if __name__ == "__main__":
     adapter = CombinedAdapter(bcc, MiraiSession(url, account, verify_key))
 
     try:
-        loop.run_forever()
+        loop.run_until_complete(adapter.fetch_cycle())
     except KeyboardInterrupt:
-        loop.run_until_complete(adapter.stop())
+        loop.run_until_complete(adapter.fetch_task)

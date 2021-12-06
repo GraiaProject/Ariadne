@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>ariadne.message.parser.pattern API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}#lunr-search{width:100%;font-size:1em;padding:6px 9px 5px 9px;border:1px solid silver}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>ariadne.message.parser.pattern</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import abc
+import re
+from argparse import Action
+from contextvars import ContextVar
+from dataclasses import dataclass
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
+
+from pydantic.utils import Representation
+
+from .util import gen_flags_repr
+
+if TYPE_CHECKING:
+    from ...typing import Self
+    from ..chain import MessageChain
+    from ..element import Element
+
+
+@dataclass(init=True, eq=True, repr=True)
+class ParamPattern:
+    longs: List[str]
+    short: Optional[str] = None
+    default: Any = None
+    help_message: Optional[str] = None
+
+
+@dataclass(init=True, eq=True, repr=True)
+class SwitchParameter(ParamPattern):
+    default: bool = False
+    auto_reverse: bool = False
+
+
+@dataclass(init=True, eq=True, repr=True)
+class BoxParameter(ParamPattern):
+    &#34;可以被指定传入消息的参数, 但只有一个.&#34;
+
+
+class Match(abc.ABC, Representation):
+    &#34;匹配器的抽象基类.&#34;
+    pattern: str
+    optional: bool
+    help: str
+    matched: Optional[bool]
+    result: Optional[&#34;MessageChain&#34;]
+
+    def __init__(self, pattern, optional: bool = False, help: str = &#34;&#34;, alt_help: str = &#34;&#34;) -&gt; None:
+        self.pattern = pattern
+        self.optional = optional
+        self.help = help
+        self.result = None
+        self.matched = None
+        self.alt_help = alt_help
+        if self.__class__ == Match:
+            raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
+
+    def __repr_args__(self):
+        return [
+            (&#34;matched&#34;, self.matched),
+            (&#34;result&#34;, self.result),
+            (&#34;pattern&#34;, self.pattern),
+        ]
+
+    def get_help(self) -&gt; str:
+        return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;) if not self.alt_help else self.alt_help
+
+
+class RegexMatch(Match):
+    &#34;基础的正则表达式匹配.&#34;
+    regex_match: Optional[re.Match]
+    preserve_space: bool
+
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
+        self.flags = flags
+        self.flags_repr = gen_flags_repr(self.flags)
+        self.regex_match = None
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -&gt; str:
+        return (
+            f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
+            f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+        )
+
+
+class WildcardMatch(RegexMatch):
+    &#34;泛匹配.&#34;
+
+    preserve_space: bool
+
+    def __init__(
+        self,
+        *,
+        greed: bool = True,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(&#34;.*&#34;, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
+        self.greed = greed
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+
+
+class FullMatch(RegexMatch):
+    &#34;全匹配.&#34;
+
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({re.escape(self.pattern)}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+
+
+class ElementMatch(RegexMatch):
+    &#34;元素类型匹配.&#34;
+
+    pattern: Type[&#34;Element&#34;]
+    result: &#34;Element&#34;
+
+    def __init__(
+        self,
+        pattern: Type[&#34;Element&#34;],
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+
+    def gen_regex(self) -&gt; str:
+        return (
+            f&#34;(\x02\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\x03){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+            f&#34;{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+        )
+
+    def get_help(self) -&gt; str:
+        return self.pattern.__name__ if not self.alt_help else self.alt_help
+
+
+class UnionMatch(RegexMatch):
+    &#34;多重匹配.&#34;
+
+    pattern: Tuple[str, ...]
+
+    def __init__(
+        self,
+        *patterns: str,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+        )
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({&#39;|&#39;.join(re.escape(i) for i in self.pattern)})&#34;
+
+    def get_help(self) -&gt; str:
+        return f&#34;[{&#39;|&#39;.join(self.pattern)}]&#34; if not self.alt_help else self.alt_help
+
+
+T_const = TypeVar(&#34;T_const&#34;)
+T_default = TypeVar(&#34;T_default&#34;)
+
+
+class ArgumentMatch(Match):
+    &#34;&#34;&#34;参数匹配.&#34;&#34;&#34;
+
+    pattern: Sequence[str]
+    name: str
+    nargs: Union[str, int]
+    action: Union[str, Type[Action]]
+    const: Optional[T_const]
+    default: Optional[T_default]
+    regex: Optional[re.Pattern]
+    result: Union[&#34;MessageChain&#34;, Any]
+    add_arg_data: Dict[str, Any]
+
+    def __init__(
+        self,
+        *pattern: str,
+        optional: bool = True,
+        const: Optional[T_const] = ...,
+        default: Optional[T_default] = ...,
+        nargs: Union[str, int] = ...,
+        action: Union[str, Type[Action]] = ...,
+        type: Callable = ...,
+        regex: Optional[str] = None,
+        help: str = &#34;&#34;,
+    ) -&gt; None:
+        if not pattern:
+            raise ValueError(&#34;Expected at least 1 pattern!&#34;)
+        super().__init__(pattern, optional, help)
+        self.name = pattern[0].lstrip(&#34;-&#34;).replace(&#34;-&#34;, &#34;_&#34;)
+        self.nargs = nargs
+        self.action = action
+        self.const = const
+        self.default = default
+        self.regex = re.compile(regex) if regex else None
+        data: Dict[str, Any] = {}
+        if action is not ...:
+            data[&#34;action&#34;] = action
+        if nargs is not ...:
+            data[&#34;nargs&#34;] = nargs
+        if const is not ...:
+            data[&#34;const&#34;] = const
+        if default is not ...:
+            data[&#34;default&#34;] = default
+        if type is not ...:
+            data[&#34;type&#34;] = type
+        if help is not ...:
+            data[&#34;help&#34;] = help
+        if pattern[0].startswith(&#34;-&#34;):
+            data[&#34;required&#34;] = not optional
+        self.add_arg_data = data</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch"><code class="flex name class">
+<span>class <span class="ident">ArgumentMatch</span></span>
+<span>(</span><span>*pattern: str, optional: bool = True, const: Optional[~T_const] = Ellipsis, default: Optional[~T_default] = Ellipsis, nargs: Union[str, int] = Ellipsis, action: Union[str, Type[argparse.Action]] = Ellipsis, type: Callable = Ellipsis, regex: Optional[str] = None, help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>参数匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ArgumentMatch(Match):
+    &#34;&#34;&#34;参数匹配.&#34;&#34;&#34;
+
+    pattern: Sequence[str]
+    name: str
+    nargs: Union[str, int]
+    action: Union[str, Type[Action]]
+    const: Optional[T_const]
+    default: Optional[T_default]
+    regex: Optional[re.Pattern]
+    result: Union[&#34;MessageChain&#34;, Any]
+    add_arg_data: Dict[str, Any]
+
+    def __init__(
+        self,
+        *pattern: str,
+        optional: bool = True,
+        const: Optional[T_const] = ...,
+        default: Optional[T_default] = ...,
+        nargs: Union[str, int] = ...,
+        action: Union[str, Type[Action]] = ...,
+        type: Callable = ...,
+        regex: Optional[str] = None,
+        help: str = &#34;&#34;,
+    ) -&gt; None:
+        if not pattern:
+            raise ValueError(&#34;Expected at least 1 pattern!&#34;)
+        super().__init__(pattern, optional, help)
+        self.name = pattern[0].lstrip(&#34;-&#34;).replace(&#34;-&#34;, &#34;_&#34;)
+        self.nargs = nargs
+        self.action = action
+        self.const = const
+        self.default = default
+        self.regex = re.compile(regex) if regex else None
+        data: Dict[str, Any] = {}
+        if action is not ...:
+            data[&#34;action&#34;] = action
+        if nargs is not ...:
+            data[&#34;nargs&#34;] = nargs
+        if const is not ...:
+            data[&#34;const&#34;] = const
+        if default is not ...:
+            data[&#34;default&#34;] = default
+        if type is not ...:
+            data[&#34;type&#34;] = type
+        if help is not ...:
+            data[&#34;help&#34;] = help
+        if pattern[0].startswith(&#34;-&#34;):
+            data[&#34;required&#34;] = not optional
+        self.add_arg_data = data</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.action"><code class="name">var <span class="ident">action</span> : Union[str, Type[argparse.Action]]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.add_arg_data"><code class="name">var <span class="ident">add_arg_data</span> : Dict[str, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.const"><code class="name">var <span class="ident">const</span> : Optional[~T_const]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.default"><code class="name">var <span class="ident">default</span> : Optional[~T_default]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.nargs"><code class="name">var <span class="ident">nargs</span> : Union[str, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.pattern"><code class="name">var <span class="ident">pattern</span> : Sequence[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.regex"><code class="name">var <span class="ident">regex</span> : Optional[re.Pattern]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ArgumentMatch.result"><code class="name">var <span class="ident">result</span> : Union[MessageChain, Any]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.BoxParameter"><code class="flex name class">
+<span>class <span class="ident">BoxParameter</span></span>
+<span>(</span><span>longs: List[str], short: Optional[str] = None, default: Any = None, help_message: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>可以被指定传入消息的参数, 但只有一个.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(init=True, eq=True, repr=True)
+class BoxParameter(ParamPattern):
+    &#34;可以被指定传入消息的参数, 但只有一个.&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.ParamPattern" href="#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.BoxParameter.default"><code class="name">var <span class="ident">default</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.BoxParameter.help_message"><code class="name">var <span class="ident">help_message</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.BoxParameter.longs"><code class="name">var <span class="ident">longs</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.BoxParameter.short"><code class="name">var <span class="ident">short</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.ElementMatch"><code class="flex name class">
+<span>class <span class="ident">ElementMatch</span></span>
+<span>(</span><span>pattern: Type[ForwardRef('Element')], optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>元素类型匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ElementMatch(RegexMatch):
+    &#34;元素类型匹配.&#34;
+
+    pattern: Type[&#34;Element&#34;]
+    result: &#34;Element&#34;
+
+    def __init__(
+        self,
+        pattern: Type[&#34;Element&#34;],
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+
+    def gen_regex(self) -&gt; str:
+        return (
+            f&#34;(\x02\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\x03){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+            f&#34;{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+        )
+
+    def get_help(self) -&gt; str:
+        return self.pattern.__name__ if not self.alt_help else self.alt_help</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.ElementMatch.pattern"><code class="name">var <span class="ident">pattern</span> : Type[Element]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ElementMatch.result"><code class="name">var <span class="ident">result</span> : Element</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.ElementMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return (
+        f&#34;(\x02\\d+_{self.pattern.__fields__[&#39;type&#39;].default}\x03){&#39;?&#39; if self.optional else &#39;&#39;}&#34;
+        f&#34;{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+    )</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.pattern.ElementMatch.get_help"><code class="name flex">
+<span>def <span class="ident">get_help</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_help(self) -&gt; str:
+    return self.pattern.__name__ if not self.alt_help else self.alt_help</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.FullMatch"><code class="flex name class">
+<span>class <span class="ident">FullMatch</span></span>
+<span>(</span><span>pattern: str, *, optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>全匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FullMatch(RegexMatch):
+    &#34;全匹配.&#34;
+
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({re.escape(self.pattern)}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.FullMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.FullMatch.regex_match"><code class="name">var <span class="ident">regex_match</span> : Optional[re.Match]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.FullMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return f&#34;({re.escape(self.pattern)}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.Match"><code class="flex name class">
+<span>class <span class="ident">Match</span></span>
+<span>(</span><span>pattern, optional: bool = False, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>匹配器的抽象基类.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Match(abc.ABC, Representation):
+    &#34;匹配器的抽象基类.&#34;
+    pattern: str
+    optional: bool
+    help: str
+    matched: Optional[bool]
+    result: Optional[&#34;MessageChain&#34;]
+
+    def __init__(self, pattern, optional: bool = False, help: str = &#34;&#34;, alt_help: str = &#34;&#34;) -&gt; None:
+        self.pattern = pattern
+        self.optional = optional
+        self.help = help
+        self.result = None
+        self.matched = None
+        self.alt_help = alt_help
+        if self.__class__ == Match:
+            raise ValueError(&#34;You can&#39;t instantiate Match class directly!&#34;)
+
+    def __repr_args__(self):
+        return [
+            (&#34;matched&#34;, self.matched),
+            (&#34;result&#34;, self.result),
+            (&#34;pattern&#34;, self.pattern),
+        ]
+
+    def get_help(self) -&gt; str:
+        return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;) if not self.alt_help else self.alt_help</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.ArgumentMatch" href="#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.Match.help"><code class="name">var <span class="ident">help</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.Match.matched"><code class="name">var <span class="ident">matched</span> : Optional[bool]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.Match.optional"><code class="name">var <span class="ident">optional</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.Match.pattern"><code class="name">var <span class="ident">pattern</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.Match.result"><code class="name">var <span class="ident">result</span> : Optional[MessageChain]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.Match.get_help"><code class="name flex">
+<span>def <span class="ident">get_help</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_help(self) -&gt; str:
+    return self.pattern.replace(&#34;( )?&#34;, &#34; &#34;) if not self.alt_help else self.alt_help</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.ParamPattern"><code class="flex name class">
+<span>class <span class="ident">ParamPattern</span></span>
+<span>(</span><span>longs: List[str], short: Optional[str] = None, default: Any = None, help_message: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>ParamPattern(longs: List[str], short: Optional[str] = None, default: Any = None, help_message: Optional[str] = None)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(init=True, eq=True, repr=True)
+class ParamPattern:
+    longs: List[str]
+    short: Optional[str] = None
+    default: Any = None
+    help_message: Optional[str] = None</code></pre>
+</details>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.BoxParameter" href="#ariadne.message.parser.pattern.BoxParameter">BoxParameter</a></li>
+<li><a title="ariadne.message.parser.pattern.SwitchParameter" href="#ariadne.message.parser.pattern.SwitchParameter">SwitchParameter</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.ParamPattern.default"><code class="name">var <span class="ident">default</span> : Any</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ParamPattern.help_message"><code class="name">var <span class="ident">help_message</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ParamPattern.longs"><code class="name">var <span class="ident">longs</span> : List[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.ParamPattern.short"><code class="name">var <span class="ident">short</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.RegexMatch"><code class="flex name class">
+<span>class <span class="ident">RegexMatch</span></span>
+<span>(</span><span>pattern: str, *, optional: bool = False, flags: re.RegexFlag = , preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>基础的正则表达式匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class RegexMatch(Match):
+    &#34;基础的正则表达式匹配.&#34;
+    regex_match: Optional[re.Match]
+    preserve_space: bool
+
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
+        self.flags = flags
+        self.flags_repr = gen_flags_repr(self.flags)
+        self.regex_match = None
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -&gt; str:
+        return (
+            f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
+            f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+        )</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.ElementMatch" href="#ariadne.message.parser.pattern.ElementMatch">ElementMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.FullMatch" href="#ariadne.message.parser.pattern.FullMatch">FullMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.UnionMatch" href="#ariadne.message.parser.pattern.UnionMatch">UnionMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.WildcardMatch" href="#ariadne.message.parser.pattern.WildcardMatch">WildcardMatch</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.RegexMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.RegexMatch.regex_match"><code class="name">var <span class="ident">regex_match</span> : Optional[re.Match]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.RegexMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return (
+        f&#34;({f&#39;?{self.flags_repr}:&#39; if self.flags_repr else &#39;&#39;}{self.pattern})&#34;
+        f&#34;{&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.SwitchParameter"><code class="flex name class">
+<span>class <span class="ident">SwitchParameter</span></span>
+<span>(</span><span>longs: List[str], short: Optional[str] = None, default: bool = False, help_message: Optional[str] = None, auto_reverse: bool = False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>SwitchParameter(longs: List[str], short: Optional[str] = None, default: bool = False, help_message: Optional[str] = None, auto_reverse: bool = False)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclass(init=True, eq=True, repr=True)
+class SwitchParameter(ParamPattern):
+    default: bool = False
+    auto_reverse: bool = False</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.ParamPattern" href="#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.SwitchParameter.auto_reverse"><code class="name">var <span class="ident">auto_reverse</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.parser.pattern.SwitchParameter.default"><code class="name">var <span class="ident">default</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.UnionMatch"><code class="flex name class">
+<span>class <span class="ident">UnionMatch</span></span>
+<span>(</span><span>*patterns: str, optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>多重匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class UnionMatch(RegexMatch):
+    &#34;多重匹配.&#34;
+
+    pattern: Tuple[str, ...]
+
+    def __init__(
+        self,
+        *patterns: str,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(
+            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+        )
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({&#39;|&#39;.join(re.escape(i) for i in self.pattern)})&#34;
+
+    def get_help(self) -&gt; str:
+        return f&#34;[{&#39;|&#39;.join(self.pattern)}]&#34; if not self.alt_help else self.alt_help</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.UnionMatch.pattern"><code class="name">var <span class="ident">pattern</span> : Tuple[str, ...]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.UnionMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return f&#34;({&#39;|&#39;.join(re.escape(i) for i in self.pattern)})&#34;</code></pre>
+</details>
+</dd>
+<dt id="ariadne.message.parser.pattern.UnionMatch.get_help"><code class="name flex">
+<span>def <span class="ident">get_help</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_help(self) -&gt; str:
+    return f&#34;[{&#39;|&#39;.join(self.pattern)}]&#34; if not self.alt_help else self.alt_help</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="ariadne.message.parser.pattern.WildcardMatch"><code class="flex name class">
+<span>class <span class="ident">WildcardMatch</span></span>
+<span>(</span><span>*, greed: bool = True, optional: bool = False, preserve_space: bool = True, help: str = '', alt_help: str = '')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>泛匹配.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class WildcardMatch(RegexMatch):
+    &#34;泛匹配.&#34;
+
+    preserve_space: bool
+
+    def __init__(
+        self,
+        *,
+        greed: bool = True,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = &#34;&#34;,
+        alt_help: str = &#34;&#34;,
+    ) -&gt; None:
+        super().__init__(&#34;.*&#34;, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
+        self.greed = greed
+
+    def gen_regex(self) -&gt; str:
+        return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></li>
+<li><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></li>
+<li>abc.ABC</li>
+<li>pydantic.utils.Representation</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.WildcardMatch.preserve_space"><code class="name">var <span class="ident">preserve_space</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="ariadne.message.parser.pattern.WildcardMatch.gen_regex"><code class="name flex">
+<span>def <span class="ident">gen_regex</span></span>(<span>self) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def gen_regex(self) -&gt; str:
+    return f&#34;({self.pattern}{&#39;?&#39; if self.greed else &#39;&#39;}){&#39;?&#39; if self.optional else &#39;&#39;}{&#39;( )?&#39; if self.preserve_space else &#39;&#39;}&#34;</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<form>
+<input id="lunr-search" name="q" placeholder="🔎 Search ..." aria-label="Search"
+disabled minlength="2">
+</form>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.css" integrity="sha512-j1u8eUJ4f23xPPxwOrLUPQaCD2dwzNqqmDDcWS4deWsMv2ohLqmXXuP3hU7g8TyzbMSakP/mMqoNBYWj8AEIFg==" crossorigin>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tingle/0.15.3/tingle.min.js" integrity="sha512-plGUER9JkeEWPPqQBE4sdLqBoQug5Ap+BCGMc7bJ8BXkm+VVj6QzkpBz5Yv2yPkkq+cqg9IpkBaGCas6uDbW8g==" crossorigin></script>
+<style>
+.modal-dialog iframe {
+width: 100vw;
+height: calc(100vh - 80px);
+}
+@media screen and (min-width: 700px) {
+.modal-dialog iframe {
+width: 70vw;
+height: 80vh;
+}
+}
+.modal-dialog .tingle-modal-box {width: auto;}
+.modal-dialog .tingle-modal-box__content {padding: 0;}
+</style>
+<script>
+const input = document.getElementById('lunr-search');
+input.disabled = false;
+input.form.addEventListener('submit', (ev) => {
+ev.preventDefault();
+const url = new URL(window.location);
+url.searchParams.set('q', input.value);
+history.replaceState({}, null, url.toString());
+search(input.value);
+});
+const query = new URL(window.location).searchParams.get('q');
+if (query)
+search(query);
+function search(query) {
+const url = '../../../doc-search.html#' + encodeURIComponent(query);
+new tingle.modal({
+cssClass: ['modal-dialog'],
+onClose: () => {
+const url = new URL(window.location);
+url.searchParams.delete('q');
+history.replaceState({}, null, url.toString());
+setTimeout(() => input.focus(), 100);
+}
+}).setContent('<iframe src="' + url + '"></iframe>').open();
+}
+</script>
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="ariadne.message.parser" href="index.html">ariadne.message.parser</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.ArgumentMatch" href="#ariadne.message.parser.pattern.ArgumentMatch">ArgumentMatch</a></code></h4>
+<ul class="two-column">
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.action" href="#ariadne.message.parser.pattern.ArgumentMatch.action">action</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.add_arg_data" href="#ariadne.message.parser.pattern.ArgumentMatch.add_arg_data">add_arg_data</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.const" href="#ariadne.message.parser.pattern.ArgumentMatch.const">const</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.default" href="#ariadne.message.parser.pattern.ArgumentMatch.default">default</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.name" href="#ariadne.message.parser.pattern.ArgumentMatch.name">name</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.nargs" href="#ariadne.message.parser.pattern.ArgumentMatch.nargs">nargs</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.pattern" href="#ariadne.message.parser.pattern.ArgumentMatch.pattern">pattern</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.regex" href="#ariadne.message.parser.pattern.ArgumentMatch.regex">regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ArgumentMatch.result" href="#ariadne.message.parser.pattern.ArgumentMatch.result">result</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.BoxParameter" href="#ariadne.message.parser.pattern.BoxParameter">BoxParameter</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.BoxParameter.default" href="#ariadne.message.parser.pattern.BoxParameter.default">default</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.BoxParameter.help_message" href="#ariadne.message.parser.pattern.BoxParameter.help_message">help_message</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.BoxParameter.longs" href="#ariadne.message.parser.pattern.BoxParameter.longs">longs</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.BoxParameter.short" href="#ariadne.message.parser.pattern.BoxParameter.short">short</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.ElementMatch" href="#ariadne.message.parser.pattern.ElementMatch">ElementMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.ElementMatch.gen_regex" href="#ariadne.message.parser.pattern.ElementMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ElementMatch.get_help" href="#ariadne.message.parser.pattern.ElementMatch.get_help">get_help</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ElementMatch.pattern" href="#ariadne.message.parser.pattern.ElementMatch.pattern">pattern</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ElementMatch.result" href="#ariadne.message.parser.pattern.ElementMatch.result">result</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.FullMatch" href="#ariadne.message.parser.pattern.FullMatch">FullMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.FullMatch.gen_regex" href="#ariadne.message.parser.pattern.FullMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.FullMatch.preserve_space" href="#ariadne.message.parser.pattern.FullMatch.preserve_space">preserve_space</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.FullMatch.regex_match" href="#ariadne.message.parser.pattern.FullMatch.regex_match">regex_match</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.Match" href="#ariadne.message.parser.pattern.Match">Match</a></code></h4>
+<ul class="two-column">
+<li><code><a title="ariadne.message.parser.pattern.Match.get_help" href="#ariadne.message.parser.pattern.Match.get_help">get_help</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.Match.help" href="#ariadne.message.parser.pattern.Match.help">help</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.Match.matched" href="#ariadne.message.parser.pattern.Match.matched">matched</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.Match.optional" href="#ariadne.message.parser.pattern.Match.optional">optional</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.Match.pattern" href="#ariadne.message.parser.pattern.Match.pattern">pattern</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.Match.result" href="#ariadne.message.parser.pattern.Match.result">result</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.ParamPattern" href="#ariadne.message.parser.pattern.ParamPattern">ParamPattern</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.ParamPattern.default" href="#ariadne.message.parser.pattern.ParamPattern.default">default</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ParamPattern.help_message" href="#ariadne.message.parser.pattern.ParamPattern.help_message">help_message</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ParamPattern.longs" href="#ariadne.message.parser.pattern.ParamPattern.longs">longs</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.ParamPattern.short" href="#ariadne.message.parser.pattern.ParamPattern.short">short</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.RegexMatch" href="#ariadne.message.parser.pattern.RegexMatch">RegexMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.RegexMatch.gen_regex" href="#ariadne.message.parser.pattern.RegexMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.RegexMatch.preserve_space" href="#ariadne.message.parser.pattern.RegexMatch.preserve_space">preserve_space</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.RegexMatch.regex_match" href="#ariadne.message.parser.pattern.RegexMatch.regex_match">regex_match</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.SwitchParameter" href="#ariadne.message.parser.pattern.SwitchParameter">SwitchParameter</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.SwitchParameter.auto_reverse" href="#ariadne.message.parser.pattern.SwitchParameter.auto_reverse">auto_reverse</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.SwitchParameter.default" href="#ariadne.message.parser.pattern.SwitchParameter.default">default</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.UnionMatch" href="#ariadne.message.parser.pattern.UnionMatch">UnionMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.UnionMatch.gen_regex" href="#ariadne.message.parser.pattern.UnionMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.UnionMatch.get_help" href="#ariadne.message.parser.pattern.UnionMatch.get_help">get_help</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.UnionMatch.pattern" href="#ariadne.message.parser.pattern.UnionMatch.pattern">pattern</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="ariadne.message.parser.pattern.WildcardMatch" href="#ariadne.message.parser.pattern.WildcardMatch">WildcardMatch</a></code></h4>
+<ul class="">
+<li><code><a title="ariadne.message.parser.pattern.WildcardMatch.gen_regex" href="#ariadne.message.parser.pattern.WildcardMatch.gen_regex">gen_regex</a></code></li>
+<li><code><a title="ariadne.message.parser.pattern.WildcardMatch.preserve_space" href="#ariadne.message.parser.pattern.WildcardMatch.preserve_space">preserve_space</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

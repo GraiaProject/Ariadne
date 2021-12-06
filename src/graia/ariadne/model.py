@@ -357,3 +357,11 @@ class BotMessage(AriadneBaseModel):
     """
 
     messageId: int
+
+
+class AriadneStatus(Enum):
+    STOP = "stop"
+    LAUNCH = "launch"
+    RUNNING = "running"
+    SHUTDOWN = "shutdown"
+    CLEANUP = "cleanup"

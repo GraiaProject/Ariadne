@@ -2,36 +2,48 @@ import asyncio
 import os
 
 from graia.broadcast import Broadcast
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
-from graia.ariadne.event.mirai import NewFriendRequestEvent
+from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Plain
-from graia.ariadne.message.parser.literature import Literature
 from graia.ariadne.message.parser.pattern import FullMatch, RegexMatch, WildcardMatch
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 if __name__ == "__main__":
     url, account, verify_key = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
-    ALL_FLAG = True
+    ALL_FLAG = False
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
+
     bcc = Broadcast(loop=loop)
-    adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    app = Ariadne(adapter, broadcast=bcc, use_bypass_listener=True, max_retry=5)
+
+    app = Ariadne(
+        DebugAdapter(bcc, MiraiSession(url, account, verify_key)),
+        loop=loop,
+        use_bypass_listener=True,
+        max_retry=5,
+        await_task=True,
+    )
+
+    bcc = app.create(Broadcast)
 
     @bcc.receiver(FriendMessage)
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):
-        await app.sendFriendMessage(friend, chain)
+        if chain.asDisplay().startswith(".wait"):
+            await app.sendFriendMessage(friend, MessageChain.create("Wait for 5s!"))
+            await asyncio.sleep(5.0)
+            await app.sendFriendMessage(friend, MessageChain.create("Complete!"))
 
-    @bcc.receiver(MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")]))])
-    async def reply1(app: Ariadne, dii: DispatcherInterface):
-        await app.sendMessage(dii.event, MessageChain.create("Auto reply!"))
+    @bcc.receiver(
+        MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")], {"arg": WildcardMatch()}))]
+    )
+    async def reply1(app: Ariadne, event: MessageEvent, arg: WildcardMatch):
+        await app.sendMessage(event, MessageChain.create("Auto reply to ") + arg.result)
 
     @bcc.receiver(NewFriendRequestEvent)
     async def accept(event: NewFriendRequestEvent):
@@ -49,12 +61,17 @@ if __name__ == "__main__":
                 MessageChain.create([At(chain.getFirst(At).target), Plain("Hello World!")]),
             )  # WARNING: May raise UnknownTarget
 
+    @bcc.receiver(GroupRecallEvent)
+    async def anti_recall(app: Ariadne, event: GroupRecallEvent):
+        msg = await app.getMessageFromId(event.messageId)
+        await app.sendGroupMessage(event.group, msg.messageChain)
+
     @bcc.receiver(
         FriendMessage,
         dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop")]))],
     )
     async def stop(app: Ariadne):
-        await app.stop()
+        await app.request_stop()
 
     async def main():
         await app.launch()
@@ -72,7 +89,9 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
 
-    try:
-        loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        loop.run_until_complete(app.stop())
+
+try:
+    loop.run_until_complete(main())
+    loop.run_until_complete(main())
+except KeyboardInterrupt:
+    loop.run_until_complete(app.wait_for_stop())

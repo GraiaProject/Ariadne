@@ -2,11 +2,25 @@
 """
 
 # Utility Layout
+import asyncio
 import functools
 import sys
 import traceback
+import warnings
 from asyncio.events import AbstractEventLoop
-from typing import Callable, ContextManager, Dict, Generator, List, Type, TypeVar, Union
+from typing import (
+    AsyncIterator,
+    Callable,
+    ContextManager,
+    Coroutine,
+    Dict,
+    Generator,
+    Generic,
+    List,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -74,7 +88,10 @@ def loguru_excepthook(cls, val, tb, *_, **__):
 
 
 def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
-    logger.opt(exception=(Exception, ctx["message"], ctx["source_traceback"])).error(f"Exception:")
+    if "exception" in ctx:
+        logger.opt(exception=ctx["exception"]).error("Exception:")
+    else:
+        logger.error(f"Exception: {ctx}")
 
 
 def inject_loguru_traceback(loop: AbstractEventLoop):
@@ -182,10 +199,32 @@ def wrap_bracket(string: str) -> str:
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-def deprecated(remove_ver: str) -> Callable:
+async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -> None:
+    while not predicate():
+        await asyncio.sleep(interval)
+
+
+async def yield_with_timeout(
+    getter_coro: Callable[[], Coroutine[None, None, T]],
+    predicate: Callable[[], bool],
+    await_length: float = 0.2,
+) -> AsyncIterator[T]:
+    last_tsk = None
+    while predicate():
+        last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
+        done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)
+        if not done:
+            continue
+        for t in done:
+            res = await t
+            yield res
+
+
+def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
     def out_wrapper(func: T_Callable) -> T_Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
             logger.warning(f"Deprecated function: {func.__qualname__}")
             logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
             return func(*args, **kwargs)
@@ -193,3 +232,8 @@ def deprecated(remove_ver: str) -> Callable:
         return wrapper
 
     return out_wrapper
+
+
+def cast_to(obj, typ: Type[T]) -> T:
+    if typ:
+        return obj

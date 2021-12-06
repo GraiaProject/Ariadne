@@ -9,6 +9,9 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from graia.ariadne.util import deprecated
+
+from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
 from .pattern import BoxParameter, ParamPattern, SwitchParameter
@@ -28,6 +31,7 @@ class Literature(BaseDispatcher):
     allow_quote: bool
     skip_one_at_in_quote: bool
 
+    @deprecated("0.5.0")
     def __init__(
         self,
         *prefixs: str,
@@ -164,10 +168,8 @@ class Literature(BaseDispatcher):
             list(itertools.chain(*[[*i.__root__, Plain(" ")] for i in chain_frames]))[:-1]
         ).merge(copy=True)
 
-    async def beforeExecution(self, interface: DispatcherInterface):
-        message_chain: MessageChain = await interface.lookup_param(
-            "__literature_messagechain__", MessageChain, None
-        )
+    async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
+        message_chain: MessageChain = interface.event.messageChain
         if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)

@@ -644,12 +644,6 @@ INDEX=[
 "func":1
 },
 {
-"ref":"ariadne.app.Ariadne.stop",
-"url":2,
-"doc":"",
-"func":1
-},
-{
 "ref":"ariadne.app.Ariadne.request_stop",
 "url":2,
 "doc":"\u8bf7\u6c42\u505c\u6b62 Ariadne.",

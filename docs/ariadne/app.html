@@ -1326,11 +1326,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
             self.broadcast.postEvent(ApplicationLaunched(self))
 
-    @deprecated(&#34;0.4.8&#34;)
-    async def stop(self):
-        logger.warning(&#34;Use request_stop() or wait_for_stop() instead!&#34;)
-        await self.request_stop()
-
     async def request_stop(self):
         &#34;&#34;&#34;请求停止 Ariadne.&#34;&#34;&#34;
         if self.status is AriadneStatus.RUNNING:
@@ -1643,11 +1638,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 raise RuntimeError(f&#34;You are using an unsupported version: {self.remote_version}!&#34;)
             logger.info(f&#34;Application launched with {time.time() - start_time:.2}s&#34;)
             self.broadcast.postEvent(ApplicationLaunched(self))
-
-    @deprecated(&#34;0.4.8&#34;)
-    async def stop(self):
-        logger.warning(&#34;Use request_stop() or wait_for_stop() instead!&#34;)
-        await self.request_stop()
 
     async def request_stop(self):
         &#34;&#34;&#34;请求停止 Ariadne.&#34;&#34;&#34;
@@ -1974,21 +1964,6 @@ async def getVersion(self, auto_set: bool = True):
     if self.status is AriadneStatus.RUNNING:
         self.status = AriadneStatus.SHUTDOWN
         await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})</code></pre>
-</details>
-</dd>
-<dt id="ariadne.app.Ariadne.stop"><code class="name flex">
-<span>async def <span class="ident">stop</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@deprecated(&#34;0.4.8&#34;)
-async def stop(self):
-    logger.warning(&#34;Use request_stop() or wait_for_stop() instead!&#34;)
-    await self.request_stop()</code></pre>
 </details>
 </dd>
 <dt id="ariadne.app.Ariadne.wait_for_stop"><code class="name flex">
@@ -5177,7 +5152,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="ariadne.app.Ariadne.lifecycle" href="#ariadne.app.Ariadne.lifecycle">lifecycle</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.mirai_session" href="#ariadne.app.Ariadne.mirai_session">mirai_session</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.request_stop" href="#ariadne.app.Ariadne.request_stop">request_stop</a></code></li>
-<li><code><a title="ariadne.app.Ariadne.stop" href="#ariadne.app.Ariadne.stop">stop</a></code></li>
 <li><code><a title="ariadne.app.Ariadne.wait_for_stop" href="#ariadne.app.Ariadne.wait_for_stop">wait_for_stop</a></code></li>
 </ul>
 </li>

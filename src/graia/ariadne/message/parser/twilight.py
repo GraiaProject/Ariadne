@@ -70,21 +70,18 @@ class Sparkle(Representation):
         self._description = description or self._description
         self._epilog = epilog or self._epilog
 
-        if check is ...:
-            check = ()
-        if match is ...:
-            match = {}
-
         if isinstance(check, dict):
             match, check = check, match  # swap
             check: Iterable[RegexMatch]
             match: Dict[str, Match]
 
-        if not check:
+        if check is ... or not check:
             check = ()
+        if match is ... or not match:
+            match = {}
 
         match_map = {k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)}
-        match_map.update(match if match else {})
+        match_map.update(match)
 
         # ----
         # ordinary matches

@@ -75,7 +75,7 @@ nav:
   - "index.md"
   - "quickstart.md"
   - "基础":
-      - "basic/type-hint.md"
+      - "basic/param-type.md"
       - "basic/configuration.md"
       - "basic/instance.md"
       - "basic/msg-chain.md"
@@ -83,6 +83,7 @@ nav:
       - "advance/msg-chain.md"
       - "advance/base-parser.md"
       - "advance/twilight.md"
+      - "advance/custom-decorator.md"
       - "advance/interrupt.md"
       - Broadcast 介绍 (外部): https://autumn-psi.vercel.app/
   - "配套设施":

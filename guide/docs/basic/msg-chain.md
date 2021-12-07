@@ -195,11 +195,11 @@ assert message_chain.count(Plain) == 1
 
 多媒体元素之间的相等比较需要以下条件:
 
-- 类型相同 (也就是说 `Image` 与 `FlashImage` **必定不等**)
-- 以下属性中任意一个相等
-  - base64 (data_bytes)
-  - uuid (剔除了 "/" "{}" 等用于区分图片类型的符号后得到)
-  - url
+1. 类型相同 (也就是说 `Image` 与 `FlashImage` **必定不等**)
+2. 以下属性中任意一个相等
+    - base64 (data_bytes)
+    - uuid (剔除了 "`/`", "`{}`" 等用于区分图片类型的符号后得到)
+    - url
 
-如果你只是想对 `Ariadne` 有个粗略的了解, 并着手开始编写自己的 QQ bot, 相信这些知识已经足够.
+看到这里, 你已经对 `Ariadne` 有了整体的了解, 可以着手开始编写自己的 QQ bot.
 如果你想进一步挖掘 `Ariadne` 的特性, 请看进阶篇.

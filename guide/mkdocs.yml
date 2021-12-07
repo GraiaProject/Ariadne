@@ -56,6 +56,7 @@ markdown_extensions:
   - pymdownx.mark # 文本高亮
   - pymdownx.smartsymbols # 符号转换
   - pymdownx.superfences # 代码嵌套在列表里
+  - pymdownx.keys
   - codehilite: # 代码高亮, 显示行号
       guess_lang: false
       linenums: true
@@ -74,6 +75,7 @@ nav:
   - "index.md"
   - "quickstart.md"
   - "基础":
+      - "basic/type-hint.md"
       - "basic/configuration.md"
       - "basic/instance.md"
       - "basic/msg-chain.md"
@@ -84,8 +86,11 @@ nav:
       - "advance/interrupt.md"
       - Broadcast 介绍 (外部): https://autumn-psi.vercel.app/
   - "配套设施":
+      - "suite/log.md"
       - "suite/scheduler.md"
-      - "suite/saya.md"
+      - "Saya - 插件管理器":
+        - "suite/saya/start.md"
+        - "suite/saya/channel.md"
   - "迁移":
       - "porting/guide.md"
       - "porting/cheatsheet.md"

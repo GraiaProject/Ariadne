@@ -214,6 +214,22 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 reference = "tuna-tsinghua"
 
 [[package]]
+name = "commonmark"
+version = "0.9.1"
+description = "Python parser for the CommonMark Markdown spec"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
 name = "croniter"
 version = "1.1.0"
 description = "croniter provides iteration for datetime object with cron like format"
@@ -879,7 +895,7 @@ reference = "tuna-tsinghua"
 name = "pygments"
 version = "2.10.0"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -972,6 +988,27 @@ description = "Alternative regular expression module, to replace re."
 category = "dev"
 optional = false
 python-versions = "*"
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
+name = "rich"
+version = "10.15.2"
+description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+category = "main"
+optional = false
+python-versions = ">=3.6.2,<4.0.0"
+
+[package.dependencies]
+colorama = ">=0.4.0,<0.5.0"
+commonmark = ">=0.9.0,<0.10.0"
+pygments = ">=2.6.0,<3.0.0"
+
+[package.extras]
+jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 
 [package.source]
 type = "legacy"
@@ -1116,22 +1153,6 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 reference = "tuna-tsinghua"
 
 [[package]]
-name = "yappi"
-version = "1.3.3"
-description = "Yet Another Python Profiler"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[package.extras]
-test = ["gevent (>=20.6.2)"]
-
-[package.source]
-type = "legacy"
-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
-reference = "tuna-tsinghua"
-
-[[package]]
 name = "yarl"
 version = "1.7.2"
 description = "Yet another URL library"
@@ -1168,7 +1189,7 @@ reference = "tuna-tsinghua"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d0155c00ad5e6e3ed5e9d8581a9aa0c5b239ad5e67b49aa99efe6feddba54117"
+content-hash = "f46b60516e5ede34b0d56e938a66e8ac3191f995356b3729c4c207767df9f47f"
 
 [metadata.files]
 aiohttp = [
@@ -1288,6 +1309,10 @@ click = [
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
+]
+commonmark = [
+    {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
+    {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
 ]
 croniter = [
     {file = "croniter-1.1.0-py2.py3-none-any.whl", hash = "sha256:d30dd147d1daec39d015a15b8cceb3069b9780291b9c141e869c32574a8eeacb"},
@@ -1777,6 +1802,10 @@ regex = [
     {file = "regex-2021.11.10-cp39-cp39-win_amd64.whl", hash = "sha256:83ee89483672b11f8952b158640d0c0ff02dc43d9cb1b70c1564b49abe92ce29"},
     {file = "regex-2021.11.10.tar.gz", hash = "sha256:f341ee2df0999bfdf7a95e448075effe0db212a59387de1a70690e4acb03d4c6"},
 ]
+rich = [
+    {file = "rich-10.15.2-py3-none-any.whl", hash = "sha256:43b2c6ad51f46f6c94992aee546f1c177719f4e05aff8f5ea4d2efae3ebdac89"},
+    {file = "rich-10.15.2.tar.gz", hash = "sha256:1dded089b79dd042b3ab5cd63439a338e16652001f0c16e73acdcf4997ad772d"},
+]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
@@ -1834,9 +1863,6 @@ wcwidth = [
 win32-setctime = [
     {file = "win32_setctime-1.0.4-py3-none-any.whl", hash = "sha256:7964234073ad9bc7a689ef2ebe6ce931976b644fe73fd50cf7729c996b7d8385"},
     {file = "win32_setctime-1.0.4.tar.gz", hash = "sha256:2b72b798fdc1d909fb3cc0d25e0be52a42f4848857e3588dd3947c6a18b42609"},
-]
-yappi = [
-    {file = "yappi-1.3.3.tar.gz", hash = "sha256:855890cd9a90d833dd2df632d648de8ccd0a4c3131f1edc8abd004db0625b5e8"},
 ]
 yarl = [
     {file = "yarl-1.7.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f2a8508f7350512434e41065684076f640ecce176d262a7d54f0da41d99c5a95"},

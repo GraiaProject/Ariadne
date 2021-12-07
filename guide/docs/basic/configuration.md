@@ -29,6 +29,8 @@ def __init__(
 
 通过对 `ChatLogConfig` 传入 `log_level` `*_message_log_format` 可以控制聊天日志的记录级别与日志的格式.
 
+!!! info "如果你想控制总体日志输出, 请看 [这里](../../suite/log/)"
+
 ### use_loguru_traceback
 
 `Graia Framework` 默认使用 [`traceback`](https://docs.python.org/zh-cn/3/library/traceback.html) 中的

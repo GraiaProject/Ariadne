@@ -1,19 +1,20 @@
-# Saya - 插件管理器
+# 开始使用
 
-Saya - A modular application implement for Graia Framework.
+## 简介
 
-> 名称取自作品 魔女之旅 中的角色 "沙耶(Saya)", 愿所有人的心中都有一位活泼可爱的炭之魔女.
-> Saya 的架构分为: `Saya Controller`(控制器), `Module Channel`(模块容器), `Cube`(内容容器), `Schema`(元信息模板), `Behaviour`(行为).
+> Saya 的名称取自作品 魔女之旅 中的角色 "沙耶(Saya)", 愿所有人的心中都有一位活泼可爱的炭之魔女.
 
-- `Saya Controller`: 负责控制各个模块, 分配 `Channel`, 管理模块启停, `Behaviour` 的注册和调用.
-- `Module Channel`: 负责对模块服务, 收集模块的各式信息, 像 模块的名称, 作者, 长段的描述 之类,
+Saya 的架构分为以下几个部分:
+
+- `Saya Controller` (控制器): 负责控制各个模块, 分配 `Channel`, 管理模块启停, `Behaviour` 的注册和调用.
+- `Module Channel` (模块容器): 负责对模块服务, 收集模块的各式信息, 像 模块的名称, 作者, 长段的描述 之类,
   并负责包装模块的内容为 `Cube`, 用以 `Behaviour` 对底层接口的操作.
-- `Cube`: 对模块提供的内容附加一个由 `Schema` 实例化来的 `metadata`, 即 "元信息", 用于给 `Behaviour` 进行处理.
-- `Schema`: 用于给模块提供的内容附加不同类型的元信息, 给 `Behaviour` `isinstance` 处理用.
-- `Behaviour`: 根据 `Cube` 及其元信息, 对底层接口(例如 `Broadcast`, `Scheduler` 等)进行操作.
+- `Cube` (内容容器): 对模块提供的内容附加一个由 `Schema` 实例化来的 `metadata`, 即 "元信息", 用于给 `Behaviour` 进行处理.
+- `Schema` (元信息模板): 用于给模块提供的内容附加不同类型的元信息, 给 `Behaviour` `isinstance` 处理用.
+- `Behaviour` (行为): 根据 `Cube` 及其元信息, 对底层接口(例如 `Broadcast`, `Scheduler` 等)进行操作.
   包括 `allocate` 与 `uninstall` 两个操作.
 
-在 `Saya@0.0.1` 中, 已经内置了对 `Broadcast Control` 的最基本的支持(即监听器 `Listener`), 下面我们就试下 `saya-style` 的 `Broadcast Control` 的使用.
+`Saya` 已经内置了对 `Broadcast Control` 的最基本的支持(即监听器 `Listener`), 下面我们就试下 `saya-style` 的 `Broadcast Control` 的使用.
 
 首先, 我们需要先部署环境, 执行指令:
 
@@ -35,12 +36,12 @@ poetry add graia-saya
 !!! note
 
     这里我们建立的是一个 **示例性** 目录结构, 即最小实例.
+
     理论上你的模块只需要符合 Python 的导入规则,
     就能引入模块到实例中.
 
-```
+```bash
 saya-example
-│  .gitignore
 │  main.py
 │  pyproject.toml
 │
@@ -149,7 +150,7 @@ except KeyboardInterrupt:
 
 就这样, 一个入口文件就这样完成了, 现在主要是插件部分.
 
-## 第一次
+## 第一次运行
 
 来到 `module_as_file.py`:
 

@@ -1,6 +1,6 @@
 # 开始之前
 
-!!! warning "交涉提示"
+!!! error "交涉提示"
 
     若你在使用的过程中遇到了问题, 请运用[提问的智慧](https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-zh_CN.md).
 
@@ -17,6 +17,8 @@
 **简明, 优雅** 的 聊天软件自动化框架. 其丰富而简洁的接口相信可以使开发者能更好的完成业务逻辑.
 
 **如果认为本项目有帮助, 欢迎点一个 `Star`.**
+
+> 接受当下, 面向未来.
 
 ## 参与开发
 

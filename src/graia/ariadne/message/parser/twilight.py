@@ -1,6 +1,5 @@
 import re
 import string
-import warnings
 from copy import deepcopy
 from typing import (
     Dict,
@@ -21,8 +20,6 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 
-from graia.ariadne.util import cast_to, deprecated
-
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
@@ -30,46 +27,18 @@ from .pattern import ArgumentMatch, ElementMatch, Match, RegexMatch
 from .util import ElementType, MessageChainType, TwilightParser, elem_mapping_ctx, split
 
 
-class _TwilightLocalStorage(TypedDict):
-    result: Optional["Twilight"]
-
-
-T_Twilight = TypeVar("T_Twilight", bound="Twilight")
-
-
-class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
-    """
-    暮光.
-    """
-
+class Sparkle(Representation):
     __dict__: Dict[str, Match]
+
     _description: str = ""
     _epilog: str = ""
-
-    PRESERVED_NAMES = (
-        # ClassVars
-        "elem_mapping_ctx",
-        "PRESERVED_NAMES",
-        # Methods
-        "generate",
-        "populate",
-        "populate_check",
-        "populate_arg_match",
-        "populate_regex_match",
-        "get_help",
-        # Dispatcher methods
-        "beforeExecution",
-        "catch",
-        "afterDispatch",
-        "afterExecution",
-    )
 
     def __repr_args__(self):
         check = [(None, [item[0] for item in self._list_check_match])]
         return check + [(k, v) for k, v in self.__dict__.items() if isinstance(v, Match)]
 
     def __getitem__(self, item: Union[str, int]) -> Match:
-        if isinstance(item, str) and item not in self.PRESERVED_NAMES:
+        if isinstance(item, str):
             return getattr(self, item)
         if isinstance(item, int):
             return self._list_check_match[item][0]
@@ -80,126 +49,39 @@ class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
         cls._epilog = epilog
 
     @overload
-    def __init__(
-        self,
-        check: Dict[str, Match],
-        *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
-        description: str = "",
-        epilog: str = "",
-    ):
-        """本魔法方法用于初始化本实例.
-
-        Args:
-            check (Dict[str, Match]): 匹配的映射.
-            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
-            remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
-            remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-            description (str, optional): 本 Twilight 的前置描述, 在 `add_help` 中用到.
-            epilog (str, optional): 本 Twilight 的后置描述, 在 `add_help` 中用到.
-        """
+    def __init__(self, check: Dict[str, Match]):
+        ...
 
     @overload
     def __init__(
         self,
-        check: Union[Type[T_Twilight], T_Twilight],
-        *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
-        description: str = "",
-        epilog: str = "",
+        check: Iterable[RegexMatch] = (),
+        match: Optional[Dict[str, Match]] = None,
     ):
-        """本魔法方法用于初始化本实例.
-
-        Args:
-            check (Union[Type[Twilight], Twilight], optional): 根 Twilight 实例, 用于生成新的 Twilight.
-            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
-            remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
-            remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-            description (str, optional): 本 Twilight 的前置描述, 在 `add_help` 中用到.
-            epilog (str, optional): 本 Twilight 的后置描述, 在 `add_help` 中用到.
-        """
-
-    @overload
-    def __init__(
-        self,
-        check: Iterable[RegexMatch],
-        match: Dict[str, Match],
-        *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
-        description: str = "",
-        epilog: str = "",
-    ):
-        """本魔法方法用于初始化本实例.
-
-        Args:
-            check (Iterable[RegexMatch]): 用于检查的 Match 对象.
-            match (Dict[str, Match]): 额外匹配的映射.
-            remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
-            remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
-            remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-            description (str, optional): 本 Twilight 的前置描述, 在 `add_help` 中用到.
-            epilog (str, optional): 本 Twilight 的后置描述, 在 `add_help` 中用到.
-        """
+        ...
 
     def __init__(
         self,
-        check=None,
-        match=None,
-        *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
+        check: Iterable[RegexMatch] = (),
+        match: Optional[Dict[str, Match]] = None,
         description: str = "",
         epilog: str = "",
     ):
-        "Actual implementation of __init__."
-        self._map_params = {
-            "remove_source": remove_source,
-            "remove_quote": remove_quote,
-            "remove_extra_space": remove_extra_space,
-        }
         self._description = description or self._description
         self._epilog = epilog or self._epilog
 
-        if isinstance(check, Twilight):
-            warnings.warn(DeprecationWarning("This usage can be removed at any time!"))
-            self._root = check
-            return
-
-        elif isinstance(check, type):
-            warnings.warn(DeprecationWarning("This usage can be removed at any time!"))
-            check = cast_to(check, Type[Twilight])
-            self._root = check()
-
-        else:  # self generate
-            self._root = deepcopy(self)
-            self.populate(check=check, match=match)
-            self._root.populate(check=check, match=match)
-
-    def populate(
-        self,
-        check: Iterable[RegexMatch] = None,
-        match: Optional[Dict[str, Match]] = None,
-        cls: Type["Twilight"] = None,
-    ):
         if isinstance(check, dict):
             match, check = check, match  # swap
             check: Iterable[RegexMatch]
             match: Dict[str, Match]
 
-        if not check:
+        if check is ... or not check:
             check = ()
+        if match is ... or not match:
+            match = {}
 
-        cls = cls or self.__class__
-
-        match_map = {k: v for k, v in cls.__dict__.items() if isinstance(v, Match)}
-        match_map.update(match if match else {})
+        match_map = {k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)}
+        match_map.update(match)
 
         # ----
         # ordinary matches
@@ -213,8 +95,10 @@ class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
 
         self._parser = TwilightParser(prog="", add_help=False)
         for k, v in match_map.items():
-            if k.startswith("_") or k[0] in string.digits or k in self.PRESERVED_NAMES:
+            if k.startswith("_") or k[0] in string.digits:
                 raise ValueError("Invalid Match object name!")
+
+            setattr(self, k, v)
 
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):  # add to self._parser
@@ -260,51 +144,6 @@ class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
             group_cnt += re.compile(check_match.gen_regex()).groups
         self._check_pattern: str = "".join(check_match.gen_regex() for check_match in check)
         self._check_regex = re.compile(self._check_pattern)
-
-    def generate(self, chain: MessageChain) -> T_Twilight:
-        obj = deepcopy(self._root)
-        mapping_str, elem_mapping = chain.asMappingString(**self._map_params)
-        token = elem_mapping_ctx.set(chain)
-        try:
-            str_list = obj.populate_check_match(mapping_str, elem_mapping)
-            arg_list = obj.populate_arg_match(str_list)
-            obj.populate_regex_match(elem_mapping, arg_list)
-            return obj
-        except Exception:
-            raise
-        finally:
-            elem_mapping_ctx.reset(token)
-
-    @deprecated("0.5.0")
-    def gen_sparkle(self, chain: MessageChain) -> T_Twilight:
-        return self.generate(chain)
-
-    # ----
-    # Dispatcher methods
-    # ----
-
-    def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
-        if not isinstance(interface.event, MessageEvent):
-            raise ExecutionStop
-        local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
-        chain: MessageChain = interface.event.messageChain
-        try:
-            local_storage["result"] = self.generate(chain)
-        except:
-            raise ExecutionStop
-
-    async def catch(
-        self, interface: "DispatcherInterface[MessageEvent]"
-    ) -> Optional[Union[T_Twilight, Match]]:
-        local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
-        result = local_storage["result"]
-        if issubclass(interface.annotation, Twilight):
-            return result
-        if issubclass(interface.annotation, Match):
-            if hasattr(result, interface.name):
-                match: Match = getattr(result, interface.name)
-                if isinstance(match, interface.annotation):
-                    return match
 
     # ---
     # Runtime populate
@@ -412,7 +251,99 @@ class Twilight(BaseDispatcher, Generic[T_Twilight], Representation):
         return formatter.format_help()
 
 
-class Sparkle(Twilight):
-    @deprecated("0.5.0")
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+T_Sparkle = TypeVar("T_Sparkle", bound=Sparkle)
+
+
+class _TwilightLocalStorage(TypedDict):
+    result: Optional[Sparkle]
+
+
+class Twilight(BaseDispatcher, Generic[T_Sparkle]):
+    """
+    暮光.
+    """
+
+    @overload
+    def __init__(self, root: Dict[str, Match], *, map_params: Optional[Dict[str, bool]] = None):
+        """本魔法方法用于初始化本实例.
+
+        Args:
+            check (Dict[str, Match]): 匹配的映射.
+            map_params (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
+        """
+
+    @overload
+    def __init__(
+        self, root: Union[Type[T_Sparkle], T_Sparkle], *, map_params: Optional[Dict[str, bool]] = None
+    ):
+        """本魔法方法用于初始化本实例.
+
+        Args:
+            root (Union[Type[Twilight], Twilight], optional): 根 Sparkle 实例, 用于生成新的 Sparkle.
+            map_params (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
+        """
+
+    @overload
+    def __init__(
+        self,
+        root: Iterable[RegexMatch],
+        match: Dict[str, Match] = ...,
+        *,
+        map_params: Optional[Dict[str, bool]] = None,
+    ):
+        """本魔法方法用于初始化本实例.
+
+        Args:
+            check (Iterable[RegexMatch]): 用于检查的 Match 对象.
+            match (Dict[str, Match]): 额外匹配的映射.
+            map_params (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
+        """
+
+    def __init__(self, root=..., match=..., *, map_params: Optional[Dict[str, bool]] = None):
+        "Actual implementation of __init__"
+        if isinstance(root, Sparkle):
+            self.root = root
+        elif isinstance(root, type) and issubclass(root, Sparkle):
+            self.root = root()
+        else:
+            self.root = Sparkle(check=root, match=match)
+
+        self._map_params = map_params or {}
+
+    def generate(self, chain: MessageChain) -> T_Sparkle:
+        sparkle = deepcopy(self.root)
+        mapping_str, elem_mapping = chain.asMappingString(**self._map_params)
+        token = elem_mapping_ctx.set(chain)
+        try:
+            str_list = sparkle.populate_check_match(mapping_str, elem_mapping)
+            arg_list = sparkle.populate_arg_match(str_list)
+            sparkle.populate_regex_match(elem_mapping, arg_list)
+        except Exception:
+            raise
+        elem_mapping_ctx.reset(token)
+        return sparkle
+
+    def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
+        if not isinstance(interface.event, MessageEvent):
+            raise ExecutionStop
+        local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
+        chain: MessageChain = interface.event.messageChain
+        try:
+            local_storage["result"] = self.generate(chain)
+        except:
+            raise ExecutionStop
+
+    async def catch(
+        self, interface: "DispatcherInterface[MessageEvent]"
+    ) -> Optional[Union["Twilight", T_Sparkle, Match]]:
+        local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
+        sparkle = local_storage["result"]
+        if issubclass(interface.annotation, Sparkle):
+            return sparkle
+        if issubclass(interface.annotation, Twilight):
+            return self
+        if issubclass(interface.annotation, Match):
+            if hasattr(sparkle, interface.name):
+                match: Match = getattr(sparkle, interface.name)
+                if isinstance(match, interface.annotation):
+                    return match

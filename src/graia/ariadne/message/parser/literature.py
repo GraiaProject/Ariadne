@@ -31,7 +31,6 @@ class Literature(BaseDispatcher):
     allow_quote: bool
     skip_one_at_in_quote: bool
 
-    @deprecated("0.5.0")
     def __init__(
         self,
         *prefixs: str,

@@ -461,10 +461,15 @@ class MultimediaElement(Element):
         **kwargs,
     ) -&gt; None:
         data = {}
+
+        for key, value in kwargs.items():
+            if key.lower().endswith(&#34;id&#34;):
+                data[&#34;id&#34;] = value
+
         if sum([bool(url), bool(path), bool(base64)]) &gt; 1:
             raise ValueError(&#34;Too many binary initializers!&#34;)
         # Web initializer
-        data[&#34;id&#34;] = id
+        data[&#34;id&#34;] = data[&#34;id&#34;] if &#34;id&#34; in data else id
         data[&#34;url&#34;] = url
         # Binary initializer
         if path:
@@ -529,7 +534,6 @@ class MultimediaElement(Element):
 class Image(MultimediaElement):
     &#34;指示消息中的图片元素&#34;
     type = &#34;Image&#34;
-    id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
     def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
         return FlashImage.parse_obj({**self.dict(), &#34;type&#34;: &#34;FlashImage&#34;})
@@ -1232,7 +1236,15 @@ type (str): 元素类型</p>
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="ariadne.message.element.FlashImage.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="ariadne.message.element.FlashImage.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.element.FlashImage.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1495,7 +1507,6 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 <pre><code class="python">class Image(MultimediaElement):
     &#34;指示消息中的图片元素&#34;
     type = &#34;Image&#34;
-    id: Optional[str] = Field(None, alias=&#34;imageId&#34;)
 
     def toFlashImage(self) -&gt; &#34;FlashImage&#34;:
         return FlashImage.parse_obj({**self.dict(), &#34;type&#34;: &#34;FlashImage&#34;})
@@ -1522,7 +1533,15 @@ def fromImage(cls, image: &#34;Image&#34;) -&gt; &#34;FlashImage&#34;:
 </ul>
 <h3>Class variables</h3>
 <dl>
+<dt id="ariadne.message.element.Image.base64"><code class="name">var <span class="ident">base64</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="ariadne.message.element.Image.id"><code class="name">var <span class="ident">id</span> : Optional[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="ariadne.message.element.Image.url"><code class="name">var <span class="ident">url</span> : Optional[str]</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -1765,10 +1784,15 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
         **kwargs,
     ) -&gt; None:
         data = {}
+
+        for key, value in kwargs.items():
+            if key.lower().endswith(&#34;id&#34;):
+                data[&#34;id&#34;] = value
+
         if sum([bool(url), bool(path), bool(base64)]) &gt; 1:
             raise ValueError(&#34;Too many binary initializers!&#34;)
         # Web initializer
-        data[&#34;id&#34;] = id
+        data[&#34;id&#34;] = data[&#34;id&#34;] if &#34;id&#34; in data else id
         data[&#34;url&#34;] = url
         # Binary initializer
         if path:
@@ -2782,11 +2806,13 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.FlashImage" href="#ariadne.message.element.FlashImage">FlashImage</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="ariadne.message.element.FlashImage.asDisplay" href="#ariadne.message.element.FlashImage.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.base64" href="#ariadne.message.element.FlashImage.base64">base64</a></code></li>
 <li><code><a title="ariadne.message.element.FlashImage.fromImage" href="#ariadne.message.element.FlashImage.fromImage">fromImage</a></code></li>
 <li><code><a title="ariadne.message.element.FlashImage.id" href="#ariadne.message.element.FlashImage.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.FlashImage.toImage" href="#ariadne.message.element.FlashImage.toImage">toImage</a></code></li>
+<li><code><a title="ariadne.message.element.FlashImage.url" href="#ariadne.message.element.FlashImage.url">url</a></code></li>
 </ul>
 </li>
 <li>
@@ -2810,11 +2836,13 @@ setTimeout(() => input.focus(), 100);
 </li>
 <li>
 <h4><code><a title="ariadne.message.element.Image" href="#ariadne.message.element.Image">Image</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="ariadne.message.element.Image.asDisplay" href="#ariadne.message.element.Image.asDisplay">asDisplay</a></code></li>
+<li><code><a title="ariadne.message.element.Image.base64" href="#ariadne.message.element.Image.base64">base64</a></code></li>
 <li><code><a title="ariadne.message.element.Image.fromFlashImage" href="#ariadne.message.element.Image.fromFlashImage">fromFlashImage</a></code></li>
 <li><code><a title="ariadne.message.element.Image.id" href="#ariadne.message.element.Image.id">id</a></code></li>
 <li><code><a title="ariadne.message.element.Image.toFlashImage" href="#ariadne.message.element.Image.toFlashImage">toFlashImage</a></code></li>
+<li><code><a title="ariadne.message.element.Image.url" href="#ariadne.message.element.Image.url">url</a></code></li>
 </ul>
 </li>
 <li>

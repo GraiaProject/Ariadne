@@ -433,10 +433,15 @@ class MultimediaElement(Element):
         **kwargs,
     ) -> None:
         data = {}
+
+        for key, value in kwargs.items():
+            if key.lower().endswith("id"):
+                data["id"] = value
+
         if sum([bool(url), bool(path), bool(base64)]) > 1:
             raise ValueError("Too many binary initializers!")
         # Web initializer
-        data["id"] = id
+        data["id"] = data["id"] if "id" in data else id
         data["url"] = url
         # Binary initializer
         if path:
@@ -501,7 +506,6 @@ class MultimediaElement(Element):
 class Image(MultimediaElement):
     "指示消息中的图片元素"
     type = "Image"
-    id: Optional[str] = Field(None, alias="imageId")
 
     def toFlashImage(self) -> "FlashImage":
         return FlashImage.parse_obj({**self.dict(), "type": "FlashImage"})

@@ -4,35 +4,31 @@
 >
 > Friendship is magic!
 
-!!! warning "注意"
-
-    本文档内容适用于 `Ariadne` `0.5.0+`.
-
 ## 缘起
 
 想必 [`v4`](../../appendix/terms/#v4) 用户都或多或少的知道 `Kanata` 吧.
 
 其介绍的 正则表达式 参数提取/关键字匹配 非常的有趣, 而 `Twilight` 在其基础上增加了对 `argparse` 中部分功能的支持.
 
-## 创建 Twilight 类
+## 创建 Sparkle 类
 
-`Twilight` 的最佳使用方式为继承 `Twilight` 类并通过 **类变量** 的形式定义匹配项.
+`Twilight` 的最佳使用方式为继承 `Sparkle` 类并通过 **类变量** 的形式定义匹配项.
 
-之后在实例化时添加命令头.
+之后在实例化 `Sparkle` 时添加命令头.
 
 ```py
-class FooCommand(Twilight):
+class FooSparkle(Sparkle):
     help = ArgumentMatch("--help", "-h", action="store_true")
     bar_match = FullMatch("_bar_")
     regex_match = RegexMatch(r"\d+")
     wildcard = WildcardMatch()
 
-twilight = FooCommand([RegexMatch(r"[./!]header")]))
+twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 ```
 
 ## 手动生成
 
-在 `Twilight` 对象上调用 `generate(message_chain)` 即可手动生成 `Twilight` 而无需配合 `Broadcast`.
+在 `Twilight` 对象上调用 `generate(message_chain)` 即可手动生成 `Sparkle` 而无需配合 `Broadcast`.
 
 !!! info "提示"
 
@@ -43,16 +39,14 @@ twilight = FooCommand([RegexMatch(r"[./!]header")]))
         ```py
         >>> twilight.generate(MessageChain(["!header _bar_ 123 --help pwq external"]))
 
-        FooCommand(
-            [RegexMatch(matched=True, result=MessageChain([Plain(text='!header')]), pattern='[./!]header')],
-            help=ArgumentMatch(matched=True, result=True, pattern=('--help', '-h')),
-            bar_match=FullMatch(matched=True, result=MessageChain([Plain(text='_bar_')]), pattern='_bar_'),
-            regex_match=RegexMatch(matched=True, result=MessageChain([Plain(text='123')]), pattern='\\d+'),
-            wildcard=WildcardMatch(matched=True, result=MessageChain([Plain(text='pwq external')]), pattern='.*')
+        FooSparkle(
+            [RegexMatch(matched=True, result=MessageChain([Plain(text='!header')]), pattern=...)], # 注意这个.
+            help=ArgumentMatch(matched=True, result=True, pattern=...),
+            bar_match=FullMatch(matched=True, result=MessageChain([Plain(text='_bar_')]), pattern=...),
+            regex_match=RegexMatch(matched=True, result=MessageChain([Plain(text='123')]), pattern=...),
+            wildcard=WildcardMatch(matched=True, result=MessageChain([Plain(text='external')]), pattern=...)
             )
         ```
-
-        !!! info "这里换行和你看到的并不一样, 只是为了展示."
 
 ## Match
 
@@ -79,50 +73,57 @@ twilight = FooCommand([RegexMatch(r"[./!]header")]))
 - `result` : 匹配结果.
 - `regex_match` : 仅 `RegexMatch` 拥有, 为原来的 `re.Match` 对象.
 
-## Twilight 的实例化
+## Twilight 与 Sparkle 的实例化
 
-`Twilight` 在实例化时, 可接受一个 额外 **可迭代对象** `check` 与 额外字典 `match`, 作用如下：
+`Sparkle` 在实例化时, 可接受一个 额外 **可迭代对象** `check_args` 与 额外字典 `matches`, 作用如下：
+
+- `check_args` 仅应当容纳 `RegexMatch` 与 `FullMatch` 对象, 用于对 `MessageChain` 进行预先检查
+
+- `matches` 为一个 `Dict[str, Match]` 映射, 相当于拓展 `sparkle.__class__.__dict__`
+
+!!! error "注意"
+
+    在 `0.4.4` 前, `check_args` 仅可传入 `Iterable[Match]`.
+
+    `0.4.4` 后, `Sparkle` 在必要时会自动交换 `check_args` 与 `matches`.
+
+## Twilight 与 Sparkle 的实例化
+
+`Sparkle` 在实例化时, 可接受一个 额外 **可迭代对象** `check` 与 额外字典 `match`, 作用如下：
 
 - `check_args` 仅应当容纳 `RegexMatch` 与 `FullMatch` 对象, 用于对 `MessageChain` 进行预先检查
 
 - `matches` 为一个 `Dict[str, Match]` 映射, 相当于拓展 `Twilight.__class__.__dict__`
 
-比如, 这两种写法其实在 **运行时** 等价.
+比如, 这几种写法其实在 **运行时** 等价.
 
 === "使用 派生类"
 
     ```py
-    class FooTwilight(Twilight):
+    class FooSparkle(Sparkle):
         match = RegexMatch(r"\d+")
 
-    t = FooTwilight([RegexMatch(r"[!.]header")])
+    t = Twilight(FooSparkle([RegexMatch(r"[!.]header")]))
+    t = Twilight(FooSparkle)
     ```
 
 === "直接 实例化"
 
     ```py
-    t = Twilight([RegexMatch(r"[!.]header")], {"match": RegexMatch(r"\d+")})
+    t = Twilight(Sparkle([RegexMatch(r"[!.]header")], {"match": RegexMatch(r"\d+")}))
     ```
 
-=== "派生类与间接实例化"
+=== "通过 Twilight 间接实例化"
 
     ```py
-    class FooTwilight(Twilight):
-        match = RegexMatch(r"\d+")
-
-    t = Twilight(FooTwilight([RegexMatch(r"[!.]header")]))
-    t = Twilight(FooTwilight)
+    t = Twilight(Sparkle([RegexMatch(r"[!.]header")], {"match": RegexMatch(r"\d+")}))
     ```
-
-    !!! warning "注意这个操作只为向后兼容, 可能在任意时候移除。"
 
 !!! warning "注意"
 
-    如果你想要检查 "命令头", 请使用 `check` 而非向 `Twilight` 添加类变量.
+    如果你想要检查 "命令头", 请使用 `check` 而非向 `Sparkle` 添加类变量.
 
-    在 `check` 中的 `Match` 对象 `optional` 参数是无效的.
-
-`Twilight` 在实例化时, 接受以下变体:
+`Sparkle` 在实例化时, 接受以下变体:
 
 === "check: Dict"
 
@@ -132,35 +133,12 @@ twilight = FooCommand([RegexMatch(r"[./!]header")]))
         self,
         check: Dict[str, Match],
         *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
         description: str = "",
         epilog: str = "",
     ):
         """
         Args:
             check (Dict[str, Match]): 匹配的映射.
-        """
-    ```
-
-=== "check: Twilight 类 或 Twilight 实例"
-
-    ```py
-    @overload
-    def __init__(
-        self,
-        check: Union[Type[T_Twilight], T_Twilight],
-        *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
-        description: str = "",
-        epilog: str = "",
-    ):
-        """
-        Args:
-            check (Union[Type[Twilight], Twilight], optional): 根 Twilight 实例, 用于生成新的 Twilight.
         """
     ```
 
@@ -173,9 +151,6 @@ twilight = FooCommand([RegexMatch(r"[./!]header")]))
         check: Iterable[RegexMatch],
         match: Dict[str, Match],
         *,
-        remove_source: bool = True,
-        remove_quote: bool = True,
-        remove_extra_space: bool = False,
         description: str = "",
         epilog: str = "",
     ):
@@ -186,58 +161,58 @@ twilight = FooCommand([RegexMatch(r"[./!]header")]))
         """
     ```
 
-- remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
-- remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
-- remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
-- description (str, optional): 本 Twilight 的前置描述, 在 `add_help` 中用到.
-- epilog (str, optional): 本 Twilight 的后置描述, 在 `add_help` 中用到.
+- description (str, optional): 本 Sparkle 的前置描述, 在 `add_help` 中用到.
+- epilog (str, optional): 本 Sparkle 的后置描述, 在 `add_help` 中用到.
+
+`Twilight` 可传入 `map_params` 字典用于控制 `MessageChain.asMappingString` 的行为.
 
 ## 提取 Match 对象
 
 `Match` 对象可以通过以下几种方式提取:
 
-- 若是在实例化 `Twilight` 时通过 `check` 参数添加的, 那只能通过 `Twilight[int]` 的形式提取.
-- 否则, 可通过 `Twilight[match_name]` 与 `Twilight.match_name` 两种方式提取.
+- 若是在实例化 `Sparkle` 时添加的, 那只能通过 `Sparkle[int]` 的形式提取.
+- 否则, 可通过 `Sparkle[match_name]` 与 `Sparkle.match_name` 两种方式提取.
 
 ## 配合 Broadcast 使用
 
 `Twilight` 应作为 `dispatcher` 传入 `bcc.receiver` / `ListenerSchema` 中.
 
-在 `receiver` 函数的类型标注中, 通过 标注参数为 `Twilight` 获取 `Twilight` 实例, 通过 `name: Match` 的形式获取 `name` 对应的匹配对象.
+在 `receiver` 函数的类型标注中, 通过 标注参数为 `Sparkle` 获取当前 `Sparkle`, 通过 `name: Match` 的形式获取 `name` 对应的匹配对象.
 
 像这样:
 
 ```py hl_lines="2"
 @bcc.receiver(MessageEvent, dispatchers=[
-    Twilight(
+    Twilight(Sparkle(
         [FullMatch(".command")],
         {"arg": RegexMatch(r"\d+", optional=True)}
-    )])
+    ))
+    ])
 async def reply(..., arg: RegexMatch):
     ...
 ```
 
-!!! note "使用 `Twilight` 与 `Match` 的子类进行标注也是可以的."
+!!! note "使用 `Sparkle` 与 `Match` 的子类进行标注也是可以的."
 
-一旦匹配失败 (`gen_sparkle` 抛出异常), `Broadcast` 的本次执行就会被取消.
+一旦匹配失败 (`generate` 抛出异常), `Broadcast` 的本次执行就会被取消.
 
 ## 创建帮助
 
-通过 `Twilight.get_help` 方法可以方便的获取帮助.
+通过 `Sparkle.get_help` 方法可以方便的获取帮助.
 
 ???+ example "示例"
 
     假设你想要创建一个可以显示通过 日期 显示 星期 的命令:
 
     ```py
-    class Command(Twilight):
+    class Command(Sparkle):
         date = RegexMatch(r"(?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)", help="日期的字符串")
         help = ArgumentMatch(
             "--help", "-h", action="store_true", help="显示本帮助."
         )  # 语法与 argparse.ArgumentParser.add_argument 基本相同
         # 注意 help 是手动添加的
 
-    print(Command().get_help()) # 注意需要在 Twilight 实例上调用.
+    print(Command().get_help()) # 注意需要在 Sparkle 实例上调用.
     ```
 
     效果如下:
@@ -261,7 +236,7 @@ async def reply(..., arg: RegexMatch):
 === "在定义类时传入"
 
     ```py
-    class Command(Twilight, description=..., epilog=...):
+    class Command(Sparkle, description=..., epilog=...):
         ...
     ```
 
@@ -286,7 +261,7 @@ async def reply(..., arg: RegexMatch):
     === "前"
 
         ```py
-        class Command(Twilight):
+        class Command(Sparkle):
             date = RegexMatch(r"(?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)", help="日期的字符串")
         ```
 
@@ -300,7 +275,7 @@ async def reply(..., arg: RegexMatch):
     === "后"
 
         ```py
-        class Command(Twilight):
+        class Command(Sparkle):
             date = RegexMatch(r"(?P<year>\d+)[.-](?P<month>\d+)[.-](?P<day>\d+)",
             help="日期的字符串", alt_help="YYYY-MM-DD")
         ```
@@ -314,17 +289,17 @@ async def reply(..., arg: RegexMatch):
 
 你还可以通过 `header` 参数控制是否要显示 "使用方法" 一行.
 
-## Twilight 的解析过程
+## Sparkle 的解析过程
 
-在解析消息链时, `Twilight.generate` 会依照如下流程解析:
+在解析消息链时, `Sparkle.generate` 会依照如下流程解析:
 
-- 使用 `Twilight.populate_check_match` 解析 `Twilight` 的 `check_args`, 并返回剩下部分的列表. (使用 `split` 方法)
-- 使用 `Twilight.populate_arg_match` 解析 `ArgumentMatch` 并从 `argparse.Namespace` 提取结果, 向 `ArgumentMatch.result` 赋值.
-- 使用 `Twilight.populate_regex_match` 解析并赋值剩下的 `Match` 对象.
+- 使用 `Sparkle.populate_check_match` 解析 `Twilight` 的 `check_args`, 并返回剩下部分的列表. (使用 `split` 方法)
+- 使用 `Sparkle.populate_arg_match` 解析 `ArgumentMatch` 并从 `argparse.Namespace` 提取结果, 向 `ArgumentMatch.result` 赋值.
+- 使用 `Sparkle.populate_regex_match` 解析并赋值剩下的 `Match` 对象.
 
 ## 最佳实践
 
-对于复杂的命令, 继承一个 `Twilight` 类是最好的.
+对于复杂的命令, 继承一个 `Sparkle` 类是最好的.
 
 无论是简单还是复杂的命令, 你应该且仅仅只应该把命令头放到 `check` 参数中, 任何程序应访问的 `Match` 对象都应放在 **类变量** 或 **`match` 字典** 里.
 
@@ -332,4 +307,4 @@ async def reply(..., arg: RegexMatch):
 
 你可以通过运行 `test/parser_performance.py` 来测试 `Twilight` 的性能.
 
-在 `i5-10500` 处理器上, `Twilight` 的性能大约为 `3000 ~ 4000 msg/s`, 取决于 `Twilight` 的复杂程度.
+在 `i5-10500` 处理器上, `Twilight` 的性能大约为 `4000 ~ 6000 msg/s`, 取决于 `Twilight` 的复杂程度.

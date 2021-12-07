@@ -81,7 +81,6 @@ nav:
       - "advance/msg-chain.md"
       - "advance/base-parser.md"
       - "advance/twilight.md"
-      - "advance/twilight_old.md"
       - "advance/interrupt.md"
       - Broadcast 介绍 (外部): https://autumn-psi.vercel.app/
   - "配套设施":

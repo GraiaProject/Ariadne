@@ -292,24 +292,33 @@ class MessageMixin(AriadneMixin):
         raise NotImplementedError(f&#34;Unable to send message with {target} as target.&#34;)
 
     @app_ctx_manager
-    async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
+    async def sendNudge(
+        self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
+    ) -&gt; None:
         &#34;&#34;&#34;
         向指定的群组成员或好友发送戳一戳消息.
 
         Args:
             target (Union[Friend, Member]): 发送戳一戳的目标.
+            group (Union[Group, int], optional): 发送的群组.
 
         Returns:
             None: 没有返回.
         &#34;&#34;&#34;
+        target_id = target if isinstance(target, int) else target.id
+
+        subject_id = (group.id if isinstance(group, Group) else group) or (
+            target.group.id if isinstance(target, Member) else target_id
+        )
+        kind = &#34;Group&#34; if group or isinstance(target, Member) else &#34;Friend&#34;
         await self.adapter.call_api(
             &#34;sendNudge&#34;,
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: self.session_key,
-                &#34;target&#34;: target.id,
-                &#34;subject&#34;: target.group.id if isinstance(target, Member) else target.id,
-                &#34;kind&#34;: {Member: &#34;Group&#34;, Friend: &#34;Friend&#34;}[target.__class__],
+                &#34;target&#34;: target_id,
+                &#34;subject&#34;: subject_id,
+                &#34;kind&#34;: kind,
             },
         )
 
@@ -3037,24 +3046,33 @@ async def uploadFile(
         raise NotImplementedError(f&#34;Unable to send message with {target} as target.&#34;)
 
     @app_ctx_manager
-    async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
+    async def sendNudge(
+        self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
+    ) -&gt; None:
         &#34;&#34;&#34;
         向指定的群组成员或好友发送戳一戳消息.
 
         Args:
             target (Union[Friend, Member]): 发送戳一戳的目标.
+            group (Union[Group, int], optional): 发送的群组.
 
         Returns:
             None: 没有返回.
         &#34;&#34;&#34;
+        target_id = target if isinstance(target, int) else target.id
+
+        subject_id = (group.id if isinstance(group, Group) else group) or (
+            target.group.id if isinstance(target, Member) else target_id
+        )
+        kind = &#34;Group&#34; if group or isinstance(target, Member) else &#34;Friend&#34;
         await self.adapter.call_api(
             &#34;sendNudge&#34;,
             CallMethod.POST,
             {
                 &#34;sessionKey&#34;: self.session_key,
-                &#34;target&#34;: target.id,
-                &#34;subject&#34;: target.group.id if isinstance(target, Member) else target.id,
-                &#34;kind&#34;: {Member: &#34;Group&#34;, Friend: &#34;Friend&#34;}[target.__class__],
+                &#34;target&#34;: target_id,
+                &#34;subject&#34;: subject_id,
+                &#34;kind&#34;: kind,
             },
         )
 
@@ -3366,7 +3384,7 @@ async def sendMessage(
 </details>
 </dd>
 <dt id="ariadne.app.MessageMixin.sendNudge"><code class="name flex">
-<span>async def <span class="ident">sendNudge</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>]) ‑> None</span>
+<span>async def <span class="ident">sendNudge</span></span>(<span>self, target: Union[<a title="ariadne.model.Friend" href="model.html#ariadne.model.Friend">Friend</a>, <a title="ariadne.model.Member" href="model.html#ariadne.model.Member">Member</a>, int], group: Union[<a title="ariadne.model.Group" href="model.html#ariadne.model.Group">Group</a>, int, ForwardRef(None)] = None) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>向指定的群组成员或好友发送戳一戳消息.</p>
@@ -3374,6 +3392,8 @@ async def sendMessage(
 <dl>
 <dt><strong><code>target</code></strong> :&ensp;<code>Union[Friend, Member]</code></dt>
 <dd>发送戳一戳的目标.</dd>
+<dt><strong><code>group</code></strong> :&ensp;<code>Union[Group, int]</code>, optional</dt>
+<dd>发送的群组.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -3385,24 +3405,33 @@ async def sendMessage(
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@app_ctx_manager
-async def sendNudge(self, target: Union[Friend, Member]) -&gt; None:
+async def sendNudge(
+    self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
+) -&gt; None:
     &#34;&#34;&#34;
     向指定的群组成员或好友发送戳一戳消息.
 
     Args:
         target (Union[Friend, Member]): 发送戳一戳的目标.
+        group (Union[Group, int], optional): 发送的群组.
 
     Returns:
         None: 没有返回.
     &#34;&#34;&#34;
+    target_id = target if isinstance(target, int) else target.id
+
+    subject_id = (group.id if isinstance(group, Group) else group) or (
+        target.group.id if isinstance(target, Member) else target_id
+    )
+    kind = &#34;Group&#34; if group or isinstance(target, Member) else &#34;Friend&#34;
     await self.adapter.call_api(
         &#34;sendNudge&#34;,
         CallMethod.POST,
         {
             &#34;sessionKey&#34;: self.session_key,
-            &#34;target&#34;: target.id,
-            &#34;subject&#34;: target.group.id if isinstance(target, Member) else target.id,
-            &#34;kind&#34;: {Member: &#34;Group&#34;, Friend: &#34;Friend&#34;}[target.__class__],
+            &#34;target&#34;: target_id,
+            &#34;subject&#34;: subject_id,
+            &#34;kind&#34;: kind,
         },
     )</code></pre>
 </details>

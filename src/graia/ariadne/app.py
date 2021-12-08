@@ -264,24 +264,33 @@ class MessageMixin(AriadneMixin):
         raise NotImplementedError(f"Unable to send message with {target} as target.")
 
     @app_ctx_manager
-    async def sendNudge(self, target: Union[Friend, Member]) -> None:
+    async def sendNudge(
+        self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
+    ) -> None:
         """
         向指定的群组成员或好友发送戳一戳消息.
 
         Args:
             target (Union[Friend, Member]): 发送戳一戳的目标.
+            group (Union[Group, int], optional): 发送的群组.
 
         Returns:
             None: 没有返回.
         """
+        target_id = target if isinstance(target, int) else target.id
+
+        subject_id = (group.id if isinstance(group, Group) else group) or (
+            target.group.id if isinstance(target, Member) else target_id
+        )
+        kind = "Group" if group or isinstance(target, Member) else "Friend"
         await self.adapter.call_api(
             "sendNudge",
             CallMethod.POST,
             {
                 "sessionKey": self.session_key,
-                "target": target.id,
-                "subject": target.group.id if isinstance(target, Member) else target.id,
-                "kind": {Member: "Group", Friend: "Friend"}[target.__class__],
+                "target": target_id,
+                "subject": subject_id,
+                "kind": kind,
             },
         )
 

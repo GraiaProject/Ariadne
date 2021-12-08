@@ -330,7 +330,7 @@ INDEX=[
 {
 "ref":"ariadne.app.MessageMixin.sendNudge",
 "url":2,
-"doc":"\u5411\u6307\u5b9a\u7684\u7fa4\u7ec4\u6210\u5458\u6216\u597d\u53cb\u53d1\u9001\u6233\u4e00\u6233\u6d88\u606f. Args: target (Union[Friend, Member]): \u53d1\u9001\u6233\u4e00\u6233\u7684\u76ee\u6807. Returns: None: \u6ca1\u6709\u8fd4\u56de.",
+"doc":"\u5411\u6307\u5b9a\u7684\u7fa4\u7ec4\u6210\u5458\u6216\u597d\u53cb\u53d1\u9001\u6233\u4e00\u6233\u6d88\u606f. Args: target (Union[Friend, Member]): \u53d1\u9001\u6233\u4e00\u6233\u7684\u76ee\u6807. group (Union[Group, int], optional): \u53d1\u9001\u7684\u7fa4\u7ec4. Returns: None: \u6ca1\u6709\u8fd4\u56de.",
 "func":1
 },
 {
@@ -705,7 +705,7 @@ INDEX=[
 {
 "ref":"ariadne.app.Ariadne.sendNudge",
 "url":2,
-"doc":"\u5411\u6307\u5b9a\u7684\u7fa4\u7ec4\u6210\u5458\u6216\u597d\u53cb\u53d1\u9001\u6233\u4e00\u6233\u6d88\u606f. Args: target (Union[Friend, Member]): \u53d1\u9001\u6233\u4e00\u6233\u7684\u76ee\u6807. Returns: None: \u6ca1\u6709\u8fd4\u56de.",
+"doc":"\u5411\u6307\u5b9a\u7684\u7fa4\u7ec4\u6210\u5458\u6216\u597d\u53cb\u53d1\u9001\u6233\u4e00\u6233\u6d88\u606f. Args: target (Union[Friend, Member]): \u53d1\u9001\u6233\u4e00\u6233\u7684\u76ee\u6807. group (Union[Group, int], optional): \u53d1\u9001\u7684\u7fa4\u7ec4. Returns: None: \u6ca1\u6709\u8fd4\u56de.",
 "func":1
 },
 {

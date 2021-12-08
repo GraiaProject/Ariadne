@@ -1,6 +1,6 @@
 import re
 import string
-from copy import deepcopy
+from copy import copy, deepcopy
 from typing import (
     Dict,
     Generic,
@@ -35,11 +35,15 @@ class Sparkle(Representation):
 
     def __repr_args__(self):
         check = [(None, [item[0] for item in self._list_check_match])]
-        return check + [(k, v) for k, v in self.__dict__.items() if isinstance(v, Match)]
+        return (
+            check
+            + [(k, v) for k, (v, _) in self._mapping_regex_match.items()]
+            + [(k, v) for k, (v, _) in self._mapping_arg_match.items()]
+        )
 
     def __getitem__(self, item: Union[str, int]) -> Match:
         if isinstance(item, str):
-            return getattr(self, item)
+            return self._mapping_regex_match.get(item, None) or self._mapping_arg_match.get(item, None)
         if isinstance(item, int):
             return self._list_check_match[item][0]
 
@@ -47,6 +51,22 @@ class Sparkle(Representation):
         super().__init_subclass__(**kwargs)
         cls._description = description
         cls._epilog = epilog
+
+    def __getattribute__(self, __name: str):
+        obj = super().__getattribute__(__name)
+        if not isinstance(obj, Match):
+            return obj
+        else:
+            return self._mapping_regex_match.get(__name, None) or self._mapping_arg_match.get(__name, None)
+
+    def __deepcopy__(self, memo):
+        copied = copy(self)
+
+        copied._list_check_match = deepcopy(self._list_check_match, memo)
+        copied._mapping_arg_match = deepcopy(self._mapping_arg_match, memo)
+        copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
+
+        return copied
 
     @overload
     def __init__(self, check: Dict[str, Match]):
@@ -90,7 +110,7 @@ class Sparkle(Representation):
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
-        self._list_regex_match: List[Tuple[RegexMatch, int, str]] = []
+        self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
         self._mapping_arg_match: Dict[str, Tuple[ArgumentMatch, str]] = {}
 
         self._parser = TwilightParser(prog="", add_help=False)
@@ -105,15 +125,15 @@ class Sparkle(Representation):
                     self._mapping_arg_match[v.name] = (v, k)
                     if v.action is ... or self._parser.accept_type(v.action):
                         if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
-                            v.add_arg_data["type"] = MessageChainType(v, v.regex)
+                            v.add_arg_data["type"] = MessageChainType(v.regex)
                         elif isinstance(v.add_arg_data["type"], type) and issubclass(
                             v.add_arg_data["type"], Element
                         ):
-                            v.add_arg_data["type"] = ElementType(v, v.add_arg_data["type"])
+                            v.add_arg_data["type"] = ElementType(v.add_arg_data["type"])
                     self._parser.add_argument(*v.pattern, **v.add_arg_data)
 
-                elif isinstance(v, RegexMatch):  # add to self._list_regex_match
-                    self._list_regex_match.append((v, group_cnt + 1, k))
+                elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
+                    self._mapping_regex_match[k] = (v, group_cnt + 1)
                     group_cnt += re.compile(v.gen_regex()).groups
                     match_pattern_list.append(v.gen_regex())
 
@@ -122,7 +142,7 @@ class Sparkle(Representation):
 
         if (
             not all(v[0].pattern[0].startswith("-") for v in self._mapping_arg_match.values())
-            and self._list_regex_match
+            and self._mapping_regex_match
         ):  # inline validation for underscore
             raise ValueError("ArgumentMatch's pattern can't start with '-' in this case!")
 
@@ -184,15 +204,12 @@ class Sparkle(Representation):
                 match.result = namespace_val
                 match.matched = bool(namespace_val)
 
-            if getattr(self, sparkle_name, None) is None:
-                setattr(self, sparkle_name, match)
-
         return rest
 
     def populate_regex_match(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(" ".join(arg_list)):
-                for match, index, name in self._list_regex_match:
+                for name, (match, index) in self._mapping_regex_match.items():
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
@@ -208,9 +225,6 @@ class Sparkle(Representation):
 
                     if match.__class__ is RegexMatch:
                         match.regex_match = re.fullmatch(match.pattern, current)
-
-                    if getattr(self, name, None) is None:
-                        setattr(self, name, match)
 
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
@@ -228,14 +242,14 @@ class Sparkle(Representation):
             for match, *_ in self._list_check_match:
                 header.append(match.get_help())
 
-            for match, *_ in self._list_regex_match:
+            for match, *_ in self._mapping_regex_match.values():
                 header.append(match.get_help())
 
             formatter.add_usage(None, self._parser._actions, [], prefix=" ".join(header) + " ")
 
         positional, optional, *_ = self._parser._action_groups
         formatter.start_section("位置匹配")
-        for match, _, name in self._list_regex_match:
+        for name, (match, _) in self._mapping_regex_match.items():
             formatter.add_text(f"{name} -> 匹配 {match.get_help()}{' : ' + match.help if match.help else ''}")
         formatter.add_arguments(positional._group_actions)
         formatter.end_section()

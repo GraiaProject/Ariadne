@@ -19,7 +19,7 @@ from graia.ariadne.message.parser.pattern import (
 )
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 
-RUN = 10000
+RUN = 20000
 
 if __name__ == "__main__":
     print("Run 1:")

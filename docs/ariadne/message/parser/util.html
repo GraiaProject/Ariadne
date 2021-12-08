@@ -83,8 +83,7 @@ def gen_flags_repr(flags: re.RegexFlag) -&gt; str:
 
 
 class MessageChainType:
-    def __init__(self, match: &#34;ArgumentMatch&#34;, regex: re.Pattern):
-        self.match = match
+    def __init__(self, regex: re.Pattern):
         self.regex: re.Pattern = regex
 
     def __call__(self, string: str) -&gt; MessageChain:
@@ -94,8 +93,7 @@ class MessageChainType:
 
 
 class ElementType:
-    def __init__(self, match: &#34;ArgumentMatch&#34;, pattern: Type[Element_T]):
-        self.match = match
+    def __init__(self, pattern: Type[Element_T]):
         self.regex = re.compile(f&#34;\x02(\\d+)_{pattern.__fields__[&#39;type&#39;].default}\x03&#34;)
 
     def __call__(self, string: str) -&gt; MessageChain:
@@ -195,7 +193,7 @@ class TwilightParser(argparse.ArgumentParser):
 <dl>
 <dt id="ariadne.message.parser.util.ElementType"><code class="flex name class">
 <span>class <span class="ident">ElementType</span></span>
-<span>(</span><span>match: ArgumentMatch, pattern: Type[~Element_T])</span>
+<span>(</span><span>pattern: Type[~Element_T])</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -204,8 +202,7 @@ class TwilightParser(argparse.ArgumentParser):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ElementType:
-    def __init__(self, match: &#34;ArgumentMatch&#34;, pattern: Type[Element_T]):
-        self.match = match
+    def __init__(self, pattern: Type[Element_T]):
         self.regex = re.compile(f&#34;\x02(\\d+)_{pattern.__fields__[&#39;type&#39;].default}\x03&#34;)
 
     def __call__(self, string: str) -&gt; MessageChain:
@@ -216,7 +213,7 @@ class TwilightParser(argparse.ArgumentParser):
 </dd>
 <dt id="ariadne.message.parser.util.MessageChainType"><code class="flex name class">
 <span>class <span class="ident">MessageChainType</span></span>
-<span>(</span><span>match: ArgumentMatch, regex: re.Pattern)</span>
+<span>(</span><span>regex: re.Pattern)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -225,8 +222,7 @@ class TwilightParser(argparse.ArgumentParser):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MessageChainType:
-    def __init__(self, match: &#34;ArgumentMatch&#34;, regex: re.Pattern):
-        self.match = match
+    def __init__(self, regex: re.Pattern):
         self.regex: re.Pattern = regex
 
     def __call__(self, string: str) -&gt; MessageChain:

@@ -20,6 +20,7 @@ from typing import (
 
 from graia.broadcast import Broadcast
 from loguru import logger
+from prompt_toolkit.patch_stdout import StdoutProxy
 
 from graia.ariadne import ARIADNE_ASCII_LOGO, TELEMETRY_LIST
 
@@ -35,7 +36,6 @@ from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessag
 from .message.element import Source
 from .util import (
     await_predicate,
-    deprecated,
     inject_bypass_listener,
     inject_loguru_traceback,
     yield_with_timeout,
@@ -1173,6 +1173,10 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
         )
+
+        logger.remove(0)
+        logger.add(StdoutProxy(raw=True), colorize=True)
+
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
         if use_loguru_traceback:

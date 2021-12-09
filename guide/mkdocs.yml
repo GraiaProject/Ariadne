@@ -75,16 +75,18 @@ nav:
   - "index.md"
   - "quickstart.md"
   - "基础":
-      - "basic/type-hint.md"
+      - "basic/params.md"
+      - "basic/msg-chain.md"
       - "basic/configuration.md"
       - "basic/instance.md"
-      - "basic/msg-chain.md"
   - "进阶":
       - "advance/msg-chain.md"
       - "advance/base-parser.md"
       - "advance/twilight.md"
-      - "advance/broadcast.md"
-      - Broadcast 介绍 (外部): https://autumn-psi.vercel.app/
+      - "Broadcast 简介":
+        - "advance/broadcast/depend.md"
+        - "advance/broadcast/interrupt.md"
+      - Broadcast 文档 (外部): https://autumn-psi.vercel.app/
   - "配套设施":
       - "suite/log.md"
       - "suite/scheduler.md"

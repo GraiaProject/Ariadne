@@ -24,7 +24,6 @@ pydantic = "^1.8.2"
 yarl = "^1.6.3"
 loguru = "^0.5.3"
 typing-extensions = "^3.10.0"
-rich = "^10.15.2"
 
 [tool.poetry.dev-dependencies]
 black = ">=21.10b0"

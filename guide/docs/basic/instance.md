@@ -12,15 +12,13 @@
 
 `lifecycle()` 通过 `await self.daemon_task`, 即等待 `Adapter` 的守护任务, 达到封装 `launch()` 与 `wait_for_stop()` 的目的.
 
+如果你不需要额外的 `asyncio` 操作, 那么 `app.launch_blocking()` 应该足以满足你的需要, 因为它封装了 `launch()`, 并在捕获 `KeyboardInterrupt` 时自动 `wait_for_stop()`.
+
 !!! note "提示"
 
     其实 `Ariadne` 也可以作为 `async context manager` 使用.
 
     在 `__aenter__` 中执行 `launch()`, 在 `__aexit__` 中执行 `wait_for_stop()`.
-
-???+ note "对于 Graia Application 用户"
-
-    请使用 `loop.run_until_complete(app.lifecycle())` 代替 `app.launch_blocking()`.
 
 ## 交互方法
 
@@ -56,4 +54,4 @@ account = app.account
 
 现在你通过在监听器中 `await app.request_stop()` 并在主函数中 `await app.wait_for_stop()` 应该可以安全的关闭 `Ariadne`.
 
-当然, 在主函数中使用 `await app.lifecycle()` 永远是最佳实践.
+当然, 在主函数中使用 `await app.lifecycle()` 或 `app.launch_blocking()` 永远是最佳实践.

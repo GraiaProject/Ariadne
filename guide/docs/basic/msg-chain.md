@@ -171,11 +171,11 @@ assert message_chain.count(Plain) == 1
 
 你可以通过以下方式自行实例化多媒体元素:
 
-- 传入完整 `id` (不是 uuid)
-- 传入 `url`
-- 通过 `data_bytes` 传入 `bytes` 包装的二进制数据.
-- 传入 `base64` 作为二进制存储.
-- 传入 `path` 并以 **当前工作目录** 读入二进制数据.
+-   传入完整 `id` (不是 uuid)
+-   传入 `url`
+-   通过 `data_bytes` 传入 `bytes` 包装的二进制数据.
+-   传入 `base64` 作为二进制存储.
+-   传入 `path` 并以 **当前工作目录** 读入二进制数据.
 
 ### 获取二进制
 
@@ -195,11 +195,11 @@ assert message_chain.count(Plain) == 1
 
 多媒体元素之间的相等比较需要以下条件:
 
-- 类型相同 (也就是说 `Image` 与 `FlashImage` **必定不等**)
-- 以下属性中任意一个相等
-  - base64 (data_bytes)
-  - uuid (剔除了 "/" "{}" 等用于区分图片类型的符号后得到)
-  - url
+-   类型相同 (也就是说 `Image` 与 `FlashImage` **必定不等**)
+-   以下属性中任意一个相等
+    -   base64 (data_bytes)
+    -   uuid (剔除了 "/" "{}" 等用于区分图片类型的符号后得到)
+    -   url
 
 如果你只是想对 `Ariadne` 有个粗略的了解, 并着手开始编写自己的 QQ bot, 相信这些知识已经足够.
 如果你想进一步挖掘 `Ariadne` 的特性, 请看进阶篇.

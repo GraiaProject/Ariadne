@@ -469,23 +469,6 @@ class MessageChain(AriadneBaseModel):
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)
 
-    @deprecated(&#34;0.5.0&#34;)
-    def hasText(self, string: str) -&gt; bool:
-        &#34;&#34;&#34;
-        判定消息链内是否包括相应字符串
-
-        Args:
-            string (str): 需要判断的字符串
-
-        Returns:
-            bool: 是否包括
-        &#34;&#34;&#34;
-
-        for i in self.merge(copy=True).get(Plain):
-            if string in i.text:
-                return True
-        return False
-
     def onlyContains(self, *types: Type[Element]) -&gt; bool:
         return all(isinstance(i, types) for i in self.__root__)
 
@@ -1225,23 +1208,6 @@ _update_forward_refs()</code></pre>
             return False
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)
-
-    @deprecated(&#34;0.5.0&#34;)
-    def hasText(self, string: str) -&gt; bool:
-        &#34;&#34;&#34;
-        判定消息链内是否包括相应字符串
-
-        Args:
-            string (str): 需要判断的字符串
-
-        Returns:
-            bool: 是否包括
-        &#34;&#34;&#34;
-
-        for i in self.merge(copy=True).get(Plain):
-            if string in i.text:
-                return True
-        return False
 
     def onlyContains(self, *types: Type[Element]) -&gt; bool:
         return all(isinstance(i, types) for i in self.__root__)
@@ -2328,43 +2294,6 @@ def parse_obj(cls: Type[&#34;MessageChain&#34;], obj: List[Union[dict, Element]]
         return bool(self.findSubChain(item))</code></pre>
 </details>
 </dd>
-<dt id="ariadne.message.chain.MessageChain.hasText"><code class="name flex">
-<span>def <span class="ident">hasText</span></span>(<span>self, string: str) ‑> bool</span>
-</code></dt>
-<dd>
-<div class="desc"><p>判定消息链内是否包括相应字符串</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt><strong><code>string</code></strong> :&ensp;<code>str</code></dt>
-<dd>需要判断的字符串</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bool</code></dt>
-<dd>是否包括</dd>
-</dl></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@deprecated(&#34;0.5.0&#34;)
-def hasText(self, string: str) -&gt; bool:
-    &#34;&#34;&#34;
-    判定消息链内是否包括相应字符串
-
-    Args:
-        string (str): 需要判断的字符串
-
-    Returns:
-        bool: 是否包括
-    &#34;&#34;&#34;
-
-    for i in self.merge(copy=True).get(Plain):
-        if string in i.text:
-            return True
-    return False</code></pre>
-</details>
-</dd>
 <dt id="ariadne.message.chain.MessageChain.include"><code class="name flex">
 <span>def <span class="ident">include</span></span>(<span>self, *types: Type[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>]) ‑> <a title="ariadne.message.chain.MessageChain" href="#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
@@ -2870,7 +2799,6 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="ariadne.message.chain.MessageChain.getFirst" href="#ariadne.message.chain.MessageChain.getFirst">getFirst</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.getOne" href="#ariadne.message.chain.MessageChain.getOne">getOne</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.has" href="#ariadne.message.chain.MessageChain.has">has</a></code></li>
-<li><code><a title="ariadne.message.chain.MessageChain.hasText" href="#ariadne.message.chain.MessageChain.hasText">hasText</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.include" href="#ariadne.message.chain.MessageChain.include">include</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.index" href="#ariadne.message.chain.MessageChain.index">index</a></code></li>
 <li><code><a title="ariadne.message.chain.MessageChain.merge" href="#ariadne.message.chain.MessageChain.merge">merge</a></code></li>

@@ -30,9 +30,8 @@ from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
-from typing_extensions import ParamSpec
 from prompt_toolkit.patch_stdout import StdoutProxy
-
+from typing_extensions import ParamSpec
 
 from ..context import enter_context
 

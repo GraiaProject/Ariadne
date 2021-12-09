@@ -2834,12 +2834,6 @@ INDEX=[
 "func":1
 },
 {
-"ref":"ariadne.message.chain.MessageChain.hasText",
-"url":16,
-"doc":"\u5224\u5b9a\u6d88\u606f\u94fe\u5185\u662f\u5426\u5305\u62ec\u76f8\u5e94\u5b57\u7b26\u4e32 Args: string (str): \u9700\u8981\u5224\u65ad\u7684\u5b57\u7b26\u4e32 Returns: bool: \u662f\u5426\u5305\u62ec",
-"func":1
-},
-{
 "ref":"ariadne.message.chain.MessageChain.onlyContains",
 "url":16,
 "doc":"",
@@ -5081,7 +5075,7 @@ INDEX=[
 {
 "ref":"ariadne.util.inject_loguru_traceback",
 "url":27,
-"doc":"\u4f7f\u7528 loguru \u6a21\u5757 \u66ff\u6362\u9ed8\u8ba4\u7684 traceback.print_exception \u4e0e sys.excepthook",
+"doc":"\u4f7f\u7528 loguru \u6a21\u5757\u66ff\u6362\u9ed8\u8ba4\u7684 traceback.print_exception \u4e0e sys.excepthook",
 "func":1
 },
 {

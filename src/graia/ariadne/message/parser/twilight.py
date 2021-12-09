@@ -118,8 +118,6 @@ class Sparkle(Representation):
             if k.startswith("_") or k[0] in string.digits:
                 raise ValueError("Invalid Match object name!")
 
-            setattr(self, k, v)
-
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):  # add to self._parser
                     self._mapping_arg_match[v.name] = (v, k)
@@ -357,7 +355,6 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            if hasattr(sparkle, interface.name):
-                match: Match = getattr(sparkle, interface.name)
-                if isinstance(match, interface.annotation):
-                    return match
+            return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
+                interface.name
+            )  # raise on not exist

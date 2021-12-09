@@ -441,23 +441,6 @@ class MessageChain(AriadneBaseModel):
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)
 
-    @deprecated("0.5.0")
-    def hasText(self, string: str) -> bool:
-        """
-        判定消息链内是否包括相应字符串
-
-        Args:
-            string (str): 需要判断的字符串
-
-        Returns:
-            bool: 是否包括
-        """
-
-        for i in self.merge(copy=True).get(Plain):
-            if string in i.text:
-                return True
-        return False
-
     def onlyContains(self, *types: Type[Element]) -> bool:
         return all(isinstance(i, types) for i in self.__root__)
 

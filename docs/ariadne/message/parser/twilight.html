@@ -146,8 +146,6 @@ class Sparkle(Representation):
             if k.startswith(&#34;_&#34;) or k[0] in string.digits:
                 raise ValueError(&#34;Invalid Match object name!&#34;)
 
-            setattr(self, k, v)
-
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):  # add to self._parser
                     self._mapping_arg_match[v.name] = (v, k)
@@ -385,10 +383,9 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            if hasattr(sparkle, interface.name):
-                match: Match = getattr(sparkle, interface.name)
-                if isinstance(match, interface.annotation):
-                    return match</code></pre>
+            return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
+                interface.name
+            )  # raise on not exist</code></pre>
 </details>
 </section>
 <section>
@@ -502,8 +499,6 @@ of objects.</p></div>
         for k, v in match_map.items():
             if k.startswith(&#34;_&#34;) or k[0] in string.digits:
                 raise ValueError(&#34;Invalid Match object name!&#34;)
-
-            setattr(self, k, v)
 
             if isinstance(v, Match):
                 if isinstance(v, ArgumentMatch):  # add to self._parser
@@ -888,10 +883,9 @@ of objects.</p></div>
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            if hasattr(sparkle, interface.name):
-                match: Match = getattr(sparkle, interface.name)
-                if isinstance(match, interface.annotation):
-                    return match</code></pre>
+            return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
+                interface.name
+            )  # raise on not exist</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -956,10 +950,9 @@ of objects.</p></div>
     if issubclass(interface.annotation, Twilight):
         return self
     if issubclass(interface.annotation, Match):
-        if hasattr(sparkle, interface.name):
-            match: Match = getattr(sparkle, interface.name)
-            if isinstance(match, interface.annotation):
-                return match</code></pre>
+        return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
+            interface.name
+        )  # raise on not exist</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.parser.twilight.Twilight.generate"><code class="name flex">

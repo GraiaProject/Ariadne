@@ -8,7 +8,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
-    Iterable,
     List,
     Literal,
     Optional,
@@ -22,8 +21,7 @@ from graia.broadcast import Broadcast
 from loguru import logger
 from prompt_toolkit.patch_stdout import StdoutProxy
 
-from graia.ariadne import ARIADNE_ASCII_LOGO, TELEMETRY_LIST
-
+from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
 from .event.lifecycle import (
@@ -1288,14 +1286,14 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
             # Telemetry
             if not self.disable_telemetry:
-                for entry in TELEMETRY_LIST:
-                    try:
-                        version = importlib.metadata.version(entry)
-                    except importlib.metadata.PackageNotFoundError:
-                        version = "Not Installed"
-                    logger.opt(colors=True, raw=True).info(
-                        f"<magenta>{entry.split('-')[-1].title()}</> version: <yellow>{version}</>\n"
-                    )
+                for dist in importlib.metadata.distributions():
+                    name: str = dist.metadata["Name"]
+                    version: str = dist.version
+                    if name.startswith("graia"):
+                        name = " ".join(name.split("-")[1:]).title()  # remove graia prefix
+                        logger.opt(colors=True, raw=True).info(
+                            f"<magenta>{name}</> version: <yellow>{version}</>\n"
+                        )
 
             logger.info("Launching app...")
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))

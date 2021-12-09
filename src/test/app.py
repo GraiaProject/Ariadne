@@ -89,9 +89,8 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
 
-
-try:
-    loop.run_until_complete(main())
-    loop.run_until_complete(main())
-except KeyboardInterrupt:
-    loop.run_until_complete(app.wait_for_stop())
+    try:
+        loop.run_until_complete(main())
+        loop.run_until_complete(main())
+    except KeyboardInterrupt:
+        loop.run_until_complete(app.wait_for_stop())

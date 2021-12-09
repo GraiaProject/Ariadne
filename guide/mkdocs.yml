@@ -101,6 +101,6 @@ nav:
       - "appendix/faq.md"
       - "appendix/credits.md"
       - "appendix/mah-install.md"
-      - "appendix/docker.md"
       - "appendix/asyncio-intro.md"
+      - "appendix/CHANGELOG.md"
   - GitHub 仓库: https://github.com/GraiaProject/Ariadne

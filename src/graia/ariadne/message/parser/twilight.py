@@ -57,7 +57,15 @@ class Sparkle(Representation):
         if not isinstance(obj, Match):
             return obj
         else:
-            return self._mapping_regex_match.get(__name, None) or self._mapping_arg_match.get(__name, None)
+            return self.get_match(__name)
+
+    def get_match(self, name: str):
+        if name in self._mapping_arg_match:
+            return self._mapping_arg_match[name][0]
+        elif name in self._mapping_regex_match:
+            return self._mapping_regex_match[name][0]
+        else:
+            raise KeyError(f"Unable to find match named {name}")
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -355,6 +363,4 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
-                interface.name
-            )  # raise on not exist
+            return sparkle.get_match(interface.name)

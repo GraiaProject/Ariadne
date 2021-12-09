@@ -85,7 +85,15 @@ class Sparkle(Representation):
         if not isinstance(obj, Match):
             return obj
         else:
-            return self._mapping_regex_match.get(__name, None) or self._mapping_arg_match.get(__name, None)
+            return self.get_match(__name)
+
+    def get_match(self, name: str):
+        if name in self._mapping_arg_match:
+            return self._mapping_arg_match[name][0]
+        elif name in self._mapping_regex_match:
+            return self._mapping_regex_match[name][0]
+        else:
+            raise KeyError(f&#34;Unable to find match named {name}&#34;)
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -383,9 +391,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
-                interface.name
-            )  # raise on not exist</code></pre>
+            return sparkle.get_match(interface.name)</code></pre>
 </details>
 </section>
 <section>
@@ -439,7 +445,15 @@ of objects.</p></div>
         if not isinstance(obj, Match):
             return obj
         else:
-            return self._mapping_regex_match.get(__name, None) or self._mapping_arg_match.get(__name, None)
+            return self.get_match(__name)
+
+    def get_match(self, name: str):
+        if name in self._mapping_arg_match:
+            return self._mapping_arg_match[name][0]
+        elif name in self._mapping_regex_match:
+            return self._mapping_regex_match[name][0]
+        else:
+            raise KeyError(f&#34;Unable to find match named {name}&#34;)
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -695,6 +709,24 @@ of objects.</p></div>
     return formatter.format_help()</code></pre>
 </details>
 </dd>
+<dt id="ariadne.message.parser.twilight.Sparkle.get_match"><code class="name flex">
+<span>def <span class="ident">get_match</span></span>(<span>self, name: str)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_match(self, name: str):
+    if name in self._mapping_arg_match:
+        return self._mapping_arg_match[name][0]
+    elif name in self._mapping_regex_match:
+        return self._mapping_regex_match[name][0]
+    else:
+        raise KeyError(f&#34;Unable to find match named {name}&#34;)</code></pre>
+</details>
+</dd>
 <dt id="ariadne.message.parser.twilight.Sparkle.populate_arg_match"><code class="name flex">
 <span>def <span class="ident">populate_arg_match</span></span>(<span>self, args: List[str]) ‑> List[str]</span>
 </code></dt>
@@ -883,9 +915,7 @@ of objects.</p></div>
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
-                interface.name
-            )  # raise on not exist</code></pre>
+            return sparkle.get_match(interface.name)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -950,9 +980,7 @@ of objects.</p></div>
     if issubclass(interface.annotation, Twilight):
         return self
     if issubclass(interface.annotation, Match):
-        return sparkle._mapping_regex_match.get(interface.name, None) or sparkle._mapping_arg_match.get(
-            interface.name
-        )  # raise on not exist</code></pre>
+        return sparkle.get_match(interface.name)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.parser.twilight.Twilight.generate"><code class="name flex">
@@ -1046,6 +1074,7 @@ setTimeout(() => input.focus(), 100);
 <h4><code><a title="ariadne.message.parser.twilight.Sparkle" href="#ariadne.message.parser.twilight.Sparkle">Sparkle</a></code></h4>
 <ul class="">
 <li><code><a title="ariadne.message.parser.twilight.Sparkle.get_help" href="#ariadne.message.parser.twilight.Sparkle.get_help">get_help</a></code></li>
+<li><code><a title="ariadne.message.parser.twilight.Sparkle.get_match" href="#ariadne.message.parser.twilight.Sparkle.get_match">get_match</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Sparkle.populate_arg_match" href="#ariadne.message.parser.twilight.Sparkle.populate_arg_match">populate_arg_match</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Sparkle.populate_check_match" href="#ariadne.message.parser.twilight.Sparkle.populate_check_match">populate_check_match</a></code></li>
 <li><code><a title="ariadne.message.parser.twilight.Sparkle.populate_regex_match" href="#ariadne.message.parser.twilight.Sparkle.populate_regex_match">populate_regex_match</a></code></li>

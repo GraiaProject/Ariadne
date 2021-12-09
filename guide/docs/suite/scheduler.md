@@ -55,6 +55,10 @@ scheduler = GraiaScheduler(loop=bcc.loop, broadcast=bcc)
 
 在模块的 `channel.use` 中, 使用 `SchedulerSchema` 即可.
 
+!!! note "提示"
+
+    如果你之前使用 `Ariadne.create` 创建了 `GraiaScheduler`, 你也可以用 `Ariadne.create` 创建 `GraiaSchedulerBehaviour`.
+
 ```py
 @channel.use(SchedulerSchema(timer=my_timer))
 async def scheduled_func():

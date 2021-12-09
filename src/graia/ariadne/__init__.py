@@ -16,6 +16,3 @@ ARIADNE_ASCII_LOGO = r"""
     "\n"
 )
 # remove first newline
-
-
-TELEMETRY_LIST = ["graia-ariadne", "graia-broadcast", "graia-scheduler", "graia-saya"]

@@ -11,6 +11,10 @@
 
     什么? 你没有? 请退出吧, 本教程不适合你。
 
+!!! note "提示"
+
+    你可以在 [这里](https://github.com/ZhaoZuohong/mirai-mah-docker) 找到关于使用 `docker` 安装 `mirai` 的信息.
+
 # 1. 安装 mirai-console-loader
 
 !!! tip "提示"

@@ -6,13 +6,13 @@
 
 Saya 的架构分为以下几个部分:
 
-- `Saya Controller` (控制器): 负责控制各个模块, 分配 `Channel`, 管理模块启停, `Behaviour` 的注册和调用.
-- `Module Channel` (模块容器): 负责对模块服务, 收集模块的各式信息, 像 模块的名称, 作者, 长段的描述 之类,
-  并负责包装模块的内容为 `Cube`, 用以 `Behaviour` 对底层接口的操作.
-- `Cube` (内容容器): 对模块提供的内容附加一个由 `Schema` 实例化来的 `metadata`, 即 "元信息", 用于给 `Behaviour` 进行处理.
-- `Schema` (元信息模板): 用于给模块提供的内容附加不同类型的元信息, 给 `Behaviour` `isinstance` 处理用.
-- `Behaviour` (行为): 根据 `Cube` 及其元信息, 对底层接口(例如 `Broadcast`, `Scheduler` 等)进行操作.
-  包括 `allocate` 与 `uninstall` 两个操作.
+-   `Saya Controller` (控制器): 负责控制各个模块, 分配 `Channel`, 管理模块启停, `Behaviour` 的注册和调用.
+-   `Module Channel` (模块容器): 负责对模块服务, 收集模块的各式信息, 像 模块的名称, 作者, 长段的描述 之类,
+    并负责包装模块的内容为 `Cube`, 用以 `Behaviour` 对底层接口的操作.
+-   `Cube` (内容容器): 对模块提供的内容附加一个由 `Schema` 实例化来的 `metadata`, 即 "元信息", 用于给 `Behaviour` 进行处理.
+-   `Schema` (元信息模板): 用于给模块提供的内容附加不同类型的元信息, 给 `Behaviour` `isinstance` 处理用.
+-   `Behaviour` (行为): 根据 `Cube` 及其元信息, 对底层接口(例如 `Broadcast`, `Scheduler` 等)进行操作.
+    包括 `allocate` 与 `uninstall` 两个操作.
 
 `Saya` 已经内置了对 `Broadcast Control` 的最基本的支持(即监听器 `Listener`), 下面我们就试下 `saya-style` 的 `Broadcast Control` 的使用.
 
@@ -93,6 +93,10 @@ saya = Saya(broadcast)
 ```py
 saya.install_behaviours(BroadcastBehaviour(broadcast))
 ```
+
+!!! note "提示"
+
+    你也可以用 `Ariadne.create` 创建 `BroadcastBehaviour`.
 
 为了导入各个模块, `Saya Controller` 需要先进入上下文:
 

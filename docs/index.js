@@ -4331,6 +4331,12 @@ INDEX=[
 "doc":"Mixin to provide __str__, __repr__, and __pretty__ methods. See  884 for more details. __pretty__ is used by [devtools](https: python-devtools.helpmanual.io/) to provide human readable representations of objects."
 },
 {
+"ref":"ariadne.message.parser.twilight.Sparkle.get_match",
+"url":24,
+"doc":"",
+"func":1
+},
+{
 "ref":"ariadne.message.parser.twilight.Sparkle.populate_check_match",
 "url":24,
 "doc":"",

@@ -89,18 +89,19 @@ nav:
     - "进阶":
         - "advance/msg-chain.md"
         - "advance/msg-chain-tool.md"
+        - "advance/async-exec.md"
         - "advance/base-parser.md"
         - "advance/twilight.md"
         - "Broadcast 简介":
           - "advance/broadcast/interrupt.md"
           - "advance/broadcast/depend.md"
         - Broadcast 官方文档 (外链): https://autumn-psi.vercel.app/
-    - "配套设施":
-        - "suite/log.md"
-        - "suite/scheduler.md"
+    - "额外内容":
+        - "extra/log.md"
+        - "extra/scheduler.md"
         - "Saya - 插件管理器":
-          - "suite/saya/start.md"
-          - "suite/saya/channel.md"
+          - "extra/saya/start.md"
+          - "extra/saya/channel.md"
     - "迁移":
         - "porting/guide.md"
         - "porting/cheatsheet.md"

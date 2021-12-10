@@ -44,10 +44,7 @@ R = TypeVar(&#34;R&#34;)
 
 
 class ParallelExecutor:
-    &#34;&#34;&#34;并行执行器.
-
-    推荐使用 Ariadne.create 以自动绑定事件循环.
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;并行执行器.&#34;&#34;&#34;
 
     thread_exec: ThreadPoolExecutor
     proc_exec: ProcessPoolExecutor
@@ -207,7 +204,6 @@ def cpu_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
 </code></dt>
 <dd>
 <div class="desc"><p>并行执行器.</p>
-<p>推荐使用 Ariadne.create 以自动绑定事件循环.</p>
 <p>初始化并行执行器.</p>
 <h2 id="args">Args</h2>
 <dl>
@@ -224,10 +220,7 @@ def cpu_bound(func: Callable[P, R]) -&gt; Callable[P, Awaitable[R]]:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ParallelExecutor:
-    &#34;&#34;&#34;并行执行器.
-
-    推荐使用 Ariadne.create 以自动绑定事件循环.
-    &#34;&#34;&#34;
+    &#34;&#34;&#34;并行执行器.&#34;&#34;&#34;
 
     thread_exec: ThreadPoolExecutor
     proc_exec: ProcessPoolExecutor

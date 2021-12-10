@@ -27,7 +27,7 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import re
-from typing import Dict, List, Literal, Tuple
+from typing import Dict, List, Union
 
 from .chain import MessageChain
 from .element import Element, Plain
@@ -39,32 +39,32 @@ class Formatter:
     def __init__(self, format_string: str) -&gt; None:
         self.format_string = format_string
 
-    def format(self, *args: Element, **kwargs: Element) -&gt; MessageChain:
-        args_mapping: Dict[str, Element] = {
-            f&#34;\x02{index}\x02&#34;: (element) for index, element in enumerate(args)
-        }
-        kwargs_mapping: Dict[Tuple[str, str], Element] = {
-            (key, f&#34;\x03{key}\x03&#34;): element for key, element in kwargs.items()
-        }
+    def format(
+        self, *args: Union[Element, MessageChain, str], **kwargs: Union[Element, MessageChain, str]
+    ) -&gt; MessageChain:
+        args: List[MessageChain] = [MessageChain.create(e) for e in args]
+        kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in kwargs.items()}
 
-        result = self.format_string.format(*args_mapping, **dict(kwargs_mapping.keys()))
+        args_mapping: Dict[str, MessageChain] = {
+            f&#34;\x02{index}\x02&#34;: (chain) for index, chain in enumerate(args)
+        }
+        kwargs_mapping: Dict[str, MessageChain] = {f&#34;\x03{key}\x03&#34;: chain for key, chain in kwargs.items()}
 
-        element_list: List[Element] = []
+        result = self.format_string.format(*args_mapping, **{k: f&#34;\x03{k}\x03&#34; for k in kwargs.keys()})
+
+        chain_list: List[MessageChain] = []
 
         for i in re.split(&#34;([\x02\x03][\\d\\w]+[\x02\x03])&#34;, result):
             if match := re.fullmatch(&#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i):
                 header = match.group(&#34;header&#34;)
-                if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
-                    raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
-                content: str = match.group(&#34;content&#34;)
                 full: str = match.group(0)
                 if header == &#34;\x02&#34;:  # from args
-                    element_list.append(args_mapping[full])
+                    chain_list.append(args_mapping[full])
                 else:  # \x03, from kwargs
-                    element_list.append(kwargs_mapping[(content, full)])
+                    chain_list.append(kwargs_mapping[full])
             else:
-                element_list.append(Plain(i))
-        return MessageChain(element_list, inline=True).merge()</code></pre>
+                chain_list.append(Plain(i))
+        return MessageChain.create(*chain_list).merge()</code></pre>
 </details>
 </section>
 <section>
@@ -92,32 +92,32 @@ class Formatter:
     def __init__(self, format_string: str) -&gt; None:
         self.format_string = format_string
 
-    def format(self, *args: Element, **kwargs: Element) -&gt; MessageChain:
-        args_mapping: Dict[str, Element] = {
-            f&#34;\x02{index}\x02&#34;: (element) for index, element in enumerate(args)
-        }
-        kwargs_mapping: Dict[Tuple[str, str], Element] = {
-            (key, f&#34;\x03{key}\x03&#34;): element for key, element in kwargs.items()
-        }
+    def format(
+        self, *args: Union[Element, MessageChain, str], **kwargs: Union[Element, MessageChain, str]
+    ) -&gt; MessageChain:
+        args: List[MessageChain] = [MessageChain.create(e) for e in args]
+        kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in kwargs.items()}
 
-        result = self.format_string.format(*args_mapping, **dict(kwargs_mapping.keys()))
+        args_mapping: Dict[str, MessageChain] = {
+            f&#34;\x02{index}\x02&#34;: (chain) for index, chain in enumerate(args)
+        }
+        kwargs_mapping: Dict[str, MessageChain] = {f&#34;\x03{key}\x03&#34;: chain for key, chain in kwargs.items()}
 
-        element_list: List[Element] = []
+        result = self.format_string.format(*args_mapping, **{k: f&#34;\x03{k}\x03&#34; for k in kwargs.keys()})
+
+        chain_list: List[MessageChain] = []
 
         for i in re.split(&#34;([\x02\x03][\\d\\w]+[\x02\x03])&#34;, result):
             if match := re.fullmatch(&#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i):
                 header = match.group(&#34;header&#34;)
-                if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
-                    raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
-                content: str = match.group(&#34;content&#34;)
                 full: str = match.group(0)
                 if header == &#34;\x02&#34;:  # from args
-                    element_list.append(args_mapping[full])
+                    chain_list.append(args_mapping[full])
                 else:  # \x03, from kwargs
-                    element_list.append(kwargs_mapping[(content, full)])
+                    chain_list.append(kwargs_mapping[full])
             else:
-                element_list.append(Plain(i))
-        return MessageChain(element_list, inline=True).merge()</code></pre>
+                chain_list.append(Plain(i))
+        return MessageChain.create(*chain_list).merge()</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -129,7 +129,7 @@ class Formatter:
 <h3>Methods</h3>
 <dl>
 <dt id="ariadne.message.formatter.Formatter.format"><code class="name flex">
-<span>def <span class="ident">format</span></span>(<span>self, *args: <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>, **kwargs: <a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>) ‑> <a title="ariadne.message.chain.MessageChain" href="chain.html#ariadne.message.chain.MessageChain">MessageChain</a></span>
+<span>def <span class="ident">format</span></span>(<span>self, *args: Union[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>, <a title="ariadne.message.chain.MessageChain" href="chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, str], **kwargs: Union[<a title="ariadne.message.element.Element" href="element.html#ariadne.message.element.Element">Element</a>, <a title="ariadne.message.chain.MessageChain" href="chain.html#ariadne.message.chain.MessageChain">MessageChain</a>, str]) ‑> <a title="ariadne.message.chain.MessageChain" href="chain.html#ariadne.message.chain.MessageChain">MessageChain</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -137,32 +137,32 @@ class Formatter:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def format(self, *args: Element, **kwargs: Element) -&gt; MessageChain:
-    args_mapping: Dict[str, Element] = {
-        f&#34;\x02{index}\x02&#34;: (element) for index, element in enumerate(args)
-    }
-    kwargs_mapping: Dict[Tuple[str, str], Element] = {
-        (key, f&#34;\x03{key}\x03&#34;): element for key, element in kwargs.items()
-    }
+<pre><code class="python">def format(
+    self, *args: Union[Element, MessageChain, str], **kwargs: Union[Element, MessageChain, str]
+) -&gt; MessageChain:
+    args: List[MessageChain] = [MessageChain.create(e) for e in args]
+    kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in kwargs.items()}
 
-    result = self.format_string.format(*args_mapping, **dict(kwargs_mapping.keys()))
+    args_mapping: Dict[str, MessageChain] = {
+        f&#34;\x02{index}\x02&#34;: (chain) for index, chain in enumerate(args)
+    }
+    kwargs_mapping: Dict[str, MessageChain] = {f&#34;\x03{key}\x03&#34;: chain for key, chain in kwargs.items()}
 
-    element_list: List[Element] = []
+    result = self.format_string.format(*args_mapping, **{k: f&#34;\x03{k}\x03&#34; for k in kwargs.keys()})
+
+    chain_list: List[MessageChain] = []
 
     for i in re.split(&#34;([\x02\x03][\\d\\w]+[\x02\x03])&#34;, result):
         if match := re.fullmatch(&#34;(?P&lt;header&gt;[\x02\x03])(?P&lt;content&gt;\\w+)(?P=header)&#34;, i):
             header = match.group(&#34;header&#34;)
-            if header not in (&#34;\x02&#34;, &#34;\x03&#34;):
-                raise ValueError(r&#34;Header didn&#39;t start with \x02 or \x03!&#34;)
-            content: str = match.group(&#34;content&#34;)
             full: str = match.group(0)
             if header == &#34;\x02&#34;:  # from args
-                element_list.append(args_mapping[full])
+                chain_list.append(args_mapping[full])
             else:  # \x03, from kwargs
-                element_list.append(kwargs_mapping[(content, full)])
+                chain_list.append(kwargs_mapping[full])
         else:
-            element_list.append(Plain(i))
-    return MessageChain(element_list, inline=True).merge()</code></pre>
+            chain_list.append(Plain(i))
+    return MessageChain.create(*chain_list).merge()</code></pre>
 </details>
 </dd>
 </dl>

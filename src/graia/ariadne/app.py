@@ -1204,10 +1204,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 param.VAR_KEYWORD,
                 param.VAR_POSITIONAL,
             ):
-                if param.kind is param.POSITIONAL_ONLY:
-                    call_args.append(self.info[param.annotation])
-                else:
-                    call_kwargs[name] = self.info[param.annotation]
+                if param.annotation in self.info:
+                    if param.kind is param.POSITIONAL_ONLY:
+                        call_args.append(self.info[param.annotation])
+                    else:
+                        call_kwargs[name] = self.info[param.annotation]
         obj: T = cls(*call_args, **call_kwargs)
         if reuse:
             self.info[cls] = obj

@@ -5173,7 +5173,7 @@ INDEX=[
 {
 "ref":"ariadne.util.async_exec.ParallelExecutor",
 "url":28,
-"doc":"\u5e76\u884c\u6267\u884c\u5668. \u63a8\u8350\u4f7f\u7528 Ariadne.create \u4ee5\u81ea\u52a8\u7ed1\u5b9a\u4e8b\u4ef6\u5faa\u73af. \u521d\u59cb\u5316\u5e76\u884c\u6267\u884c\u5668. Args: loop (AbstractEventLoop, optional): \u8981\u7ed1\u5b9a\u7684\u4e8b\u4ef6\u5faa\u73af. Defaults to None. max_thread (int, optional): \u6700\u5927\u7ebf\u7a0b\u6570. Defaults to None. max_process (int, optional): \u6700\u5927\u8fdb\u7a0b\u6570. Defaults to None.  max_thread \u4e0e  max_process \u53c2\u6570\u9ed8\u8ba4\u503c\u8bf7\u53c2\u9605  concurrent.futures ."
+"doc":"\u5e76\u884c\u6267\u884c\u5668. \u521d\u59cb\u5316\u5e76\u884c\u6267\u884c\u5668. Args: loop (AbstractEventLoop, optional): \u8981\u7ed1\u5b9a\u7684\u4e8b\u4ef6\u5faa\u73af. Defaults to None. max_thread (int, optional): \u6700\u5927\u7ebf\u7a0b\u6570. Defaults to None. max_process (int, optional): \u6700\u5927\u8fdb\u7a0b\u6570. Defaults to None.  max_thread \u4e0e  max_process \u53c2\u6570\u9ed8\u8ba4\u503c\u8bf7\u53c2\u9605  concurrent.futures ."
 },
 {
 "ref":"ariadne.util.async_exec.ParallelExecutor.thread_exec",

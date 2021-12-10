@@ -15,10 +15,7 @@ R = TypeVar("R")
 
 
 class ParallelExecutor:
-    """并行执行器.
-
-    推荐使用 Ariadne.create 以自动绑定事件循环.
-    """
+    """并行执行器."""
 
     thread_exec: ThreadPoolExecutor
     proc_exec: ProcessPoolExecutor

@@ -2,7 +2,11 @@ site_name: Ariadne 文档
 theme:
   features:
     - navigation.instant
-    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.expand
+    - navigation.top
+
   name: material
   language: zh
   icon:
@@ -39,6 +43,8 @@ extra:
     - icon: fontawesome/brands/qq
       link: https://jq.qq.com/?_wv=1027&k=VXp6plBD
       name: QQ 群
+
+
 markdown_extensions:
   - attr_list
   - md_in_html
@@ -72,35 +78,42 @@ markdown_extensions:
       alternate_style: true
 
 nav:
-  - "index.md"
-  - "quickstart.md"
-  - "基础":
-      - "basic/params.md"
-      - "basic/msg-chain.md"
-      - "basic/configuration.md"
-      - "basic/instance.md"
-  - "进阶":
-      - "advance/msg-chain.md"
-      - "advance/base-parser.md"
-      - "advance/twilight.md"
-      - "Broadcast 简介":
-        - "advance/broadcast/depend.md"
-        - "advance/broadcast/interrupt.md"
-      - Broadcast 文档 (外部): https://autumn-psi.vercel.app/
-  - "配套设施":
-      - "suite/log.md"
-      - "suite/scheduler.md"
-      - "Saya - 插件管理器":
-        - "suite/saya/start.md"
-        - "suite/saya/channel.md"
-  - "迁移":
-      - "porting/guide.md"
-      - "porting/cheatsheet.md"
-  - "附录":
-      - "appendix/terms.md"
-      - "appendix/faq.md"
-      - "appendix/credits.md"
-      - "appendix/mah-install.md"
-      - "appendix/asyncio-intro.md"
-      - "appendix/CHANGELOG.md"
-  - GitHub 仓库: https://github.com/GraiaProject/Ariadne
+  - "文档":
+    - "index.md"
+    - "quickstart.md"
+    - "基础":
+        - "basic/params.md"
+        - "basic/msg-chain.md"
+        - "basic/configuration.md"
+        - "basic/instance.md"
+    - "进阶":
+        - "advance/msg-chain.md"
+        - "advance/msg-chain-tool.md"
+        - "advance/base-parser.md"
+        - "advance/twilight.md"
+        - "Broadcast 简介":
+          - "advance/broadcast/interrupt.md"
+          - "advance/broadcast/depend.md"
+        - Broadcast 官方文档 (外链): https://autumn-psi.vercel.app/
+    - "配套设施":
+        - "suite/log.md"
+        - "suite/scheduler.md"
+        - "Saya - 插件管理器":
+          - "suite/saya/start.md"
+          - "suite/saya/channel.md"
+    - "迁移":
+        - "porting/guide.md"
+        - "porting/cheatsheet.md"
+    - "附录":
+        - "appendix/terms.md"
+        - "appendix/faq.md"
+        - "appendix/credits.md"
+        - "appendix/mah-install.md"
+        - "appendix/asyncio-intro.md"
+        - "appendix/CHANGELOG.md"
+  - "开发博客":
+      - "blog/intro.md"
+      - "blog/history.md"
+      - "blog/twilight.md"
+  - API 文档 (外链): https://graiaproject.github.io/Ariadne/ariadne
+  - GitHub 仓库 (外链): https://github.com/GraiaProject/Ariadne

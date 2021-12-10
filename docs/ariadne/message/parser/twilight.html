@@ -70,10 +70,7 @@ class Sparkle(Representation):
         )
 
     def __getitem__(self, item: Union[str, int]) -&gt; Match:
-        if isinstance(item, str):
-            return self._mapping_regex_match.get(item, None) or self._mapping_arg_match.get(item, None)
-        if isinstance(item, int):
-            return self._list_check_match[item][0]
+        return self.get_match(item)
 
     def __init_subclass__(cls, /, *, description: str = &#34;&#34;, epilog: str = &#34;&#34;, **kwargs) -&gt; None:
         super().__init_subclass__(**kwargs)
@@ -87,13 +84,16 @@ class Sparkle(Representation):
         else:
             return self.get_match(__name)
 
-    def get_match(self, name: str):
-        if name in self._mapping_arg_match:
-            return self._mapping_arg_match[name][0]
-        elif name in self._mapping_regex_match:
-            return self._mapping_regex_match[name][0]
+    def get_match(self, item: Union[int, str]):
+        if isinstance(item, int):
+            return self._list_check_match[item][0]
+
+        if item in self._mapping_arg_match:
+            return self._mapping_arg_match[item][0]
+        elif item in self._mapping_regex_match:
+            return self._mapping_regex_match[item][0]
         else:
-            raise KeyError(f&#34;Unable to find match named {name}&#34;)
+            raise KeyError(f&#34;Unable to find match named {item}&#34;)
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -154,25 +154,24 @@ class Sparkle(Representation):
             if k.startswith(&#34;_&#34;) or k[0] in string.digits:
                 raise ValueError(&#34;Invalid Match object name!&#34;)
 
-            if isinstance(v, Match):
-                if isinstance(v, ArgumentMatch):  # add to self._parser
-                    self._mapping_arg_match[v.name] = (v, k)
-                    if v.action is ... or self._parser.accept_type(v.action):
-                        if &#34;type&#34; not in v.add_arg_data or v.add_arg_data[&#34;type&#34;] is MessageChain:
-                            v.add_arg_data[&#34;type&#34;] = MessageChainType(v.regex)
-                        elif isinstance(v.add_arg_data[&#34;type&#34;], type) and issubclass(
-                            v.add_arg_data[&#34;type&#34;], Element
-                        ):
-                            v.add_arg_data[&#34;type&#34;] = ElementType(v.add_arg_data[&#34;type&#34;])
-                    self._parser.add_argument(*v.pattern, **v.add_arg_data)
+            if isinstance(v, ArgumentMatch):  # add to self._parser
+                self._mapping_arg_match[v.name] = (v, k)
+                if v.action is ... or self._parser.accept_type(v.action):
+                    if &#34;type&#34; not in v.add_arg_data or v.add_arg_data[&#34;type&#34;] is MessageChain:
+                        v.add_arg_data[&#34;type&#34;] = MessageChainType(v.regex)
+                    elif isinstance(v.add_arg_data[&#34;type&#34;], type) and issubclass(
+                        v.add_arg_data[&#34;type&#34;], Element
+                    ):
+                        v.add_arg_data[&#34;type&#34;] = ElementType(v.add_arg_data[&#34;type&#34;])
+                self._parser.add_argument(*v.pattern, **v.add_arg_data)
 
-                elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
-                    self._mapping_regex_match[k] = (v, group_cnt + 1)
-                    group_cnt += re.compile(v.gen_regex()).groups
-                    match_pattern_list.append(v.gen_regex())
+            elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
+                self._mapping_regex_match[k] = (v, group_cnt + 1)
+                group_cnt += re.compile(v.gen_regex()).groups
+                match_pattern_list.append(v.gen_regex())
 
-                else:
-                    raise ValueError(f&#34;{v} is neither RegexMatch nor ArgumentMatch!&#34;)
+            else:
+                raise ValueError(f&#34;{v} is neither RegexMatch nor ArgumentMatch!&#34;)
 
         if (
             not all(v[0].pattern[0].startswith(&#34;-&#34;) for v in self._mapping_arg_match.values())
@@ -187,7 +186,7 @@ class Sparkle(Representation):
         # checking matches
         # ----
 
-        self._list_check_match: List[Tuple[Match, int]] = []
+        self._list_check_match: List[Tuple[RegexMatch, int]] = []
 
         group_cnt = 0
 
@@ -430,10 +429,7 @@ of objects.</p></div>
         )
 
     def __getitem__(self, item: Union[str, int]) -&gt; Match:
-        if isinstance(item, str):
-            return self._mapping_regex_match.get(item, None) or self._mapping_arg_match.get(item, None)
-        if isinstance(item, int):
-            return self._list_check_match[item][0]
+        return self.get_match(item)
 
     def __init_subclass__(cls, /, *, description: str = &#34;&#34;, epilog: str = &#34;&#34;, **kwargs) -&gt; None:
         super().__init_subclass__(**kwargs)
@@ -447,13 +443,16 @@ of objects.</p></div>
         else:
             return self.get_match(__name)
 
-    def get_match(self, name: str):
-        if name in self._mapping_arg_match:
-            return self._mapping_arg_match[name][0]
-        elif name in self._mapping_regex_match:
-            return self._mapping_regex_match[name][0]
+    def get_match(self, item: Union[int, str]):
+        if isinstance(item, int):
+            return self._list_check_match[item][0]
+
+        if item in self._mapping_arg_match:
+            return self._mapping_arg_match[item][0]
+        elif item in self._mapping_regex_match:
+            return self._mapping_regex_match[item][0]
         else:
-            raise KeyError(f&#34;Unable to find match named {name}&#34;)
+            raise KeyError(f&#34;Unable to find match named {item}&#34;)
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -514,25 +513,24 @@ of objects.</p></div>
             if k.startswith(&#34;_&#34;) or k[0] in string.digits:
                 raise ValueError(&#34;Invalid Match object name!&#34;)
 
-            if isinstance(v, Match):
-                if isinstance(v, ArgumentMatch):  # add to self._parser
-                    self._mapping_arg_match[v.name] = (v, k)
-                    if v.action is ... or self._parser.accept_type(v.action):
-                        if &#34;type&#34; not in v.add_arg_data or v.add_arg_data[&#34;type&#34;] is MessageChain:
-                            v.add_arg_data[&#34;type&#34;] = MessageChainType(v.regex)
-                        elif isinstance(v.add_arg_data[&#34;type&#34;], type) and issubclass(
-                            v.add_arg_data[&#34;type&#34;], Element
-                        ):
-                            v.add_arg_data[&#34;type&#34;] = ElementType(v.add_arg_data[&#34;type&#34;])
-                    self._parser.add_argument(*v.pattern, **v.add_arg_data)
+            if isinstance(v, ArgumentMatch):  # add to self._parser
+                self._mapping_arg_match[v.name] = (v, k)
+                if v.action is ... or self._parser.accept_type(v.action):
+                    if &#34;type&#34; not in v.add_arg_data or v.add_arg_data[&#34;type&#34;] is MessageChain:
+                        v.add_arg_data[&#34;type&#34;] = MessageChainType(v.regex)
+                    elif isinstance(v.add_arg_data[&#34;type&#34;], type) and issubclass(
+                        v.add_arg_data[&#34;type&#34;], Element
+                    ):
+                        v.add_arg_data[&#34;type&#34;] = ElementType(v.add_arg_data[&#34;type&#34;])
+                self._parser.add_argument(*v.pattern, **v.add_arg_data)
 
-                elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
-                    self._mapping_regex_match[k] = (v, group_cnt + 1)
-                    group_cnt += re.compile(v.gen_regex()).groups
-                    match_pattern_list.append(v.gen_regex())
+            elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
+                self._mapping_regex_match[k] = (v, group_cnt + 1)
+                group_cnt += re.compile(v.gen_regex()).groups
+                match_pattern_list.append(v.gen_regex())
 
-                else:
-                    raise ValueError(f&#34;{v} is neither RegexMatch nor ArgumentMatch!&#34;)
+            else:
+                raise ValueError(f&#34;{v} is neither RegexMatch nor ArgumentMatch!&#34;)
 
         if (
             not all(v[0].pattern[0].startswith(&#34;-&#34;) for v in self._mapping_arg_match.values())
@@ -547,7 +545,7 @@ of objects.</p></div>
         # checking matches
         # ----
 
-        self._list_check_match: List[Tuple[Match, int]] = []
+        self._list_check_match: List[Tuple[RegexMatch, int]] = []
 
         group_cnt = 0
 
@@ -710,7 +708,7 @@ of objects.</p></div>
 </details>
 </dd>
 <dt id="ariadne.message.parser.twilight.Sparkle.get_match"><code class="name flex">
-<span>def <span class="ident">get_match</span></span>(<span>self, name: str)</span>
+<span>def <span class="ident">get_match</span></span>(<span>self, item: Union[str, int])</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -718,13 +716,16 @@ of objects.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_match(self, name: str):
-    if name in self._mapping_arg_match:
-        return self._mapping_arg_match[name][0]
-    elif name in self._mapping_regex_match:
-        return self._mapping_regex_match[name][0]
+<pre><code class="python">def get_match(self, item: Union[int, str]):
+    if isinstance(item, int):
+        return self._list_check_match[item][0]
+
+    if item in self._mapping_arg_match:
+        return self._mapping_arg_match[item][0]
+    elif item in self._mapping_regex_match:
+        return self._mapping_regex_match[item][0]
     else:
-        raise KeyError(f&#34;Unable to find match named {name}&#34;)</code></pre>
+        raise KeyError(f&#34;Unable to find match named {item}&#34;)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.message.parser.twilight.Sparkle.populate_arg_match"><code class="name flex">

@@ -9,8 +9,13 @@ from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import At, Plain
-from graia.ariadne.message.parser.pattern import FullMatch, RegexMatch, WildcardMatch
+from graia.ariadne.message.element import At, Plain, Source
+from graia.ariadne.message.parser.pattern import (
+    ArgumentMatch,
+    FullMatch,
+    RegexMatch,
+    WildcardMatch,
+)
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
@@ -40,10 +45,36 @@ if __name__ == "__main__":
             await app.sendFriendMessage(friend, MessageChain.create("Complete!"))
 
     @bcc.receiver(
-        MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")], {"arg": WildcardMatch()}))]
+        MessageEvent,
+        dispatchers=[
+            Twilight(
+                Sparkle(
+                    [FullMatch(".test")],
+                    {
+                        "help": ArgumentMatch("--help", "-h", action="store_true"),
+                        "arg": WildcardMatch(),
+                        "verbose": ArgumentMatch("--verbose", action="store_true"),
+                    },
+                )
+            )
+        ],
     )
-    async def reply1(app: Ariadne, event: MessageEvent, arg: WildcardMatch):
-        await app.sendMessage(event, MessageChain.create("Auto reply to ") + arg.result)
+    async def reply1(
+        app: Ariadne,
+        event: MessageEvent,
+        arg: WildcardMatch,
+        help: ArgumentMatch,
+        sparkle: Sparkle,
+        verbose: ArgumentMatch,
+    ):
+        if help.matched:
+            return await app.sendMessage(
+                event, MessageChain.create(sparkle.get_help(description="Foo help!"))
+            )
+        if verbose.matched:
+            await app.sendMessage(event, MessageChain.create("Auto reply to ") + arg.result)
+        else:
+            await app.sendMessage(event, MessageChain.create("Result: ") + arg.result)
 
     @bcc.receiver(NewFriendRequestEvent)
     async def accept(event: NewFriendRequestEvent):
@@ -90,7 +121,6 @@ if __name__ == "__main__":
         await app.lifecycle()
 
     try:
-        loop.run_until_complete(main())
         loop.run_until_complete(main())
     except KeyboardInterrupt:
         loop.run_until_complete(app.wait_for_stop())

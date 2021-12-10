@@ -9,8 +9,8 @@ from .element import Element
 if TYPE_CHECKING:
     from ..typing import Slice
 
-    ElementClass = Union[Iterable[Type[Element]], Type[Element]]
-    Item = Union[Slice[ElementClass, Optional[int], None], ElementClass]
+    ElementFilter = Union[Iterable[Type[Element]], Type[Element], Callable[[Element], bool]]
+    Item = Union[Slice[ElementFilter, Optional[int], None], ElementFilter]
 
 
 class Component(Decorator):

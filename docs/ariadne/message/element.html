@@ -520,7 +520,7 @@ class MultimediaElement(Element):
         return &#34;&#34;
 
     def __eq__(self, other: &#34;MultimediaElement&#34;):
-        if self.type != other.type:
+        if self.__class__ is not other.__class__:
             return False
         if self.uuid and self.uuid == other.uuid:
             return True
@@ -1843,7 +1843,7 @@ def fromFlashImage(cls, flash: &#34;FlashImage&#34;) -&gt; &#34;Image&#34;:
         return &#34;&#34;
 
     def __eq__(self, other: &#34;MultimediaElement&#34;):
-        if self.type != other.type:
+        if self.__class__ is not other.__class__:
             return False
         if self.uuid and self.uuid == other.uuid:
             return True

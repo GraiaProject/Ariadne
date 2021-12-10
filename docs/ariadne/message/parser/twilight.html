@@ -66,7 +66,7 @@ class Sparkle(Representation):
         return (
             check
             + [(k, v) for k, (v, _) in self._mapping_regex_match.items()]
-            + [(k, v) for k, (v, _) in self._mapping_arg_match.items()]
+            + list(self._mapping_arg_match.items())
         )
 
     def __getitem__(self, item: Union[str, int]) -&gt; Match:
@@ -89,7 +89,7 @@ class Sparkle(Representation):
             return self._list_check_match[item][0]
 
         if item in self._mapping_arg_match:
-            return self._mapping_arg_match[item][0]
+            return self._mapping_arg_match[item]
         elif item in self._mapping_regex_match:
             return self._mapping_regex_match[item][0]
         else:
@@ -101,6 +101,7 @@ class Sparkle(Representation):
         copied._list_check_match = deepcopy(self._list_check_match, memo)
         copied._mapping_arg_match = deepcopy(self._mapping_arg_match, memo)
         copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
+        copied._parser_ref = deepcopy(self._parser_ref, memo)
 
         return copied
 
@@ -147,7 +148,8 @@ class Sparkle(Representation):
         match_pattern_list: List[str] = []
 
         self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
-        self._mapping_arg_match: Dict[str, Tuple[ArgumentMatch, str]] = {}
+        self._mapping_arg_match: Dict[str, ArgumentMatch] = {}
+        self._parser_ref: Dict[str, ArgumentMatch] = {}
 
         self._parser = TwilightParser(prog=&#34;&#34;, add_help=False)
         for k, v in match_map.items():
@@ -155,7 +157,8 @@ class Sparkle(Representation):
                 raise ValueError(&#34;Invalid Match object name!&#34;)
 
             if isinstance(v, ArgumentMatch):  # add to self._parser
-                self._mapping_arg_match[v.name] = (v, k)
+                self._mapping_arg_match[k] = v
+                self._parser_ref[v.name] = v
                 if v.action is ... or self._parser.accept_type(v.action):
                     if &#34;type&#34; not in v.add_arg_data or v.add_arg_data[&#34;type&#34;] is MessageChain:
                         v.add_arg_data[&#34;type&#34;] = MessageChainType(v.regex)
@@ -174,7 +177,7 @@ class Sparkle(Representation):
                 raise ValueError(f&#34;{v} is neither RegexMatch nor ArgumentMatch!&#34;)
 
         if (
-            not all(v[0].pattern[0].startswith(&#34;-&#34;) for v in self._mapping_arg_match.values())
+            not all(v.pattern[0].startswith(&#34;-&#34;) for v in self._mapping_arg_match.values())
             and self._mapping_regex_match
         ):  # inline validation for underscore
             raise ValueError(&#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39; in this case!&#34;)
@@ -227,11 +230,10 @@ class Sparkle(Representation):
             raise ValueError(f&#34;Not matching regex: {self._check_pattern}&#34;)
 
     def populate_arg_match(self, args: List[str]) -&gt; List[str]:
-        if not self._mapping_arg_match:  # Optimization: skip if no ArgumentMatch
+        if not self._parser_ref:  # Optimization: skip if no ArgumentMatch
             return args
         namespace, rest = self._parser.parse_known_args(args)
-        for arg_name, val_tuple in self._mapping_arg_match.items():
-            match, sparkle_name = val_tuple
+        for arg_name, match in self._parser_ref.items():
             namespace_val = getattr(namespace, arg_name, None)
             if arg_name in namespace.__dict__:
                 match.result = namespace_val
@@ -242,7 +244,7 @@ class Sparkle(Representation):
     def populate_regex_match(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -&gt; None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
-                for name, (match, index) in self._mapping_regex_match.items():
+                for _, (match, index) in self._mapping_regex_match.items():
                     current = regex_match.group(index) or &#34;&#34;
                     if isinstance(match, ElementMatch):
                         if current:
@@ -425,7 +427,7 @@ of objects.</p></div>
         return (
             check
             + [(k, v) for k, (v, _) in self._mapping_regex_match.items()]
-            + [(k, v) for k, (v, _) in self._mapping_arg_match.items()]
+            + list(self._mapping_arg_match.items())
         )
 
     def __getitem__(self, item: Union[str, int]) -&gt; Match:
@@ -448,7 +450,7 @@ of objects.</p></div>
             return self._list_check_match[item][0]
 
         if item in self._mapping_arg_match:
-            return self._mapping_arg_match[item][0]
+            return self._mapping_arg_match[item]
         elif item in self._mapping_regex_match:
             return self._mapping_regex_match[item][0]
         else:
@@ -460,6 +462,7 @@ of objects.</p></div>
         copied._list_check_match = deepcopy(self._list_check_match, memo)
         copied._mapping_arg_match = deepcopy(self._mapping_arg_match, memo)
         copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
+        copied._parser_ref = deepcopy(self._parser_ref, memo)
 
         return copied
 
@@ -506,7 +509,8 @@ of objects.</p></div>
         match_pattern_list: List[str] = []
 
         self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
-        self._mapping_arg_match: Dict[str, Tuple[ArgumentMatch, str]] = {}
+        self._mapping_arg_match: Dict[str, ArgumentMatch] = {}
+        self._parser_ref: Dict[str, ArgumentMatch] = {}
 
         self._parser = TwilightParser(prog=&#34;&#34;, add_help=False)
         for k, v in match_map.items():
@@ -514,7 +518,8 @@ of objects.</p></div>
                 raise ValueError(&#34;Invalid Match object name!&#34;)
 
             if isinstance(v, ArgumentMatch):  # add to self._parser
-                self._mapping_arg_match[v.name] = (v, k)
+                self._mapping_arg_match[k] = v
+                self._parser_ref[v.name] = v
                 if v.action is ... or self._parser.accept_type(v.action):
                     if &#34;type&#34; not in v.add_arg_data or v.add_arg_data[&#34;type&#34;] is MessageChain:
                         v.add_arg_data[&#34;type&#34;] = MessageChainType(v.regex)
@@ -533,7 +538,7 @@ of objects.</p></div>
                 raise ValueError(f&#34;{v} is neither RegexMatch nor ArgumentMatch!&#34;)
 
         if (
-            not all(v[0].pattern[0].startswith(&#34;-&#34;) for v in self._mapping_arg_match.values())
+            not all(v.pattern[0].startswith(&#34;-&#34;) for v in self._mapping_arg_match.values())
             and self._mapping_regex_match
         ):  # inline validation for underscore
             raise ValueError(&#34;ArgumentMatch&#39;s pattern can&#39;t start with &#39;-&#39; in this case!&#34;)
@@ -586,11 +591,10 @@ of objects.</p></div>
             raise ValueError(f&#34;Not matching regex: {self._check_pattern}&#34;)
 
     def populate_arg_match(self, args: List[str]) -&gt; List[str]:
-        if not self._mapping_arg_match:  # Optimization: skip if no ArgumentMatch
+        if not self._parser_ref:  # Optimization: skip if no ArgumentMatch
             return args
         namespace, rest = self._parser.parse_known_args(args)
-        for arg_name, val_tuple in self._mapping_arg_match.items():
-            match, sparkle_name = val_tuple
+        for arg_name, match in self._parser_ref.items():
             namespace_val = getattr(namespace, arg_name, None)
             if arg_name in namespace.__dict__:
                 match.result = namespace_val
@@ -601,7 +605,7 @@ of objects.</p></div>
     def populate_regex_match(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -&gt; None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
-                for name, (match, index) in self._mapping_regex_match.items():
+                for _, (match, index) in self._mapping_regex_match.items():
                     current = regex_match.group(index) or &#34;&#34;
                     if isinstance(match, ElementMatch):
                         if current:
@@ -721,7 +725,7 @@ of objects.</p></div>
         return self._list_check_match[item][0]
 
     if item in self._mapping_arg_match:
-        return self._mapping_arg_match[item][0]
+        return self._mapping_arg_match[item]
     elif item in self._mapping_regex_match:
         return self._mapping_regex_match[item][0]
     else:
@@ -738,11 +742,10 @@ of objects.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def populate_arg_match(self, args: List[str]) -&gt; List[str]:
-    if not self._mapping_arg_match:  # Optimization: skip if no ArgumentMatch
+    if not self._parser_ref:  # Optimization: skip if no ArgumentMatch
         return args
     namespace, rest = self._parser.parse_known_args(args)
-    for arg_name, val_tuple in self._mapping_arg_match.items():
-        match, sparkle_name = val_tuple
+    for arg_name, match in self._parser_ref.items():
         namespace_val = getattr(namespace, arg_name, None)
         if arg_name in namespace.__dict__:
             match.result = namespace_val
@@ -797,7 +800,7 @@ of objects.</p></div>
 <pre><code class="python">def populate_regex_match(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -&gt; None:
     if self._regex_pattern:
         if regex_match := self._regex.fullmatch(&#34; &#34;.join(arg_list)):
-            for name, (match, index) in self._mapping_regex_match.items():
+            for _, (match, index) in self._mapping_regex_match.items():
                 current = regex_match.group(index) or &#34;&#34;
                 if isinstance(match, ElementMatch):
                     if current:

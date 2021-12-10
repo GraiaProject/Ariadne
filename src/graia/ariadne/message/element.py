@@ -492,7 +492,7 @@ class MultimediaElement(Element):
         return ""
 
     def __eq__(self, other: "MultimediaElement"):
-        if self.type != other.type:
+        if self.__class__ is not other.__class__:
             return False
         if self.uuid and self.uuid == other.uuid:
             return True

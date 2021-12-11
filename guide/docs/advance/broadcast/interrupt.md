@@ -4,12 +4,14 @@
 
 比如这样:
 
-```text title="聊天记录"
-User -> /kick 12345678
-Bot  -> 请发送 "/confirm" 确认
-User -> /confirm
-Bot  -> 已将 BadUser(12345678) 踢出
-```
+<div>
+<ul>
+ <li class="chat right">/kick 12345678</li>
+ <li class="chat left"> 请发送 "/confirm" 确认</li>
+ <li class="chat right">/confirm</li>
+ <li class="chat left">已将 BadUser(12345678) 踢出</li>
+</ul>
+</div>
 
 对于此种交互方式, 我们提供了 `Interrupt` 以支持.
 

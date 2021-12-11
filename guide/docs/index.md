@@ -27,6 +27,6 @@
 
 你可以通过以下几种方式参与进来:
 
-- [提交 issue](https://github.com/GraiaProject/Ariadne/issues/new/choose) _包括但不限于 bug 汇报, 新功能提案, 文档改进等._
-- 发起 [Pull Requests](https://github.com/GraiaProject/Ariadne/pulls) _直接将 想法 / 修复 合并到代码库中._
-- 参与 [QQ 讨论](https://jq.qq.com/?_wv=1027&k=VXp6plBD) _与开发者进行直接交流._
+-   [提交 issue](https://github.com/GraiaProject/Ariadne/issues/new/choose) _包括但不限于 bug 汇报, 新功能提案, 文档改进等._
+-   发起 [Pull Requests](https://github.com/GraiaProject/Ariadne/pulls) _直接将 想法 / 修复 合并到代码库中._
+-   参与 [QQ 讨论](https://jq.qq.com/?_wv=1027&k=VXp6plBD) _与开发者进行直接交流._

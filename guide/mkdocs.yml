@@ -77,6 +77,9 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 
+extra_css:
+  - "assets/chat.css"
+
 nav:
   - "文档":
     - "index.md"
@@ -88,16 +91,15 @@ nav:
         - "basic/instance.md"
     - "进阶":
         - "advance/msg-chain.md"
-        - "advance/msg-chain-tool.md"
-        - "advance/async-exec.md"
         - "advance/base-parser.md"
         - "advance/twilight.md"
         - "Broadcast 简介":
           - "advance/broadcast/interrupt.md"
           - "advance/broadcast/depend.md"
-        - Broadcast 官方文档 (外链): https://autumn-psi.vercel.app/
     - "额外内容":
         - "extra/log.md"
+        - "extra/msg-chain-tool.md"
+        - "extra/async-exec.md"
         - "extra/scheduler.md"
         - "Saya - 插件管理器":
           - "extra/saya/start.md"
@@ -116,5 +118,6 @@ nav:
       - "blog/intro.md"
       - "blog/history.md"
       - "blog/twilight.md"
-  - API 文档 (外链): https://graiaproject.github.io/Ariadne/ariadne
-  - GitHub 仓库 (外链): https://github.com/GraiaProject/Ariadne
+  - API 文档: https://graiaproject.github.io/Ariadne/ariadne
+  - GitHub 仓库: https://github.com/GraiaProject/Ariadne
+  - Broadcast 官方文档: https://autumn-psi.vercel.app/

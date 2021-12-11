@@ -1,0 +1,21 @@
+.chat {
+    display: inline-block;
+    clear: both;
+    padding: 10px;
+    border-radius: 20px;
+    margin-bottom: 2px;
+}
+
+.left {
+    float: left;
+    background: #918fff;
+
+    border-top-left-radius: 2px;
+}
+
+.right {
+    float: right;
+    background: #82b4ff;
+
+    border-top-right-radius: 2px;
+}

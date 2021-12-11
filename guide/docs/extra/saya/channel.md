@@ -2,9 +2,13 @@
 
 推荐在模块开头使用 `channel = Channel.current()` 后, 使用以下方法:
 
-- `channel.name(str)`: 定义插件名字.
-- `channel.author(str)`: 定义插件的作者 (你自己).
-- `channel.description(str)`: 定义插件描述 (通常是用法).
+-   `channel.name(str)`: 定义插件名字.
+-   `channel.author(str)`: 定义插件的作者 (你自己).
+-   `channel.description(str)`: 定义插件描述 (通常是使用方法).
+
+!!! info "提示"
+
+    这些可以通过 `Channel` 的 `_name`, `_author`, `_description` 属性获取.
 
 ## channel.use
 
@@ -24,5 +28,5 @@ async def fetch(...):
 
 有以下几个 `Schema`.
 
-- `ListenerSchema`: 需要 `BroadcastBehaviour`, 相当于使用 `bcc.receiver`.
-- `SchedulerSchema`: 需要 `GraiaSchedulerBehaviour`, 相当于使用 `scheduler.schedule`.
+-   `ListenerSchema`: 需要 `BroadcastBehaviour`, 相当于使用 `bcc.receiver`.
+-   `SchedulerSchema`: 需要 `GraiaSchedulerBehaviour`, 相当于使用 `scheduler.schedule`.

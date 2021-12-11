@@ -202,6 +202,10 @@ async def module_listener(event: SayaModuleInstalled):
 
 我们对 `modules/module_as_dir/__init__.py` 也如法炮制, copy 上方的代码, 进入虚拟环境, 然后运行 `main.py`.
 
+!!! error "警告"
+
+    请不要直接运行 `Saya module`, 而需要通过主文件运行, 否则会因为没有分配 `Channel` 产生 `LookupError` 异常.
+
 ```
 root@localhost: # python main.py
 2021-02-16 01:19:56.632 | DEBUG | graia.saya:require:58 - require modules.module_as_file
@@ -212,4 +216,4 @@ modules.module_as_dir :: 模块加载成功!!!
 modules.module_as_dir :: 模块加载成功!!!
 ```
 
-很好, 恭喜你, 完成了第一个 `Saya Application`, 我们可以前往下一章了, 如果有的话.
+很好, 恭喜你, 完成了第一个 `Saya Application`, 我们可以前往下一章了.

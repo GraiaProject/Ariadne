@@ -13,7 +13,7 @@ homepage = "https://graia.readthedocs.io/zh_CN/latest"
 
 [[tool.poetry.source]]
 name = "tuna-tsinghua"
-default = false
+default = true
 url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
 
 [tool.poetry.dependencies]

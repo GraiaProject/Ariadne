@@ -66,7 +66,7 @@ from ..context import enter_context
 
 # Import layout
 from . import async_exec
-from .async_exec import ParallelExecutor, cpu_bound, io_bound
+from .async_exec import IS_MAIN_PROCESS, ParallelExecutor, cpu_bound, io_bound
 
 P = ParamSpec(&#34;P&#34;)
 R = TypeVar(&#34;R&#34;)
@@ -123,11 +123,12 @@ def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
         logger.error(f&#34;Exception: {ctx}&#34;)
 
 
-def inject_loguru_traceback(loop: AbstractEventLoop):
+def inject_loguru_traceback(loop: AbstractEventLoop = None):
     &#34;&#34;&#34;使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook&#34;&#34;&#34;
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
-    loop.set_exception_handler(loguru_async_handler)
+    if loop:
+        loop.set_exception_handler(loguru_async_handler)
 
 
 def inject_bypass_listener(broadcast: Broadcast):
@@ -247,6 +248,9 @@ async def yield_with_timeout(
         for t in done:
             res = await t
             yield res
+    if last_tsk:
+        for tsk in last_tsk:
+            tsk.cancel()
 
 
 def deprecated(remove_ver: str) -&gt; Callable[[T_Callable], T_Callable]:
@@ -265,7 +269,15 @@ def deprecated(remove_ver: str) -&gt; Callable[[T_Callable], T_Callable]:
 
 def cast_to(obj, typ: Type[T]) -&gt; T:
     if typ:
-        return obj</code></pre>
+        return obj
+
+
+class Dummy:
+    def __getattr__(self, *_, **__):
+        return self
+
+    def __call__(self, *_, **__):
+        return self</code></pre>
 </details>
 </section>
 <section>
@@ -433,7 +445,7 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
 </details>
 </dd>
 <dt id="ariadne.util.inject_loguru_traceback"><code class="name flex">
-<span>def <span class="ident">inject_loguru_traceback</span></span>(<span>loop: asyncio.events.AbstractEventLoop)</span>
+<span>def <span class="ident">inject_loguru_traceback</span></span>(<span>loop: asyncio.events.AbstractEventLoop = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook</p></div>
@@ -441,11 +453,12 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def inject_loguru_traceback(loop: AbstractEventLoop):
+<pre><code class="python">def inject_loguru_traceback(loop: AbstractEventLoop = None):
     &#34;&#34;&#34;使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook&#34;&#34;&#34;
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
-    loop.set_exception_handler(loguru_async_handler)</code></pre>
+    if loop:
+        loop.set_exception_handler(loguru_async_handler)</code></pre>
 </details>
 </dd>
 <dt id="ariadne.util.loguru_async_handler"><code class="name flex">
@@ -536,7 +549,10 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
             continue
         for t in done:
             res = await t
-            yield res</code></pre>
+            yield res
+    if last_tsk:
+        for tsk in last_tsk:
+            tsk.cancel()</code></pre>
 </details>
 </dd>
 </dl>
@@ -646,6 +662,23 @@ def cast_to(obj, typ: Type[T]) -&gt; T:
 </dd>
 </dl>
 </dd>
+<dt id="ariadne.util.Dummy"><code class="flex name class">
+<span>class <span class="ident">Dummy</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Dummy:
+    def __getattr__(self, *_, **__):
+        return self
+
+    def __call__(self, *_, **__):
+        return self</code></pre>
+</details>
+</dd>
 </dl>
 </section>
 </article>
@@ -738,6 +771,9 @@ setTimeout(() => input.focus(), 100);
 <li><code><a title="ariadne.util.ApplicationMiddlewareDispatcher.catch" href="#ariadne.util.ApplicationMiddlewareDispatcher.catch">catch</a></code></li>
 <li><code><a title="ariadne.util.ApplicationMiddlewareDispatcher.context" href="#ariadne.util.ApplicationMiddlewareDispatcher.context">context</a></code></li>
 </ul>
+</li>
+<li>
+<h4><code><a title="ariadne.util.Dummy" href="#ariadne.util.Dummy">Dummy</a></code></h4>
 </li>
 </ul>
 </li>

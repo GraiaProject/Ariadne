@@ -37,8 +37,7 @@ from ..context import enter_context
 
 # Import layout
 from . import async_exec
-from .async_exec import ParallelExecutor, cpu_bound, io_bound, IS_MAIN_PROCESS
-
+from .async_exec import IS_MAIN_PROCESS, ParallelExecutor, cpu_bound, io_bound
 
 P = ParamSpec("P")
 R = TypeVar("R")

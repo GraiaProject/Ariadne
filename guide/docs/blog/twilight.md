@@ -12,7 +12,7 @@
 
 当时主代码只有 217 行.
 之后在 [a3c17fd](https://github.com/GraiaProject/Ariadne/commit/a3c17fdfd02933b36dfd66dd61ff72b40b1e25b9) 的重写中, 代码量飙升至 424 行.
-现在代码量在 360 行左右.
+现在代码量在 360 行左右. (除去 `Match`, 可以看 [#53](https://github.com/GraiaProject/Ariadne/issues/53) 了解缘由)
 
 ## 关于性能
 

@@ -25,19 +25,23 @@ from ..message.element import (
 )
 from ..message.formatter import Formatter
 from ..message.parser.base import DetectPrefix, DetectSuffix
-from ..message.parser.literature import Literature
 
-# Twilight
 # Literature
-from ..message.parser.pattern import (
-    ArgumentMatch,
+from ..message.parser.literature import (
     BoxParameter,
+    Literature,
+    ParamPattern,
+    SwitchParameter,
+)
+from ..message.parser.twilight import (
+    ArgumentMatch,
     ElementMatch,
     FullMatch,
     Match,
-    ParamPattern,
     RegexMatch,
-    SwitchParameter,
+    Twilight,
+    UnionMatch,
     WildcardMatch,
 )
-from ..message.parser.twilight import Twilight
+
+# Twilight

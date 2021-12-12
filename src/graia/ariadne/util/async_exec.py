@@ -1,16 +1,15 @@
 """本模块提供并行执行器, 及方便函数 `io_bound`, `cpu_bound`.
 """
 import asyncio
+import atexit
 import functools
 import importlib
+import multiprocessing
 from asyncio.events import AbstractEventLoop
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from typing import Awaitable, Callable, ClassVar, Dict, TypeVar
-import multiprocessing
 
 from typing_extensions import ParamSpec
-import atexit
-
 
 P = ParamSpec("P")
 

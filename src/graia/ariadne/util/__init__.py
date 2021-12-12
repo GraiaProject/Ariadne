@@ -220,6 +220,9 @@ async def yield_with_timeout(
         for t in done:
             res = await t
             yield res
+    if last_tsk:
+        for tsk in last_tsk:
+            tsk.cancel()
 
 
 def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:

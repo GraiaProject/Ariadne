@@ -19,7 +19,6 @@ from typing import (
 
 from graia.broadcast import Broadcast
 from loguru import logger
-from prompt_toolkit.patch_stdout import StdoutProxy
 
 from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
@@ -1171,9 +1170,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
         )
-
-        logger.remove(0)
-        logger.add(StdoutProxy(raw=True), colorize=True)
 
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)

@@ -37,7 +37,8 @@ from ..context import enter_context
 
 # Import layout
 from . import async_exec
-from .async_exec import ParallelExecutor, cpu_bound, io_bound
+from .async_exec import ParallelExecutor, cpu_bound, io_bound, IS_MAIN_PROCESS
+
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -94,11 +95,12 @@ def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
         logger.error(f"Exception: {ctx}")
 
 
-def inject_loguru_traceback(loop: AbstractEventLoop):
+def inject_loguru_traceback(loop: AbstractEventLoop = None):
     """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
-    loop.set_exception_handler(loguru_async_handler)
+    if loop:
+        loop.set_exception_handler(loguru_async_handler)
 
 
 def inject_bypass_listener(broadcast: Broadcast):
@@ -237,3 +239,11 @@ def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
 def cast_to(obj, typ: Type[T]) -> T:
     if typ:
         return obj
+
+
+class Dummy:
+    def __getattr__(self, *_, **__):
+        return self
+
+    def __call__(self, *_, **__):
+        return self

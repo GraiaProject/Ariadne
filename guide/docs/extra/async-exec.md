@@ -38,6 +38,41 @@ def foo(n: int) -> int:
 
     因为 `cpu_bound` 的参数是通过 `pickle` 传入的, 所以不要想着传递奇奇怪怪的对象作为参数 (文件, 窗口, 进程, 协程等).
 
+    也因为这个, `cpu_bound` 包装的函数 **所在模块** 在导入时不能执行 `Saya` `Channel` 之类上下文的获取操作.
+
+    !!! info "提示"
+
+        如果你需要在 `Saya` 模块中包装 `cpu_bound` 函数, 也是可以的, 但是要将上下文的值设为 `Dummy` 对象:
+
+        ```py
+        # import ...
+        from graia.ariadne.util.async_exec import IS_MAIN_PROCESS
+        from graia.ariadne.util import Dummy
+
+        if IS_MAIN_PROCESS():
+            saya = Saya.current()
+            channel = Channel.current()
+            ...
+        else:
+            saya = Dummy()
+            channel = Dummy()
+            ...
+
+        ...
+        ```
+
+        这样就可以保证只在主进程中进行上下文的获取了.
+
+## 充分利用 ParallelExecutor
+
+在你的代码中可以通过 `ParallelExecutor.get()` 得到一个 `ParallelExecutor` 实例, 可以在其上运行 `to_thread` 与 `to_process` 异步方法.
+
+这些方法可以运行被包装过的和没被包装过的函数.
+
+!!! warning "提示"
+
+    注意其签名为 `(func: Callable[P, R], *args, *kwargs) -> Awaitable[R]`. 也就是说, 不用传入元组作为打包的参数了.
+
 ## 进一步控制
 
 要进一步控制, 可以从 `graia.ariadne.util.async_exec` 导入 `ParallelExecutor`.

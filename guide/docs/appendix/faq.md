@@ -4,6 +4,10 @@
 
 请检查 `Mirai Console` 的配置, 你账号的 `PROTOCOL` (登录协议) 影响接收事件的类型. 这不是 `Ariadne` 的问题.
 
+`NugetEvent` 需要 `Mirai` 的登录协议是 `ANDROID_PHONE/IPAD/MACOS` 中的一种
+
+`ANDROID_PAD/ANDROID_WATCH` 协议由于腾讯服务器原因并不能接受 `NugetEvent`
+
 ## 为什么不像 Application 一样支持 Mirai Code?
 
 `Ariadne` 只支持构造 `Mirai Code` 而无法转换, 是因为我们不想鼓励用户先转换成 `Mirai Code`, 之后再对文本化元素进行处理.

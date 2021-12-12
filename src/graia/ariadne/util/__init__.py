@@ -33,8 +33,6 @@ from loguru import logger
 from prompt_toolkit.patch_stdout import StdoutProxy
 from typing_extensions import ParamSpec
 
-from ..context import enter_context
-
 # Import layout
 from . import async_exec
 from .async_exec import IS_MAIN_PROCESS, ParallelExecutor, cpu_bound, io_bound
@@ -162,6 +160,8 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         self.app = app
 
     def beforeExecution(self, interface: "DispatcherInterface"):
+        from ..context import enter_context
+
         self.context = enter_context(self.app, interface.event)
         self.context.__enter__()
 
@@ -178,6 +178,8 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
 def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
     @functools.wraps(func)
     async def wrapper(self, *args: P.args, **kwargs: P.kwargs):
+        from ..context import enter_context
+
         with enter_context(app=self):
             return await func(self, *args, **kwargs)
 
@@ -249,3 +251,6 @@ class Dummy:
 
     def __call__(self, *_, **__):
         return self
+
+
+inject_loguru_traceback()

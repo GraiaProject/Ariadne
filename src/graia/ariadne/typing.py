@@ -1,20 +1,21 @@
-from typing import TYPE_CHECKING, Generic, Optional, Tuple, TypeVar
+from typing import Generic, Optional, Tuple, TypeVar
 
-from typing_extensions import ParamSpec, TypeGuard
+from typing_extensions import ParamSpec
 
-if TYPE_CHECKING:
-    P = ParamSpec("P")
-    R = TypeVar("R")
+P = ParamSpec("P")
+R = TypeVar("R")
 
-    Self = TypeVar("Self")
+Self = TypeVar("Self")
 
-    T_start = TypeVar("T_start")
-    T_stop = TypeVar("T_stop")
-    T_step = TypeVar("T_step")
+T_start = TypeVar("T_start")
+T_stop = TypeVar("T_stop")
+T_step = TypeVar("T_step")
 
-    class Slice(Generic[T_start, T_stop, T_step]):
-        start: T_start
-        stop: T_stop
-        step: T_step
 
-    MessageIndex = Tuple[int, Optional[int]]
+class Slice(Generic[T_start, T_stop, T_step]):
+    start: T_start
+    stop: T_stop
+    step: T_step
+
+
+MessageIndex = Tuple[int, Optional[int]]

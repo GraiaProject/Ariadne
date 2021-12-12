@@ -32,12 +32,12 @@ isort = ">=5.9.3"
 devtools = ">=0.8.0"
 objgraph = ">=3.5.0"
 ptpython = ">=3.0.20"
-pdoc3 = ">=0.10.0"
 graia-saya = "^0.0.13"
 mkdocs-material = ">=7.3.6"
 graia-scheduler = "^0.0.6"
 pydeps = "^1.10.12"
 pre-commit = "^2.16.0"
+pdoc = "^8.0.1"
 
 [tool.isort]
 profile = "black"

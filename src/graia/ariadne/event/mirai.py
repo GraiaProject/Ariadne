@@ -329,17 +329,17 @@ class NudgeEvent(MiraiEvent):
 
     context_type: Literal["friend", "group", None] = None
 
-    @validator("friend_id", pre=True, always=True)
+    @validator("friend_id", pre=True, always=True, allow_reuse=True)
     def subject_handle_friend_id(cls, v, values, **kwargs):
         if values["origin_subject_info"]["kind"] == "Friend":
             return values["origin_subject_info"]["id"]
 
-    @validator("group_id", pre=True, always=True)
+    @validator("group_id", pre=True, always=True, allow_reuse=True)
     def subject_handle_group_id(cls, v, values):
         if values["origin_subject_info"]["kind"] == "Group":
             return values["origin_subject_info"]["id"]
 
-    @validator("context_type", pre=True, always=True)
+    @validator("context_type", pre=True, always=True, allow_reuse=True)
     def subject_handle_context_type(cls, v, values):
         return str.lower(values["origin_subject_info"]["kind"])
 

@@ -9,7 +9,7 @@ from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import At, Plain, Source
+from graia.ariadne.message.element import At, MultimediaElement, Plain, Source
 from graia.ariadne.message.parser.pattern import (
     ArgumentMatch,
     FullMatch,
@@ -43,6 +43,12 @@ if __name__ == "__main__":
             await app.sendFriendMessage(friend, MessageChain.create("Wait for 5s!"))
             await asyncio.sleep(5.0)
             await app.sendFriendMessage(friend, MessageChain.create("Complete!"))
+
+    @bcc.receiver(MessageEvent)
+    async def check_multi(chain: MessageChain):
+        if chain.has(MultimediaElement):
+            elem = chain.getFirst(MultimediaElement)
+            logger.info(elem.dict())
 
     @bcc.receiver(
         MessageEvent,

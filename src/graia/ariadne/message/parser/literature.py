@@ -35,7 +35,7 @@ class SwitchParameter(ParamPattern):
 
 @dataclass(init=True, eq=True, repr=True)
 class BoxParameter(ParamPattern):
-    "可以被指定传入消息的参数, 但只有一个."
+    """可以被指定传入消息的参数, 但只有一个."""
 
 
 class Literature(BaseDispatcher):
@@ -81,7 +81,7 @@ class Literature(BaseDispatcher):
                 string_result.append(f"${index}")
                 id_elem_map[index] = elem
 
-        return ("".join(string_result), id_elem_map)
+        return "".join(string_result), id_elem_map
 
     def gen_long_map(self):
         result = {}
@@ -165,7 +165,7 @@ class Literature(BaseDispatcher):
                 else:
                     raise ExecutionStop()
 
-        return (parsed_args, variables)
+        return parsed_args, variables
 
     def prefix_match(self, target_chain: MessageChain):
         target_chain = target_chain.exclude(Source).merge(copy=True)

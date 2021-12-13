@@ -195,7 +195,7 @@ class MiraiSession(AriadneBaseModel):
 
 
 class Friend(AriadneBaseModel):
-    "描述 Tencent QQ 中的好友."
+    """描述 Tencent QQ 中的好友."""
 
     id: int
     nickname: str
@@ -203,14 +203,14 @@ class Friend(AriadneBaseModel):
 
 
 class Stranger(AriadneBaseModel):
-    "描述 Tencent QQ 中的陌生人."
+    """描述 Tencent QQ 中的陌生人."""
     id: int
     nickname: str
     remark: str
 
 
 class MemberPerm(Enum):
-    "描述群成员在群组中所具备的权限"
+    """描述群成员在群组中所具备的权限"""
 
     Member = "MEMBER"  # 普通成员
     Administrator = "ADMINISTRATOR"  # 管理员
@@ -218,7 +218,7 @@ class MemberPerm(Enum):
 
 
 class Group(AriadneBaseModel):
-    "描述 Tencent QQ 中的群组."
+    """描述 Tencent QQ 中的群组."""
 
     id: int
     name: str
@@ -226,7 +226,7 @@ class Group(AriadneBaseModel):
 
 
 class Member(AriadneBaseModel):
-    "描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."
+    """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
 
     id: int
     name: str = Field(..., alias="memberName")
@@ -239,7 +239,7 @@ class Member(AriadneBaseModel):
 
 
 class GroupConfig(AriadneBaseModel):
-    "描述群组各项功能的设置."
+    """描述群组各项功能的设置."""
 
     name: str = ""
     announcement: str = ""
@@ -255,7 +255,7 @@ class GroupConfig(AriadneBaseModel):
 
 
 class MemberInfo(AriadneBaseModel):
-    "描述群组成员的可修改状态, 修改需要管理员/群主权限."
+    """描述群组成员的可修改状态, 修改需要管理员/群主权限."""
 
     name: str = ""
     specialTitle: str = ""
@@ -284,7 +284,7 @@ class DownloadInfo(AriadneBaseModel):
 
 
 class FileInfo(AriadneBaseModel):
-    "群组文件详细信息"
+    """群组文件详细信息"""
 
     name: str = ""
     path: str = ""

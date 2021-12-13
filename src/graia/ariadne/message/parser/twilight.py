@@ -46,7 +46,7 @@ from .util import (
 
 
 class Match(abc.ABC, Representation):
-    "匹配器的抽象基类."
+    """匹配器的抽象基类."""
     pattern: str
     optional: bool
     help: str
@@ -75,7 +75,7 @@ class Match(abc.ABC, Representation):
 
 
 class RegexMatch(Match):
-    "基础的正则表达式匹配."
+    """基础的正则表达式匹配."""
     regex_match: Optional[re.Match]
     preserve_space: bool
 
@@ -103,7 +103,7 @@ class RegexMatch(Match):
 
 
 class WildcardMatch(RegexMatch):
-    "泛匹配."
+    """泛匹配."""
 
     preserve_space: bool
 
@@ -124,7 +124,7 @@ class WildcardMatch(RegexMatch):
 
 
 class FullMatch(RegexMatch):
-    "全匹配."
+    """全匹配."""
 
     def __init__(
         self,
@@ -145,7 +145,7 @@ class FullMatch(RegexMatch):
 
 
 class ElementMatch(RegexMatch):
-    "元素类型匹配."
+    """元素类型匹配."""
 
     pattern: Type["Element"]
     result: "Element"
@@ -173,7 +173,7 @@ class ElementMatch(RegexMatch):
 
 
 class UnionMatch(RegexMatch):
-    "多重匹配."
+    """多重匹配."""
 
     pattern: Tuple[str, ...]
 
@@ -549,7 +549,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         """
 
     def __init__(self, root=..., match=..., *, map_params: Optional[Dict[str, bool]] = None):
-        "Actual implementation of __init__"
+        """Actual implementation of __init__"""
         if isinstance(root, Sparkle):
             self.root = root
         elif isinstance(root, type) and issubclass(root, Sparkle):
@@ -579,7 +579,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         chain: MessageChain = interface.event.messageChain
         try:
             local_storage["result"] = self.generate(chain)
-        except:
+        except Exception:
             raise ExecutionStop
 
     async def catch(

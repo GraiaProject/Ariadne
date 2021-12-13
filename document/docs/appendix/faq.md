@@ -21,3 +21,21 @@
 目前 `Ariadne` 的 `API 文档` 已经支持搜索功能, 你可以搜索自己想要的功能, 或者利用 `GitHub` 搜索源码.
 
 如果你说的是 `HTTPAdapter` 与 `WebsocketAdapter` 的话, 因为 `Ariadne` 重点目前不在这里, 所以并没有怎么动 (而且可能有潜在 bug)...
+
+## 多媒体元素的 get_bytes 方法为什么会存储 base64 属性?
+
+你可能会有这个迷惑:
+
+```py
+img = Image(url=...)
+await img.get_bytes()
+assert img.base64 is not None
+```
+
+这是正常且符合设计的, 因为:
+
+-   这个设计加速了后续的 `get_bytes` 操作.
+-   `url` 优先级高于 `base64`, 不会对发送产生任何影响.
+-   可以保证 `asPersistentString` 完整存储了图片数据, 以防止不可靠 `url` 影响.
+
+可能后续会添加一个 `remove_url` 的仅关键字参数.

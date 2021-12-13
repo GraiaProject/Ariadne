@@ -18,7 +18,7 @@ class Formatter:
         kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in kwargs.items()}
 
         args_mapping: Dict[str, MessageChain] = {
-            f"\x02{index}\x02": (chain) for index, chain in enumerate(args)
+            f"\x02{index}\x02": chain for index, chain in enumerate(args)
         }
         kwargs_mapping: Dict[str, MessageChain] = {f"\x03{key}\x03": chain for key, chain in kwargs.items()}
 

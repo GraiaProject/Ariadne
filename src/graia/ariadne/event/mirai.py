@@ -794,7 +794,7 @@ class RequestEvent(MiraiEvent):
         adapter = adapter_ctx.get()
         if not adapter.mirai_session.session_key:
             raise InvalidSession("you must authenticate before this.")
-        api_route = (self.type)[0].lower() + self.type[1:]
+        api_route = self.type[0].lower() + self.type[1:]
         await adapter.call_api(
             f"resp/{api_route}",
             CallMethod.POST,

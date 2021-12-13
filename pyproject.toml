@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne-dev"
-version = "2021.12.12.2"
+version = "2021.12.13.1"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -38,6 +38,7 @@ graia-scheduler = "^0.0.6"
 pydeps = "^1.10.12"
 pre-commit = "^2.16.0"
 pdoc = "^8.0.1"
+requests = { version = "^2.26.0", extras = ["dev"] }
 
 [tool.isort]
 profile = "black"

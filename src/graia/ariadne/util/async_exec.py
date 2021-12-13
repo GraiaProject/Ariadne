@@ -1,7 +1,6 @@
 """本模块提供并行执行器, 及方便函数 `io_bound`, `cpu_bound`.
 """
 import asyncio
-import atexit
 import functools
 import importlib
 import multiprocessing
@@ -122,9 +121,6 @@ class ParallelExecutor:
             args,
             kwargs,
         )
-
-
-atexit.register(ParallelExecutor.shutdown)
 
 
 def io_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:

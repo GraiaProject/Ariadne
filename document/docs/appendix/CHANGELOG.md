@@ -8,7 +8,7 @@
 
 添加内置 `Console` ([#41](https://github.com/GraiaProject/Ariadne/issues/41)). (WIP)
 
-添加 `Alconna` 支持 ([#37](https://github.com/GraiaProject/Ariadne/issues/37)). (WIP)
+添加 `Alconna` 支持 ([#37](https://github.com/GraiaProject/Ariadne/issues/37)).
 
 ### 改动
 

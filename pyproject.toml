@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne-dev"
-version = "2021.12.13.1"
+version = "2021.12.13.2"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -45,7 +45,7 @@ profile = "black"
 
 [tool.black]
 line-length = 110
-target-version = ['py38']
+target-version = ['py39']
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

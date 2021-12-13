@@ -1283,14 +1283,22 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
             # Telemetry
             if not self.disable_telemetry:
+                official: List[Tuple[str, str]] = []
+                community: List[str] = []
                 for dist in importlib.metadata.distributions():
                     name: str = dist.metadata["Name"]
                     version: str = dist.version
-                    if name.startswith("graia"):
-                        name = " ".join(name.split("-")[1:]).title()  # remove graia prefix
-                        logger.opt(colors=True, raw=True).info(
-                            f"<magenta>{name}</> version: <yellow>{version}</>\n"
-                        )
+                    if name.startswith("graia-"):
+                        official.append((" ".join(name.split("-")[1:]).title(), version))
+                    elif name.startswith("graiax-"):
+                        community.append((" ".join(name.split("-")).title(), version))
+
+                for name, version in official:
+                    logger.opt(colors=True, raw=True).info(
+                        f"<magenta>{name}</> version: <yellow>{version}</>\n"
+                    )
+                for name, version in community:
+                    logger.opt(colors=True, raw=True).info(f"<cyan>{name}</> version: <yellow>{version}</>\n")
 
             logger.info("Launching app...")
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))

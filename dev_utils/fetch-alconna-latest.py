@@ -1,9 +1,10 @@
-import os
 import io
-import requests
-import zipfile
+import os
 import shutil
 import tempfile
+import zipfile
+
+import requests
 
 os.chdir(os.path.join(__file__, "..", ".."))
 

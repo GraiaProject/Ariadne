@@ -109,13 +109,13 @@ def inject_bypass_listener(broadcast: Broadcast):
 
     class BypassListener(Listener):
         def __init__(
-                self,
-                callable: Callable,
-                namespace: Namespace,
-                listening_events: List[Type[Dispatchable]],
-                inline_dispatchers: List[T_Dispatcher] = None,
-                decorators: List[Decorator] = None,
-                priority: int = 16,
+            self,
+            callable: Callable,
+            namespace: Namespace,
+            listening_events: List[Type[Dispatchable]],
+            inline_dispatchers: List[T_Dispatcher] = None,
+            decorators: List[Decorator] = None,
+            priority: int = 16,
         ) -> None:
             events = []
             for event in listening_events:
@@ -135,8 +135,8 @@ def inject_bypass_listener(broadcast: Broadcast):
         if isinstance(interface.event, interface.annotation):
             return interface.event
         elif (
-                hasattr(interface.annotation, "__origin__")
-                and interface.annotation.__origin__ is DispatcherInterface
+            hasattr(interface.annotation, "__origin__")
+            and interface.annotation.__origin__ is DispatcherInterface
         ):
             return interface
 
@@ -208,9 +208,9 @@ async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01)
 
 
 async def yield_with_timeout(
-        getter_coro: Callable[[], Coroutine[None, None, T]],
-        predicate: Callable[[], bool],
-        await_length: float = 0.2,
+    getter_coro: Callable[[], Coroutine[None, None, T]],
+    predicate: Callable[[], bool],
+    await_length: float = 0.2,
 ) -> AsyncIterator[T]:
     last_tsk = None
     while predicate():

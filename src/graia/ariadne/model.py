@@ -204,6 +204,7 @@ class Friend(AriadneBaseModel):
 
 class Stranger(AriadneBaseModel):
     """描述 Tencent QQ 中的陌生人."""
+
     id: int
     nickname: str
     remark: str

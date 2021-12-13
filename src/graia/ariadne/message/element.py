@@ -89,6 +89,7 @@ class Plain(Element):
 
 class Source(Element):
     """表示消息在一个特定聊天区域内的唯一标识"""
+
     type: str = "Source"
     id: int
     time: datetime
@@ -119,6 +120,7 @@ class Source(Element):
 
 class Quote(Element):
     """表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"""
+
     type: str = "Quote"
     id: int
     groupId: int
@@ -180,6 +182,7 @@ class At(Element):
 
 class AtAll(Element):
     """该消息元素用于群组中的管理员提醒群组中的所有成员"""
+
     type: str = "AtAll"
 
     def __init__(self, *_, **__) -> None:
@@ -200,6 +203,7 @@ class AtAll(Element):
 
 class Face(Element):
     """表示消息中所附带的表情, 这些表情大多都是聊天工具内置的."""
+
     type: str = "Face"
     faceId: Optional[int] = None
     name: Optional[str] = None
@@ -220,6 +224,7 @@ class Face(Element):
 
 class Xml(Element):
     """表示消息中的 XML 消息元素"""
+
     type = "Xml"
     xml: str
 
@@ -229,6 +234,7 @@ class Xml(Element):
 
 class Json(Element):
     """表示消息中的 JSON 消息元素"""
+
     type = "Json"
     Json: str = Field(..., alias="json")
 
@@ -246,6 +252,7 @@ class Json(Element):
 
 class App(Element):
     """表示消息中自带的 App 消息元素"""
+
     type = "App"
     content: str
 
@@ -255,6 +262,7 @@ class App(Element):
 
 class PokeMethods(Enum):
     """戳一戳可用方法"""
+
     ChuoYiChuo = "ChuoYiChuo"
     BiXin = "BiXin"
     DianZan = "DianZan"
@@ -275,6 +283,7 @@ class PokeMethods(Enum):
 
 class Poke(Element):
     """表示消息中戳一戳消息元素"""
+
     type = "Poke"
     name: PokeMethods
 
@@ -287,6 +296,7 @@ class Poke(Element):
 
 class Dice(Element):
     """表示消息中骰子消息元素"""
+
     type = "Dice"
     value: int
 
@@ -299,6 +309,7 @@ class Dice(Element):
 
 class MusicShare(Element):
     """表示消息中音乐分享消息元素"""
+
     type = "MusicShare"
     kind: Optional[str]
     title: Optional[str]
@@ -314,6 +325,7 @@ class MusicShare(Element):
 
 class ForwardNode(AriadneBaseModel):
     """表示合并转发中的一个节点"""
+
     senderId: int
     time: datetime
     senderName: str
@@ -381,6 +393,7 @@ class Forward(Element):
 
 class File(Element):
     """指示一个文件信息元素"""
+
     type = "File"
     id: str
     name: str
@@ -395,6 +408,7 @@ class File(Element):
 
 class MiraiCode(Element):
     """Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口."""
+
     type = "MiraiCode"
     code: str
 
@@ -505,6 +519,7 @@ class MultimediaElement(Element):
 
 class Image(MultimediaElement):
     """指示消息中的图片元素"""
+
     type = "Image"
     id: Optional[str] = Field(None, alias="imageId")
 
@@ -521,6 +536,7 @@ class Image(MultimediaElement):
 
 class FlashImage(Image):
     """指示消息中的闪照元素"""
+
     type = "FlashImage"
 
     def toImage(self) -> "Image":
@@ -536,6 +552,7 @@ class FlashImage(Image):
 
 class Voice(MultimediaElement):
     """指示消息中的语音元素"""
+
     type = "Voice"
     id: Optional[str] = Field(None, alias="voiceId")
     length: Optional[int]

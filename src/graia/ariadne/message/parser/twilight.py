@@ -47,6 +47,7 @@ from .util import (
 
 class Match(abc.ABC, Representation):
     """匹配器的抽象基类."""
+
     pattern: str
     optional: bool
     help: str
@@ -76,6 +77,7 @@ class Match(abc.ABC, Representation):
 
 class RegexMatch(Match):
     """基础的正则表达式匹配."""
+
     regex_match: Optional[re.Match]
     preserve_space: bool
 

@@ -39,5 +39,5 @@ from ..model import (
     Stranger,
     UploadMethod,
 )
-from ..util import io_bound, cpu_bound
+from ..util import cpu_bound, io_bound
 from . import event, message

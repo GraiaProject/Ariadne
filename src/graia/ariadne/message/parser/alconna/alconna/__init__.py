@@ -1,9 +1,10 @@
-from typing import Dict, List, Optional, Union, Type, Any, TypeVar
-from pydantic import BaseModel
 import re
-from .util import split_once
-from .exceptions import ParamsUnmatched, NullName, InvalidOptionName
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union
 
+from pydantic import BaseModel
+
+from .exceptions import InvalidOptionName, NullName, ParamsUnmatched
+from .util import split_once
 
 AnyIP = r"(\d+)\.(\d+)\.(\d+)\.(\d+)"
 AnyDigit = r"(\d+)"
@@ -42,10 +43,7 @@ class Option(OptionInterface):
             raise NullName
         if re.match(r"^[`~?/.,<>;\':\"|!@#$%^&*()_+=\[\]}{]+.*$", name):
             raise InvalidOptionName
-        super().__init__(
-            name=name,
-            args={k: v for k, v in kwargs.items() if k not in ('name', 'type')}
-        )
+        super().__init__(name=name, args={k: v for k, v in kwargs.items() if k not in ("name", "type")})
 
 
 class Subcommand(OptionInterface):
@@ -60,7 +58,7 @@ class Subcommand(OptionInterface):
         super().__init__(
             name=name,
             Options=list(options),
-            args={k: v for k, v in kwargs.items() if k not in ('name', 'type')}
+            args={k: v for k, v in kwargs.items() if k not in ("name", "type")},
         )
 
 
@@ -89,7 +87,7 @@ class Arpamar(BaseModel):
         super().__init__(**kwargs)
         self.current_index: int = 0  # 记录解析时当前字符串的index
         self.is_str: bool = False  # 是否解析的是string
-        self.results: Dict[str, Any] = {'options': {}}
+        self.results: Dict[str, Any] = {"options": {}}
         self.elements: Dict[int, NonTextElement] = {}
         self.raw_texts: List[List[Union[int, str]]] = []
         self.need_marg: bool = False
@@ -99,13 +97,13 @@ class Arpamar(BaseModel):
 
     @property
     def main_argument(self):
-        if 'main_argument' in self.results and self.need_marg:
-            return self.results['main_argument']
+        if "main_argument" in self.results and self.need_marg:
+            return self.results["main_argument"]
 
     @property
     def header(self):
-        if self.results['header']:
-            return self.results['header']
+        if self.results["header"]:
+            return self.results["header"]
         else:
             return self.head_matched
 
@@ -114,7 +112,7 @@ class Arpamar(BaseModel):
         return self._args
 
     def encapsulate_result(self) -> None:
-        for k, v in self.results['options'].items():
+        for k, v in self.results["options"].items():
             self.__setattr__(k, v)
             if isinstance(v, dict):
                 for kk, vv in v.items():
@@ -143,7 +141,7 @@ class Arpamar(BaseModel):
         return _text, _rest_text
 
     class Config:
-        extra = 'allow'
+        extra = "allow"
 
 
 class Alconna(CommandInterface):
@@ -185,12 +183,12 @@ class Alconna(CommandInterface):
     main_argument: Argument_T
 
     def __init__(
-            self,
-            headers: Optional[List[str]] = None,
-            command: Optional[str] = None,
-            separator: Optional[str] = None,
-            options: Optional[Options_T] = None,
-            main_argument: Optional[Argument_T] = None
+        self,
+        headers: Optional[List[str]] = None,
+        command: Optional[str] = None,
+        separator: Optional[str] = None,
+        options: Optional[Options_T] = None,
+        main_argument: Optional[Argument_T] = None,
     ):
         # headers与command二者必须有其一
         if all([all([not headers, not command]), not options, not main_argument]):
@@ -206,12 +204,12 @@ class Alconna(CommandInterface):
 
         # params是除开命令头的剩下部分
         self._params: Dict[str, Union[Argument_T, Dict[str, Any]]] = {"main_argument": self.main_argument}
-        for opts in self.dict()['options']:
-            if opts['type'] == "SBC":
-                opts.setdefault('sub_params', {"sub_args": opts['args']})
-                for sub_opts in opts['Options']:
-                    opts['sub_params'][sub_opts['name']] = sub_opts
-            self._params[opts['name']] = opts
+        for opts in self.dict()["options"]:
+            if opts["type"] == "SBC":
+                opts.setdefault("sub_params", {"sub_args": opts["args"]})
+                for sub_opts in opts["Options"]:
+                    opts["sub_params"][sub_opts["name"]] = sub_opts
+            self._params[opts["name"]] = opts
 
         self._command_headers: List[str] = []  # 依据headers与command生成一个列表，其中含有所有的命令头
         if self.headers != [""]:
@@ -221,11 +219,7 @@ class Alconna(CommandInterface):
             self._command_headers.append(self.command)
 
     def _analyse_args(
-            self,
-            opt_args: Dict[str, Argument_T],
-            may_args: str,
-            sep: str,
-            rest_text: str
+        self, opt_args: Dict[str, Argument_T], may_args: str, sep: str, rest_text: str
     ) -> Dict[str, Any]:
 
         _option_dict: Dict[str, Any] = {}
@@ -235,7 +229,7 @@ class Alconna(CommandInterface):
                     may_arg, may_args = split_once(may_args, sep)
                 else:
                     may_arg, rest_text = self.result.split_by(sep)
-                _arg_find = re.findall('^' + v + '$', may_arg)
+                _arg_find = re.findall("^" + v + "$", may_arg)
                 if not _arg_find:
                     raise ParamsUnmatched
                 if _arg_find[0] == v:
@@ -251,19 +245,16 @@ class Alconna(CommandInterface):
         return _option_dict
 
     def _analyse_option(
-            self,
-            param: Dict[str, Union[str, Dict[str, Argument_T]]],
-            text: str,
-            rest_text: str
+        self, param: Dict[str, Union[str, Dict[str, Argument_T]]], text: str, rest_text: str
     ) -> Dict[str, Any]:
 
-        opt: str = param['name']
-        arg: Dict[str, Argument_T] = param['args']
-        sep: str = param['separator']
+        opt: str = param["name"]
+        arg: Dict[str, Argument_T] = param["args"]
+        sep: str = param["separator"]
         name, may_args = split_once(text, sep)
         if sep == self.separator:  # 在sep等于separator的情况下name是被提前切出来的
             name = text
-        if not re.match('^' + opt + '$', name):  # 先匹配选项名称
+        if not re.match("^" + opt + "$", name):  # 先匹配选项名称
             raise ParamsUnmatched
         self.result.raw_texts[self.result.current_index][0] = rest_text
         name = name.lstrip("-")
@@ -272,18 +263,15 @@ class Alconna(CommandInterface):
         return {name: self._analyse_args(arg, may_args, sep, rest_text)}
 
     def _analyse_subcommand(
-            self,
-            param: Dict[str, Union[str, Dict]],
-            text: str,
-            rest_text: str
+        self, param: Dict[str, Union[str, Dict]], text: str, rest_text: str
     ) -> Dict[str, Any]:
-        command: str = param['name']
-        sep: str = param['separator']
-        sub_params: Dict = param['sub_params']
+        command: str = param["name"]
+        sep: str = param["separator"]
+        sub_params: Dict = param["sub_params"]
         name, may_text = split_once(text, sep)
         if sep == self.separator:
             name = text
-        if not re.match('^' + command + '$', name):
+        if not re.match("^" + command + "$", name):
             raise ParamsUnmatched
 
         self.result.raw_texts[self.result.current_index][0] = may_text
@@ -291,7 +279,7 @@ class Alconna(CommandInterface):
             self.result.raw_texts[self.result.current_index][0] = rest_text
 
         name = name.lstrip("-")
-        if not param['args'] and not param['Options']:
+        if not param["args"] and not param["Options"]:
             return {name: Ellipsis}
 
         subcommand = {}
@@ -301,12 +289,12 @@ class Alconna(CommandInterface):
                 _text, _rest_text = self.result.split_by(sep)
                 sub_param = sub_params.get(_text)
                 if not sub_param:
-                    sub_param = sub_params['sub_args']
+                    sub_param = sub_params["sub_args"]
                     for sp in sub_params:
                         if _text.startswith(sp):
                             sub_param = sub_params.get(sp)
                             break
-                if sub_param.get('type'):
+                if sub_param.get("type"):
                     subcommand.update(self._analyse_option(sub_param, _text, _rest_text))
                 elif not _get_args:
                     args = self._analyse_args(sub_param, _text, sep, _rest_text)
@@ -325,7 +313,7 @@ class Alconna(CommandInterface):
     def _analyse_header(self) -> str:
         head_text, self.result.raw_texts[0][0] = self.result.split_by(self.separator)
         for ch in self._command_headers:
-            _head_find: List = re.findall('^' + ch + '$', head_text)
+            _head_find: List = re.findall("^" + ch + "$", head_text)
             if not _head_find:
                 continue
             self.result.head_matched = True
@@ -335,13 +323,10 @@ class Alconna(CommandInterface):
             raise ParamsUnmatched
 
     def _analyse_main_argument(
-            self,
-            param: Argument_T,
-            text: str,
-            rest_text: str
+        self, param: Argument_T, text: str, rest_text: str
     ) -> Union[str, NonTextElement]:
         if isinstance(param, str):
-            _param_find = re.findall('^' + param + '$', text)
+            _param_find = re.findall("^" + param + "$", text)
             if not _param_find:
                 raise ParamsUnmatched
             self.result.raw_texts[self.result.current_index][0] = rest_text
@@ -366,7 +351,7 @@ class Alconna(CommandInterface):
                 if ele.__class__.__name__ not in ("Plain", "Source", "Quote", "File"):
                     self.result.elements[i] = ele
                 elif ele.__class__.__name__ == "Plain":
-                    self.result.raw_texts.append([ele.text.lstrip(' '), i])
+                    self.result.raw_texts.append([ele.text.lstrip(" "), i])
 
         if self.main_argument != "":
             self.result.need_marg = True  # 如果need_marg那么match的元素里一定得有main_argument
@@ -376,7 +361,7 @@ class Alconna(CommandInterface):
             return self.result
 
         try:
-            self.result.results['header'] = self._analyse_header()
+            self.result.results["header"] = self._analyse_header()
         except ParamsUnmatched:
             self.result.results.clear()
             return self.result
@@ -388,18 +373,22 @@ class Alconna(CommandInterface):
                 _text, _rest_text = self.result.split_by(self.separator)
                 _param = self._params.get(_text)
                 if not _param:
-                    _param = self._params['main_argument']
+                    _param = self._params["main_argument"]
                     for p in self._params:
                         if _text.startswith(p):
                             _param = self._params.get(p)
                             break
                 if isinstance(_param, dict):
-                    if _param['type'] == 'OPT':
-                        self.result.results['options'].update(self._analyse_option(_param, _text, _rest_text))
-                    elif _param['type'] == 'SBC':
-                        self.result.results['options'].update(self._analyse_subcommand(_param, _text, _rest_text))
+                    if _param["type"] == "OPT":
+                        self.result.results["options"].update(self._analyse_option(_param, _text, _rest_text))
+                    elif _param["type"] == "SBC":
+                        self.result.results["options"].update(
+                            self._analyse_subcommand(_param, _text, _rest_text)
+                        )
                 elif not self.result.results.get("main_argument"):
-                    self.result.results['main_argument'] = self._analyse_main_argument(_param, _text, _rest_text)
+                    self.result.results["main_argument"] = self._analyse_main_argument(
+                        _param, _text, _rest_text
+                    )
             except (IndexError, KeyError):
                 pass
             except ParamsUnmatched:
@@ -408,14 +397,26 @@ class Alconna(CommandInterface):
         try:
             # 如果没写options并且marg不是str的话，匹配完命令头后是进不去上面的代码的，这里单独拿一段出来
             may_element_index = self.result.raw_texts[self.result.current_index][1] + 1
-            if self.result.elements and type(self.result.elements[may_element_index]) is self._params['main_argument']:
-                self.result.results['main_argument'] = self.result.elements.pop(may_element_index)
+            if (
+                self.result.elements
+                and type(self.result.elements[may_element_index]) is self._params["main_argument"]
+            ):
+                self.result.results["main_argument"] = self.result.elements.pop(may_element_index)
         except (IndexError, KeyError):
             pass
 
-        if len(self.result.elements) == 0 and all([t[0] == "" for t in self.result.raw_texts]) \
-                and (not self.result.need_marg or (self.result.need_marg and not self.result.has('help')
-                                                   and 'main_argument' in self.result.results)):
+        if (
+            len(self.result.elements) == 0
+            and all([t[0] == "" for t in self.result.raw_texts])
+            and (
+                not self.result.need_marg
+                or (
+                    self.result.need_marg
+                    and not self.result.has("help")
+                    and "main_argument" in self.result.results
+                )
+            )
+        ):
             self.result.matched = True
             self.result.encapsulate_result()
         else:

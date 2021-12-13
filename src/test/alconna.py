@@ -1,7 +1,6 @@
-from graia.ariadne.message.element import At
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At
-from graia.ariadne.message.parser.alconna import Alconna, Option, AnyStr, AnyDigit
+from graia.ariadne.message.parser.alconna import Alconna, AnyDigit, AnyStr, Option
 
 """ping = Alconna(
     headers=["/", "!"],

@@ -1,23 +1,23 @@
 from typing import TYPE_CHECKING
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+
 from graia.broadcast.entities.dispatcher import BaseDispatcher
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ...chain import MessageChain
 from ....event.message import MessageEvent
-
+from ...chain import MessageChain
 from .alconna import (
     Alconna,
-    Arpamar,
-    AnyStr,
-    AnyIP,
     AnyDigit,
+    AnyIP,
+    AnyStr,
     AnyUrl,
-    Option,
-    Subcommand,
+    Arpamar,
     CommandInterface,
+    Option,
     OptionInterface,
+    Subcommand,
 )
-from .alconna.exceptions import ParamsUnmatched, NullName, InvalidOptionName
+from .alconna.exceptions import InvalidOptionName, NullName, ParamsUnmatched
 
 if TYPE_CHECKING:
 

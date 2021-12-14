@@ -273,38 +273,46 @@ class MessageChain(AriadneBaseModel):
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         """
 
-        result = deepcopy(self.merge(copy=True).__root__)
-        if item.start:
-            first_slice = result[item.start[0] :]
-            if item.start[1] is not None and first_slice:  # text slice
-                if not isinstance(first_slice[0], Plain):
-                    if not ignore_text_index:
-                        raise ValueError(
-                            "the sliced chain does not starts with a Plain: {}".format(first_slice[0])
-                        )
-                    result = first_slice
-                else:
-                    final_text = first_slice[0].text[item.start[1] :]
-                    result = [
-                        *([Plain(final_text)] if final_text else []),
-                        *first_slice[1:],
-                    ]
+        result = self.merge(copy=True).__root__[
+            item.start[0] if item.start else None : item.stop[0] if item.stop else None
+        ]
+        if len(result) == 1:
+            text_start: Optional[int] = (
+                item.start[1]
+                if item.start and len(item.start) >= 2 and isinstance(item.start[1], int)
+                else None
+            )
+            text_stop: Optional[int] = (
+                item.stop[1] if item.stop and len(item.stop) >= 2 and isinstance(item.stop[1], int) else None
+            )
+            elem = result[0]
+            if not isinstance(elem, Plain):
+                if not ignore_text_index:
+                    raise ValueError("the sliced chain does not starts with a Plain: {}".format(elem))
             else:
-                result = first_slice
-        if item.stop:
-            first_slice = result[: item.stop[0]]
-            if item.stop[1] is not None and first_slice:  # text slice
-                if not isinstance(first_slice[-1], Plain):
-                    raise ValueError(
-                        "the sliced chain does not ends with a Plain: {}".format(first_slice[-1])
-                    )
-                final_text = first_slice[-1].text[: item.stop[1]]
-                result = [
-                    *first_slice[:-1],
-                    *([Plain(final_text)] if final_text else []),
-                ]
-            else:
-                result = first_slice
+                elem.text = elem.text[text_start:text_stop]
+        elif len(result) >= 2:
+            if item.start:
+                first_element = result[0]
+                if len(item.start) >= 2 and item.start[1] is not None:  # text slice
+                    if not isinstance(first_element, Plain):
+                        if not ignore_text_index:
+                            raise ValueError(
+                                "the sliced chain does not starts with a Plain: {}".format(first_element)
+                            )
+                    else:
+                        first_element.text = first_element.text[item.start[1] :]
+            if item.stop:
+                last_element = result[-1]
+                if len(item.stop) >= 2 and item.stop[1] is not None:  # text slice
+                    if not isinstance(last_element, Plain):
+                        if not ignore_text_index:
+                            raise ValueError(
+                                "the sliced chain does not ends with a Plain: {}".format(last_element)
+                            )
+                    else:
+                        last_element.text = last_element.text[: item.stop[1]]
+
         return MessageChain(result, inline=True)
 
     def findSubChain(self, subchain: Union["MessageChain", List[Element]]) -> List[int]:
@@ -376,11 +384,11 @@ class MessageChain(AriadneBaseModel):
         """
         return MessageChain([i for i in self.__root__ if type(i) in types], inline=True)
 
-    def split(self, pattern: str, raw_string: bool = False) -> List["MessageChain"]:
+    def split(self, pattern: str = " ", raw_string: bool = False) -> List["MessageChain"]:
         """和 `str.split` 差不多, 提供一个字符串, 然后返回分割结果.
 
         Args:
-            pattern (str): 分隔符.
+            pattern (str): 分隔符. 默认为单个空格.
             raw_string (bool): 是否要包含 "空" 的文本元素.
 
         Returns:
@@ -466,9 +474,7 @@ class MessageChain(AriadneBaseModel):
                 plain.append(i.text)
 
         if plain:
-            joined = "".join(plain)
-            if joined:
-                result.append(Plain(joined))
+            result.append(Plain("".join(plain)))
             plain.clear()
 
         if copy:
@@ -502,6 +508,8 @@ class MessageChain(AriadneBaseModel):
         for i in content:
             if isinstance(i, Element):
                 result.append(i)
+            elif isinstance(i, str):
+                result.append(Plain(i))
             elif isinstance(i, MessageChain):
                 result.extend(i.__root__)
             else:

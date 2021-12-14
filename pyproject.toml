@@ -39,6 +39,8 @@ pydeps = "^1.10.12"
 pre-commit = "^2.16.0"
 pdoc = "^8.0.1"
 requests = { version = "^2.26.0", extras = ["dev"] }
+pytest = "^6.2.5"
+coverage = "^6.2"
 
 [tool.isort]
 profile = "black"
@@ -50,3 +52,22 @@ target-version = ['py39']
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.coverage.run]
+branch = true
+omit = ["*/test/*"]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # standard pragma
+    "pragma: no cover",
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if .*TYPE_CHECKING:",
+    "\\.\\.\\.",
+    "pass",
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+]

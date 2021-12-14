@@ -92,7 +92,7 @@ MessageChain([AtAll(), "Hello World!"]) in message_chain
 还可以使用 `find_subchain` 方法寻找可能的消息链子链起始点.
 
 ```py
-assert message_chain.findSubChain(MessageChain(["Hello"])) == [1]
+assert message_chain.findSubChain(MessageChain(["Hello"])) == [0]
 ```
 
 ### 索引与切片

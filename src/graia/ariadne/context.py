@@ -2,8 +2,6 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
 
-from .model import UploadMethod
-
 if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
@@ -12,18 +10,25 @@ if TYPE_CHECKING:
     from .adapter import Adapter
     from .app import Ariadne
     from .event import MiraiEvent
+    from .model import UploadMethod
 
-
-ariadne_ctx: ContextVar["Ariadne"] = ContextVar("application")
-adapter_ctx: ContextVar["Adapter"] = ContextVar("adapter")
-event_ctx: ContextVar["MiraiEvent"] = ContextVar("event")
-event_loop_ctx: ContextVar["AbstractEventLoop"] = ContextVar("event_loop")
-broadcast_ctx: ContextVar["Broadcast"] = ContextVar("broadcast")
-upload_method_ctx: ContextVar["UploadMethod"] = ContextVar("upload_method")
+    ariadne_ctx: ContextVar["Ariadne"] = ContextVar("application")
+    adapter_ctx: ContextVar["Adapter"] = ContextVar("adapter")
+    event_ctx: ContextVar["MiraiEvent"] = ContextVar("event")
+    event_loop_ctx: ContextVar["AbstractEventLoop"] = ContextVar("event_loop")
+    broadcast_ctx: ContextVar["Broadcast"] = ContextVar("broadcast")
+    upload_method_ctx: ContextVar["UploadMethod"] = ContextVar("upload_method")
+else:  # for not crashing pdoc
+    ariadne_ctx = ContextVar("application")
+    adapter_ctx = ContextVar("adapter")
+    event_ctx = ContextVar("event")
+    event_loop_ctx = ContextVar("event_loop")
+    broadcast_ctx = ContextVar("broadcast")
+    upload_method_ctx = ContextVar("upload_method")
 
 
 @contextmanager
-def enter_message_send_context(method: UploadMethod):
+def enter_message_send_context(method: "UploadMethod"):
     t = upload_method_ctx.set(method)
     yield
     upload_method_ctx.reset(t)

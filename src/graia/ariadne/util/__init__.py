@@ -15,7 +15,6 @@ from typing import (
     Coroutine,
     Dict,
     Generator,
-    Generic,
     List,
     Type,
     TypeVar,
@@ -31,16 +30,6 @@ from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
-from typing_extensions import ParamSpec
-
-from ..context import enter_context
-
-# Import layout
-from . import async_exec
-from .async_exec import ParallelExecutor, cpu_bound, io_bound
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 from ..exception import (
     AccountMuted,
@@ -52,6 +41,16 @@ from ..exception import (
     UnknownError,
     UnknownTarget,
     UnVerifiedSession,
+)
+from ..typing import P, R
+
+# Import layout
+from . import async_exec  # noqa: F401
+from .async_exec import (  # noqa: F401
+    IS_MAIN_PROCESS,
+    ParallelExecutor,
+    cpu_bound,
+    io_bound,
 )
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
@@ -84,7 +83,7 @@ def validate_response(code: Union[dict, int]):
 
 
 def loguru_excepthook(cls, val, tb, *_, **__):
-    logger.opt(exception=(cls, val, tb)).error(f"Exception:")
+    logger.opt(exception=(cls, val, tb)).error("Exception:")
 
 
 def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
@@ -94,11 +93,12 @@ def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
         logger.error(f"Exception: {ctx}")
 
 
-def inject_loguru_traceback(loop: AbstractEventLoop):
-    """使用 loguru 模块 替换默认的 traceback.print_exception 与 sys.excepthook"""
+def inject_loguru_traceback(loop: AbstractEventLoop = None):
+    """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
-    loop.set_exception_handler(loguru_async_handler)
+    if loop:
+        loop.set_exception_handler(loguru_async_handler)
 
 
 def inject_bypass_listener(broadcast: Broadcast):
@@ -161,6 +161,8 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
         self.app = app
 
     def beforeExecution(self, interface: "DispatcherInterface"):
+        from ..context import enter_context
+
         self.context = enter_context(self.app, interface.event)
         self.context.__enter__()
 
@@ -177,6 +179,8 @@ class ApplicationMiddlewareDispatcher(BaseDispatcher):
 def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
     @functools.wraps(func)
     async def wrapper(self, *args: P.args, **kwargs: P.kwargs):
+        from ..context import enter_context
+
         with enter_context(app=self):
             return await func(self, *args, **kwargs)
 
@@ -218,6 +222,9 @@ async def yield_with_timeout(
         for t in done:
             res = await t
             yield res
+    if last_tsk:
+        for tsk in last_tsk:
+            tsk.cancel()
 
 
 def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
@@ -237,3 +244,14 @@ def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
 def cast_to(obj, typ: Type[T]) -> T:
     if typ:
         return obj
+
+
+class Dummy:
+    def __getattr__(self, *_, **__):
+        return self
+
+    def __call__(self, *_, **__):
+        return self
+
+
+inject_loguru_traceback()

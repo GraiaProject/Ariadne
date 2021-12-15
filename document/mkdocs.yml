@@ -1,0 +1,135 @@
+site_name: Ariadne 文档
+theme:
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.expand
+    - navigation.top
+
+  name: material
+  language: zh
+  icon:
+    repo: fontawesome/brands/git-alt
+    logo: material/file-document-multiple-outline
+  favicon: images/favicon.png
+
+  font:
+    text: Noto Sans Simplified Chinese
+    code: JetBrains Mono
+
+  custom_dir: overrides
+
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: 黑暗模式
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/toggle-switch
+        name: 明亮模式
+
+extra_css:
+  - "assets/chat.css"
+  - "assets/extra.css"
+
+repo_url: https://github.com/GraiaProject/Ariadne
+repo_name: GraiaProject/Ariadne
+edit_uri: blob/master/document/docs/
+
+copyright: Copyright &copy; 2021 Graia Project.
+
+extra:
+  social:
+    - icon: fontawesome/brands/qq
+      link: https://jq.qq.com/?_wv=1027&k=VXp6plBD
+      name: QQ 群
+    - icon: material/compass
+      link: https://graiax.cn/
+      name: Graiax 社区
+    - icon: fontawesome/brands/github
+      link: https://github.com/GraiaProject
+      name: GitHub 组织
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition # 提示块
+  - footnotes # 脚注
+  - meta # 定义元数据, 通过文章上下文控制, 如disqus
+  - pymdownx.caret # 下划线上标
+  - pymdownx.tilde # 删除线下标
+  - pymdownx.critic # 增加删除修改高亮注释, 可修饰行内或段落
+  - pymdownx.details # 提示块可折叠
+  - pymdownx.inlinehilite # 行内代码高亮
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets
+  - pymdownx.mark # 文本高亮
+  - pymdownx.smartsymbols # 符号转换
+  - pymdownx.superfences # 代码嵌套在列表里
+  - pymdownx.keys
+  - codehilite: # 代码高亮, 显示行号
+      guess_lang: false
+      linenums: true
+  - toc: # 锚点
+      permalink: true
+  - pymdownx.arithmatex # 数学公式
+  - pymdownx.betterem: # 对加粗和斜体更好的检测
+      smart_enable: all
+  - pymdownx.magiclink # 自动识别超链接
+  - pymdownx.tasklist: # 复选框checklist
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - "文档":
+      - "index.md"
+      - "quickstart.md"
+      - "基础":
+          - "basic/params.md"
+          - "basic/msg-chain.md"
+          - "basic/configuration.md"
+          - "basic/instance.md"
+      - "进阶":
+          - "advance/msg-chain.md"
+          - "advance/base-parser.md"
+          - "advance/twilight.md"
+          - "Alconna - 来自 Cesloi 的命令解析工具":
+              - "advance/alconna/quickstart.md"
+              - "advance/alconna/introduction.md"
+              - "advance/alconna/construct-usage.md"
+              - "advance/alconna/parameter.md"
+              - "advance/alconna/examples.md"
+          - "Broadcast 简介":
+              - "advance/broadcast/interrupt.md"
+              - "advance/broadcast/depend.md"
+      - "额外内容":
+          - "extra/log.md"
+          - "extra/msg-chain-tool.md"
+          - "extra/async-exec.md"
+          - "extra/scheduler.md"
+          - "Saya - 插件管理器":
+              - "extra/saya/start.md"
+              - "extra/saya/channel.md"
+      - "迁移":
+          - "porting/guide.md"
+          - "porting/cheatsheet.md"
+      - "附录":
+          - "appendix/terms.md"
+          - "appendix/faq.md"
+          - "appendix/credits.md"
+          - "appendix/mah-install.md"
+          - "appendix/asyncio-intro.md"
+          - "appendix/CHANGELOG.md"
+  - "开发博客":
+      - "blog/intro.md"
+      - "blog/history.md"
+      - "blog/twilight.md"
+  - API 文档: https://graiaproject.github.io/Ariadne/ariadne
+  - GitHub 仓库: https://github.com/GraiaProject/Ariadne
+  - Broadcast 官方文档: https://autumn-psi.vercel.app/

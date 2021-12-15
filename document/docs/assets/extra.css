@@ -1,0 +1,26 @@
+html .md-social a[title="QQ 群"] {
+    color: #00acee;
+}
+html .md-social a[title="Graiax 社区"] {
+    color: #ffc0cb;
+}
+
+.md-social__link {
+    font-size: 2px;
+    width: 3.5rem;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Font with fallback for code */
+    --md-code-font-family: var(--md-code-font, _), SFMono-Regular, Consolas,
+        Menlo, var(--md-text-font, _);
+}
+
+ul.clear-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+  }

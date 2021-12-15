@@ -8,7 +8,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Dict,
-    Iterable,
     List,
     Literal,
     Optional,
@@ -21,8 +20,7 @@ from typing import (
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne import ARIADNE_ASCII_LOGO, TELEMETRY_LIST
-
+from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
 from .event.lifecycle import (
@@ -35,7 +33,6 @@ from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessag
 from .message.element import Source
 from .util import (
     await_predicate,
-    deprecated,
     inject_bypass_listener,
     inject_loguru_traceback,
     yield_with_timeout,
@@ -264,24 +261,33 @@ class MessageMixin(AriadneMixin):
         raise NotImplementedError(f"Unable to send message with {target} as target.")
 
     @app_ctx_manager
-    async def sendNudge(self, target: Union[Friend, Member]) -> None:
+    async def sendNudge(
+        self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
+    ) -> None:
         """
         向指定的群组成员或好友发送戳一戳消息.
 
         Args:
             target (Union[Friend, Member]): 发送戳一戳的目标.
+            group (Union[Group, int], optional): 发送的群组.
 
         Returns:
             None: 没有返回.
         """
+        target_id = target if isinstance(target, int) else target.id
+
+        subject_id = (group.id if isinstance(group, Group) else group) or (
+            target.group.id if isinstance(target, Member) else target_id
+        )
+        kind = "Group" if group or isinstance(target, Member) else "Friend"
         await self.adapter.call_api(
             "sendNudge",
             CallMethod.POST,
             {
                 "sessionKey": self.session_key,
-                "target": target.id,
-                "subject": target.group.id if isinstance(target, Member) else target.id,
-                "kind": {Member: "Group", Friend: "Friend"}[target.__class__],
+                "target": target_id,
+                "subject": subject_id,
+                "kind": kind,
             },
         )
 
@@ -290,7 +296,8 @@ class MessageMixin(AriadneMixin):
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`,
+            可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
 
         Returns:
             None: 没有返回.
@@ -598,7 +605,8 @@ class OperationMixin(AriadneMixin):
         请自行判断消息来源是否为群组.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`,
+            可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
 
         Returns:
             None: 没有返回.
@@ -792,7 +800,7 @@ class FileMixin(AriadneMixin):
             List[FileInfo]: 返回的文件信息列表.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -831,7 +839,7 @@ class FileMixin(AriadneMixin):
             FileInfo: 返回的文件信息.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -869,7 +877,7 @@ class FileMixin(AriadneMixin):
             FileInfo: 新创建文件夹的信息.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -905,7 +913,7 @@ class FileMixin(AriadneMixin):
             None: 没有返回.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -940,7 +948,7 @@ class FileMixin(AriadneMixin):
             None: 没有返回.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -976,7 +984,7 @@ class FileMixin(AriadneMixin):
             None: 没有返回.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -1119,7 +1127,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             connect_info (Union[Adapter, MiraiSession]) 提供与 `mirai-api-http` 交互的信息.
             loop (AbstractEventLoop, optional): 事件循环.
             broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法. 设置为 False 则会完全禁用聊天日志.
+            chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持.
             await_task (bool): 是否等待所有 Executor 任务完成再退出.
@@ -1164,6 +1173,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.chat_log_cfg: ChatLogConfig = (
             chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
         )
+
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
         if use_loguru_traceback:
@@ -1193,10 +1203,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 param.VAR_KEYWORD,
                 param.VAR_POSITIONAL,
             ):
-                if param.kind is param.POSITIONAL_ONLY:
-                    call_args.append(self.info[param.annotation])
-                else:
-                    call_kwargs[name] = self.info[param.annotation]
+                if param.annotation in self.info:
+                    if param.kind is param.POSITIONAL_ONLY:
+                        call_args.append(self.info[param.annotation])
+                    else:
+                        call_kwargs[name] = self.info[param.annotation]
         obj: T = cls(*call_args, **call_kwargs)
         if reuse:
             self.info[cls] = obj
@@ -1275,14 +1286,22 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
             # Telemetry
             if not self.disable_telemetry:
-                for entry in TELEMETRY_LIST:
-                    try:
-                        version = importlib.metadata.version(entry)
-                    except importlib.metadata.PackageNotFoundError:
-                        version = "Not Installed"
+                official: List[Tuple[str, str]] = []
+                community: List[str] = []
+                for dist in importlib.metadata.distributions():
+                    name: str = dist.metadata["Name"]
+                    version: str = dist.version
+                    if name.startswith("graia-"):
+                        official.append((" ".join(name.split("-")[1:]).title(), version))
+                    elif name.startswith("graiax-"):
+                        community.append((" ".join(name.split("-")).title(), version))
+
+                for name, version in official:
                     logger.opt(colors=True, raw=True).info(
-                        f"<magenta>{entry.split('-')[-1].title()}</> version: <yellow>{version}</>\n"
+                        f"<magenta>{name}</> version: <yellow>{version}</>\n"
                     )
+                for name, version in community:
+                    logger.opt(colors=True, raw=True).info(f"<cyan>{name}</> version: <yellow>{version}</>\n")
 
             logger.info("Launching app...")
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))

@@ -7,8 +7,8 @@ build:
 
 python:
   install:
-    - requirements: guide/requirements.txt
+    - requirements: document/requirements.txt
 
 mkdocs:
-  configuration: guide/mkdocs.yml
+  configuration: document/mkdocs.yml
   fail_on_warning: false

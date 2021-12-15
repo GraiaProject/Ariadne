@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
 from pydantic import validator
 from pydantic.fields import Field
@@ -88,7 +88,8 @@ class Plain(Element):
 
 
 class Source(Element):
-    "表示消息在一个特定聊天区域内的唯一标识"
+    """表示消息在一个特定聊天区域内的唯一标识"""
+
     type: str = "Source"
     id: int
     time: datetime
@@ -118,7 +119,8 @@ class Source(Element):
 
 
 class Quote(Element):
-    "表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"
+    """表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"""
+
     type: str = "Quote"
     id: int
     groupId: int
@@ -147,20 +149,17 @@ class At(Element):
     display: Optional[str] = None
 
     def __init__(self, target: Union[int, Member] = ..., **data) -> None:
+        """实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
+
+        Args:
+            target (int): 需要提醒/呼唤的特定用户的 QQ 号(或者说 id.)
+        """
         if target is not ...:
             if isinstance(target, int):
                 data.update(target=target)
             else:
                 data.update(target=target.id)
         super().__init__(**data)
-
-    def __init__(self, target: int, **kwargs) -> None:
-        """实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
-
-        Args:
-            target (int): 需要提醒/呼唤的特定用户的 QQ 号(或者说 id.)
-        """
-        super().__init__(target=target, **kwargs)
 
     def __eq__(self, other: "At"):
         return isinstance(other, At) and self.target == other.target
@@ -179,7 +178,8 @@ class At(Element):
 
 
 class AtAll(Element):
-    "该消息元素用于群组中的管理员提醒群组中的所有成员"
+    """该消息元素用于群组中的管理员提醒群组中的所有成员"""
+
     type: str = "AtAll"
 
     def __init__(self, *_, **__) -> None:
@@ -199,7 +199,8 @@ class AtAll(Element):
 
 
 class Face(Element):
-    "表示消息中所附带的表情, 这些表情大多都是聊天工具内置的."
+    """表示消息中所附带的表情, 这些表情大多都是聊天工具内置的."""
+
     type: str = "Face"
     faceId: Optional[int] = None
     name: Optional[str] = None
@@ -219,7 +220,8 @@ class Face(Element):
 
 
 class Xml(Element):
-    "表示消息中的 XML 消息元素"
+    """表示消息中的 XML 消息元素"""
+
     type = "Xml"
     xml: str
 
@@ -228,7 +230,8 @@ class Xml(Element):
 
 
 class Json(Element):
-    "表示消息中的 JSON 消息元素"
+    """表示消息中的 JSON 消息元素"""
+
     type = "Json"
     Json: str = Field(..., alias="json")
 
@@ -245,7 +248,8 @@ class Json(Element):
 
 
 class App(Element):
-    "表示消息中自带的 App 消息元素"
+    """表示消息中自带的 App 消息元素"""
+
     type = "App"
     content: str
 
@@ -254,7 +258,8 @@ class App(Element):
 
 
 class PokeMethods(Enum):
-    "戳一戳可用方法"
+    """戳一戳可用方法"""
+
     ChuoYiChuo = "ChuoYiChuo"
     BiXin = "BiXin"
     DianZan = "DianZan"
@@ -274,7 +279,8 @@ class PokeMethods(Enum):
 
 
 class Poke(Element):
-    "表示消息中戳一戳消息元素"
+    """表示消息中戳一戳消息元素"""
+
     type = "Poke"
     name: PokeMethods
 
@@ -286,7 +292,8 @@ class Poke(Element):
 
 
 class Dice(Element):
-    "表示消息中骰子消息元素"
+    """表示消息中骰子消息元素"""
+
     type = "Dice"
     value: int
 
@@ -298,7 +305,8 @@ class Dice(Element):
 
 
 class MusicShare(Element):
-    "表示消息中音乐分享消息元素"
+    """表示消息中音乐分享消息元素"""
+
     type = "MusicShare"
     kind: Optional[str]
     title: Optional[str]
@@ -313,7 +321,8 @@ class MusicShare(Element):
 
 
 class ForwardNode(AriadneBaseModel):
-    "表示合并转发中的一个节点"
+    """表示合并转发中的一个节点"""
+
     senderId: int
     time: datetime
     senderName: str
@@ -380,7 +389,8 @@ class Forward(Element):
 
 
 class File(Element):
-    "指示一个文件信息元素"
+    """指示一个文件信息元素"""
+
     type = "File"
     id: str
     name: str
@@ -394,7 +404,8 @@ class File(Element):
 
 
 class MiraiCode(Element):
-    "Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口."
+    """Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口."""
+
     type = "MiraiCode"
     code: str
 
@@ -492,7 +503,7 @@ class MultimediaElement(Element):
         return ""
 
     def __eq__(self, other: "MultimediaElement"):
-        if self.type != other.type:
+        if self.__class__ is not other.__class__:
             return False
         if self.uuid and self.uuid == other.uuid:
             return True
@@ -504,8 +515,10 @@ class MultimediaElement(Element):
 
 
 class Image(MultimediaElement):
-    "指示消息中的图片元素"
+    """指示消息中的图片元素"""
+
     type = "Image"
+    id: Optional[str] = Field(None, alias="imageId")
 
     def toFlashImage(self) -> "FlashImage":
         return FlashImage.parse_obj({**self.dict(), "type": "FlashImage"})
@@ -519,7 +532,8 @@ class Image(MultimediaElement):
 
 
 class FlashImage(Image):
-    "指示消息中的闪照元素"
+    """指示消息中的闪照元素"""
+
     type = "FlashImage"
 
     def toImage(self) -> "Image":
@@ -534,7 +548,8 @@ class FlashImage(Image):
 
 
 class Voice(MultimediaElement):
-    "指示消息中的语音元素"
+    """指示消息中的语音元素"""
+
     type = "Voice"
     id: Optional[str] = Field(None, alias="voiceId")
     length: Optional[int]

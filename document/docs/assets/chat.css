@@ -1,0 +1,20 @@
+html .chat {
+    clear: both;
+    padding: 10px;
+    border-radius: 20px;
+    margin-bottom: 2px;
+    color: var(--md-default-bg-color);
+    font-family: var(--md-code-font-family);
+}
+
+html .left {
+    float: left;
+    background: var(--md-code-hl-function-color);
+    border-top-left-radius: 2px;
+}
+
+html .right {
+    float: right;
+    background: var(--md-code-hl-keyword-color);
+    border-top-right-radius: 2px;
+}

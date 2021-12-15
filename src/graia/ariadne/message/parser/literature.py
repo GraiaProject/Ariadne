@@ -2,7 +2,8 @@ import getopt
 import itertools
 import re
 import shlex
-from typing import Dict, List, Sequence, Union
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
@@ -14,9 +15,27 @@ from graia.ariadne.util import deprecated
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import App, Element, FlashImage, Json, Plain, Poke, Source, Voice, Xml
-from .pattern import BoxParameter, ParamPattern, SwitchParameter
 
 BLOCKING_ELEMENTS = (Xml, Json, App, Poke, Voice, FlashImage)
+
+
+@dataclass(init=True, eq=True, repr=True)
+class ParamPattern:
+    longs: List[str]
+    short: Optional[str] = None
+    default: Any = None
+    help_message: Optional[str] = None
+
+
+@dataclass(init=True, eq=True, repr=True)
+class SwitchParameter(ParamPattern):
+    default: bool = False
+    auto_reverse: bool = False
+
+
+@dataclass(init=True, eq=True, repr=True)
+class BoxParameter(ParamPattern):
+    """可以被指定传入消息的参数, 但只有一个."""
 
 
 class Literature(BaseDispatcher):
@@ -31,6 +50,7 @@ class Literature(BaseDispatcher):
     allow_quote: bool
     skip_one_at_in_quote: bool
 
+    @deprecated("0.6.0")
     def __init__(
         self,
         *prefixs: str,
@@ -61,7 +81,7 @@ class Literature(BaseDispatcher):
                 string_result.append(f"${index}")
                 id_elem_map[index] = elem
 
-        return ("".join(string_result), id_elem_map)
+        return "".join(string_result), id_elem_map
 
     def gen_long_map(self):
         result = {}
@@ -145,7 +165,7 @@ class Literature(BaseDispatcher):
                 else:
                     raise ExecutionStop()
 
-        return (parsed_args, variables)
+        return parsed_args, variables
 
     def prefix_match(self, target_chain: MessageChain):
         target_chain = target_chain.exclude(Source).merge(copy=True)

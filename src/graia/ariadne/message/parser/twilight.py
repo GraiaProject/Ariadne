@@ -1,12 +1,17 @@
+import abc
 import re
 import string
-from copy import deepcopy
+from argparse import Action
+from copy import copy, deepcopy
 from typing import (
+    Any,
+    Callable,
     Dict,
     Generic,
     Iterable,
     List,
     Optional,
+    Sequence,
     Tuple,
     Type,
     TypedDict,
@@ -23,8 +28,240 @@ from pydantic.utils import Representation
 from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
-from .pattern import ArgumentMatch, ElementMatch, Match, RegexMatch
-from .util import ElementType, MessageChainType, TwilightParser, elem_mapping_ctx, split
+from .util import (
+    ElementType,
+    MessageChainType,
+    TwilightParser,
+    elem_mapping_ctx,
+    gen_flags_repr,
+    split,
+)
+
+# ------ Match ------
+
+
+class Match(abc.ABC, Representation):
+    """匹配器的抽象基类."""
+
+    pattern: str
+    optional: bool
+    help: str
+    matched: Optional[bool]
+    result: Optional["MessageChain"]
+
+    def __init__(self, pattern, optional: bool = False, help: str = "", alt_help: str = "") -> None:
+        self.pattern = pattern
+        self.optional = optional
+        self.help = help
+        self.result = None
+        self.matched = None
+        self.alt_help = alt_help
+        if self.__class__ == Match:
+            raise ValueError("You can't instantiate Match class directly!")
+
+    def __repr_args__(self):
+        return [
+            ("matched", self.matched),
+            ("result", self.result),
+            ("pattern", self.pattern),
+        ]
+
+    def get_help(self) -> str:
+        return self.pattern.replace("( )?", " ") if not self.alt_help else self.alt_help
+
+
+class RegexMatch(Match):
+    """基础的正则表达式匹配."""
+
+    regex_match: Optional[re.Match]
+    preserve_space: bool
+
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
+    ) -> None:
+        super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
+        self.flags = flags
+        self.flags_repr = gen_flags_repr(self.flags)
+        self.regex_match = None
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -> str:
+        return (
+            f"({f'?{self.flags_repr}:' if self.flags_repr else ''}{self.pattern})"
+            f"{'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+        )
+
+
+class WildcardMatch(RegexMatch):
+    """泛匹配."""
+
+    preserve_space: bool
+
+    def __init__(
+        self,
+        *,
+        greed: bool = True,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
+    ) -> None:
+        super().__init__(".*", optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
+        self.greed = greed
+
+    def gen_regex(self) -> str:
+        return (
+            f"({self.pattern}{'?' if self.greed else ''}){'?' if self.optional else ''}"
+            f"{'( )?' if self.preserve_space else ''}"
+        )
+
+
+class FullMatch(RegexMatch):
+    """全匹配."""
+
+    def __init__(
+        self,
+        pattern: str,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
+    ) -> None:
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+        self.preserve_space = preserve_space
+
+    def gen_regex(self) -> str:
+        return (
+            f"({re.escape(self.pattern)}){'?' if self.optional else ''}"
+            f"{'( )?' if self.preserve_space else ''}"
+        )
+
+
+class ElementMatch(RegexMatch):
+    """元素类型匹配."""
+
+    pattern: Type["Element"]
+    result: "Element"
+
+    def __init__(
+        self,
+        pattern: Type["Element"],
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
+    ) -> None:
+        super().__init__(
+            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+
+    def gen_regex(self) -> str:
+        return (
+            f"(\x02\\d+_{self.pattern.__fields__['type'].default}\x03){'?' if self.optional else ''}"
+            f"{'( )?' if self.preserve_space else ''}"
+        )
+
+    def get_help(self) -> str:
+        return self.pattern.__name__ if not self.alt_help else self.alt_help
+
+
+class UnionMatch(RegexMatch):
+    """多重匹配."""
+
+    pattern: Tuple[str, ...]
+
+    def __init__(
+        self,
+        *patterns: str,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
+    ) -> None:
+        super().__init__(
+            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+        )
+
+    def gen_regex(self) -> str:
+        return f"({'|'.join(re.escape(i) for i in self.pattern)})"
+
+    def get_help(self) -> str:
+        return f"[{'|'.join(self.pattern)}]" if not self.alt_help else self.alt_help
+
+
+class ArgumentMatch(Match):
+    """参数匹配."""
+
+    pattern: Sequence[str]
+    name: str
+    nargs: Union[str, int]
+    action: Union[str, Type[Action]]
+    dest: Optional[str]
+    choices: Optional[Iterable]
+    const: Any
+    default: Any
+    regex: Optional[re.Pattern]
+    result: Union["MessageChain", Any]
+    add_arg_data: Dict[str, Any]
+
+    def __init__(
+        self,
+        *pattern: str,
+        optional: bool = True,
+        action: Union[str, Type[Action]] = ...,
+        nargs: Union[int, str] = ...,
+        const: Any = ...,
+        default: Any = ...,
+        type: Callable[[str], Any] = ...,
+        choices: Optional[Iterable] = ...,
+        help: Optional[str] = ...,
+        dest: Optional[str] = ...,
+        regex: Optional[str] = ...,
+    ) -> None:
+        if not pattern:
+            raise ValueError("Expected at least 1 pattern!")
+        super().__init__(pattern, optional, help)
+        self.name = pattern[0].lstrip("-").replace("-", "_")
+        self.nargs = nargs
+        self.action = action
+        self.const = const
+        self.default = default
+        self.choices = choices
+        self.dest = dest
+        self.regex = re.compile(regex) if regex is not ... else None
+        data: Dict[str, Any] = {}
+        if action is not ...:
+            data["action"] = action
+        if nargs is not ...:
+            data["nargs"] = nargs
+        if const is not ...:
+            data["const"] = const
+        if default is not ...:
+            data["default"] = default
+        if type is not ...:
+            data["type"] = type
+        if help is not ...:
+            data["help"] = help
+        if dest is not ...:
+            data["dest"] = dest
+        if choices is not ...:
+            data["choices"] = choices
+        if pattern[0].startswith("-"):
+            data["required"] = not optional
+        self.add_arg_data = data
+
+
+# -------------------
 
 
 class Sparkle(Representation):
@@ -35,18 +272,47 @@ class Sparkle(Representation):
 
     def __repr_args__(self):
         check = [(None, [item[0] for item in self._list_check_match])]
-        return check + [(k, v) for k, v in self.__dict__.items() if isinstance(v, Match)]
+        return (
+            check
+            + [(k, v) for k, (v, _) in self._mapping_regex_match.items()]
+            + list(self._mapping_arg_match.items())
+        )
 
     def __getitem__(self, item: Union[str, int]) -> Match:
-        if isinstance(item, str):
-            return getattr(self, item)
-        if isinstance(item, int):
-            return self._list_check_match[item][0]
+        return self.get_match(item)
 
     def __init_subclass__(cls, /, *, description: str = "", epilog: str = "", **kwargs) -> None:
         super().__init_subclass__(**kwargs)
         cls._description = description
         cls._epilog = epilog
+
+    def __getattribute__(self, __name: str):
+        obj = super().__getattribute__(__name)
+        if not isinstance(obj, Match):
+            return obj
+        else:
+            return self.get_match(__name)
+
+    def get_match(self, item: Union[int, str]):
+        if isinstance(item, int):
+            return self._list_check_match[item][0]
+
+        if item in self._mapping_arg_match:
+            return self._mapping_arg_match[item]
+        elif item in self._mapping_regex_match:
+            return self._mapping_regex_match[item][0]
+        else:
+            raise KeyError(f"Unable to find match named {item}")
+
+    def __deepcopy__(self, memo):
+        copied = copy(self)
+
+        copied._list_check_match = deepcopy(self._list_check_match, memo)
+        copied._mapping_arg_match = deepcopy(self._mapping_arg_match, memo)
+        copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
+        copied._parser_ref = deepcopy(self._parser_ref, memo)
+
+        return copied
 
     @overload
     def __init__(self, check: Dict[str, Match]):
@@ -90,39 +356,39 @@ class Sparkle(Representation):
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
-        self._list_regex_match: List[Tuple[RegexMatch, int, str]] = []
-        self._mapping_arg_match: Dict[str, Tuple[ArgumentMatch, str]] = {}
+        self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
+        self._mapping_arg_match: Dict[str, ArgumentMatch] = {}
+        self._parser_ref: Dict[str, ArgumentMatch] = {}
 
         self._parser = TwilightParser(prog="", add_help=False)
         for k, v in match_map.items():
             if k.startswith("_") or k[0] in string.digits:
                 raise ValueError("Invalid Match object name!")
 
-            setattr(self, k, v)
+            if isinstance(v, ArgumentMatch):  # add to self._parser
+                self._mapping_arg_match[k] = v
+                if v.action is ... or self._parser.accept_type(v.action):
+                    if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
+                        v.add_arg_data["type"] = MessageChainType(v.regex)
+                    elif isinstance(v.add_arg_data["type"], type) and issubclass(
+                        v.add_arg_data["type"], Element
+                    ):
+                        v.add_arg_data["type"] = ElementType(v.add_arg_data["type"])
+                action = self._parser.add_argument(*v.pattern, **v.add_arg_data)
+                v.dest = action.dest
+                self._parser_ref[v.dest] = v
 
-            if isinstance(v, Match):
-                if isinstance(v, ArgumentMatch):  # add to self._parser
-                    self._mapping_arg_match[v.name] = (v, k)
-                    if v.action is ... or self._parser.accept_type(v.action):
-                        if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
-                            v.add_arg_data["type"] = MessageChainType(v, v.regex)
-                        elif isinstance(v.add_arg_data["type"], type) and issubclass(
-                            v.add_arg_data["type"], Element
-                        ):
-                            v.add_arg_data["type"] = ElementType(v, v.add_arg_data["type"])
-                    self._parser.add_argument(*v.pattern, **v.add_arg_data)
+            elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
+                self._mapping_regex_match[k] = (v, group_cnt + 1)
+                group_cnt += re.compile(v.gen_regex()).groups
+                match_pattern_list.append(v.gen_regex())
 
-                elif isinstance(v, RegexMatch):  # add to self._list_regex_match
-                    self._list_regex_match.append((v, group_cnt + 1, k))
-                    group_cnt += re.compile(v.gen_regex()).groups
-                    match_pattern_list.append(v.gen_regex())
-
-                else:
-                    raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
+            else:
+                raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
 
         if (
-            not all(v[0].pattern[0].startswith("-") for v in self._mapping_arg_match.values())
-            and self._list_regex_match
+            not all(v.pattern[0].startswith("-") for v in self._mapping_arg_match.values())
+            and self._mapping_regex_match
         ):  # inline validation for underscore
             raise ValueError("ArgumentMatch's pattern can't start with '-' in this case!")
 
@@ -133,7 +399,7 @@ class Sparkle(Representation):
         # checking matches
         # ----
 
-        self._list_check_match: List[Tuple[Match, int]] = []
+        self._list_check_match: List[Tuple[RegexMatch, int]] = []
 
         group_cnt = 0
 
@@ -174,25 +440,21 @@ class Sparkle(Representation):
             raise ValueError(f"Not matching regex: {self._check_pattern}")
 
     def populate_arg_match(self, args: List[str]) -> List[str]:
-        if not self._mapping_arg_match:  # Optimization: skip if no ArgumentMatch
+        if not self._parser_ref:  # Optimization: skip if no ArgumentMatch
             return args
         namespace, rest = self._parser.parse_known_args(args)
-        for arg_name, val_tuple in self._mapping_arg_match.items():
-            match, sparkle_name = val_tuple
+        for arg_name, match in self._parser_ref.items():
             namespace_val = getattr(namespace, arg_name, None)
             if arg_name in namespace.__dict__:
                 match.result = namespace_val
                 match.matched = bool(namespace_val)
-
-            if getattr(self, sparkle_name, None) is None:
-                setattr(self, sparkle_name, match)
 
         return rest
 
     def populate_regex_match(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(" ".join(arg_list)):
-                for match, index, name in self._list_regex_match:
+                for _, (match, index) in self._mapping_regex_match.items():
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):
                         if current:
@@ -208,9 +470,6 @@ class Sparkle(Representation):
 
                     if match.__class__ is RegexMatch:
                         match.regex_match = re.fullmatch(match.pattern, current)
-
-                    if getattr(self, name, None) is None:
-                        setattr(self, name, match)
 
             else:
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
@@ -228,14 +487,14 @@ class Sparkle(Representation):
             for match, *_ in self._list_check_match:
                 header.append(match.get_help())
 
-            for match, *_ in self._list_regex_match:
+            for match, *_ in self._mapping_regex_match.values():
                 header.append(match.get_help())
 
             formatter.add_usage(None, self._parser._actions, [], prefix=" ".join(header) + " ")
 
         positional, optional, *_ = self._parser._action_groups
         formatter.start_section("位置匹配")
-        for match, _, name in self._list_regex_match:
+        for name, (match, _) in self._mapping_regex_match.items():
             formatter.add_text(f"{name} -> 匹配 {match.get_help()}{' : ' + match.help if match.help else ''}")
         formatter.add_arguments(positional._group_actions)
         formatter.end_section()
@@ -300,7 +559,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         """
 
     def __init__(self, root=..., match=..., *, map_params: Optional[Dict[str, bool]] = None):
-        "Actual implementation of __init__"
+        """Actual implementation of __init__"""
         if isinstance(root, Sparkle):
             self.root = root
         elif isinstance(root, type) and issubclass(root, Sparkle):
@@ -330,7 +589,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         chain: MessageChain = interface.event.messageChain
         try:
             local_storage["result"] = self.generate(chain)
-        except:
+        except Exception:
             raise ExecutionStop
 
     async def catch(
@@ -343,7 +602,4 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         if issubclass(interface.annotation, Twilight):
             return self
         if issubclass(interface.annotation, Match):
-            if hasattr(sparkle, interface.name):
-                match: Match = getattr(sparkle, interface.name)
-                if isinstance(match, interface.annotation):
-                    return match
+            return sparkle.get_match(interface.name)

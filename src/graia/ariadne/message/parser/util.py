@@ -2,12 +2,9 @@ import argparse
 import inspect
 import re
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, List, NoReturn, Type, Union
+from typing import List, NoReturn, Type, Union
 
 from ..chain import Element_T, MessageChain
-
-if TYPE_CHECKING:
-    from .pattern import ArgumentMatch
 
 elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
 
@@ -55,8 +52,7 @@ def gen_flags_repr(flags: re.RegexFlag) -> str:
 
 
 class MessageChainType:
-    def __init__(self, match: "ArgumentMatch", regex: re.Pattern):
-        self.match = match
+    def __init__(self, regex: re.Pattern):
         self.regex: re.Pattern = regex
 
     def __call__(self, string: str) -> MessageChain:
@@ -66,8 +62,7 @@ class MessageChainType:
 
 
 class ElementType:
-    def __init__(self, match: "ArgumentMatch", pattern: Type[Element_T]):
-        self.match = match
+    def __init__(self, pattern: Type[Element_T]):
         self.regex = re.compile(f"\x02(\\d+)_{pattern.__fields__['type'].default}\x03")
 
     def __call__(self, string: str) -> MessageChain:

@@ -18,6 +18,8 @@ theme:
     text: Noto Sans Simplified Chinese
     code: JetBrains Mono
 
+  custom_dir: overrides
+
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -30,20 +32,27 @@ theme:
         icon: material/toggle-switch
         name: 明亮模式
 
+extra_css:
+  - "assets/chat.css"
+  - "assets/extra.css"
+
 repo_url: https://github.com/GraiaProject/Ariadne
 repo_name: GraiaProject/Ariadne
-edit_uri: blob/master/guide/docs/
+edit_uri: blob/master/document/docs/
 
 copyright: Copyright &copy; 2021 Graia Project.
+
 extra:
   social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/GraiaProject
-      name: Github 组织
     - icon: fontawesome/brands/qq
       link: https://jq.qq.com/?_wv=1027&k=VXp6plBD
       name: QQ 群
-
+    - icon: material/compass
+      link: https://graiax.cn/
+      name: Graiax 社区
+    - icon: fontawesome/brands/github
+      link: https://github.com/GraiaProject
+      name: GitHub 组织
 
 markdown_extensions:
   - attr_list
@@ -77,49 +86,46 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 
-extra_css:
-  - "assets/chat.css"
-
 nav:
   - "文档":
-    - "index.md"
-    - "quickstart.md"
-    - "基础":
-        - "basic/params.md"
-        - "basic/msg-chain.md"
-        - "basic/configuration.md"
-        - "basic/instance.md"
-    - "进阶":
-        - "advance/msg-chain.md"
-        - "advance/base-parser.md"
-        - "advance/twilight.md"
-        - "Alconna - 来自 Cesloi 的命令解析工具":
-          - "advance/alconna/quickstart.md"
-          - "advance/alconna/introduction.md"
-          - "advance/alconna/construct-usage.md"
-          - "advance/alconna/parameter.md"
-          - "advance/alconna/examples.md"
-        - "Broadcast 简介":
-          - "advance/broadcast/interrupt.md"
-          - "advance/broadcast/depend.md"
-    - "额外内容":
-        - "extra/log.md"
-        - "extra/msg-chain-tool.md"
-        - "extra/async-exec.md"
-        - "extra/scheduler.md"
-        - "Saya - 插件管理器":
-          - "extra/saya/start.md"
-          - "extra/saya/channel.md"
-    - "迁移":
-        - "porting/guide.md"
-        - "porting/cheatsheet.md"
-    - "附录":
-        - "appendix/terms.md"
-        - "appendix/faq.md"
-        - "appendix/credits.md"
-        - "appendix/mah-install.md"
-        - "appendix/asyncio-intro.md"
-        - "appendix/CHANGELOG.md"
+      - "index.md"
+      - "quickstart.md"
+      - "基础":
+          - "basic/params.md"
+          - "basic/msg-chain.md"
+          - "basic/configuration.md"
+          - "basic/instance.md"
+      - "进阶":
+          - "advance/msg-chain.md"
+          - "advance/base-parser.md"
+          - "advance/twilight.md"
+          - "Alconna - 来自 Cesloi 的命令解析工具":
+              - "advance/alconna/quickstart.md"
+              - "advance/alconna/introduction.md"
+              - "advance/alconna/construct-usage.md"
+              - "advance/alconna/parameter.md"
+              - "advance/alconna/examples.md"
+          - "Broadcast 简介":
+              - "advance/broadcast/interrupt.md"
+              - "advance/broadcast/depend.md"
+      - "额外内容":
+          - "extra/log.md"
+          - "extra/msg-chain-tool.md"
+          - "extra/async-exec.md"
+          - "extra/scheduler.md"
+          - "Saya - 插件管理器":
+              - "extra/saya/start.md"
+              - "extra/saya/channel.md"
+      - "迁移":
+          - "porting/guide.md"
+          - "porting/cheatsheet.md"
+      - "附录":
+          - "appendix/terms.md"
+          - "appendix/faq.md"
+          - "appendix/credits.md"
+          - "appendix/mah-install.md"
+          - "appendix/asyncio-intro.md"
+          - "appendix/CHANGELOG.md"
   - "开发博客":
       - "blog/intro.md"
       - "blog/history.md"

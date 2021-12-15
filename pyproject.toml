@@ -41,6 +41,7 @@ pdoc = "^8.0.1"
 requests = { version = "^2.26.0", extras = ["dev"] }
 pytest = "^6.2.5"
 coverage = "^6.2"
+flake8 = "^4.0.1"
 
 [tool.isort]
 profile = "black"

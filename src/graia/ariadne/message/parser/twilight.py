@@ -198,10 +198,6 @@ class UnionMatch(RegexMatch):
         return f"[{'|'.join(self.pattern)}]" if not self.alt_help else self.alt_help
 
 
-T_const = TypeVar("T_const")
-T_default = TypeVar("T_default")
-
-
 class ArgumentMatch(Match):
     """参数匹配."""
 
@@ -209,8 +205,10 @@ class ArgumentMatch(Match):
     name: str
     nargs: Union[str, int]
     action: Union[str, Type[Action]]
-    const: Optional[T_const]
-    default: Optional[T_default]
+    dest: Optional[str]
+    choices: Optional[Iterable]
+    const: Any
+    default: Any
     regex: Optional[re.Pattern]
     result: Union["MessageChain", Any]
     add_arg_data: Dict[str, Any]
@@ -219,13 +217,15 @@ class ArgumentMatch(Match):
         self,
         *pattern: str,
         optional: bool = True,
-        const: Optional[T_const] = ...,
-        default: Optional[T_default] = ...,
-        nargs: Union[str, int] = ...,
         action: Union[str, Type[Action]] = ...,
-        type: Callable = ...,
-        regex: Optional[str] = None,
-        help: str = "",
+        nargs: Union[int, str] = ...,
+        const: Any = ...,
+        default: Any = ...,
+        type: Callable[[str], Any] = ...,
+        choices: Optional[Iterable] = ...,
+        help: Optional[str] = ...,
+        dest: Optional[str] = ...,
+        regex: Optional[str] = ...,
     ) -> None:
         if not pattern:
             raise ValueError("Expected at least 1 pattern!")
@@ -235,7 +235,9 @@ class ArgumentMatch(Match):
         self.action = action
         self.const = const
         self.default = default
-        self.regex = re.compile(regex) if regex else None
+        self.choices = choices
+        self.dest = dest
+        self.regex = re.compile(regex) if regex is not ... else None
         data: Dict[str, Any] = {}
         if action is not ...:
             data["action"] = action
@@ -249,6 +251,10 @@ class ArgumentMatch(Match):
             data["type"] = type
         if help is not ...:
             data["help"] = help
+        if dest is not ...:
+            data["dest"] = dest
+        if choices is not ...:
+            data["choices"] = choices
         if pattern[0].startswith("-"):
             data["required"] = not optional
         self.add_arg_data = data
@@ -360,7 +366,6 @@ class Sparkle(Representation):
 
             if isinstance(v, ArgumentMatch):  # add to self._parser
                 self._mapping_arg_match[k] = v
-                self._parser_ref[v.name] = v
                 if v.action is ... or self._parser.accept_type(v.action):
                     if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
                         v.add_arg_data["type"] = MessageChainType(v.regex)
@@ -368,7 +373,9 @@ class Sparkle(Representation):
                         v.add_arg_data["type"], Element
                     ):
                         v.add_arg_data["type"] = ElementType(v.add_arg_data["type"])
-                self._parser.add_argument(*v.pattern, **v.add_arg_data)
+                action = self._parser.add_argument(*v.pattern, **v.add_arg_data)
+                v.dest = action.dest
+                self._parser_ref[v.dest] = v
 
             elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
                 self._mapping_regex_match[k] = (v, group_cnt + 1)

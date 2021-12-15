@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union, overload
+from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
 from pydantic import validator
 from pydantic.fields import Field
@@ -149,20 +149,17 @@ class At(Element):
     display: Optional[str] = None
 
     def __init__(self, target: Union[int, Member] = ..., **data) -> None:
+        """实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
+
+        Args:
+            target (int): 需要提醒/呼唤的特定用户的 QQ 号(或者说 id.)
+        """
         if target is not ...:
             if isinstance(target, int):
                 data.update(target=target)
             else:
                 data.update(target=target.id)
         super().__init__(**data)
-
-    def __init__(self, target: int, **kwargs) -> None:
-        """实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
-
-        Args:
-            target (int): 需要提醒/呼唤的特定用户的 QQ 号(或者说 id.)
-        """
-        super().__init__(target=target, **kwargs)
 
     def __eq__(self, other: "At"):
         return isinstance(other, At) and self.target == other.target

@@ -1,10 +1,25 @@
 from typing import TYPE_CHECKING
 
+from arclet.alconna import Alconna, Arpamar
+from arclet.alconna.component import (  # noqa: F401
+    CommandInterface,
+    Default,
+    Option,
+    OptionInterface,
+    Subcommand,
+)
+from arclet.alconna.exceptions import (  # noqa: F401
+    InvalidFormatMap,
+    InvalidOptionName,
+    NullName,
+    ParamsUnmatched,
+)
+from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl  # noqa: F401
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ....event.message import MessageEvent
-from ...chain import MessageChain
+from ...event.message import MessageEvent
+from ..chain import MessageChain
 
 if TYPE_CHECKING:
 
@@ -18,23 +33,6 @@ else:
 
     class ArpamarProperty:
         pass
-
-
-from arclet.alconna import Alconna, Arpamar
-from arclet.alconna.component import (
-    CommandInterface,
-    Default,
-    Option,
-    OptionInterface,
-    Subcommand,
-)
-from arclet.alconna.exceptions import (
-    InvalidFormatMap,
-    InvalidOptionName,
-    NullName,
-    ParamsUnmatched,
-)
-from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl
 
 
 class AlconnaDispatcher(BaseDispatcher):

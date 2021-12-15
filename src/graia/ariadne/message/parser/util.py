@@ -2,12 +2,9 @@ import argparse
 import inspect
 import re
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, List, NoReturn, Type, Union
+from typing import List, NoReturn, Type, Union
 
 from ..chain import Element_T, MessageChain
-
-if TYPE_CHECKING:
-    from .pattern import ArgumentMatch
 
 elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
 

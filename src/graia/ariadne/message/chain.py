@@ -15,7 +15,7 @@ from typing import (
 )
 
 from ..model import AriadneBaseModel
-from ..util import deprecated, gen_subclass
+from ..util import gen_subclass
 from .element import (
     At,
     AtAll,

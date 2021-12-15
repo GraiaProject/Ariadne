@@ -296,7 +296,8 @@ class MessageMixin(AriadneMixin):
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`,
+            可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
 
         Returns:
             None: 没有返回.
@@ -604,7 +605,8 @@ class OperationMixin(AriadneMixin):
         请自行判断消息来源是否为群组.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, 可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`,
+            可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
 
         Returns:
             None: 没有返回.
@@ -798,7 +800,7 @@ class FileMixin(AriadneMixin):
             List[FileInfo]: 返回的文件信息列表.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -837,7 +839,7 @@ class FileMixin(AriadneMixin):
             FileInfo: 返回的文件信息.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -875,7 +877,7 @@ class FileMixin(AriadneMixin):
             FileInfo: 新创建文件夹的信息.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -911,7 +913,7 @@ class FileMixin(AriadneMixin):
             None: 没有返回.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -946,7 +948,7 @@ class FileMixin(AriadneMixin):
             None: 没有返回.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -982,7 +984,7 @@ class FileMixin(AriadneMixin):
             None: 没有返回.
         """
         if isinstance(target, Friend):
-            raise NotImplementedError(f"Not implemented for friend")
+            raise NotImplementedError("Not implemented for friend")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
@@ -1125,7 +1127,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             connect_info (Union[Adapter, MiraiSession]) 提供与 `mirai-api-http` 交互的信息.
             loop (AbstractEventLoop, optional): 事件循环.
             broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法. 设置为 False 则会完全禁用聊天日志.
+            chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持.
             await_task (bool): 是否等待所有 Executor 任务完成再退出.

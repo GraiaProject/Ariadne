@@ -6,16 +6,13 @@ import importlib
 import multiprocessing
 from asyncio.events import AbstractEventLoop
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import Awaitable, Callable, ClassVar, Dict, TypeVar
+from typing import Awaitable, Callable, ClassVar, Dict
 
-from typing_extensions import ParamSpec
-
-P = ParamSpec("P")
-
-R = TypeVar("R")
+from ..typing import P, R
 
 
-IS_MAIN_PROCESS = lambda: multiprocessing.parent_process() is None
+def IS_MAIN_PROCESS():
+    return multiprocessing.parent_process() is None
 
 
 def _reg_sigint():

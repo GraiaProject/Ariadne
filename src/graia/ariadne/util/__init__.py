@@ -30,15 +30,6 @@ from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
-from prompt_toolkit.patch_stdout import StdoutProxy
-from typing_extensions import ParamSpec
-
-# Import layout
-from . import async_exec
-from .async_exec import IS_MAIN_PROCESS, ParallelExecutor, cpu_bound, io_bound
-
-P = ParamSpec("P")
-R = TypeVar("R")
 
 from ..exception import (
     AccountMuted,
@@ -50,6 +41,16 @@ from ..exception import (
     UnknownError,
     UnknownTarget,
     UnVerifiedSession,
+)
+from ..typing import P, R
+
+# Import layout
+from . import async_exec  # noqa: F401
+from .async_exec import (  # noqa: F401
+    IS_MAIN_PROCESS,
+    ParallelExecutor,
+    cpu_bound,
+    io_bound,
 )
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
@@ -82,7 +83,7 @@ def validate_response(code: Union[dict, int]):
 
 
 def loguru_excepthook(cls, val, tb, *_, **__):
-    logger.opt(exception=(cls, val, tb)).error(f"Exception:")
+    logger.opt(exception=(cls, val, tb)).error("Exception:")
 
 
 def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):

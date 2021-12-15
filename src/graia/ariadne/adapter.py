@@ -3,21 +3,10 @@ import asyncio
 import functools
 import json
 from asyncio.events import AbstractEventLoop
-from asyncio.exceptions import CancelledError
 from asyncio.locks import Event
 from asyncio.queues import Queue
 from asyncio.tasks import Task
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncGenerator,
-    Awaitable,
-    Callable,
-    Dict,
-    Optional,
-    Set,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, Set, Union
 
 import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
@@ -69,7 +58,7 @@ def error_wrapper(
             except aiohttp.web_exceptions.HTTPNotFound:
                 raise NotSupportedAction(f"{network_action_callable.__name__}: this action not supported")
             except aiohttp.web_exceptions.HTTPInternalServerError as e:
-                self.broadcast.postEvent(RemoteException())
+                self.broadcast.postEvent(RemoteException(*e.args))
                 logger.error("An exception has thrown by remote, please check the console!")
                 raise
             except (
@@ -79,7 +68,7 @@ def error_wrapper(
             ):
 
                 logger.error(
-                    f"It seems that we post in a wrong way "
+                    "It seems that we post in a wrong way "
                     f"for the action '{network_action_callable.__name__}', please open a issue."
                 )
                 raise

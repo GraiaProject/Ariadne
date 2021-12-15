@@ -4,7 +4,6 @@ import string
 from argparse import Action
 from copy import copy, deepcopy
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -25,10 +24,6 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
-
-if TYPE_CHECKING:
-    from ..chain import MessageChain
-    from ..element import Element
 
 from ...event.message import MessageEvent
 from ..chain import MessageChain
@@ -122,7 +117,10 @@ class WildcardMatch(RegexMatch):
         self.greed = greed
 
     def gen_regex(self) -> str:
-        return f"({self.pattern}{'?' if self.greed else ''}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+        return (
+            f"({self.pattern}{'?' if self.greed else ''}){'?' if self.optional else ''}"
+            f"{'( )?' if self.preserve_space else ''}"
+        )
 
 
 class FullMatch(RegexMatch):
@@ -143,7 +141,10 @@ class FullMatch(RegexMatch):
         self.preserve_space = preserve_space
 
     def gen_regex(self) -> str:
-        return f"({re.escape(self.pattern)}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+        return (
+            f"({re.escape(self.pattern)}){'?' if self.optional else ''}"
+            f"{'( )?' if self.preserve_space else ''}"
+        )
 
 
 class ElementMatch(RegexMatch):

@@ -44,7 +44,7 @@ name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -73,7 +73,7 @@ name = "asttokens"
 version = "2.0.5"
 description = "Annotate AST trees with source code positions"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.dependencies]
@@ -124,7 +124,7 @@ name = "atomicwrites"
 version = "1.4.0"
 description = "Atomic file writes."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.source]
@@ -156,7 +156,7 @@ name = "backports.entry-points-selectable"
 version = "1.1.1"
 description = "Compatibility shim providing selectable entry points for older implementations"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7"
 
 [package.extras]
@@ -204,7 +204,7 @@ name = "certifi"
 version = "2021.10.8"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -217,7 +217,7 @@ name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6.1"
 
 [package.source]
@@ -275,7 +275,7 @@ name = "coverage"
 version = "6.2"
 description = "Code coverage measurement for Python"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -290,8 +290,8 @@ reference = "tuna-tsinghua"
 name = "croniter"
 version = "1.1.0"
 description = "croniter provides iteration for datetime object with cron like format"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.dependencies]
@@ -307,7 +307,7 @@ name = "devtools"
 version = "0.8.0"
 description = "Python's missing debug print command and other development tools."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -327,7 +327,7 @@ name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -340,7 +340,7 @@ name = "executing"
 version = "0.8.2"
 description = "Get the currently executing AST node of a frame, and other information"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -353,7 +353,7 @@ name = "filelock"
 version = "3.4.0"
 description = "A platform independent file lock."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -370,7 +370,7 @@ name = "flake8"
 version = "4.0.1"
 description = "the modular source code checker: pep8 pyflakes and co"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -432,8 +432,8 @@ reference = "tuna-tsinghua"
 name = "graia-saya"
 version = "0.0.13"
 description = ""
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
@@ -449,8 +449,8 @@ reference = "tuna-tsinghua"
 name = "graia-scheduler"
 version = "0.0.6"
 description = "a scheduler for graia framework"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
@@ -467,7 +467,7 @@ name = "graphviz"
 version = "0.19.1"
 description = "Simple Python interface for Graphviz"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -485,7 +485,7 @@ name = "identify"
 version = "2.4.0"
 description = "File identification library for Python"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6.1"
 
 [package.extras]
@@ -535,7 +535,7 @@ name = "iniconfig"
 version = "1.1.1"
 description = "iniconfig: brain-dead simple config-ini parsing"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -567,7 +567,7 @@ name = "jedi"
 version = "0.18.1"
 description = "An autocompletion tool for Python that can be used for text editors."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -658,7 +658,7 @@ name = "mccabe"
 version = "0.6.1"
 description = "McCabe checker, plugin for flake8"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -772,7 +772,7 @@ name = "nodeenv"
 version = "1.6.0"
 description = "Node.js virtual environment builder"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.source]
@@ -785,7 +785,7 @@ name = "objgraph"
 version = "3.5.0"
 description = "Draws Python object reference graphs with graphviz"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.dependencies]
@@ -817,7 +817,7 @@ name = "parso"
 version = "0.8.3"
 description = "A Python Parser"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -886,7 +886,7 @@ name = "pluggy"
 version = "1.0.0"
 description = "plugin and hook calling mechanisms for python"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -903,7 +903,7 @@ name = "pre-commit"
 version = "2.16.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6.1"
 
 [package.dependencies]
@@ -940,7 +940,7 @@ name = "ptpython"
 version = "3.0.20"
 description = "Python REPL build on top of prompt_toolkit"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -963,7 +963,7 @@ name = "py"
 version = "1.11.0"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
@@ -976,7 +976,7 @@ name = "pycodestyle"
 version = "2.8.0"
 description = "Python style guide checker"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
@@ -1009,7 +1009,7 @@ name = "pydeps"
 version = "1.10.12"
 description = "Display module dependencies"
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.dependencies]
@@ -1025,7 +1025,7 @@ name = "pyflakes"
 version = "2.4.0"
 description = "passive checker of Python programs"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.source]
@@ -1083,7 +1083,7 @@ name = "pytest"
 version = "6.2.5"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -1108,7 +1108,7 @@ reference = "tuna-tsinghua"
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
@@ -1154,7 +1154,7 @@ name = "requests"
 version = "2.26.0"
 description = "Python HTTP for Humans."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.dependencies]
@@ -1176,7 +1176,7 @@ reference = "tuna-tsinghua"
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -1190,7 +1190,7 @@ name = "stdlib-list"
 version = "0.8.0"
 description = "A list of Python Standard Libraries (2.6-7, 3.2-9)."
 category = "dev"
-optional = false
+optional = true
 python-versions = "*"
 
 [package.extras]
@@ -1206,7 +1206,7 @@ name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.source]
@@ -1245,7 +1245,7 @@ name = "urllib3"
 version = "1.26.7"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "dev"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
@@ -1263,7 +1263,7 @@ name = "virtualenv"
 version = "20.10.0"
 description = "Virtual Python Environment builder"
 category = "dev"
-optional = false
+optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [package.dependencies]
@@ -1363,11 +1363,14 @@ reference = "tuna-tsinghua"
 
 [extras]
 alconna = ["arclet-alconna"]
+dev = []
+full = ["graia-saya", "graia-scheduler"]
+qc = []
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "e168fe5c6382e3a145acc19099d903ebc9ec117f2e58bbb1ef4cf25167a6f6ce"
+content-hash = "d14aa2f950374bdb6bc8f3abce2c6b9340cf602ac44ce923e66744218a3d92e0"
 
 [metadata.files]
 aiohttp = [

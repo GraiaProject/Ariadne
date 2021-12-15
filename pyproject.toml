@@ -26,26 +26,29 @@ loguru = "^0.5.3"
 typing-extensions = "^3.10.0"
 prompt-toolkit = "^3.0.24"
 arclet-alconna = { version = "^0.1.3", optional = true }
+graia-scheduler = { version = "^0.0.6", optional = true }
+graia-saya = { version = "^0.0.13", optional = true }
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna"]
+full = ["graia-saya", "graia-scheduler"]
+dev = ["devtools", "objgraph", "ptpython", "pydeps", "pre-commit", "requests"]
+qc = ["pytest", "coverage", "flake8"]
 
 [tool.poetry.dev-dependencies]
 black = ">=21.10b0"
 isort = ">=5.9.3"
-devtools = ">=0.8.0"
-objgraph = ">=3.5.0"
-ptpython = ">=3.0.20"
-graia-saya = "^0.0.13"
 mkdocs-material = ">=7.3.6"
-graia-scheduler = "^0.0.6"
-pydeps = "^1.10.12"
-pre-commit = "^2.16.0"
 pdoc = "^8.0.1"
-requests = { version = "^2.26.0", extras = ["dev"] }
-pytest = "^6.2.5"
-coverage = "^6.2"
-flake8 = "^4.0.1"
+devtools = { version = ">= 0.8.0", optional = true }
+objgraph = { version = ">= 3.5.0", optional = true }
+ptpython = { version = ">= 3.0.20", optional = true }
+pydeps = { version = "^1.10.12", optional = true }
+pre-commit = { version = "^2.16.0", optional = true }
+requests = { version = "^2.26.0", optional = true }
+pytest = { version = "^6.2.5", optional = true }
+coverage = { version = "^6.2", optional = true }
+flake8 = { version = "^4.0.1", optional = true }
 
 [tool.isort]
 profile = "black"

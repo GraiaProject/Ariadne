@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne-dev"
-version = "2021.12.15.1"
+version = "2021.12.15.2"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -25,6 +25,10 @@ yarl = "^1.6.3"
 loguru = "^0.5.3"
 typing-extensions = "^3.10.0"
 prompt-toolkit = "^3.0.24"
+arclet-alconna = { version = "^0.1.3", optional = true }
+
+[tool.poetry.extras]
+alconna = ["arclet-alconna"]
 
 [tool.poetry.dev-dependencies]
 black = ">=21.10b0"
@@ -66,9 +70,11 @@ exclude_lines = [
     # Don't complain if non-runnable code isn't run:
     "if 0:",
     "if __name__ == .__main__.:",
-    "if .*TYPE_CHECKING:",
+    "if (typing\\.)?TYPE_CHECKING( is True)?:",
     "\\.\\.\\.",
     "pass",
     # Don't complain about abstract methods, they aren't run:
     "@(abc\\.)?abstractmethod",
+    # Don't complain overload method / functions
+    "@(typing\\.)?overload"
 ]

@@ -5,19 +5,6 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ....event.message import MessageEvent
 from ...chain import MessageChain
-from .alconna import (
-    Alconna,
-    AnyDigit,
-    AnyIP,
-    AnyStr,
-    AnyUrl,
-    Arpamar,
-    CommandInterface,
-    Option,
-    OptionInterface,
-    Subcommand,
-)
-from .alconna.exceptions import InvalidOptionName, NullName, ParamsUnmatched
 
 if TYPE_CHECKING:
 
@@ -26,10 +13,28 @@ if TYPE_CHECKING:
 
         pass
 
+
 else:
 
     class ArpamarProperty:
         pass
+
+
+from arclet.alconna import Alconna, Arpamar
+from arclet.alconna.component import (
+    CommandInterface,
+    Default,
+    Option,
+    OptionInterface,
+    Subcommand,
+)
+from arclet.alconna.exceptions import (
+    InvalidFormatMap,
+    InvalidOptionName,
+    NullName,
+    ParamsUnmatched,
+)
+from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl
 
 
 class AlconnaDispatcher(BaseDispatcher):

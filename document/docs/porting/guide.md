@@ -26,8 +26,12 @@
 
 `Kanata` 被 `Twilight` 取代了, `Template` 被用法稍有不同的 `Formatter` 替代.
 
+### 消息元素
+
+元素不再分为 `Internal` `External` 与 `Shadow` 三态. 对应的, `Image_LocalFile` `Voice_LocalFile` **等** 类型被删除了.
+
 ## 与主实例交互
 
-统一所有方法为 谓词 + 名词 形式 (如 `kick`,`mute`,`nudge`...)
+统一所有方法为 谓词 + 名词 形式 (如 `kick` -> `kickMember`,`mute` -> `muteMember`...)
 
 `launch_blocking()` 会自动捕获一个 `KeyboardInterrupt` 并主动停止实例.

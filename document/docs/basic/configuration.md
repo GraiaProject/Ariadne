@@ -64,8 +64,20 @@ async def reply(app: Ariadne, event: MessageEvent):
 
 设置为 `True` 后即会禁用启动时的版本检测.
 
-!!! example "你可以在根文件的 TELEMETRY_LIST 下查看检查了哪些包的版本."
+!!! example "默认会检查来自 `graia` 与 `graiax` 的包."
 
 ### disable_logo
 
 设置为 `True` 后即会禁用启动时的 logo 打印.
+
+???+ "Logo"
+
+    ```text
+                    _           _             
+         /\        (_)         | |            
+        /  \   _ __ _  __ _  __| |_ __   ___  
+       / /\ \ | '__| |/ _` |/ _` | '_ \ / _ \ 
+      / ____ \| |  | | (_| | (_| | | | |  __/ 
+     /_/    \_\_|  |_|\__,_|\__,_|_| |_|\___| 
+    
+    ```

@@ -35,6 +35,12 @@
 -   `MessageChain.hasText` -> `MessageChain.has` (接受多种形式)
 -   `MessageChain.join` -> `sum(message_chains)` (`MessageChain` 可直接相加)
 
+### Element
+
+#### 多媒体元素
+
+- `MultimediaElement.http_to_bytes` -> `MultimediaElement.get_bytes`
+
 # 移除
 
 本部分阐述了被删除的 API.
@@ -69,13 +75,22 @@
 -   `MessageChain.removeprefix`
 -   `MessageChain.removesuffix`
 -   `MessageChain.asMappingString` 与 `MessageChain.fromMappingString`
+-   `MessageChain.hasSubChain`
 -   `MessageChain.merge`
 -   `MessageChain.extend`
 -   `MessageChain.append`
 -   `MessageChain.copy`
+-   `MessageChain.download_binary`
+-   `MessageChain.prepare`
 -   支持以下魔术方法:
     -   `__add__` 与 `__iadd__`
     -   `__mul__` 与 `__imul__`
     -   `__len__`
     -   增强过的 `__contains__`
     -   增强过的 `__getitem__`
+
+### Element
+
+#### 多媒体元素
+
+- `MultimediaElement.uuid`

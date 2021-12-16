@@ -709,7 +709,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.1.1"
+version = "8.1.2"
 description = "A Material Design theme for MkDocs"
 category = "dev"
 optional = false
@@ -1328,6 +1328,22 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 reference = "tuna-tsinghua"
 
 [[package]]
+name = "yappi"
+version = "1.3.3"
+description = "Yet Another Python Profiler"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["gevent (>=20.6.2)"]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
 name = "yarl"
 version = "1.7.2"
 description = "Yet another URL library"
@@ -1363,14 +1379,14 @@ reference = "tuna-tsinghua"
 
 [extras]
 alconna = ["arclet-alconna"]
-dev = []
+dev = ["yappi"]
 full = ["graia-saya", "graia-scheduler"]
 qc = []
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3e5bfae9dd11a6b0b01b17505a40335787a5518a0e8f8500e61104b107e59635"
+content-hash = "41e027ba0f020786d1d83ffea4f3f7151ab342793a543f7b8954bd84fe7217c1"
 
 [metadata.files]
 aiohttp = [
@@ -1793,8 +1809,8 @@ mkdocs = [
     {file = "mkdocs-1.2.3.tar.gz", hash = "sha256:89f5a094764381cda656af4298727c9f53dc3e602983087e1fe96ea1df24f4c1"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.1.1.tar.gz", hash = "sha256:bbc74a1864c67b5736760b1ec996cbd0453a68524a85cf53cf834027bdb60cd7"},
-    {file = "mkdocs_material-8.1.1-py2.py3-none-any.whl", hash = "sha256:da06a34ba042ba5a23e1b04a4ad1353900cf0f30a9da80c9030432483f2ebb68"},
+    {file = "mkdocs-material-8.1.2.tar.gz", hash = "sha256:83b73d62b11cbc97c3b05de44f2fad3b96edf3fe2cf977851972e2c25348893b"},
+    {file = "mkdocs_material-8.1.2-py2.py3-none-any.whl", hash = "sha256:2fe84abc86daa3cb5b5e7e0438c20c6e2a99c1f4a7527c783b0f8b1fb4fb840a"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
@@ -2085,6 +2101,9 @@ wcwidth = [
 win32-setctime = [
     {file = "win32_setctime-1.0.4-py3-none-any.whl", hash = "sha256:7964234073ad9bc7a689ef2ebe6ce931976b644fe73fd50cf7729c996b7d8385"},
     {file = "win32_setctime-1.0.4.tar.gz", hash = "sha256:2b72b798fdc1d909fb3cc0d25e0be52a42f4848857e3588dd3947c6a18b42609"},
+]
+yappi = [
+    {file = "yappi-1.3.3.tar.gz", hash = "sha256:855890cd9a90d833dd2df632d648de8ccd0a4c3131f1edc8abd004db0625b5e8"},
 ]
 yarl = [
     {file = "yarl-1.7.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f2a8508f7350512434e41065684076f640ecce176d262a7d54f0da41d99c5a95"},

@@ -14,7 +14,7 @@ from arclet.alconna.exceptions import (  # noqa: F401
     NullName,
     ParamsUnmatched,
 )
-from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl  # noqa: F401
+from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl, Bool  # noqa: F401
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -22,17 +22,9 @@ from ...event.message import MessageEvent
 from ..chain import MessageChain
 
 if TYPE_CHECKING:
-
-    class ArpamarProperty(str, MessageChain):
-        """用于指示 Arpamar 属性的 type hint."""
-
-        pass
-
-
+    ArpamarProperty = type("ArpamarProperty", (str, MessageChain), {})
 else:
-
-    class ArpamarProperty:
-        pass
+    ArpamarProperty = type("ArpamarProperty", tuple(), {})
 
 
 class AlconnaDispatcher(BaseDispatcher):

@@ -99,6 +99,27 @@ class RegexMatch(Match):
         )
 
 
+class ParamMatch(RegexMatch):
+    """与WildcardMatch类似, 但需要至少一个字符. 且仅匹配用空格分开的一段. (也就是说用引号包起来的会寄掉)"""
+
+    preserve_space: bool
+
+    def __init__(
+        self,
+        *,
+        optional: bool = False,
+        preserve_space: bool = True,
+        help: str = "",
+        alt_help: str = "",
+    ) -> None:
+        super().__init__(
+            "^.+$", optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+        )
+
+    def gen_regex(self) -> str:
+        return f"({self.pattern}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+
+
 class WildcardMatch(RegexMatch):
     """泛匹配."""
 
@@ -118,7 +139,7 @@ class WildcardMatch(RegexMatch):
 
     def gen_regex(self) -> str:
         return (
-            f"({self.pattern}{'?' if self.greed else ''}){'?' if self.optional else ''}"
+            f"({self.pattern}{'?' if not self.greed else ''}){'?' if self.optional else ''}"
             f"{'( )?' if self.preserve_space else ''}"
         )
 
@@ -583,10 +604,8 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         return sparkle
 
     def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
-        if not isinstance(interface.event, MessageEvent):
-            raise ExecutionStop
         local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
-        chain: MessageChain = interface.event.messageChain
+        chain: MessageChain = interface.lookup_param("message_chain", MessageChain, None, [])
         try:
             local_storage["result"] = self.generate(chain)
         except Exception:

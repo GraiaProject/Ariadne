@@ -1,7 +1,6 @@
 site_name: Ariadne 文档
 theme:
   features:
-    - navigation.instant
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.expand
@@ -35,6 +34,10 @@ theme:
 extra_css:
   - "assets/chat.css"
   - "assets/extra.css"
+  - "assets/curtain.css"
+
+extra_javascript:
+  - "assets/admonition.js"
 
 repo_url: https://github.com/GraiaProject/Ariadne
 repo_name: GraiaProject/Ariadne

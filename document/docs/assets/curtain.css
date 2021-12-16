@@ -1,0 +1,15 @@
+html .curtain
+{
+    transition: 0.125s linear;
+    background-color: var(--md-code-fg-color);
+    color: var(--md-code-fg-color);
+    text-shadow: none;
+    text-decoration-line: none;
+    border-radius: 0.18rem;
+}
+
+html .curtain:hover {
+    transition: 0.125s linear;
+    color: var(--md-code-bg-color);
+}
+

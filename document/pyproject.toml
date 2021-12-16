@@ -6,7 +6,7 @@ authors = ["BlueGlassBlock <blueglassblock@outlook.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-mkdocs-material = "^7.3.6"
+mkdocs-material = "^8.0"
 
 [tool.poetry.dev-dependencies]
 

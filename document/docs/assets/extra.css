@@ -6,8 +6,8 @@ html .md-social a[title="Graiax 社区"] {
 }
 
 .md-social__link {
-    font-size: 2px;
-    width: 3.5rem;
+    font-size: auto;
+    width: auto;
 }
 
 body {
@@ -17,10 +17,11 @@ body {
     /* Font with fallback for code */
     --md-code-font-family: var(--md-code-font, _), SFMono-Regular, Consolas,
         Menlo, var(--md-text-font, _);
+    
 }
 
 ul.clear-list {
     list-style-type: none;
     margin: 0;
     padding: 0;
-  }
+}

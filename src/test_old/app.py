@@ -78,7 +78,7 @@ if __name__ == "__main__":
                 event, MessageChain.create(sparkle.get_help(description="Foo help!"))
             )
         if verbose.matched:
-            await app.sendMessage(event, MessageChain.create("Auto reply to ") + arg.result)
+            await app.sendMessage(event, MessageChain.create("Auto reply to \n") + arg.result)
         else:
             await app.sendMessage(event, MessageChain.create("Result: ") + arg.result)
 

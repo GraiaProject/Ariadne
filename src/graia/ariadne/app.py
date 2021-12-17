@@ -4,18 +4,7 @@ import time
 from asyncio.events import AbstractEventLoop
 from asyncio.exceptions import CancelledError
 from asyncio.tasks import Task
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type, Union
 
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -40,6 +29,7 @@ from .util import (
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
+    from .typing import T
 
 from .message.chain import MessageChain
 from .model import (
@@ -66,6 +56,7 @@ class AriadneMixin:
     broadcast: Broadcast
     adapter: Adapter
     mirai_session: MiraiSession
+    chat_log_cfg: ChatLogConfig
 
     @property
     def session_key(self) -> Optional[str]:
@@ -116,15 +107,15 @@ class MessageMixin(AriadneMixin):
                 },
             )
             logger.info(
-                "[BOT {bot_id}] Friend({friend_id}) <- {message}".format_map(
+                "{bot_id}: [Friend({friend_id})] <- {message}".format_map(
                     {
                         "bot_id": self.mirai_session.account,
                         "friend_id": target.id if isinstance(target, Friend) else target,
-                        "message": new_msg.asDisplay(),
+                        "message": new_msg.asDisplay().__repr__(),
                     }
                 )
             )
-            return BotMessage(messageId=result["messageId"])
+            return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
     async def sendGroupMessage(
@@ -158,15 +149,15 @@ class MessageMixin(AriadneMixin):
                 },
             )
             logger.info(
-                "[BOT {bot_id}] Group({group_id}) <- {message}".format_map(
+                "{bot_id}: [Group({group_id})] <- {message}".format_map(
                     {
                         "bot_id": self.mirai_session.account,
                         "group_id": target.id if isinstance(target, Group) else target,
-                        "message": new_msg.asDisplay(),
+                        "message": new_msg.asDisplay().__repr__(),
                     }
                 )
             )
-            return BotMessage(messageId=result["messageId"])
+            return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
     async def sendTempMessage(
@@ -206,16 +197,16 @@ class MessageMixin(AriadneMixin):
                 },
             )
             logger.info(
-                "[BOT {bot_id}] Member({member_id}, in {group_id}) <- {message}".format_map(
+                "{bot_id}: [Member({member_id}) of Group({group_id})] <- {message}".format_map(
                     {
                         "bot_id": self.mirai_session.account,
                         "member_id": target.id if isinstance(target, Member) else target,
                         "group_id": group.id if isinstance(group, Group) else group,
-                        "message": new_msg.asDisplay(),
+                        "message": new_msg.asDisplay().__repr__(),
                     }
                 )
             )
-            return BotMessage(messageId=result["messageId"])
+            return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
     async def sendMessage(
@@ -1089,9 +1080,6 @@ class MultimediaMixin(AriadneMixin):
         return Voice.parse_obj(result)
 
 
-T = TypeVar("T")
-
-
 class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin):
     """
     艾莉亚德妮 (Ariadne).
@@ -1169,17 +1157,15 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             MiraiSession: self.mirai_session,
         }
 
-        chat_log_enabled = True if chat_log_config is not False else False
-        self.chat_log_cfg: ChatLogConfig = (
-            chat_log_config if chat_log_config else ChatLogConfig(enabled=chat_log_enabled)
-        )
+        chat_log_enabled = chat_log_config is not False
+        self.chat_log_cfg: ChatLogConfig = chat_log_config or ChatLogConfig(enabled=chat_log_enabled)
 
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
         if use_loguru_traceback:
             inject_loguru_traceback(self.loop)
 
-    def create(self, cls: Type[T], reuse: bool = True) -> T:
+    def create(self, cls: Type["T"], reuse: bool = True) -> "T":
         """利用 Ariadne 已有的信息协助创建实例.
 
         Args:
@@ -1189,7 +1175,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         Returns:
             T: 创建的类.
         """
-        self.info: Dict[Type[T], T]
+        self.info: Dict[Type["T"], "T"]
         if cls in self.info.keys():
             return self.info[cls]
         call_args: list = []
@@ -1208,7 +1194,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                         call_args.append(self.info[param.annotation])
                     else:
                         call_kwargs[name] = self.info[param.annotation]
-        obj: T = cls(*call_args, **call_kwargs)
+        obj: "T" = cls(*call_args, **call_kwargs)
         if reuse:
             self.info[cls] = obj
         return obj
@@ -1305,8 +1291,10 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
             logger.info("Launching app...")
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
+
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
+
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
             await await_predicate(lambda: self.adapter.session_activated, 0.0001)
             self.status = AriadneStatus.RUNNING

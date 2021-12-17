@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Optional, Union
@@ -8,14 +9,12 @@ from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra
 from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
-
-if TYPE_CHECKING:
-    from pydantic.typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
-
 from yarl import URL
 
 if TYPE_CHECKING:
     from .app import Ariadne
+    from .message.chain import MessageChain
+    from .typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 
 
 def datetime_encoder(v: datetime):
@@ -59,7 +58,8 @@ class AriadneBaseModel(BaseModel):
         extra = Extra.allow
 
 
-class ChatLogConfig(AriadneBaseModel):
+@dataclass
+class ChatLogConfig:
     """配置日志如何记录 QQ 消息与事件."""
 
     enabled: bool = True
@@ -69,18 +69,10 @@ class ChatLogConfig(AriadneBaseModel):
     )
     friend_message_log_format: str = "{bot_id}: [{friend_name}({friend_id})] -> {message_string}"
     temp_message_log_format: str = (
-        "{bot_id}: [{group_name}({group_id}.{member_name}({member_id})] -> {message_string}"
+        "{bot_id}: [{group_name}({group_id}).{member_name}({member_id})] -> {message_string}"
     )
     other_client_message_log_format: str = "{bot_id}: [{platform_name}({platform_id})] -> {message_string}"
     stranger_message_log_format: str = "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
-
-    def __init__(
-        self,
-        enabled: bool = True,
-        log_level: str = "INFO",
-        **msg_format: str,
-    ) -> None:
-        super().__init__(enabled=enabled, log_level=log_level, **msg_format)
 
     def initialize(self, app: "Ariadne"):
         from .event.message import (
@@ -95,17 +87,14 @@ class ChatLogConfig(AriadneBaseModel):
         def log_group_message(event: GroupMessage):
             logger.log(
                 self.log_level,
-                self.group_message_log_format.format_map(
-                    dict(
-                        group_id=event.sender.group.id,
-                        group_name=event.sender.group.name,
-                        member_id=event.sender.id,
-                        member_name=event.sender.name,
-                        member_permission=event.sender.permission.name,
-                        bot_id=app.mirai_session.account,
-                        bot_permission=event.sender.group.accountPerm.name,
-                        message_string=event.messageChain.asDisplay().__repr__(),
-                    )
+                self.group_message_log_format.format(
+                    group_id=event.sender.group.id,
+                    group_name=event.sender.group.name,
+                    member_id=event.sender.id,
+                    member_name=event.sender.name,
+                    member_permission=event.sender.permission.name,
+                    bot_id=app.mirai_session.account,
+                    message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
 
@@ -132,7 +121,6 @@ class ChatLogConfig(AriadneBaseModel):
                     member_name=event.sender.name,
                     member_permission=event.sender.permission.name,
                     bot_id=app.mirai_session.account,
-                    bot_permission=event.sender.group.accountPerm.name,
                     message_string=event.messageChain.asDisplay().__repr__(),
                 ),
             )
@@ -358,6 +346,8 @@ class BotMessage(AriadneBaseModel):
     """
 
     messageId: int
+
+    origin: Optional["MessageChain"]
 
 
 class AriadneStatus(Enum):

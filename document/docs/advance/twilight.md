@@ -57,6 +57,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 - `UnionMatch` : 多重全匹配, 即在传入的 `pattern` 中任意符合一种即可.
 - `ElementMatch` : 元素匹配, 可匹配 `Plain` 以外的元素类型.
 - `WildcardMatch` : 任意匹配, 可以通过 `greed` 参数确定是否贪婪匹配.
+- `ParamMatch`: 任意匹配, 但是通过引号起止与空格确定匹配.
 - `ArgumentMatch` : 参数匹配, 在 **`match` 字典 或 类变量** 中没有以上三种匹配时才允许不以 "-" 打头.
 
 这些 `Match` 类可接受以下参数:
@@ -172,6 +173,12 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 - 若是在实例化 `Sparkle` 时添加的, 那只能通过 `Sparkle[int]` 的形式提取.
 - 否则, 可通过 `Sparkle[match_name]` 与 `Sparkle.match_name` 两种方式提取.
+
+!!! info "提示"
+
+    你可以通过 `Sparkle[match_class]` 形式提取 `match_class` 类型的 `Match` 对象.
+
+    还可以通过 `Sparkle[match_class, index]` 提取第 `index` 个 `match_class` 类型的 `Match` 对象 (从 0 计数).
 
 ## 配合 Broadcast 使用
 

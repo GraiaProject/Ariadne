@@ -6,6 +6,7 @@ from copy import copy, deepcopy
 from typing import (
     Any,
     Callable,
+    DefaultDict,
     Dict,
     Generic,
     Iterable,
@@ -25,7 +26,6 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 
-from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Element
 from .util import (
@@ -100,7 +100,7 @@ class RegexMatch(Match):
 
 
 class ParamMatch(RegexMatch):
-    """与WildcardMatch类似, 但需要至少一个字符. 且仅匹配用空格分开的一段. (也就是说用引号包起来的会寄掉)"""
+    """与 WildcardMatch 类似, 但需要至少一个字符. 且仅匹配用空格分开的一段. (不支持输入的转义处理, 但是可以处理不同引号包裹)"""
 
     preserve_space: bool
 
@@ -113,7 +113,11 @@ class ParamMatch(RegexMatch):
         alt_help: str = "",
     ) -> None:
         super().__init__(
-            "^.+$", optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+            r"""((?:").+?(?:")|(?:').+?(?:')|\b[^ ]+?\b)""",
+            optional=optional,
+            help=help,
+            preserve_space=preserve_space,
+            alt_help=alt_help,
         )
 
     def gen_regex(self) -> str:
@@ -282,6 +286,9 @@ class ArgumentMatch(Match):
         self.add_arg_data = data
 
 
+T_Match = TypeVar("T_Match", bound=Match)
+
+T_RMatch = TypeVar("T_RMatch", bound=RegexMatch)
 # -------------------
 
 
@@ -299,7 +306,19 @@ class Sparkle(Representation):
             + list(self._mapping_arg_match.items())
         )
 
+    @overload
     def __getitem__(self, item: Union[str, int]) -> Match:
+        ...
+
+    @overload
+    def __getitem__(self, item: Type[T_Match]) -> List[T_Match]:
+        ...
+
+    @overload
+    def __getitem__(self, item: Tuple[T_RMatch, int]) -> T_RMatch:
+        ...
+
+    def __getitem__(self, item: Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]):
         return self.get_match(item)
 
     def __init_subclass__(cls, /, *, description: str = "", epilog: str = "", **kwargs) -> None:
@@ -314,16 +333,33 @@ class Sparkle(Representation):
         else:
             return self.get_match(__name)
 
-    def get_match(self, item: Union[int, str]):
+    @overload
+    def get_match(self, item: Union[str, int]) -> Match:
+        ...
+
+    @overload
+    def get_match(self, item: Type[T_Match]) -> List[T_Match]:
+        ...
+
+    @overload
+    def get_match(self, item: Tuple[T_RMatch, int]) -> T_RMatch:
+        ...
+
+    def get_match(self, item: Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]):
         if isinstance(item, int):
             return self._list_check_match[item][0]
-
-        if item in self._mapping_arg_match:
-            return self._mapping_arg_match[item]
-        elif item in self._mapping_regex_match:
-            return self._mapping_regex_match[item][0]
-        else:
-            raise KeyError(f"Unable to find match named {item}")
+        elif isinstance(item, str):
+            if item in self._mapping_arg_match:
+                return self._mapping_arg_match[item]
+            elif item in self._mapping_regex_match:
+                return self._mapping_regex_match[item][0]
+            else:
+                raise KeyError(f"Unable to find match named {item}")
+        elif isinstance(item, type):
+            return self._match_ref[item]
+        elif isinstance(item, tuple):
+            typ, ind = item
+            return self._match_ref[typ][ind]
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -332,6 +368,7 @@ class Sparkle(Representation):
         copied._mapping_arg_match = deepcopy(self._mapping_arg_match, memo)
         copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
         copied._parser_ref = deepcopy(self._parser_ref, memo)
+        copied._match_ref = deepcopy(self._match_ref, memo)
 
         return copied
 
@@ -377,14 +414,21 @@ class Sparkle(Representation):
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
+        self._match_ref: DefaultDict[Type[T_Match], List[T_Match]] = DefaultDict(lambda: list())
+
         self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
         self._mapping_arg_match: Dict[str, ArgumentMatch] = {}
         self._parser_ref: Dict[str, ArgumentMatch] = {}
+
+        for v in check:
+            self._match_ref[v.__class__].append(v)
 
         self._parser = TwilightParser(prog="", add_help=False)
         for k, v in match_map.items():
             if k.startswith("_") or k[0] in string.digits:
                 raise ValueError("Invalid Match object name!")
+
+            self._match_ref[v.__class__].append(v)
 
             if isinstance(v, ArgumentMatch):  # add to self._parser
                 self._mapping_arg_match[k] = v
@@ -603,17 +647,15 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         elem_mapping_ctx.reset(token)
         return sparkle
 
-    def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
+    async def beforeExecution(self, interface: DispatcherInterface):
         local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
-        chain: MessageChain = interface.lookup_param("message_chain", MessageChain, None, [])
+        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None, [])
         try:
             local_storage["result"] = self.generate(chain)
         except Exception:
             raise ExecutionStop
 
-    async def catch(
-        self, interface: "DispatcherInterface[MessageEvent]"
-    ) -> Optional[Union["Twilight", T_Sparkle, Match]]:
+    async def catch(self, interface: DispatcherInterface) -> Optional[Union["Twilight", T_Sparkle, Match]]:
         local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
         sparkle = local_storage["result"]
         if issubclass(interface.annotation, Sparkle):

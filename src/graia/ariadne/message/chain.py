@@ -30,9 +30,7 @@ from .element import (
 )
 
 if TYPE_CHECKING:
-    from pydantic.typing import ReprArgs
-
-    from ..typing import MessageIndex, Slice
+    from ..typing import MessageIndex, ReprArgs, Slice
 
 
 Element_T = TypeVar("Element_T", bound=Element)

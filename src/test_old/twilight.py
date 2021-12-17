@@ -87,3 +87,18 @@ if __name__ == "__main__":
     )
 
     devtools.debug(k)
+
+    devtools.debug(
+        Twilight(
+            Sparkle([FullMatch("lp"), FullMatch("user"), FullMatch("perm"), ParamMatch(), ParamMatch()])
+        ).generate(MessageChain.create('lp user perm "set""DENIED -> NOLOGIN"'))
+    )
+
+    sp = Twilight(
+        Sparkle([FullMatch("lp"), FullMatch("user"), ParamMatch(), FullMatch("set"), ParamMatch()])
+    ).generate(MessageChain.create("lp user perm set 'DENIED -> NOLOGIN'"))
+
+    devtools.debug(sp)
+    devtools.debug(sp._match_ref)
+    devtools.debug(sp.get_match(ParamMatch))
+    devtools.debug(sp[ParamMatch, 0])

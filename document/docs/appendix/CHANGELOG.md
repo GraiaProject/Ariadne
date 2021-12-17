@@ -20,7 +20,11 @@
 
 将 `graia.ariadne.message.parser.pattern` 的所有内容移到 `literature` 与 `twilight` 模块里. ([#53](https://github.com/GraiaProject/Ariadne/issues/53))
 
+添加 `ParamMatch` 并拓展 `Sparkle.__getitem__` ([#57](https://github.com/GraiaProject/Ariadne/issues/57))
+
 ### 修复
+
+[#58](https://github.com/GraiaProject/Ariadne/issues/58) 自动用 `repr()` 转义发送的消息
 
 [#51](https://github.com/GraiaProject/Ariadne/issues/51) `Queue.get` 任务退出时没被 `await`
 

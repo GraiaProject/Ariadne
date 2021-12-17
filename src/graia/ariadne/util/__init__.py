@@ -42,7 +42,7 @@ from ..exception import (
     UnknownTarget,
     UnVerifiedSession,
 )
-from ..typing import P, R
+from ..typing import P, R, T
 
 # Import layout
 from . import async_exec  # noqa: F401
@@ -185,9 +185,6 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
             return await func(self, *args, **kwargs)
 
     return wrapper
-
-
-T = TypeVar("T")
 
 
 def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:

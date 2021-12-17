@@ -23,8 +23,7 @@ from ..model import (
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:
-    from pydantic.typing import ReprArgs
-
+    from ..typing import ReprArgs
     from .chain import MessageChain
 
 
@@ -563,7 +562,9 @@ def _update_forward_refs():
     Inner function.
     Update the forward references.
     """
+    from ..model import BotMessage
     from .chain import MessageChain
 
     Quote.update_forward_refs(MessageChain=MessageChain)
     ForwardNode.update_forward_refs(MessageChain=MessageChain)
+    BotMessage.update_forward_refs(MessageChain=MessageChain)

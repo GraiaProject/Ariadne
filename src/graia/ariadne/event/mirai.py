@@ -606,7 +606,8 @@ class MemberCardChangeEvent(GroupEvent):
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被更改群名片的成员
-          - `"operator"` (default, const, str, return:optional): 该操作的执行者, 可能是管理员/群主, 该成员自己, 也可能是应用实例所辖账号(这时, `operator` 为 `None`).
+          - `"operator"` (default, const, Optional[str]): 该操作的执行者, 可能是管理员/群主, 该成员自己,
+          也可能是应用实例所辖账号(这时, `operator` 为 `None`).
     """
 
     type = "MemberCardChangeEvent"

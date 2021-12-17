@@ -1,9 +1,21 @@
-from typing import Generic, Optional, Tuple, TypeVar
+from typing import (
+    AbstractSet,
+    Any,
+    Dict,
+    Generic,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 from typing_extensions import ParamSpec
 
 P = ParamSpec("P")
 R = TypeVar("R")
+T = TypeVar("T")
 
 Self = TypeVar("Self")
 
@@ -19,3 +31,10 @@ class Slice(Generic[T_start, T_stop, T_step]):
 
 
 MessageIndex = Tuple[int, Optional[int]]
+
+IntStr = Union[int, str]
+AbstractSetIntStr = AbstractSet[IntStr]
+DictIntStrAny = Dict[IntStr, Any]
+DictStrAny = Dict[str, Any]
+MappingIntStrAny = Mapping[IntStr, Any]
+ReprArgs = Sequence[Tuple[Optional[str], Any]]

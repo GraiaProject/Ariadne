@@ -1,5 +1,4 @@
-from datetime import datetime
-from typing import List, Union
+from typing import Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface

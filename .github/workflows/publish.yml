@@ -1,15 +1,14 @@
-name: Python Publish
+name: Publish to PyPI
 on:
   workflow_dispatch:
 
 jobs:
-  prepare-env:
-    uses: GraiaProject/Ariadne/.github/workflows/mk-env.yml@dev
-
   build:
     runs-on: ubuntu-latest
-    needs: prepare-env
     steps:
+      - name: prepare-env
+        uses: GraiaProject/Ariadne/.github/workflows/mk-env.yml@dev
+
       - name: Poetry build
         run: |
           poetry build

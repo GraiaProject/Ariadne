@@ -5,12 +5,13 @@ on:
       - master
       - dev
 jobs:
-  prepare-env:
-    uses: GraiaProject/Ariadne/.github/workflows/mk-env.yml@dev
   deploy-docs:
     runs-on: ubuntu-latest
     needs: prepare-env
     steps:
+      - name: prepare-env
+        uses: GraiaProject/Ariadne/.github/workflows/mk-env.yml@dev
+
       - name: Generate with pdoc
         run: |
           poetry run pdoc --docformat google ./src/graia/ariadne --footer-text "© Graia Project 2021" -e "ariadne=https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/" -o ./api-doc

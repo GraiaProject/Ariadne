@@ -1,7 +1,20 @@
+import base64
+
+import aiohttp
 import pytest
 
+from graia.ariadne.context import adapter_ctx
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import At, AtAll, Element, Plain, Quote, Source
+from graia.ariadne.message.element import (
+    At,
+    AtAll,
+    Element,
+    Image,
+    Plain,
+    Quote,
+    Source,
+)
+from graia.ariadne.util import Dummy
 
 
 def test_create():
@@ -206,11 +219,37 @@ def test_persistent():
         Source(id=1, time=12433531),
         Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
         "hello!",
+        At(12345),
     )
-    assert msg_chain.asPersistentString() == "hello!"
+    assert msg_chain.asPersistentString() == 'hello![mirai:At:{"target":12345}]'
     assert MessageChain.fromPersistentString('hello![_[mirai:At:{"target":12345}]') == MessageChain(
         ["hello![", At(12345)]
     )
+    assert msg_chain.asPersistentString(include=[At]) == '[mirai:At:{"target":12345}]'
+    assert msg_chain.asPersistentString(exclude=[At]) == "hello!"
+    with pytest.raises(ValueError):
+        msg_chain.asPersistentString(include=[Plain], exclude=[Quote])
+    multimedia_msg_chain = MessageChain(
+        ["image:", Image(url="https://foo.bar.com/img.png", data_bytes=b"abcdef2310123asd")]
+    )
+    b64 = base64.b64encode(b"abcdef2310123asd").decode()
+    assert (
+        multimedia_msg_chain.asPersistentString()
+        == f'image:[mirai:Image:{{"url":"https://foo.bar.com/img.png","base64":"{b64}"}}]'
+    )
+    assert (
+        multimedia_msg_chain.asPersistentString(binary=False)
+        == f'image:[mirai:Image:{{"url":"https://foo.bar.com/img.png"}}]'
+    )
+
+
+async def test_download():
+    url = "https://avatars.githubusercontent.com/u/67151942?s=200&v=4"
+    chain = MessageChain([Image(url=url)])
+    async with aiohttp.ClientSession() as session:
+        adapter_ctx.set(Dummy(session=session))
+        await chain.download_binary()
+        assert chain.getFirst(Image).base64 == await (await session.get(url)).content
 
 
 def test_presentation():

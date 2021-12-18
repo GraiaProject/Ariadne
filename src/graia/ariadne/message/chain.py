@@ -606,7 +606,7 @@ class MessageChain(AriadneBaseModel):
         for i in self.__root__:
             if (
                 (include and isinstance(i, include))
-                or (exclude and isinstance(i, exclude))
+                or (exclude and not isinstance(i, exclude))
                 or not (include or exclude)
             ):
                 if isinstance(i, Plain):

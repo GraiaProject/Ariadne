@@ -48,7 +48,16 @@ class Element(AriadneBaseModel, abc.ABC):
         return ""
 
     def asPersistentString(self) -> str:
-        return f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type'})))}]"
+        data: str = wrap_bracket(
+            j_dump(
+                self.dict(
+                    exclude={"type"},
+                ),
+                indent=None,
+                separators=(",", ":"),
+            )
+        )
+        return f"[mirai:{self.type}:{data}]"
 
     def prepare(self) -> None:
         """
@@ -489,11 +498,19 @@ class MultimediaElement(Element):
             return data
 
     def asPersistentString(self, *, binary: bool = True) -> str:
-        return (
-            f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type'})))}]"
-            if binary
-            else f"[mirai:{self.type}:{wrap_bracket(j_dump(self.dict(exclude={'type', 'base64'})))}]"
-        )
+        if binary:
+            return super().asPersistentString()
+        else:
+            data: str = wrap_bracket(
+                j_dump(
+                    self.dict(
+                        exclude={"type", "base64"},
+                    ),
+                    indent=None,
+                    separators=(",", ":"),
+                )
+            )
+        return f"[mirai:{self.type}:{data}]"
 
     @property
     def uuid(self):

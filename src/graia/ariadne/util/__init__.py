@@ -244,6 +244,10 @@ def cast_to(obj, typ: Type[T]) -> T:
 
 
 class Dummy:
+    def __init__(self, **kwds):
+        for k, v in kwds:
+            self.__setattr__(k, v)
+
     def __getattr__(self, *_, **__):
         return self
 

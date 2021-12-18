@@ -35,20 +35,31 @@ def split(string: str) -> List[str]:
 
 def gen_flags_repr(flags: re.RegexFlag) -> str:
     flags_list: List[str] = []
+
     if re.ASCII in flags:
         flags_list.append("a")
-    if re.IGNORECASE in flags_list:
+    if re.IGNORECASE in flags:
         flags_list.append("i")
-    if re.LOCALE in flags_list:
+    if re.LOCALE in flags:
         flags_list.append("L")
-    if re.MULTILINE in flags_list:
+    if re.MULTILINE in flags:
         flags_list.append("m")
-    if re.DOTALL in flags_list:
+    if re.DOTALL in flags:
         flags_list.append("s")
-    if re.UNICODE in flags_list:
+    if re.UNICODE in flags:
         flags_list.append("u")
-    if re.VERBOSE in flags_list:
+    if re.VERBOSE in flags:
         flags_list.append("x")
+
+    return "".join(flags_list)
+
+
+def transformed_regex(flag: re.RegexFlag, regex_pattern: str) -> str:
+    if flag:
+        regex_pattern = f"(?{gen_flags_repr(flag)}:({regex_pattern}))"
+    else:
+        regex_pattern = f"({regex_pattern})"
+    return regex_pattern
 
 
 class MessageChainType:

@@ -54,7 +54,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "arclet-alconna"
-version = "0.1.3"
+version = "0.3.1"
 description = "A Fast Command Analyser based on Dict and Pydantic"
 category = "main"
 optional = true
@@ -1405,7 +1405,7 @@ qc = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "02d689cff1879ade80c25341b25f6eddb159ab28ce8ad0787a967a934f4eadf0"
+content-hash = "9be30f1c38b0fc8bc964b4eae7933e963fb6d91e9c30bf8b0d346bd7867c759a"
 
 [metadata.files]
 aiohttp = [
@@ -1491,7 +1491,7 @@ appdirs = [
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 arclet-alconna = [
-    {file = "arclet-alconna-0.1.3.tar.gz", hash = "sha256:a8274a04b3764b90f90c311650d58aa60a63afa4c9d2621276abc0e5bd5bb642"},
+    {file = "arclet-alconna-0.3.1.tar.gz", hash = "sha256:b994b4b77a66688fa1292ac6aaa65f89c01d49af8a581c7022827e8ea2cb519e"},
 ]
 asttokens = [
     {file = "asttokens-2.0.5-py2.py3-none-any.whl", hash = "sha256:0844691e88552595a6f4a4281a9f7f79b8dd45ca4ccea82e5e05b4bbdb76705c"},

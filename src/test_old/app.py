@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -58,7 +59,7 @@ if __name__ == "__main__":
                     [FullMatch(".test")],
                     {
                         "help": ArgumentMatch("--help", "-h", action="store_true"),
-                        "arg": WildcardMatch(),
+                        "arg": WildcardMatch(flags=re.DOTALL),
                         "verbose": ArgumentMatch("--verbose", action="store_true"),
                     },
                 )

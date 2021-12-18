@@ -8,9 +8,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Build and publish to PyPI
-        uses: JRubics/poetry-publish@v1.9
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2
         with:
-          pypi_token: ${{ secrets.PYPI_TOKEN }}
-          repository_name: "PyPI"
+          python-version: 3.9
+
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.11
+
+      - name: Setup Poetry Dependencies
+        run: |
+          poetry install
+
+      - name: Poetry build
+        run: |
+          poetry build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: artifacts
+          path: dist/
+
+      - name: Poetry Publish
+        run: |
+          poetry config pypi-token.pypi {{secrets.PYPI_TOKEN}}
+          poetry publish

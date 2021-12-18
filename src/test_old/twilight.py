@@ -102,3 +102,16 @@ if __name__ == "__main__":
     devtools.debug(sp._match_ref)
     devtools.debug(sp.get_match(ParamMatch))
     devtools.debug(sp[ParamMatch, 0])
+
+    flag_sp = Twilight(
+        Sparkle(
+            [FullMatch(".test")],
+            {
+                "help": ArgumentMatch("--help", "-h", action="store_true"),
+                "arg": WildcardMatch(flags=re.DOTALL),
+                "verbose": ArgumentMatch("--verbose", action="store_true"),
+            },
+        )
+    )
+    devtools.debug(flag_sp.root._regex)
+    devtools.debug(flag_sp.generate(MessageChain([".test op\nop\nseq"])))

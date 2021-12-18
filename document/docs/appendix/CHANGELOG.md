@@ -4,8 +4,6 @@
 
 ### 添加
 
-添加 `CHANGELOG`.
-
 添加内置 `Console` ([#41](https://github.com/GraiaProject/Ariadne/issues/41)). (WIP)
 
 添加 `Alconna` 支持 ([#37](https://github.com/GraiaProject/Ariadne/issues/37)).
@@ -21,6 +19,8 @@
 将 `graia.ariadne.message.parser.pattern` 的所有内容移到 `literature` 与 `twilight` 模块里. ([#53](https://github.com/GraiaProject/Ariadne/issues/53))
 
 添加 `ParamMatch` 并拓展 `Sparkle.__getitem__` ([#57](https://github.com/GraiaProject/Ariadne/issues/57))
+
+添加 `space` 参数与 `SpacePolicy` 以替代 `preserve_space` ([#59](https://github.com/GraiaProject/Ariadne/issues/59))
 
 ### 修复
 

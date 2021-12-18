@@ -87,4 +87,22 @@ Alconna(
 
 -   `Alconna`: 使用的 `Alconna` 对象.
 -   `Arpamar`: `Alconna` 生成的数据容器.
--   `AlconnaProperty`: 在 `name` 上进行此标注等价于 进行 `arpamar.get(name)`.
+-   `AlconnaProperty`: 在 `name` 上进行此标注等价于进行 `arpamar.get(name)`.
+
+## 与 Twilight 对比
+
+`Twilight` 偏重于对消息链的正则化处理,
+
+而 `Alconna` 偏重于对参数的各种形式解析 (更像 `argparse` 模块).
+
+如果你想要 `argparse` 中各种特别 `Action` (如 `append`) 的原生支持, 可能 `Twilight` 会更好编写.
+
+同时, `Twilight` 是基于对象的参数处理器, 在类型补全上更完备.
+
+但是 `Alconna` 有子命令的支持, 且性能占优.
+
+总之, 根据自己的需要, 选择合适的工具.
+
+## 下一步
+
+`Ariadne` 只对 `Alconna` 进行了简单的封装, 接下来你可以访问其 [文档](https://github.com/RF-Tar-Railt/Cesloi/wiki/Alconna-Introduction) 进一步了解用法.

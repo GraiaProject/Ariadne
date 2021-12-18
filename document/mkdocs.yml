@@ -104,10 +104,7 @@ nav:
           - "advance/twilight.md"
           - "Alconna - 来自 Cesloi 的命令解析工具":
               - "advance/alconna/quickstart.md"
-              - "advance/alconna/introduction.md"
-              - "advance/alconna/construct-usage.md"
-              - "advance/alconna/parameter.md"
-              - "advance/alconna/examples.md"
+              - Alconna 官方文档: https://github.com/RF-Tar-Railt/Cesloi/wiki/Alconna-Introduction
           - "Broadcast 简介":
               - "advance/broadcast/interrupt.md"
               - "advance/broadcast/depend.md"

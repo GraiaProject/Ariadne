@@ -64,7 +64,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 - `pattern` : 匹配项, 为一个字符串 (`ArgumentMatch` 与 `UnionMatch` 可为多个, `ElementMatch` 应传入类型而非字符串). **在 `WildcardMatch` 上不可用**
 - `optional` : 是否可选, 在 `ArgumentMatch` 上会通过传入的 `pattern` 确定是否有效. (在非 `ArgumentMatch` 上默认为 False, 在 `ArgumentMatch` 上默认为 True.)
-- `preserve_space` : 是否要预留尾随空格. **在 `ArgumentMatch` 上不可用**
+- `space` : 如何处理尾随空格. (为 `SpacePolicy` 对象) **在 `ArgumentMatch` 上不可用**
 - `help` : 帮助字符串, 在 `Twilight.get_help` 中使用.
 - `alt_help` : 替代帮助字符串, 在 `Twilight.get_help` 中使用.
 
@@ -72,7 +72,17 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 - `matched` : 标志着匹配到的对象是否有内容.
 - `result` : 匹配结果.
-- `regex_match` : 仅 `RegexMatch` 拥有, 为原来的 `re.Match` 对象.
+- `regex_match` : 仅 `RegexMatch` 及其子类拥有, 为原来的 `re.Match` 对象.
+
+### SpacePolicy 对象
+
+`SpacePolicy` 是一个 [`enum.Enum`](https://docs.python.org/zh-cn/3/library/enum.html#enum.Enum) 类, 有如下常量:
+
+- `NOSPACE`: 不附带尾随空格.
+- `PRESERVE`: 预留尾随空格. (默认)
+- `FORCE`: 强制需要尾随空格.
+
+它们应被作为 **不透明对象** 使用.
 
 ## Twilight 与 Sparkle 的实例化
 
@@ -179,6 +189,8 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
     你可以通过 `Sparkle[match_class]` 形式提取 `match_class` 类型的 `Match` 对象.
 
     还可以通过 `Sparkle[match_class, index]` 提取第 `index` 个 `match_class` 类型的 `Match` 对象 (从 0 计数).
+
+    这几种方式与调用 `Sparkle.get_match(...)` 等价.
 
 ## 配合 Broadcast 使用
 

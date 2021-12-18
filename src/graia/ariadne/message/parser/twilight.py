@@ -1,4 +1,5 @@
 import abc
+import enum
 import re
 import string
 from argparse import Action
@@ -18,12 +19,14 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
+    final,
     overload,
 )
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from loguru import logger
 from pydantic.utils import Representation
 
 from ..chain import MessageChain
@@ -33,8 +36,8 @@ from .util import (
     MessageChainType,
     TwilightParser,
     elem_mapping_ctx,
-    gen_flags_repr,
     split,
+    transformed_regex,
 )
 
 # ------ Match ------
@@ -66,15 +69,26 @@ class Match(abc.ABC, Representation):
             ("pattern", self.pattern),
         ]
 
-    def get_help(self) -> str:
-        return self.pattern.replace("( )?", " ") if not self.alt_help else self.alt_help
+
+class SpacePolicy(str, enum.Enum):
+    NOSPACE = ""
+    PRESERVE = "( )?"
+    FORCE = "( )"
+
+    def __init__(self, src: str) -> None:
+        self.src = src
+
+
+NOSPACE = SpacePolicy.NOSPACE
+PRESERVE = SpacePolicy.PRESERVE
+FORCE = SpacePolicy.FORCE
 
 
 class RegexMatch(Match):
     """基础的正则表达式匹配."""
 
     regex_match: Optional[re.Match]
-    preserve_space: bool
+    space: SpacePolicy
 
     def __init__(
         self,
@@ -82,94 +96,103 @@ class RegexMatch(Match):
         *,
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
-        preserve_space: bool = True,
+        space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
+        preserve_space: bool = ...,
     ) -> None:
         super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
         self.flags = flags
-        self.flags_repr = gen_flags_repr(self.flags)
         self.regex_match = None
-        self.preserve_space = preserve_space
+        self.space = space
+        if preserve_space is not ...:
+            logger.warning('"preserve_space argument" is deprecated and will be removed in 0.5.2!')
+            logger.warning('use "space" instead!')
+            self.space = SpacePolicy.PRESERVE if preserve_space else SpacePolicy.NOSPACE
 
+    @final
     def gen_regex(self) -> str:
         return (
-            f"({f'?{self.flags_repr}:' if self.flags_repr else ''}{self.pattern})"
-            f"{'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+            f"{transformed_regex(self.flags, self.regex_src)}"
+            f"{'?' if self.optional else ''}{self.space.src}"
         )
+
+    @property
+    def regex_src(self) -> str:
+        return self.pattern
+
+    def get_help(self) -> str:
+        return self.pattern.replace("( )?", " ") if not self.alt_help else self.alt_help
 
 
 class ParamMatch(RegexMatch):
     """与 WildcardMatch 类似, 但需要至少一个字符. 且仅匹配用空格分开的一段. (不支持输入的转义处理, 但是可以处理不同引号包裹)"""
 
-    preserve_space: bool
-
     def __init__(
         self,
         *,
         optional: bool = False,
-        preserve_space: bool = True,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
+        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
-            r"""((?:").+?(?:")|(?:').+?(?:')|\b[^ ]+?\b)""",
+            r"""(?:").+?(?:")|(?:').+?(?:')|\b[^ ]+?\b""",
             optional=optional,
+            flags=flags,
+            space=space,
             help=help,
-            preserve_space=preserve_space,
             alt_help=alt_help,
+            preserve_space=preserve_space,
         )
 
-    def gen_regex(self) -> str:
-        return f"({self.pattern}){'?' if self.optional else ''}{'( )?' if self.preserve_space else ''}"
+    def get_help(self) -> str:
+        return "PARAM"
 
 
 class WildcardMatch(RegexMatch):
     """泛匹配."""
 
-    preserve_space: bool
+    greed: bool
 
     def __init__(
         self,
         *,
         greed: bool = True,
         optional: bool = False,
-        preserve_space: bool = True,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
+        preserve_space: bool = ...,
     ) -> None:
-        super().__init__(".*", optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help)
+        super().__init__(
+            ".*",
+            optional=optional,
+            flags=flags,
+            space=space,
+            help=help,
+            alt_help=alt_help,
+            preserve_space=preserve_space,
+        )
         self.greed = greed
 
-    def gen_regex(self) -> str:
-        return (
-            f"({self.pattern}{'?' if not self.greed else ''}){'?' if self.optional else ''}"
-            f"{'( )?' if self.preserve_space else ''}"
-        )
+    @property
+    def regex_src(self) -> str:
+        return f"{self.pattern}{'?' if not self.greed else ''}"
 
 
 class FullMatch(RegexMatch):
     """全匹配."""
 
-    def __init__(
-        self,
-        pattern: str,
-        *,
-        optional: bool = False,
-        preserve_space: bool = True,
-        help: str = "",
-        alt_help: str = "",
-    ) -> None:
-        super().__init__(
-            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
-        )
-        self.preserve_space = preserve_space
+    @property
+    def regex_src(self) -> str:
+        return re.escape(self.pattern)
 
-    def gen_regex(self) -> str:
-        return (
-            f"({re.escape(self.pattern)}){'?' if self.optional else ''}"
-            f"{'( )?' if self.preserve_space else ''}"
-        )
+    def get_help(self) -> str:
+        return self.pattern
 
 
 class ElementMatch(RegexMatch):
@@ -181,20 +204,27 @@ class ElementMatch(RegexMatch):
     def __init__(
         self,
         pattern: Type["Element"],
+        *,
         optional: bool = False,
-        preserve_space: bool = True,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
+        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
-            pattern, optional=optional, help=help, preserve_space=preserve_space, alt_help=alt_help
+            pattern,
+            optional=optional,
+            flags=flags,
+            space=space,
+            help=help,
+            alt_help=alt_help,
+            preserve_space=preserve_space,
         )
 
-    def gen_regex(self) -> str:
-        return (
-            f"(\x02\\d+_{self.pattern.__fields__['type'].default}\x03){'?' if self.optional else ''}"
-            f"{'( )?' if self.preserve_space else ''}"
-        )
+    @property
+    def regex_src(self) -> str:
+        return f"\x02\\d+_{self.pattern.__fields__['type'].default}\x03"
 
     def get_help(self) -> str:
         return self.pattern.__name__ if not self.alt_help else self.alt_help
@@ -207,18 +237,27 @@ class UnionMatch(RegexMatch):
 
     def __init__(
         self,
-        *patterns: str,
+        *pattern: str,
         optional: bool = False,
-        preserve_space: bool = True,
+        flags: re.RegexFlag = re.RegexFlag(0),
+        space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
+        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
-            patterns, optional=optional, preserve_space=preserve_space, help=help, alt_help=alt_help
+            pattern,
+            optional=optional,
+            flags=flags,
+            space=space,
+            help=help,
+            alt_help=alt_help,
+            preserve_space=preserve_space,
         )
 
-    def gen_regex(self) -> str:
-        return f"({'|'.join(re.escape(i) for i in self.pattern)})"
+    @property
+    def regex_src(self) -> str:
+        return f"{'|'.join(re.escape(i) for i in self.pattern)}"
 
     def get_help(self) -> str:
         return f"[{'|'.join(self.pattern)}]" if not self.alt_help else self.alt_help
@@ -326,12 +365,12 @@ class Sparkle(Representation):
         cls._description = description
         cls._epilog = epilog
 
-    def __getattribute__(self, __name: str):
-        obj = super().__getattribute__(__name)
+    def __getattribute__(self, _name: str):
+        obj = super().__getattribute__(_name)
         if not isinstance(obj, Match):
             return obj
         else:
-            return self.get_match(__name)
+            return self.get_match(_name)
 
     @overload
     def get_match(self, item: Union[str, int]) -> Match:
@@ -509,8 +548,8 @@ class Sparkle(Representation):
             return args
         namespace, rest = self._parser.parse_known_args(args)
         for arg_name, match in self._parser_ref.items():
-            namespace_val = getattr(namespace, arg_name, None)
-            if arg_name in namespace.__dict__:
+            namespace_val = getattr(namespace, arg_name, ...)
+            if namespace_val is not ...:
                 match.result = namespace_val
                 match.matched = bool(namespace_val)
 

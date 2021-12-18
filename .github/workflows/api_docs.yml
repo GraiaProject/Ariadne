@@ -9,6 +9,7 @@ jobs:
     uses: GraiaProject/Ariadne/.github/workflows/mk-env.yml@dev
   deploy-docs:
     runs-on: ubuntu-latest
+    needs: prepare-env
     steps:
       - name: Generate with pdoc
         run: |

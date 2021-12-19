@@ -2,7 +2,6 @@ import asyncio
 import importlib.metadata
 import time
 from asyncio.events import AbstractEventLoop
-from asyncio.exceptions import CancelledError
 from asyncio.tasks import Task
 from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type, Union
 
@@ -1206,36 +1205,34 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
         while self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
             try:
+                await asyncio.wait_for(self.adapter.start(), timeout=retry_interval)
+                logger.info("daemon: adapter started")
                 self.broadcast.postEvent(AdapterLaunched(self))
-                try:
-                    await self.adapter.start()
-                    await await_predicate(lambda: self.adapter.session_activated)
-                    async for event in yield_with_timeout(
-                        self.adapter.queue.get,
-                        lambda: (
-                            self.adapter.running
-                            and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
-                        ),
-                    ):
-                        with enter_context(self, event):
-                            self.broadcast.postEvent(event)
-                except Exception as e:
-                    logger.exception(e)
-                    await self.adapter.stop()
-                if not self.session_key:
+                async for event in yield_with_timeout(
+                    self.adapter.queue.get,
+                    lambda: (
+                        self.adapter.running and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
+                    ),
+                ):
+                    with enter_context(self, event):
+                        self.broadcast.postEvent(event)
+            except Exception as e:
+                logger.exception(e)
+            self.broadcast.postEvent(AdapterShutdowned(self))
+            if retry_cnt == self.max_retry:
+                logger.critical(f"Max retry exceeded: {self.max_retry}")
+                break
+            if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
+                if not self.adapter.session_activated:
                     retry_cnt += 1
                 else:
                     retry_cnt = 0
-                self.broadcast.postEvent(AdapterShutdowned(self))
-                if retry_cnt == self.max_retry:
-                    logger.critical(f"Max retry exceeded: {self.max_retry}")
-                    break
-                if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
-                    logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
-                    await asyncio.sleep(retry_interval)
-                    logger.info("daemon: restarting adapter")
-            except CancelledError:
-                pass
+                await self.adapter.stop()
+                print(self.adapter.mirai_session)
+                logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
+                await asyncio.sleep(retry_interval)
+                logger.info("daemon: restarting adapter")
+
         logger.debug("Ariadne daemon stopped.")
 
         exceptions: List[Tuple[Type[Exception], tuple]] = []
@@ -1255,6 +1252,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     await t
                 except BaseException as e:
                     exceptions.append((e.__class__, e.args))
+        logger.info("Stopping adapter...")
         await self.adapter.stop()
         self.status = AriadneStatus.STOP
         logger.info("Stopped Ariadne.")
@@ -1315,7 +1313,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """等待直到 Ariadne 真正停止.
         不要在与 Broadcast 相关的任务中使用.
         """
-        if self.status is AriadneStatus.RUNNING:
+        if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
             await self.request_stop()
             await await_predicate(lambda: self.status is AriadneStatus.STOP)
             await self.daemon_task
@@ -1323,7 +1321,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
     async def lifecycle(self):
         await self.launch()
         await self.daemon_task
-        await self.wait_for_stop()
 
     def launch_blocking(self):
         try:

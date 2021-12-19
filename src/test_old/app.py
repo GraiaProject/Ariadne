@@ -5,7 +5,7 @@ import re
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.adapter import DebugAdapter
+from graia.ariadne.adapter import DebugAdapter, WebsocketAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        DebugAdapter(bcc, MiraiSession(url, account, verify_key)),
+        WebsocketAdapter(bcc, MiraiSession(url, account, verify_key)),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,

@@ -1,10 +1,10 @@
 import abc
 import asyncio
-from asyncio.exceptions import CancelledError
-from asyncio.futures import Future
 import functools
 import json
 from asyncio.events import AbstractEventLoop
+from asyncio.exceptions import CancelledError
+from asyncio.futures import Future
 from asyncio.queues import Queue
 from asyncio.tasks import Task
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, Set, Union
@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, Set,
 import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
 from aiohttp.client_ws import ClientWebSocketResponse
-from aiohttp.http_websocket import WSMsgType, WebSocketError
+from aiohttp.http_websocket import WebSocketError, WSMsgType
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.event import Dispatchable
 from loguru import logger

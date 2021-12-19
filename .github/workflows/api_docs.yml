@@ -23,7 +23,7 @@ jobs:
 
       - name: Setup Poetry Dependencies
         run: |
-          poetry install
+          poetry install -E document -E alconna -E full --no-dev --no-root
 
       - name: Generate with pdoc
         run: |

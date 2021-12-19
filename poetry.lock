@@ -44,7 +44,7 @@ name = "appdirs"
 version = "1.4.4"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -70,7 +70,7 @@ name = "asttokens"
 version = "2.0.5"
 description = "Annotate AST trees with source code positions"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -88,8 +88,8 @@ reference = "tuna-tsinghua"
 name = "astunparse"
 version = "1.6.3"
 description = "An AST unparser for Python"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = "*"
 
 [package.dependencies]
@@ -121,7 +121,7 @@ name = "atomicwrites"
 version = "1.4.0"
 description = "Atomic file writes."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.source]
@@ -153,7 +153,7 @@ name = "backports.entry-points-selectable"
 version = "1.1.1"
 description = "Compatibility shim providing selectable entry points for older implementations"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7"
 
 [package.extras]
@@ -170,7 +170,7 @@ name = "black"
 version = "21.12b0"
 description = "The uncompromising code formatter."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6.2"
 
 [package.dependencies]
@@ -201,7 +201,7 @@ name = "certifi"
 version = "2021.10.8"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -214,7 +214,7 @@ name = "cfgv"
 version = "3.3.1"
 description = "Validate configuration and produce human readable error messages."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6.1"
 
 [package.source]
@@ -242,7 +242,7 @@ reference = "tuna-tsinghua"
 name = "click"
 version = "8.0.3"
 description = "Composable command line interface toolkit"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -272,7 +272,7 @@ name = "coverage"
 version = "6.2"
 description = "Code coverage measurement for Python"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -304,7 +304,7 @@ name = "devtools"
 version = "0.8.0"
 description = "Python's missing debug print command and other development tools."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -324,7 +324,7 @@ name = "distlib"
 version = "0.3.4"
 description = "Distribution utilities"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -337,7 +337,7 @@ name = "executing"
 version = "0.8.2"
 description = "Get the currently executing AST node of a frame, and other information"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -350,7 +350,7 @@ name = "filelock"
 version = "3.4.0"
 description = "A platform independent file lock."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -367,7 +367,7 @@ name = "flake8"
 version = "4.0.1"
 description = "the modular source code checker: pep8 pyflakes and co"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -397,8 +397,8 @@ reference = "tuna-tsinghua"
 name = "ghp-import"
 version = "2.0.2"
 description = "Copy your docs directly to the gh-pages branch."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = "*"
 
 [package.dependencies]
@@ -464,7 +464,7 @@ name = "graphviz"
 version = "0.19.1"
 description = "Simple Python interface for Graphviz"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -482,7 +482,7 @@ name = "identify"
 version = "2.4.0"
 description = "File identification library for Python"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6.1"
 
 [package.extras]
@@ -510,8 +510,8 @@ reference = "tuna-tsinghua"
 name = "importlib-metadata"
 version = "4.9.0"
 description = "Read metadata from Python packages"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -532,7 +532,7 @@ name = "iniconfig"
 version = "1.1.1"
 description = "iniconfig: brain-dead simple config-ini parsing"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -545,7 +545,7 @@ name = "isort"
 version = "5.10.1"
 description = "A Python utility / library to sort Python imports."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6.1,<4.0"
 
 [package.extras]
@@ -564,7 +564,7 @@ name = "jedi"
 version = "0.18.1"
 description = "An autocompletion tool for Python that can be used for text editors."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -583,8 +583,8 @@ reference = "tuna-tsinghua"
 name = "jinja2"
 version = "3.0.3"
 description = "A very fast and expressive template engine."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -622,8 +622,8 @@ reference = "tuna-tsinghua"
 name = "markdown"
 version = "3.3.6"
 description = "Python implementation of Markdown."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -641,8 +641,8 @@ reference = "tuna-tsinghua"
 name = "markupsafe"
 version = "2.0.1"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.source]
@@ -655,7 +655,7 @@ name = "mccabe"
 version = "0.6.1"
 description = "McCabe checker, plugin for flake8"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -667,8 +667,8 @@ reference = "tuna-tsinghua"
 name = "mergedeep"
 version = "1.3.4"
 description = "A deep merge function for 🐍."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.source]
@@ -680,8 +680,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs"
 version = "1.2.3"
 description = "Project documentation with Markdown."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -708,8 +708,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-material"
 version = "8.1.2"
 description = "A Material Design theme for MkDocs"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -729,8 +729,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-material-extensions"
 version = "1.0.3"
 description = "Extension pack for Python Markdown."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.source]
@@ -756,7 +756,7 @@ name = "mypy-extensions"
 version = "0.4.3"
 description = "Experimental type system extensions for programs checked with the mypy typechecker."
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -769,7 +769,7 @@ name = "nodeenv"
 version = "1.6.0"
 description = "Node.js virtual environment builder"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.source]
@@ -782,7 +782,7 @@ name = "objgraph"
 version = "3.5.0"
 description = "Draws Python object reference graphs with graphviz"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -797,7 +797,7 @@ reference = "tuna-tsinghua"
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -814,7 +814,7 @@ name = "parso"
 version = "0.8.3"
 description = "A Python Parser"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -831,7 +831,7 @@ name = "pathspec"
 version = "0.9.0"
 description = "Utility library for gitignore style pattern matching of file paths."
 category = "dev"
-optional = true
+optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [package.source]
@@ -843,8 +843,8 @@ reference = "tuna-tsinghua"
 name = "pdoc"
 version = "8.0.1"
 description = "API Documentation for Python Projects"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -866,7 +866,7 @@ name = "platformdirs"
 version = "2.4.0"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -883,7 +883,7 @@ name = "pluggy"
 version = "1.0.0"
 description = "plugin and hook calling mechanisms for python"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -900,7 +900,7 @@ name = "pre-commit"
 version = "2.16.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6.1"
 
 [package.dependencies]
@@ -937,7 +937,7 @@ name = "ptpython"
 version = "3.0.20"
 description = "Python REPL build on top of prompt_toolkit"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -960,7 +960,7 @@ name = "py"
 version = "1.11.0"
 description = "library with cross-python path, ini-parsing, io, code, log facilities"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
@@ -973,7 +973,7 @@ name = "pycodestyle"
 version = "2.8.0"
 description = "Python style guide checker"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.source]
@@ -1006,7 +1006,7 @@ name = "pydeps"
 version = "1.10.12"
 description = "Display module dependencies"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -1022,7 +1022,7 @@ name = "pyflakes"
 version = "2.4.0"
 description = "passive checker of Python programs"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [package.source]
@@ -1034,7 +1034,7 @@ reference = "tuna-tsinghua"
 name = "pygments"
 version = "2.10.0"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -1047,8 +1047,8 @@ reference = "tuna-tsinghua"
 name = "pymdown-extensions"
 version = "9.1"
 description = "Extension pack for Python Markdown."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -1063,7 +1063,7 @@ reference = "tuna-tsinghua"
 name = "pyparsing"
 version = "3.0.6"
 description = "Python parsing module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -1080,7 +1080,7 @@ name = "pytest"
 version = "6.2.5"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -1106,7 +1106,7 @@ name = "pytest-asyncio"
 version = "0.16.0"
 description = "Pytest support for asyncio."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">= 3.6"
 
 [package.dependencies]
@@ -1125,7 +1125,7 @@ name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
 category = "main"
-optional = false
+optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
 [package.dependencies]
@@ -1140,7 +1140,7 @@ reference = "tuna-tsinghua"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.6"
 
@@ -1153,8 +1153,8 @@ reference = "tuna-tsinghua"
 name = "pyyaml-env-tag"
 version = "0.1"
 description = "A custom YAML tag for referencing environment variables in YAML files."
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -1170,7 +1170,7 @@ name = "requests"
 version = "2.26.0"
 description = "Python HTTP for Humans."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.dependencies]
@@ -1206,7 +1206,7 @@ name = "stdlib-list"
 version = "0.8.0"
 description = "A list of Python Standard Libraries (2.6-7, 3.2-9)."
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.extras]
@@ -1222,7 +1222,7 @@ name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
 [package.source]
@@ -1235,7 +1235,7 @@ name = "tomli"
 version = "1.2.3"
 description = "A lil' TOML parser"
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=3.6"
 
 [package.source]
@@ -1261,7 +1261,7 @@ name = "urllib3"
 version = "1.26.7"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "dev"
-optional = true
+optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
@@ -1279,7 +1279,7 @@ name = "virtualenv"
 version = "20.10.0"
 description = "Virtual Python Environment builder"
 category = "dev"
-optional = true
+optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 
 [package.dependencies]
@@ -1302,8 +1302,8 @@ reference = "tuna-tsinghua"
 name = "watchdog"
 version = "2.1.6"
 description = "Filesystem events monitoring"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -1348,7 +1348,7 @@ name = "yappi"
 version = "1.3.3"
 description = "Yet Another Python Profiler"
 category = "dev"
-optional = true
+optional = false
 python-versions = "*"
 
 [package.extras]
@@ -1380,8 +1380,8 @@ reference = "tuna-tsinghua"
 name = "zipp"
 version = "3.6.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-category = "dev"
-optional = false
+category = "main"
+optional = true
 python-versions = ">=3.6"
 
 [package.extras]
@@ -1395,14 +1395,13 @@ reference = "tuna-tsinghua"
 
 [extras]
 alconna = ["arclet-alconna"]
-dev = []
+document = ["mkdocs-material", "pdoc"]
 full = ["graia-saya", "graia-scheduler"]
-qc = []
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "9be30f1c38b0fc8bc964b4eae7933e963fb6d91e9c30bf8b0d346bd7867c759a"
+content-hash = "70b92ae39a96857fae41a7abdcdf7ca7d383e5579b5f8a1ce3bafe3515c45600"
 
 [metadata.files]
 aiohttp = [

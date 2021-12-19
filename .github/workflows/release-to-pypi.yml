@@ -25,7 +25,7 @@ jobs:
 
       - name: Setup Poetry Dependencies
         run: |
-          poetry install
+          poetry install --no-dev --no-root
 
       - name: Poetry build
         run: |

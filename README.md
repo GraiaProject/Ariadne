@@ -10,9 +10,9 @@ _Another elegant framework for mirai and mirai-api-http v2._
 
 <p align="center">
   <a href="https://github.com/GraiaProject/Ariadne/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/GraiaProject/Ariadne"></a>
-  <a href="https://pypi.org/project/graia-ariadne-dev"><img alt="PyPI" src="https://img.shields.io/pypi/v/graia-ariadne-dev" /></a>
-  <a href="https://pypi.org/project/graia-ariadne-dev"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne-dev" /></a>
-  <a href="https://pypi.org/project/graia-ariadne-dev"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne-dev" /></a>
+  <a href="https://pypi.org/project/graia-ariadne"><img alt="PyPI" src="https://img.shields.io/pypi/v/graia-ariadne" /></a>
+  <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne" /></a>
+  <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne" /></a>
   <a href="https://graia.readthedocs.io/zh_CN/latest"><img alt="docs" src="https://img.shields.io/badge/文档-readthedocs-black" /></a>
   <a href="https://graiaproject.github.io/Ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-GitHub_Pages-black"></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="black" /></a>

@@ -40,7 +40,22 @@ from .util import (
     transformed_regex,
 )
 
-# ------ Match ------
+
+class SpacePolicy(str, enum.Enum):
+    NOSPACE = ""
+    PRESERVE = "( )?"
+    FORCE = "( )"
+
+    def __init__(self, src: str) -> None:
+        self.src = src
+
+
+NOSPACE = SpacePolicy.NOSPACE
+PRESERVE = SpacePolicy.PRESERVE
+FORCE = SpacePolicy.FORCE
+
+
+# ANCHOR: Match
 
 
 class Match(abc.ABC, Representation):
@@ -68,20 +83,6 @@ class Match(abc.ABC, Representation):
             ("result", self.result),
             ("pattern", self.pattern),
         ]
-
-
-class SpacePolicy(str, enum.Enum):
-    NOSPACE = ""
-    PRESERVE = "( )?"
-    FORCE = "( )"
-
-    def __init__(self, src: str) -> None:
-        self.src = src
-
-
-NOSPACE = SpacePolicy.NOSPACE
-PRESERVE = SpacePolicy.PRESERVE
-FORCE = SpacePolicy.FORCE
 
 
 class RegexMatch(Match):
@@ -328,9 +329,9 @@ class ArgumentMatch(Match):
 T_Match = TypeVar("T_Match", bound=Match)
 
 T_RMatch = TypeVar("T_RMatch", bound=RegexMatch)
-# -------------------
 
 
+# ANCHOR: Sparkle
 class Sparkle(Representation):
     __dict__: Dict[str, Match]
 
@@ -354,7 +355,7 @@ class Sparkle(Representation):
         ...
 
     @overload
-    def __getitem__(self, item: Tuple[T_RMatch, int]) -> T_RMatch:
+    def __getitem__(self, item: Tuple[Type[T_RMatch], int]) -> T_RMatch:
         ...
 
     def __getitem__(self, item: Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]):
@@ -515,9 +516,30 @@ class Sparkle(Representation):
         self._check_pattern: str = "".join(check_match.gen_regex() for check_match in check)
         self._check_regex = re.compile(self._check_pattern)
 
-    # ---
-    # Runtime populate
-    # ---
+    @classmethod
+    def from_command(
+        cls, command: str, extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None
+    ) -> "Sparkle":
+        extra_arg_mapping = extra_arg_mapping or {}
+        match: List[FullMatch, ParamMatch] = []
+
+        from string import Formatter
+
+        formatter = Formatter()
+
+        def _get_value(*_, **__):
+            return "\x01"
+
+        formatter.get_value = _get_value
+        for i in formatter.format(command).split("\x01"):
+            if i:
+                match.append(FullMatch(i, space=SpacePolicy.NOSPACE))
+            match.append(ParamMatch(space=SpacePolicy.NOSPACE))
+        match.pop()
+
+        return cls(match, extra_arg_mapping)
+
+    # ANCHOR: Sparkle runtime populate
 
     def populate_check_match(self, string: str, elem_mapping: Dict[int, Element]) -> List[str]:
         if not self._check_pattern:
@@ -621,6 +643,7 @@ class _TwilightLocalStorage(TypedDict):
     result: Optional[Sparkle]
 
 
+# ANCHOR: Twilight
 class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     """
     暮光.
@@ -672,6 +695,16 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             self.root = Sparkle(check=root, match=match)
 
         self._map_params = map_params or {}
+
+    @classmethod
+    def from_command(
+        cls,
+        command: str,
+        extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None,
+        *,
+        map_params: Optional[Dict[str, bool]] = None,
+    ) -> "Twilight":
+        return cls(Sparkle.from_command(command, extra_arg_mapping), map_params=map_params)
 
     def generate(self, chain: MessageChain) -> T_Sparkle:
         sparkle = deepcopy(self.root)

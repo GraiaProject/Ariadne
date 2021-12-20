@@ -1262,7 +1262,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """启动 Ariadne."""
         if self.status is AriadneStatus.STOP:
             self.status = AriadneStatus.LAUNCH
-            start_time = time.time()
 
             # Logo
             if not self.disable_logo:
@@ -1288,6 +1287,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     logger.opt(colors=True, raw=True).info(f"<cyan>{name}</> version: <yellow>{version}</>\n")
 
             logger.info("Launching app...")
+            start_time = time.time()
             self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
 
             if self.chat_log_cfg.enabled:

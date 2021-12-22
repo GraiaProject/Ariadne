@@ -1,3 +1,4 @@
+"""Ariadne 消息链的实现"""
 import json
 import re
 from copy import deepcopy
@@ -145,10 +146,11 @@ class MessageChain(AriadneBaseModel):
             item = MessageChain([Plain(item)], inline=True)
         if isinstance(item, Element):
             return item in self.merge(copy=True).__root__
-        elif isinstance(item, type):
+        if isinstance(item, type):
             return item in [type(i) for i in self.__root__]
-        else:
+        if isinstance(item, MessageChain):
             return bool(self.findSubChain(item))
+        raise ValueError(f"{item} is not an acceptable argument!")
 
     def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
         """
@@ -251,7 +253,7 @@ class MessageChain(AriadneBaseModel):
             return self.get(*item)
         if isinstance(item, int):
             return self.__root__[item]
-        raise NotImplementedError("{0} is not allowed for item getting".format(type(item)))
+        raise NotImplementedError(f"{item} is not allowed for item getting")
 
     def subchain(
         self,
@@ -286,7 +288,7 @@ class MessageChain(AriadneBaseModel):
             elem = result[0]
             if not isinstance(elem, Plain):
                 if not ignore_text_index:
-                    raise ValueError("the sliced chain does not starts with a Plain: {}".format(elem))
+                    raise ValueError(f"the sliced chain does not starts with a Plain: {elem}")
             else:
                 elem.text = elem.text[text_start:text_stop]
         elif len(result) >= 2:
@@ -296,7 +298,7 @@ class MessageChain(AriadneBaseModel):
                     if not isinstance(first_element, Plain):
                         if not ignore_text_index:
                             raise ValueError(
-                                "the sliced chain does not starts with a Plain: {}".format(first_element)
+                                f"the sliced chain does not starts with a Plain: {first_element}"
                             )
                     else:
                         first_element.text = first_element.text[item.start[1] :]
@@ -305,9 +307,7 @@ class MessageChain(AriadneBaseModel):
                 if len(item.stop) >= 2 and item.stop[1] is not None:  # text slice
                     if not isinstance(last_element, Plain):
                         if not ignore_text_index:
-                            raise ValueError(
-                                "the sliced chain does not ends with a Plain: {}".format(last_element)
-                            )
+                            raise ValueError(f"the sliced chain does not ends with a Plain: {last_element}")
                     else:
                         last_element.text = last_element.text[: item.stop[1]]
 
@@ -427,7 +427,7 @@ class MessageChain(AriadneBaseModel):
             bool: 是否以此字符串开头
         """
 
-        if not self.__root__ or type(self.__root__[0]) is not Plain:
+        if not self.__root__ or not isinstance(self.__root__[0], Plain):
             return False
         return self.__root__[0].text.startswith(string)
 
@@ -442,12 +442,17 @@ class MessageChain(AriadneBaseModel):
             bool: 是否以此字符串结尾
         """
 
-        if not self.__root__ or type(self.__root__[-1]) is not Plain:
+        if not self.__root__ or not isinstance(self.__root__[0], Plain):
             return False
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)
 
     def onlyContains(self, *types: Type[Element]) -> bool:
+        """判断消息链中是否只含有特定类型元素.
+
+        Returns:
+            bool: 判断结果
+        """
         return all(isinstance(i, types) for i in self.__root__)
 
     def merge(self, copy: bool = False) -> "MessageChain":
@@ -536,6 +541,7 @@ class MessageChain(AriadneBaseModel):
         for i, e in enumerate(self.__root__):
             if isinstance(e, element_type):
                 return i
+        return None
 
     def count(self, element: Union[Type[Element_T], Element_T]) -> int:
         """
@@ -543,10 +549,14 @@ class MessageChain(AriadneBaseModel):
         """
         if isinstance(element, Element):
             return sum(i == element for i in self.__root__)
-        else:
-            return sum(isinstance(i, element) for i in self.__root__)
+        return sum(isinstance(i, element) for i in self.__root__)
 
-    def asSendable(self):
+    def asSendable(self) -> "MessageChain":
+        """将消息链转换为可发送形式 (去除 Source, Quote, File)
+
+        Returns:
+            MessageChain: 转换后的消息链.
+        """
         return self.exclude(Source, Quote, File)
 
     def __eq__(self, other: Union[List[Union[Element, str]], "MessageChain"]) -> bool:
@@ -614,7 +624,7 @@ class MessageChain(AriadneBaseModel):
                 elif not isinstance(i, MultimediaElement) or binary:
                     string_list.append(i.asPersistentString())
                 else:
-                    string_list.append(i.asPersistentString(binary=False))
+                    string_list.append(i.asNoBinaryPersistentString())
         return "".join(string_list)
 
     async def download_binary(self) -> None:
@@ -664,7 +674,7 @@ class MessageChain(AriadneBaseModel):
             if not isinstance(elem, Plain):
                 if remove_quote and isinstance(elem, Quote):
                     continue
-                elif remove_source and isinstance(elem, Source):
+                if remove_source and isinstance(elem, Source):
                     continue
                 elem_mapping[i] = elem
                 elem_str_list.append(f"\x02{i}_{elem.type}\x03")

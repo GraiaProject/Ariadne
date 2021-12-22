@@ -1,3 +1,6 @@
+"""Ariadne
+一个优雅的 QQ Bot 框架.
+"""
 import graia.ariadne.event.lifecycle  # noqa: F401
 import graia.ariadne.event.message  # noqa: F401
 import graia.ariadne.event.mirai  # noqa: F401

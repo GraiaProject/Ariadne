@@ -1,3 +1,4 @@
+"""Ariadne 的类型标注"""
 from typing import (
     AbstractSet,
     Any,
@@ -25,6 +26,8 @@ T_step = TypeVar("T_step")
 
 
 class Slice(Generic[T_start, T_stop, T_step]):
+    """对 slice 对象的泛型化包装, 但无法直接继承于 slice"""
+
     start: T_start
     stop: T_stop
     step: T_step

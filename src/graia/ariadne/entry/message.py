@@ -1,3 +1,7 @@
+"""Ariadne 消息相关的导入集合"""
+
+# no error
+
 from ..message.chain import MessageChain
 from ..message.component import Component
 from ..message.element import (

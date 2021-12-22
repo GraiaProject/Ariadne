@@ -1,3 +1,4 @@
+"""Twilight: 混合式消息链处理器"""
 import abc
 import enum
 import re
@@ -42,12 +43,12 @@ from .util import (
 
 
 class SpacePolicy(str, enum.Enum):
+    """指示 RegexMatch 的尾随空格策略."""
+
+    value: str
     NOSPACE = ""
     PRESERVE = "( )?"
     FORCE = "( )"
-
-    def __init__(self, src: str) -> None:
-        self.src = src
 
 
 NOSPACE = SpacePolicy.NOSPACE
@@ -113,16 +114,19 @@ class RegexMatch(Match):
 
     @final
     def gen_regex(self) -> str:
+        """生成 RegexMatch 相应的正则表达式."""
         return (
             f"{transformed_regex(self.flags, self.regex_src)}"
-            f"{'?' if self.optional else ''}{self.space.src}"
+            f"{'?' if self.optional else ''}{self.space.value}"
         )
 
     @property
     def regex_src(self) -> str:
+        """正则表达式的来源"""
         return self.pattern
 
     def get_help(self) -> str:
+        """生成用于 `Sparkle.get_help()` 的描述性字符串."""
         return self.pattern.replace("( )?", " ") if not self.alt_help else self.alt_help
 
 
@@ -333,6 +337,8 @@ T_RMatch = TypeVar("T_RMatch", bound=RegexMatch)
 
 # ANCHOR: Sparkle
 class Sparkle(Representation):
+    """Sparkle: Twilight 的匹配容器"""
+
     __dict__: Dict[str, Match]
 
     _description: str = ""
@@ -368,10 +374,9 @@ class Sparkle(Representation):
 
     def __getattribute__(self, _name: str):
         obj = super().__getattribute__(_name)
-        if not isinstance(obj, Match):
-            return obj
-        else:
+        if isinstance(obj, Match):
             return self.get_match(_name)
+        return obj
 
     @overload
     def get_match(self, item: Union[str, int]) -> Match:
@@ -385,21 +390,33 @@ class Sparkle(Representation):
     def get_match(self, item: Tuple[T_RMatch, int]) -> T_RMatch:
         ...
 
-    def get_match(self, item: Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]):
+    def get_match(
+        self, item: Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]
+    ) -> Union[List[Match], Match]:
+        """获取 Match 列表 / 实例.
+
+        Args:
+            item (Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]): 提供的信息, 请参见重载.
+
+        Raises:
+            KeyError: 找不到 Match.
+
+        Returns:
+            Union[List[Match], Match]: 获取的 Match 列表 / 实例.
+        """
         if isinstance(item, int):
             return self._list_check_match[item][0]
-        elif isinstance(item, str):
+        if isinstance(item, str):
             if item in self._mapping_arg_match:
                 return self._mapping_arg_match[item]
-            elif item in self._mapping_regex_match:
+            if item in self._mapping_regex_match:
                 return self._mapping_regex_match[item][0]
-            else:
-                raise KeyError(f"Unable to find match named {item}")
-        elif isinstance(item, type):
+        if isinstance(item, type):
             return self._match_ref[item]
-        elif isinstance(item, tuple):
+        if isinstance(item, tuple):
             typ, ind = item
             return self._match_ref[typ][ind]
+        raise KeyError(f"Unable to find match named {item}")
 
     def __deepcopy__(self, memo):
         copied = copy(self)
@@ -426,23 +443,18 @@ class Sparkle(Representation):
 
     def __init__(
         self,
-        check: Iterable[RegexMatch] = (),
-        match: Optional[Dict[str, Match]] = None,
+        check=(),
+        match=None,
         description: str = "",
         epilog: str = "",
     ):
         self._description = description or self._description
         self._epilog = epilog or self._epilog
 
-        if isinstance(check, dict):
-            match, check = check, match  # swap
-            check: Iterable[RegexMatch]
-            match: Dict[str, Match]
+        check, match = (match, check) if isinstance(check, dict) else (check, match)
 
-        if check is ... or not check:
-            check = ()
-        if match is ... or not match:
-            match = {}
+        check = check if check and check is not ... else ()
+        match = match if match and match is not ... else ()
 
         match_map = {k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)}
         match_map.update(match)
@@ -454,16 +466,17 @@ class Sparkle(Representation):
         group_cnt: int = 0
         match_pattern_list: List[str] = []
 
-        self._match_ref: DefaultDict[Type[T_Match], List[T_Match]] = DefaultDict(lambda: list())
+        self._match_ref: DefaultDict[Type[T_Match], List[T_Match]] = DefaultDict(list)
 
         self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
         self._mapping_arg_match: Dict[str, ArgumentMatch] = {}
         self._parser_ref: Dict[str, ArgumentMatch] = {}
 
+        self._parser = TwilightParser(prog="", add_help=False)
+
         for v in check:
             self._match_ref[v.__class__].append(v)
 
-        self._parser = TwilightParser(prog="", add_help=False)
         for k, v in match_map.items():
             if k.startswith("_") or k[0] in string.digits:
                 raise ValueError("Invalid Match object name!")
@@ -482,14 +495,15 @@ class Sparkle(Representation):
                 action = self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 v.dest = action.dest
                 self._parser_ref[v.dest] = v
+                continue
 
-            elif isinstance(v, RegexMatch):  # add to self._mapping_regex_match
+            if isinstance(v, RegexMatch):  # add to self._mapping_regex_match
                 self._mapping_regex_match[k] = (v, group_cnt + 1)
                 group_cnt += re.compile(v.gen_regex()).groups
                 match_pattern_list.append(v.gen_regex())
+                continue
 
-            else:
-                raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
+            raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
 
         if (
             not all(v.pattern[0].startswith("-") for v in self._mapping_arg_match.values())
@@ -520,6 +534,15 @@ class Sparkle(Representation):
     def from_command(
         cls, command: str, extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None
     ) -> "Sparkle":
+        """从 shell 式命令生成 Sparkle.
+
+        Args:
+            command (str): 命令, 使用 {0} 的形式创建参数占位符.
+            extra_arg_mapping (Dict[str, ArgumentMatch], optional): 可选的额外 str -> ArgumentMatch 映射.
+
+        Returns:
+            Sparkle: 生成的 Sparkle.
+        """
         extra_arg_mapping = extra_arg_mapping or {}
         match: List[FullMatch, ParamMatch] = []
 
@@ -542,6 +565,18 @@ class Sparkle(Representation):
     # ANCHOR: Sparkle runtime populate
 
     def populate_check_match(self, string: str, elem_mapping: Dict[int, Element]) -> List[str]:
+        """从传入的 string 与 elem_mapping 填充本实例的 check_match
+
+        Args:
+            string (str): 映射字符串
+            elem_mapping (Dict[int, Element]): 元素映射
+
+        Raises:
+            ValueError: check_match 匹配失败
+
+        Returns:
+            List[str]: 剩下的字符串参数列表
+        """
         if not self._check_pattern:
             return split(string)
         if regex_match := self._check_regex.match(string):
@@ -562,10 +597,17 @@ class Sparkle(Representation):
                 if match.__class__ is RegexMatch:
                     match.regex_match = re.fullmatch(match.pattern, current)
             return split(string[regex_match.end() :])
-        else:
-            raise ValueError(f"Not matching regex: {self._check_pattern}")
+        raise ValueError(f"Not matching regex: {self._check_pattern}")
 
     def populate_arg_match(self, args: List[str]) -> List[str]:
+        """从传入的 string 与填充本实例的 ArgumentMatch 对象
+
+        Args:
+            string (str): 映射字符串
+
+        Returns:
+            List[str]: 剩下的字符串参数列表
+        """
         if not self._parser_ref:  # Optimization: skip if no ArgumentMatch
             return args
         namespace, rest = self._parser.parse_known_args(args)
@@ -577,7 +619,16 @@ class Sparkle(Representation):
 
         return rest
 
-    def populate_regex_match(self, elem_mapping: Dict[str, Element], arg_list: List[str]) -> None:
+    def populate_regex_match(self, arg_list: List[str], elem_mapping: Dict[str, Element]) -> None:
+        """从传入的 string 与 elem_mapping 填充本实例的 RegexMatch
+
+        Args:
+            string (str): 映射字符串
+            elem_mapping (Dict[int, Element]): 元素映射
+
+        Raises:
+            ValueError: 匹配失败
+        """
         if self._regex_pattern:
             if regex_match := self._regex.fullmatch(" ".join(arg_list)):
                 for _, (match, index) in self._mapping_regex_match.items():
@@ -601,6 +652,16 @@ class Sparkle(Representation):
                 raise ValueError(f"Regex not matching: {self._regex_pattern}")
 
     def get_help(self, description: str = "", epilog: str = "", *, header: bool = True) -> str:
+        """利用 Match 中的信息生成帮助字符串.
+
+        Args:
+            description (str, optional): 前导描述. Defaults to "".
+            epilog (str, optional): 后置总结. Defaults to "".
+            header (bool, optional): 生成使用方法 (命令总览). Defaults to True.
+
+        Returns:
+            str: 生成的帮助字符串, 被格式化与缩进过了
+        """
 
         formatter = self._parser._get_formatter()
 
@@ -704,28 +765,53 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         *,
         map_params: Optional[Dict[str, bool]] = None,
     ) -> "Twilight":
+        """从 shell 式命令生成 Twilight.
+
+        Args:
+            command (str): 命令, 使用 {0} 的形式创建参数占位符.
+            extra_arg_mapping (Dict[str, ArgumentMatch], optional): 可选的额外 str -> ArgumentMatch 映射.
+            map_params (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
+
+        Returns:
+            Twilight: 生成的 Twilight.
+        """
         return cls(Sparkle.from_command(command, extra_arg_mapping), map_params=map_params)
 
     def generate(self, chain: MessageChain) -> T_Sparkle:
+        """从消息链生成 Sparkle 实例.
+
+        Args:
+            chain (MessageChain): 传入的消息链.
+
+        Returns:
+            T_Sparkle: 生成的 Sparkle 对象.
+        """
         sparkle = deepcopy(self.root)
         mapping_str, elem_mapping = chain.asMappingString(**self._map_params)
         token = elem_mapping_ctx.set(chain)
         try:
             str_list = sparkle.populate_check_match(mapping_str, elem_mapping)
             arg_list = sparkle.populate_arg_match(str_list)
-            sparkle.populate_regex_match(elem_mapping, arg_list)
-        except Exception:
-            raise
-        elem_mapping_ctx.reset(token)
-        return sparkle
+            sparkle.populate_regex_match(arg_list, elem_mapping)
+            return sparkle
+        finally:
+            elem_mapping_ctx.reset(token)
 
     async def beforeExecution(self, interface: DispatcherInterface):
+        """检验 MessageChain 并将 Sparkle 存入本地存储
+
+        Args:
+            interface (DispatcherInterface): DispatcherInterface, 应该能从中提取 MessageChain
+
+        Raises:
+            ExecutionStop: 匹配以任意方式失败
+        """
         local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
         chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None, [])
         try:
             local_storage["result"] = self.generate(chain)
-        except Exception:
-            raise ExecutionStop
+        except Exception as e:
+            raise ExecutionStop from e
 
     async def catch(self, interface: DispatcherInterface) -> Optional[Union["Twilight", T_Sparkle, Match]]:
         local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage

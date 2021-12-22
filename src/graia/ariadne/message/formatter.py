@@ -1,3 +1,4 @@
+"""基于 format string 的消息链格式化器"""
 import re
 from typing import Dict, List, Union
 
@@ -6,6 +7,8 @@ from .element import Element, Plain
 
 
 class Formatter:
+    """类似于 string.Formatter 的消息链格式化器"""
+
     format_string: str
 
     def __init__(self, format_string: str) -> None:
@@ -14,6 +17,15 @@ class Formatter:
     def format(
         self, *args: Union[Element, MessageChain, str], **kwargs: Union[Element, MessageChain, str]
     ) -> MessageChain:
+        """通过初始化时传入的格式字符串 格式化消息链
+
+        Args:
+            *args (Union[Element, MessageChain, str]): 格式化时传入的关键字参数
+            **kwargs (Union[Element, MessageChain, str]): 格式化时传入的关键字参数
+
+        Returns:
+            MessageChain: 格式化后的消息链
+        """
         args: List[MessageChain] = [MessageChain.create(e) for e in args]
         kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in kwargs.items()}
 

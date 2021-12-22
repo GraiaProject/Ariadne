@@ -1,9 +1,3 @@
-import os
-import sys
-
-sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
-import asyncio
-
 from graia.broadcast import Broadcast
 from graia.saya import Channel, Saya
 from graia.saya.builtins.broadcast import ListenerSchema

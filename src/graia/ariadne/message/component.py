@@ -1,3 +1,4 @@
+"""简单的消息链元素选择器"""
 from typing import TYPE_CHECKING, Callable, Iterable, List, Optional, Tuple, Type, Union
 
 from graia.broadcast.entities.decorator import Decorator
@@ -14,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class Component(Decorator):
+    """简单的消息链元素选择器, 允许使用 __class_getitem__ 实例化"""
+
     filter: Callable[[Element], bool]
     match_time: int = -1
 
@@ -49,6 +52,14 @@ class Component(Decorator):
         return cls(element_cls, match_time)
 
     def select(self, chain: MessageChain) -> MessageChain:
+        """基于实例筛选元素
+
+        Args:
+            chain (MessageChain): 输入的消息链
+
+        Returns:
+            MessageChain: 筛选后的消息链
+        """
         result: List[Element] = []
         matched: int = 0
         for element in chain.__root__:
@@ -60,6 +71,7 @@ class Component(Decorator):
         return MessageChain(result, inline=True)
 
     def target(self, interface: DecoratorInterface) -> MessageChain:
+        """用作 Decorator 时使用, 返回处理后的 MessageChain"""
         if not isinstance(interface.return_value, MessageChain):
             raise TypeError(f"Can't cast Component on {type(interface.return_value)}!")
         chain: MessageChain = interface.return_value

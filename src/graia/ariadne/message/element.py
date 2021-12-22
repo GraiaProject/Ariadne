@@ -1,3 +1,4 @@
+"""Ariadne 中的消息元素"""
 import abc
 from base64 import b64decode, b64encode
 from datetime import datetime
@@ -8,18 +9,10 @@ from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
 from pydantic import validator
 from pydantic.fields import Field
-from typing_extensions import ParamSpec
 
 from ..context import adapter_ctx, upload_method_ctx
 from ..exception import InvalidArgument
-from ..model import (
-    AriadneBaseModel,
-    Friend,
-    Member,
-    Stranger,
-    UploadMethod,
-    datetime_encoder,
-)
+from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod
 from ..util import wrap_bracket
 
 if TYPE_CHECKING:
@@ -44,10 +37,21 @@ class Element(AriadneBaseModel, abc.ABC):
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
-    def asDisplay(self) -> str:
+    @staticmethod
+    def asDisplay() -> str:
+        """返回该元素的 "显示" 形式字符串, 趋近于你见到的样子.
+
+        Returns:
+            str: "显示" 字符串.
+        """
         return ""
 
     def asPersistentString(self) -> str:
+        """持久化字符串表示.
+
+        Returns:
+            str: 持久化字符串.
+        """
         data: str = wrap_bracket(
             j_dump(
                 self.dict(
@@ -70,13 +74,15 @@ class Element(AriadneBaseModel, abc.ABC):
         """
 
     def __repr_args__(self) -> "ReprArgs":
-        return [(k, v) for k, v in self.dict(exclude={"type"}).items()]
+        return list(self.dict(exclude={"type"}).items())
 
     def __str__(self) -> str:
         return self.asDisplay()
 
 
 class Plain(Element):
+    """代表消息中的文本元素"""
+
     type: str = "Plain"
     text: str
 
@@ -101,11 +107,6 @@ class Source(Element):
     type: str = "Source"
     id: int
     time: datetime
-
-    class Config:
-        json_encoders = {
-            datetime: datetime_encoder,
-        }
 
     def prepare(self) -> NoReturn:
         raise NotSendableElement
@@ -176,7 +177,7 @@ class At(Element):
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    "you cannot use this element in this method: {0}".format(upload_method_ctx.get().value)
+                    f"you cannot use this element in this method: {upload_method_ctx.get().value}"
                 )
         except LookupError:
             pass
@@ -200,7 +201,7 @@ class AtAll(Element):
         try:
             if upload_method_ctx.get() != UploadMethod.Group:
                 raise InvalidArgument(
-                    "you cannot use this element in this method: {0}".format(upload_method_ctx.get().value)
+                    f"you cannot use this element in this method: {upload_method_ctx.get().value}"
                 )
         except LookupError:
             pass
@@ -362,11 +363,6 @@ class ForwardNode(AriadneBaseModel):
             data.update(messageChain=message)
         super().__init__(**data)
 
-    class Config:
-        json_encoders = {
-            datetime: datetime_encoder,
-        }
-
 
 class Forward(Element):
     """
@@ -419,6 +415,8 @@ class MiraiCode(Element):
 
 
 class ImageType(Enum):
+    """Image 类型的枚举."""
+
     Friend = "Friend"
     Group = "Group"
     Temp = "Temp"
@@ -430,8 +428,6 @@ image_upload_method_type_map = {
     UploadMethod.Group: ImageType.Group,
     UploadMethod.Temp: ImageType.Temp,
 }
-
-P = ParamSpec("P")
 
 
 class MultimediaElement(Element):
@@ -497,23 +493,26 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data).decode()
             return data
 
-    def asPersistentString(self, *, binary: bool = True) -> str:
-        if binary:
-            return super().asPersistentString()
-        else:
-            data: str = wrap_bracket(
-                j_dump(
-                    self.dict(
-                        exclude={"type", "base64"},
-                    ),
-                    indent=None,
-                    separators=(",", ":"),
-                )
+    def asNoBinaryPersistentString(self) -> str:
+        """生成不附带二进制数据的持久化字符串
+
+        Returns:
+            str: 持久化字符串
+        """
+        data: str = wrap_bracket(
+            j_dump(
+                self.dict(
+                    exclude={"type", "base64"},
+                ),
+                indent=None,
+                separators=(",", ":"),
             )
+        )
         return f"[mirai:{self.type}:{data}]"
 
     @property
     def uuid(self):
+        """返回多媒体元素的 uuid, 即元素在 mirai 内部的标识"""
         if self.id:
             return self.id.split(".")[0].strip("/{}").lower()
         return ""
@@ -537,10 +536,20 @@ class Image(MultimediaElement):
     id: Optional[str] = Field(None, alias="imageId")
 
     def toFlashImage(self) -> "FlashImage":
+        """将 Image 转换为 FlashImage
+
+        Returns:
+            FlashImage: 转换后的 FlashImage
+        """
         return FlashImage.parse_obj({**self.dict(), "type": "FlashImage"})
 
     @classmethod
     def fromFlashImage(cls, flash: "FlashImage") -> "Image":
+        """从 FlashImage 构造 Image
+
+        Returns:
+            Image: 构造出的 Image
+        """
         return cls.parse_obj({**flash.dict(), "type": "Image"})
 
     def asDisplay(self) -> str:
@@ -553,10 +562,20 @@ class FlashImage(Image):
     type = "FlashImage"
 
     def toImage(self) -> "Image":
+        """将 FlashImage 转换为 Image
+
+        Returns:
+            Image: 转换后的 Image
+        """
         return Image.parse_obj({**self.dict(), "type": "Image"})
 
     @classmethod
     def fromImage(cls, image: "Image") -> "FlashImage":
+        """从 Image 构造 FlashImage
+
+        Returns:
+            FlashImage: 构造出的 FlashImage
+        """
         return cls.parse_obj({**image.dict(), "type": "FlashImage"})
 
     def asDisplay(self) -> str:

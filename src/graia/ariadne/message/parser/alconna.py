@@ -1,3 +1,4 @@
+"""Alconna 的简单封装"""
 from typing import TYPE_CHECKING
 
 from arclet.alconna import Alconna, Arpamar
@@ -37,6 +38,7 @@ class AlconnaDispatcher(BaseDispatcher):
         self.alconna = alconna
 
     def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
+        """预处理消息链并存入 local_storage"""
         local_storage = interface.execution_contexts[-1].local_storage
         chain: MessageChain = interface.event.messageChain
         result = self.alconna.analyse_message(chain)

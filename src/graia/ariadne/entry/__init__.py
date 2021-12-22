@@ -1,3 +1,7 @@
+"""Ariadne 一站式导入的提供模块"""
+
+# no error
+
 from ..adapter import CombinedAdapter, DefaultAdapter, HttpAdapter, WebsocketAdapter
 from ..app import Ariadne
 from ..context import (

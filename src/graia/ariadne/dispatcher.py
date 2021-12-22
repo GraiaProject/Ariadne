@@ -1,18 +1,20 @@
+"""Ariadne 内置的 Dispatcher"""
 from typing import TYPE_CHECKING
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .context import ariadne_ctx
+from .message.chain import MessageChain
+from .message.element import Source
 
 if TYPE_CHECKING:
     from .event.message import MessageEvent
 
-from .message.chain import MessageChain
-from .message.element import Source
-
 
 class MessageChainDispatcher(BaseDispatcher):
+    """从 MessageEvent 提取 MessageChain 的 Dispatcher"""
+
     @staticmethod
     async def catch(interface: DispatcherInterface["MessageEvent"]):
         if interface.annotation is MessageChain:
@@ -20,6 +22,8 @@ class MessageChainDispatcher(BaseDispatcher):
 
 
 class ApplicationDispatcher(BaseDispatcher):
+    """提取 Ariadne 实例的 Dispatcher"""
+
     @staticmethod
     async def catch(interface: DispatcherInterface):
         if getattr(interface.annotation, "__name__", None) == "Ariadne":
@@ -27,6 +31,8 @@ class ApplicationDispatcher(BaseDispatcher):
 
 
 class SourceDispatcher(BaseDispatcher):
+    """提取 MessageEvent 消息链 Source 元素的 Dispatcher"""
+
     @staticmethod
     async def catch(interface: DispatcherInterface["MessageEvent"]):
         if interface.annotation is Source:

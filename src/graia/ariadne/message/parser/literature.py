@@ -219,6 +219,6 @@ class Literature(BaseDispatcher):
                 elif match_value is not None:
                     return match_value
 
-    async def beforeTargetExec(self, interface: "DispatcherInterface", e, tb):
+    async def beforeTargetExec(self, interface: "DispatcherInterface", _, __):
         if "literature_detect_result" in interface.broadcast.decorator_interface.local_storage:
             del interface.broadcast.decorator_interface.local_storage["literature_detect_result"]

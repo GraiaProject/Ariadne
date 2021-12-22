@@ -1,3 +1,4 @@
+"""网络相关的事件, 通常为异常发生"""
 from graia.broadcast.entities.event import Dispatchable
 
 from ..dispatcher import ApplicationDispatcher

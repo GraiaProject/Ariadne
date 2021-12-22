@@ -95,11 +95,22 @@ xxxx-xx-xx xx:xx:xx I/main: mirai-console started successfully.
 
 # 2. 安装与配置 mirai-api-http
 
-从 [`mirai-api-http release`](https://github.com/project-mirai/mirai-api-http/releases/latest) 页下载最新的 `.jar` 文件.
+=== "通过 MCL 管理"
 
-文件名像这样: `mirai-api-http-v2.X.X.mirai.jar`
+    只需运行 
+    ```bash
+    ./mcl --update-package net.mamoe:mirai-api-http --channel stable-v2 --type plugin
+    ./mcl -u
+    ```
+    即可.
 
-放到 `mirai-console` 安装目录下的 `plugins` 文件夹内, **不要做任何其他操作**.
+=== "手动安装"
+
+    从 [`mirai-api-http release`](https://github.com/project-mirai/mirai-api-http/releases/latest) 页下载最新的 `.jar` 文件.
+
+    文件名像这样: `mirai-api-http-v2.X.X.mirai.jar`
+
+    放到 `mirai-console` 安装目录下的 `plugins` 文件夹内, **不要做任何其他操作**.
 
 # 3. 登录 QQ
 

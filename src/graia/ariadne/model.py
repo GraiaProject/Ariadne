@@ -1,3 +1,4 @@
+"""Ariadne 各种 model 存放的位置"""
 import json
 from dataclasses import dataclass
 from datetime import datetime
@@ -17,11 +18,21 @@ if TYPE_CHECKING:
     from .typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 
 
-def datetime_encoder(v: datetime):
+def datetime_encoder(v: datetime) -> float:
+    """编码 datetime 对象
+
+    Args:
+        v (datetime): datetime 对象
+
+    Returns:
+        float: 编码后的 datetime (时间戳)
+    """
     return v.timestamp()
 
 
 class DatetimeEncoder(json.JSONEncoder):
+    """可以编码 datetime 的 JSONEncoder"""
+
     def default(self, o: Any) -> Any:
         if isinstance(o, datetime):
             return int(o.timestamp())
@@ -44,6 +55,7 @@ class AriadneBaseModel(BaseModel):
         exclude_defaults: bool = False,
         exclude_none: bool = False,
     ) -> "DictStrAny":
+        _, _ = by_alias, exclude_none
         return super().dict(
             include=include,
             exclude=exclude,
@@ -55,7 +67,12 @@ class AriadneBaseModel(BaseModel):
         )
 
     class Config(BaseConfig):
+        """Ariadne BaseModel 设置"""
+
         extra = Extra.allow
+        json_encoders = {
+            datetime: datetime_encoder,
+        }
 
 
 @dataclass
@@ -75,6 +92,7 @@ class ChatLogConfig:
     stranger_message_log_format: str = "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
 
     def initialize(self, app: "Ariadne"):
+        """利用 Ariadne 对象注册事件日志处理器"""
         from .event.message import (
             FriendMessage,
             GroupMessage,
@@ -179,6 +197,14 @@ class MiraiSession(AriadneBaseModel):
         super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
 
     def url_gen(self, route: str) -> str:
+        """生成 route 对应的 API URI
+
+        Args:
+            route (str): route 地址
+
+        Returns:
+            str: 对应的 API URI
+        """
         return str(URL(self.host) / route)
 
 
@@ -237,22 +263,12 @@ class GroupConfig(AriadneBaseModel):
     autoApprove: bool = False
     anonymousChat: bool = False
 
-    # 调用 json 方法时记得加 exclude_none=True.
-
-    class Config:
-        allow_mutation = True
-
 
 class MemberInfo(AriadneBaseModel):
     """描述群组成员的可修改状态, 修改需要管理员/群主权限."""
 
     name: str = ""
     specialTitle: str = ""
-
-    # 调用 json 方法时记得加 exclude_none=True.
-
-    class Config:
-        allow_mutation = True
 
 
 class DownloadInfo(AriadneBaseModel):
@@ -265,11 +281,6 @@ class DownloadInfo(AriadneBaseModel):
     upload_time: datetime = Field(..., alias="uploadTime")
     last_modify_time: datetime = Field(..., alias="lastModifyTime")
     url: Optional[str] = None
-
-    class Config:
-        json_encoders = {
-            datetime: datetime_encoder,
-        }
 
 
 class FileInfo(AriadneBaseModel):
@@ -288,11 +299,9 @@ class FileInfo(AriadneBaseModel):
     def _(cls, val: Optional[dict]):
         if not val:
             return None
-        else:
-            if "remark" in val:  # Friend
-                return Friend.parse_obj(val)
-            else:  # Group
-                return Group.parse_obj(val)
+        if "remark" in val:  # Friend
+            return Friend.parse_obj(val)
+        return Group.parse_obj(val)  # Group
 
 
 FileInfo.update_forward_refs(FileInfo=FileInfo)
@@ -351,6 +360,8 @@ class BotMessage(AriadneBaseModel):
 
 
 class AriadneStatus(Enum):
+    """指示 Ariadne 状态的枚举类"""
+
     STOP = "stop"
     LAUNCH = "launch"
     RUNNING = "running"

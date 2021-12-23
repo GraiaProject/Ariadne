@@ -1,3 +1,4 @@
+"""Ariadne 控制台对 Saya 封装的 Behaviour 与 Schema"""
 from dataclasses import dataclass, field
 from typing import Callable, List
 
@@ -12,14 +13,24 @@ from . import Console
 
 @dataclass
 class ConsoleSchema(BaseSchema):
+    """控制台监听 Schema, 相当于 console.register"""
+
     dispatchers: List[BaseDispatcher] = field(default_factory=list)
     decorators: List[Decorator] = field(default_factory=list)
 
     def register(self, func: Callable, console: Console):
+        """注册 func 至 console
+
+        Args:
+            func (Callable): 监听函数
+            console (Console): 注册到的 console
+        """
         console.register(self.dispatchers, self.decorators)(func)
 
 
 class ConsoleBehaviour(Behaviour):
+    """控制台的 Saya Behaviour 实现, 传入 Console 对象"""
+
     def __init__(self, console: Console) -> None:
         self.console = console
 

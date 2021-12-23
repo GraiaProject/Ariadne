@@ -109,7 +109,7 @@ if __name__ == "__main__":
         dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop")]))],
     )
     async def stop(app: Ariadne):
-        await app.request_stop()
+        await app.stop()
 
     async def main():
         await app.launch()

@@ -1,3 +1,4 @@
+"""Mirai 的各种事件"""
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -8,7 +9,7 @@ from pydantic.class_validators import validator
 from typing_extensions import Literal
 
 from ..context import adapter_ctx
-from ..dispatcher import ApplicationDispatcher
+from ..dispatcher import ContextDispatcher
 from ..exception import InvalidSession
 from ..message.element import Element
 from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
@@ -158,8 +159,8 @@ class BotMuteEvent(GroupEvent, BotEvent):
     operator: Optional[Member]
     group: Optional[Group]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["BotMuteEvent"]):
@@ -184,8 +185,8 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
     operator: Optional[Member]
     group: Optional[Group]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["BotUnmuteEvent"]):
@@ -209,8 +210,8 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
     group: Group
     inviter: Optional[Member] = Field(..., alias="invitor")  # F**k you typo
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["BotJoinGroupEvent"]):
@@ -231,8 +232,8 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
     type: str = "BotLeaveEventActive"
     group: Group
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["BotLeaveEventActive"]):
@@ -253,8 +254,8 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
     type: str = "BotLeaveEventKick"
     group: Group
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["BotLeaveEventKick"]):
@@ -280,8 +281,8 @@ class GroupRecallEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupRecallEvent"]):
@@ -327,20 +328,20 @@ class NudgeEvent(MiraiEvent):
     friend_id: Optional[int] = None
     group_id: Optional[int] = None
 
-    context_type: Literal["friend", "group", None] = None
+    context_type: Literal["friend", "group", "stranger", None] = None
 
     @validator("friend_id", pre=True, always=True, allow_reuse=True)
-    def subject_handle_friend_id(cls, _, values):
+    def _(cls, _, values):
         if values["origin_subject_info"]["kind"] == "Friend":
             return values["origin_subject_info"]["id"]
 
     @validator("group_id", pre=True, always=True, allow_reuse=True)
-    def subject_handle_group_id(cls, _, values):
+    def _(cls, _, values):
         if values["origin_subject_info"]["kind"] == "Group":
             return values["origin_subject_info"]["id"]
 
     @validator("context_type", pre=True, always=True, allow_reuse=True)
-    def subject_handle_context_type(cls, _, values):
+    def _(cls, _, values):
         return str.lower(values["origin_subject_info"]["kind"])
 
 
@@ -361,8 +362,8 @@ class GroupNameChangeEvent(GroupEvent):
     group: Group
     operator: Optional[Member] = None
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupNameChangeEvent"]):
@@ -389,8 +390,8 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(
@@ -419,8 +420,8 @@ class GroupMuteAllEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupMuteAllEvent"]):
@@ -447,8 +448,8 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupAllowAnonymousChatEvent"]):
@@ -475,8 +476,8 @@ class GroupAllowConfessTalkEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupAllowConfessTalkEvent"]):
@@ -503,8 +504,8 @@ class GroupAllowMemberInviteEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupAllowMemberInviteEvent"]):
@@ -529,8 +530,8 @@ class MemberJoinEvent(GroupEvent):
     member: Member
     inviter: Optional[Member] = Field(..., alias="invitor")
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberJoinEvent"]):
@@ -557,8 +558,8 @@ class MemberLeaveEventKick(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberLeaveEventKick"]):
@@ -585,8 +586,8 @@ class MemberLeaveEventQuit(GroupEvent):
     type = "MemberLeaveEventQuit"
     member: Member
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberLeaveEventQuit"]):
@@ -616,8 +617,8 @@ class MemberCardChangeEvent(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberCardChangeEvent"]):
@@ -646,8 +647,8 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
     current: str
     member: Member
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(
@@ -675,8 +676,8 @@ class MemberPermissionChangeEvent(GroupEvent):
     current: str
     member: Member
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberPermissionChangeEvent"]):
@@ -704,8 +705,8 @@ class MemberMuteEvent(MiraiEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberMuteEvent"]):
@@ -735,8 +736,8 @@ class MemberUnmuteEvent(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberUnmuteEvent"]):
@@ -765,8 +766,8 @@ class MemberHonorChangeEvent(GroupEvent):
     action: str
     honor: str
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [ApplicationDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberHonorChangeEvent"]):

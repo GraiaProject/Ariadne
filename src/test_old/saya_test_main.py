@@ -3,6 +3,7 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 import asyncio
+from datetime import datetime
 
 from graia.broadcast import Broadcast
 from graia.saya import Saya
@@ -20,11 +21,17 @@ if __name__ == "__main__":
     url, account, verify_key = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     ALL_FLAG = True
     loop = asyncio.new_event_loop()
-    loop.set_debug(True)
     bcc = Broadcast(loop=loop)
     saya = Saya(bcc)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    console = Console(bcc)
+    console = Console(
+        bcc,
+        r_prompt="<{current_time}>",
+        style={
+            "rprompt": "bg:#00ffff #ffffff",
+        },
+        extra_data_getter=[lambda: {"current_time": datetime.now().time().isoformat()}],
+    )
 
     app = Ariadne(adapter, broadcast=bcc)
 
@@ -35,5 +42,5 @@ if __name__ == "__main__":
     with saya.module_context():
         saya.require("saya_test_downstream")
 
-    loop.run_until_complete(app.lifecycle())
+    app.launch_blocking()
     console.stop()

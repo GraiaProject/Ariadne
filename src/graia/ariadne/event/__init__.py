@@ -2,7 +2,7 @@
 from graia.broadcast import Dispatchable
 from pydantic import validator
 
-from ..dispatcher import ApplicationDispatcher
+from ..dispatcher import ContextDispatcher
 from ..exception import InvalidEventTypeDefinition
 from ..model import AriadneBaseModel
 
@@ -21,4 +21,4 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
             raise InvalidEventTypeDefinition(f"{cls.__name__}'s type must be '{cls.type}', not '{v}'")
         return v
 
-    Dispatcher = ApplicationDispatcher
+    Dispatcher = ContextDispatcher

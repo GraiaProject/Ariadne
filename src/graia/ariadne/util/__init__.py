@@ -11,7 +11,6 @@ from asyncio.events import AbstractEventLoop
 from typing import (
     AsyncIterator,
     Callable,
-    ContextManager,
     Coroutine,
     Dict,
     Generator,
@@ -23,13 +22,13 @@ from typing import (
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
+from prompt_toolkit.patch_stdout import StdoutProxy
 
 from ..exception import (
     AccountMuted,
@@ -113,6 +112,8 @@ def loguru_async_handler(_, ctx: dict):
 
 def inject_loguru_traceback(loop: AbstractEventLoop = None):
     """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
+    logger.remove(0)
+    logger.add(StdoutProxy(raw=True))
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
     if loop:
@@ -174,34 +175,6 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
-class ApplicationMiddlewareDispatcher(BaseDispatcher):
-    """Ariadne 的上下文 Dispatcher"""
-
-    always = True
-
-    context: ContextManager
-
-    def __init__(self, app) -> None:
-        self.app = app
-
-    def beforeExecution(self, interface: "DispatcherInterface"):
-        """进入 Event Context"""
-        from ..context import EventContext
-
-        self.context: ContextManager = EventContext(self.app, interface.event)
-        self.context.__enter__()
-
-    def afterExecution(self, _, exception, tb):
-        """退出 Event Context"""
-        self.context.__exit__(exception.__class__ if exception else None, exception, tb)
-
-    async def catch(self, interface: "DispatcherInterface"):
-        from ..app import Ariadne
-
-        if interface.annotation is Ariadne:
-            return self.app
-
-
 def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
     """包装声明需要在 Ariadne Context 中执行的函数
 
@@ -214,9 +187,9 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
 
     @functools.wraps(func)
     async def wrapper(self, *args: P.args, **kwargs: P.kwargs):
-        from ..context import EventContext
+        from ..context import enter_context
 
-        with EventContext(app=self):
+        with enter_context(app=self):
             return await func(self, *args, **kwargs)
 
     return wrapper
@@ -319,6 +292,3 @@ class Dummy:
 
     def __call__(self, *_, **__):
         return self
-
-
-inject_loguru_traceback()

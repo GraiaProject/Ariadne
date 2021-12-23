@@ -12,7 +12,7 @@ from ..context import (
     event_loop_ctx,
     upload_method_ctx,
 )
-from ..dispatcher import ApplicationDispatcher, MessageChainDispatcher, SourceDispatcher
+from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispatcher
 from ..exception import (
     AccountMuted,
     AccountNotFound,

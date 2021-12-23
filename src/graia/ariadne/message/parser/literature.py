@@ -1,3 +1,5 @@
+"""Literature, 将在 0.6.0 被移除"""
+# pylint: skip-file
 import getopt
 import itertools
 import re

@@ -13,7 +13,7 @@ from loguru import logger
 
 from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
-from .context import EventContext, enter_message_send_context
+from .context import enter_context, enter_message_send_context
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -39,9 +39,9 @@ from .model import (
     UploadMethod,
 )
 from .util import (
-    ApplicationMiddlewareDispatcher,
     app_ctx_manager,
     await_predicate,
+    deprecated,
     inject_bypass_listener,
     inject_loguru_traceback,
     yield_with_timeout,
@@ -1273,7 +1273,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                         self.adapter.running and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
                     ),
                 ):
-                    with EventContext(self, event):
+                    with enter_context(self, event):
                         self.broadcast.postEvent(event)
             except Exception as e:
                 logger.exception(e)
@@ -1347,7 +1347,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
             logger.info("Launching app...")
             start_time = time.time()
-            self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
 
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
@@ -1362,20 +1361,32 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
             self.broadcast.postEvent(ApplicationLaunched(self))
 
-    async def request_stop(self):
+    async def stop(self):
         """请求停止 Ariadne."""
         if self.status is AriadneStatus.RUNNING:
             self.status = AriadneStatus.SHUTDOWN
             await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})
 
-    async def wait_for_stop(self):
+    @deprecated("0.5.0")
+    async def request_stop(self):
+        # pylint: disable
+        logger.warning("""use "stop" instead!""")
+        await self.stop()
+
+    async def join(self):
         """等待直到 Ariadne 真正停止.
         不要在与 Broadcast 相关的任务中使用.
         """
         if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
-            await self.request_stop()
+            await self.stop()
             await await_predicate(lambda: self.status is AriadneStatus.STOP)
             await self.daemon_task
+
+    @deprecated("0.5.0")
+    async def wait_for_stop(self):
+        # pylint: disable
+        logger.warning("""use "join" instead!""")
+        await self.join()
 
     async def lifecycle(self):
         """以 async 阻塞方式启动 Ariadne 并等待其停止."""
@@ -1387,7 +1398,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         try:
             self.loop.run_until_complete(self.lifecycle())
         except KeyboardInterrupt:
-            self.loop.run_until_complete(self.wait_for_stop())
+            self.loop.run_until_complete(self.join())
 
     @app_ctx_manager
     async def getVersion(self, auto_set: bool = True) -> str:
@@ -1413,7 +1424,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return self
 
     async def __aexit__(self, *exc):
-        await self.wait_for_stop()
+        await self.join()
 
     @property
     def account(self) -> Optional[int]:

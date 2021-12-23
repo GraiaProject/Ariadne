@@ -1,21 +1,24 @@
+"""Ariadne 消息事件"""
 from typing import Union
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ..dispatcher import ApplicationDispatcher, MessageChainDispatcher, SourceDispatcher
+from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispatcher
 from ..message.chain import MessageChain
 from ..model import Client, Friend, Group, Member, Stranger
 from . import MiraiEvent
 
 
 class MessageEvent(MiraiEvent):
+    """Ariadne 消息事件基类"""
+
     type: str = "MessageEvent"
     messageChain: MessageChain
     sender: Union[Friend, Member, Client, Stranger]
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
@@ -23,12 +26,14 @@ class MessageEvent(MiraiEvent):
 
 
 class FriendMessage(MessageEvent):
+    """好友消息"""
+
     type: str = "FriendMessage"
     messageChain: MessageChain
     sender: Friend
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["FriendMessage"]):
@@ -37,48 +42,52 @@ class FriendMessage(MessageEvent):
 
 
 class GroupMessage(MessageEvent):
+    """群组消息"""
+
     type: str = "GroupMessage"
     messageChain: MessageChain
     sender: Member
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["GroupMessage"]):
             if interface.annotation is Group:
                 return interface.event.sender.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.sender
 
 
 class TempMessage(MessageEvent):
+    """临时消息"""
+
     type: str = "TempMessage"
     messageChain: MessageChain
     sender: Member
 
-    @classmethod
-    def parse_obj(cls, obj):
-        return super().parse_obj(obj)
+    class Dispatcher(BaseDispatcher):  # pylint: disable-next=missing-class-docstring
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["TempMessage"]):
             if interface.annotation is Group:
                 return interface.event.sender.group
-            elif interface.annotation is Member:
+            if interface.annotation is Member:
                 return interface.event.sender
 
 
 class OtherClientMessage(MessageEvent):
+    """其他客户端消息"""
+
     type: str = "OtherClientMessage"
     messageChain: MessageChain
     sender: Client
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable-next=missing-class-docstring
+
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["OtherClientMessage"]):
@@ -87,12 +96,15 @@ class OtherClientMessage(MessageEvent):
 
 
 class StrangerMessage(MessageEvent):
+    """陌生人消息"""
+
     type: str = "StrangerMessage"
     messageChain: MessageChain
     sender: Stranger
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ApplicationDispatcher, SourceDispatcher]
+    class Dispatcher(BaseDispatcher):  # pylint: disable-next=missing-class-docstring
+
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface["StrangerMessage"]):

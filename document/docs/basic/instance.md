@@ -35,23 +35,16 @@
 
     你可以直接使用 `app.sendMessage(sender_or_event, message, ...)` 发送信息.
 
-## 获取实例所管账号(0.4.6+)
+## 获取实例所管账号
 
-`Ariadne`通过一个只读属性`account`来帮助用户获取当前机器人实例的 QQ 号
+`Ariadne` 通过一个只读属性 `account` 来帮助用户获取当前机器人实例的 QQ 号
 
 ```python
-# 0.4.6以前
-account = app.adapter.mirai_session.account
-# 0.4.6之后
 account = app.account
 ```
 
 ## 停止实例
 
-在 `0.4.7` 之前, `Ariadne` 的实例无法正常等待 `Adapter` 完成任务后再退出.
-
-在 `0.4.7` 中, 我们重新设计了 `Ariadne` 实例的生命周期.
-
-现在你通过在监听器中 `await app.request_stop()` 并在主函数中 `await app.wait_for_stop()` 应该可以安全的关闭 `Ariadne`.
+现在你通过在监听器中 `await app.stop()` 并在主函数中 `await app.join()` 应该可以安全的关闭 `Ariadne`.
 
 当然, 在主函数中使用 `await app.lifecycle()` 或 `app.launch_blocking()` 永远是最佳实践.

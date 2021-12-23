@@ -1,3 +1,4 @@
+"""Ariadne 基础的 parser, 包括 DetectPrefix 与 DetectSuffix"""
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
@@ -21,6 +22,7 @@ class DetectPrefix(Decorator):
         self.prefix = prefix
 
     def target(self, interface: DecoratorInterface):
+        """检测前缀并 decorate 参数"""
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -30,6 +32,7 @@ class DetectPrefix(Decorator):
         result = rest.removeprefix(self.prefix)
         if interface.annotation is MessageChain:
             return header + result
+        return None
 
 
 class DetectSuffix(Decorator):
@@ -46,6 +49,7 @@ class DetectSuffix(Decorator):
         self.suffix = suffix
 
     def target(self, interface: DecoratorInterface):
+        """检测后缀并 decorate 参数"""
         if not isinstance(interface.event, MessageEvent):
             raise ExecutionStop
         header = interface.event.messageChain.include(Quote, Source)
@@ -55,3 +59,4 @@ class DetectSuffix(Decorator):
         result = rest.removesuffix(self.suffix)
         if interface.annotation is MessageChain:
             return header + result
+        return None

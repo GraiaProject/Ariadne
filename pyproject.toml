@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne-dev"
-version = "2021.12.19.1"
+version = "2021.12.23.1"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -84,6 +84,7 @@ max-line-length = 110
 extension-pkg-whitelist = ["pydantic"]
 disable = [
     "broad-except",
+    "cyclic-import",
     "wrong-import-order", # isort conflict
     "unused-import", # flake8
     "invalid-name",
@@ -99,9 +100,11 @@ disable = [
     "too-many-statements",
     "super-init-not-called",
     "protected-access",
+    "inconsistent-return-statements", # bcc decorators
     "duplicate-code", # imports and inherited method init
     "no-self-argument", # pydantic validators
     "no-member", # pydantic validators
+    "no-self-use", # pydantic validators
 
 ]
 

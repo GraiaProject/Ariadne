@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne-dev"
-version = "2021.12.24.1"
+version = "2021.12.24.2"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -69,7 +69,7 @@ ptpython = ">= 3.0"
 pydeps = "^1.10"
 pre-commit = "^2.16"
 requests = "^2.26"
-yappi = "^1.3.3"
+yappi = {version = "^1.3.3", optional = true}
 pylint = "^2.12.2"
 
 [tool.isort]
@@ -94,13 +94,13 @@ disable = [
     "too-many-lines", # graia.ariadne.app
     "too-many-arguments",
     "too-many-branches",
+    "too-many-statements",
     "too-many-instance-attributes",
     "too-few-public-methods",
     "too-many-public-methods",
-    "too-many-statements",
     "super-init-not-called",
     "protected-access",
-    "inconsistent-return-statements", # bcc decorators
+    "inconsistent-return-statements", # bcc dispatchers
     "duplicate-code", # imports and inherited method init
     "no-self-argument", # pydantic validators
     "no-member", # pydantic validators

@@ -11,11 +11,10 @@ from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Typ
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.dispatcher import MiddlewareDispatcher
-
 from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
+from .dispatcher import MiddlewareDispatcher
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -1298,7 +1297,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
         exceptions: List[Tuple[Type[Exception], tuple]] = []
 
-        self.broadcast.postEvent(ApplicationShutdowned(self))
         logger.info("Stopping Ariadne...")
         self.status = AriadneStatus.CLEANUP
         for t in asyncio.all_tasks(self.loop):
@@ -1313,6 +1311,14 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     await t
                 except Exception as e:
                     exceptions.append((e.__class__, e.args))
+
+        logger.info("Posting Ariadne shutdown event...")
+
+        await self.broadcast.layered_scheduler(
+            listener_generator=self.broadcast.default_listener_generator(ApplicationShutdowned),
+            event=ApplicationShutdowned(self),
+        )
+
         logger.info("Stopping adapter...")
         await self.adapter.stop()
         self.status = AriadneStatus.STOP
@@ -1362,7 +1368,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if not self.remote_version.startswith("2"):
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
-            self.broadcast.postEvent(ApplicationLaunched(self))
+
+            await self.broadcast.layered_scheduler(
+                listener_generator=self.broadcast.default_listener_generator(ApplicationLaunched),
+                event=ApplicationLaunched(self),
+            )
 
     async def stop(self):
         """请求停止 Ariadne."""

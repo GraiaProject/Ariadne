@@ -1,6 +1,8 @@
 import os
 import sys
 
+from prompt_toolkit.styles.style import Style
+
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 import asyncio
 from datetime import datetime
@@ -27,16 +29,16 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
     saya = Saya(bcc)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
-    logger.add("f0.log")
     console = Console(
         bcc,
         r_prompt="<{current_time}>",
-        style={
-            "rprompt": "bg:#00ffff #ffffff",
-        },
+        style=Style.from_dict(
+            {
+                "rprompt": "bg:#00ffff #ffffff",
+            }
+        ),
         extra_data_getter=[lambda: {"current_time": datetime.now().time().isoformat()}],
     )
-    logger.add("f1.log")
 
     app = Ariadne(adapter, broadcast=bcc)
 
@@ -50,4 +52,3 @@ if __name__ == "__main__":
         saya.require("saya_test_downstream")
 
     app.launch_blocking()
-    console.stop()

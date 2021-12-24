@@ -1,4 +1,5 @@
-"""Ariadne 控制台"""
+"""Ariadne 控制台
+注意, 本实现并不 robust, 但是可以使用"""
 import importlib.metadata
 import sys
 from asyncio.tasks import Task
@@ -16,11 +17,10 @@ from prompt_toolkit.patch_stdout import StdoutProxy
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.styles import Style
 
-from ..util import yield_with_timeout
-
 
 class Console:
-    """Ariadne 的控制台, 可以脱离 Ariadne 实例运行"""
+    """Ariadne 的控制台, 可以脱离 Ariadne 实例运行
+    警告: 本实现无法确保稳定性"""
 
     def __init__(
         self,
@@ -28,7 +28,7 @@ class Console:
         *,
         prompt: Union[Callable[[], str], AnyFormattedText] = "{library_name} {graia_ariadne_version}>",
         r_prompt: Union[Callable[[], str], AnyFormattedText] = "",
-        style: Dict[str, Any] = None,
+        style: Optional[Style] = None,
         extra_data_getter: Iterable[Callable[[], Dict[str, Any]]] = (),
         replace_logger: bool = True,
     ) -> None:
@@ -38,9 +38,10 @@ class Console:
             broadcast (Broadcast): 事件系统.
             bg (Optional[str], optional): 背景色.
             fg (Optional[str], optional): 前景色.
-            prompt (AnyFormattedText): 输入提示, 可使用 f-string 形式的格式化字符串.
+            prompt (AnyFormattedText, optional): 输入提示, 可使用 f-string 形式的格式化字符串.
             默认为 "{library_name} {graia_ariadne_version}>".
-            r_prompt (AnyFormattedText): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
+            r_prompt (AnyFormattedText, optional): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
+            style (Style, optional): 输入提示的格式, 详见 prompt_toolkit 的介绍.
             extra_data_getter (Iterable[() -> Dict[str, Any], optional): 额外的 Callable, 用于生成 prompt 的格式化数据.
             replace_logger (bool, optional): 是否尝试替换 loguru 的 0 号 handler (sys.stderr) 为 StdoutProxy. 默认为 True.
         """
@@ -48,7 +49,7 @@ class Console:
 
         self.session: PromptSession[str] = PromptSession()
 
-        self.style = Style.from_dict(style)
+        self.style = style or Style([])
 
         self.l_prompt: AnyFormattedText = prompt
         self.r_prompt: AnyFormattedText = r_prompt
@@ -85,25 +86,37 @@ class Console:
 
         return data
 
-    async def prompt(self) -> str:
+    async def prompt(
+        self,
+        l_prompt: Optional[AnyFormattedText] = None,
+        r_prompt: Optional[AnyFormattedText] = None,
+        style: Optional[Style] = None,
+    ) -> str:
         """向控制台发送一个输入请求, 异步
+
+        Args:
+            l_prompt (AnyFormattedText, optional): 左输入提示, 可使用 f-string 形式的格式化字符串.
+            默认为 "{library_name} {graia_ariadne_version}>". 注意为 l_prompt .
+            r_prompt (AnyFormattedText, optional): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
+            style (Style, optional): 输入提示的格式, 详见 prompt_toolkit 的介绍.
 
         Returns:
             str: 输入结果
         """
-        if isinstance(self.l_prompt, str):
-            l_prompt = self.l_prompt.format_map(self.data_getter())
-        else:
-            l_prompt = self.l_prompt
-        if isinstance(self.r_prompt, str):
-            r_prompt = self.r_prompt.format_map(self.data_getter())
-        else:
-            l_prompt = self.l_prompt
+        l_prompt = l_prompt or self.l_prompt
+        r_prompt = r_prompt or self.r_prompt
+        style = style or self.style
+        if isinstance(l_prompt, str):
+            l_prompt = l_prompt.format_map(self.data_getter())
+
+        if isinstance(r_prompt, str):
+            r_prompt = r_prompt.format_map(self.data_getter())
+
         try:
             return await self.session.prompt_async(
                 message=l_prompt,
                 rprompt=r_prompt,
-                style=self.style,
+                style=style,
                 set_exception_handler=False,
             )
         except KeyboardInterrupt:
@@ -116,39 +129,40 @@ class Console:
         from graia.ariadne.message.element import Plain
 
         class _Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-            def __init__(self, command: str) -> None:
+            def __init__(self, command: str, console: Console) -> None:
                 self.command = command
+                self.console = console
 
             async def catch(self, interface: DispatcherInterface):
                 if interface.annotation is str and interface.name == "command":
                     return self.command
                 if interface.annotation is MessageChain:
                     return MessageChain([Plain(self.command)], inline=True)
+                if interface.annotation is Console:
+                    return self.console
 
-        try:
-            async for command in yield_with_timeout(
-                self.prompt,
-                lambda: self.running,
-            ):
-
-                for func, dispatchers, decorators in self.registry:
-                    try:
-                        result = await self.broadcast.Executor(
-                            ExecTarget(func, [_Dispatcher(command)] + dispatchers), decorators
-                        )
-                    except DisabledNamespace as e:
-                        logger.exception(e)
-                    except PropagationCancelled:
-                        break
-                    except Exception:
-                        pass
-                    else:
-                        if isinstance(result, str):
-                            logger.info(result)
-                        elif isinstance(result, MessageChain):
-                            logger.info(result.asDisplay())
-        except KeyboardInterrupt:
-            pass
+        while self.running:
+            try:
+                command = await self.prompt()
+            except KeyboardInterrupt:
+                self.stop()
+                raise
+            for func, dispatchers, decorators in self.registry:
+                try:
+                    result = await self.broadcast.Executor(
+                        ExecTarget(func, [_Dispatcher(command, self)] + dispatchers), decorators
+                    )
+                except DisabledNamespace as e:
+                    logger.exception(e)
+                except PropagationCancelled:
+                    break
+                except Exception:
+                    pass
+                else:
+                    if isinstance(result, str):
+                        logger.info(result)
+                    elif isinstance(result, MessageChain):
+                        logger.info(result.asDisplay())
 
     def start(self):
         """启动 Console"""
@@ -166,11 +180,15 @@ class Console:
 
     def stop(self):
         """提示 Console 停止, 非异步"""
-        self.running = False
 
-        if self.replace_logger:
-            logger.remove(self.handler_id)
-            self.handler_id = logger.add(sys.stderr)
+        if self.running:
+            logger.info("Stopping console...")
+
+            self.running = False
+
+            if self.replace_logger:
+                logger.remove(self.handler_id)
+                self.handler_id = logger.add(sys.stderr)
 
     async def join(self):
         """等待 Console 结束, 异步"""

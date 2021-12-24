@@ -28,26 +28,6 @@ from ..message.element import (
     Voice,
 )
 from ..message.formatter import Formatter
-from ..message.parser.alconna import (
-    Alconna,
-    AlconnaDispatcher,
-    AnyDigit,
-    AnyIP,
-    AnyStr,
-    AnyUrl,
-    Arpamar,
-    ArpamarProperty,
-    Bool,
-    CommandInterface,
-    Default,
-    InvalidFormatMap,
-    InvalidOptionName,
-    NullName,
-    Option,
-    OptionInterface,
-    ParamsUnmatched,
-    Subcommand,
-)
 from ..message.parser.base import DetectPrefix, DetectSuffix
 from ..message.parser.literature import (
     BoxParameter,

@@ -2,20 +2,6 @@
 from typing import TYPE_CHECKING
 
 from arclet.alconna import Alconna, Arpamar
-from arclet.alconna.component import (  # noqa: F401
-    CommandInterface,
-    Default,
-    Option,
-    OptionInterface,
-    Subcommand,
-)
-from arclet.alconna.exceptions import (  # noqa: F401
-    InvalidFormatMap,
-    InvalidOptionName,
-    NullName,
-    ParamsUnmatched,
-)
-from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl, Bool  # noqa: F401
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 

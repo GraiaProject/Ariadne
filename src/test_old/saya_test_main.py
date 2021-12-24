@@ -8,6 +8,9 @@ from datetime import datetime
 from graia.broadcast import Broadcast
 from graia.saya import Saya
 from graia.saya.builtins.broadcast.behaviour import BroadcastBehaviour
+from graia.scheduler import GraiaScheduler
+from graia.scheduler.saya.behaviour import GraiaSchedulerBehaviour
+from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter
 from graia.ariadne.app import Ariadne
@@ -18,12 +21,13 @@ from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.model import Friend, MiraiSession
 
 if __name__ == "__main__":
-    url, account, verify_key = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
+    url, account, verify_key, *_ = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     ALL_FLAG = True
     loop = asyncio.new_event_loop()
     bcc = Broadcast(loop=loop)
     saya = Saya(bcc)
     adapter = DebugAdapter(bcc, MiraiSession(url, account, verify_key))
+    logger.add("f0.log")
     console = Console(
         bcc,
         r_prompt="<{current_time}>",
@@ -32,10 +36,13 @@ if __name__ == "__main__":
         },
         extra_data_getter=[lambda: {"current_time": datetime.now().time().isoformat()}],
     )
+    logger.add("f1.log")
 
     app = Ariadne(adapter, broadcast=bcc)
 
-    saya.install_behaviours(BroadcastBehaviour(bcc), ConsoleBehaviour(console))
+    saya.install_behaviours(
+        BroadcastBehaviour(bcc), ConsoleBehaviour(console), GraiaSchedulerBehaviour(GraiaScheduler(loop, bcc))
+    )
 
     console.start()
 

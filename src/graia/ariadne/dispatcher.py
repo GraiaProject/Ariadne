@@ -10,6 +10,7 @@ from .message.chain import MessageChain
 from .message.element import Source
 
 if TYPE_CHECKING:
+    from .app import Ariadne
     from .event.message import MessageEvent
 
 
@@ -20,6 +21,30 @@ class MessageChainDispatcher(BaseDispatcher):
     async def catch(interface: DispatcherInterface["MessageEvent"]):
         if interface.annotation is MessageChain:
             return interface.event.messageChain
+
+
+class MiddlewareDispatcher(BaseDispatcher):
+    """分发 Ariadne 等基础参数的 Dispatcher"""
+
+    def __init__(self, app: "Ariadne") -> None:
+        self.app: "Ariadne" = app
+
+    async def catch(self, interface: DispatcherInterface):
+        from asyncio import AbstractEventLoop
+
+        from graia.broadcast import Broadcast
+
+        from .adapter import Adapter
+        from .app import Ariadne
+
+        if issubclass(interface.annotation, Ariadne):
+            return self.app
+        if issubclass(interface.annotation, Broadcast):
+            return self.app.broadcast
+        if issubclass(interface.annotation, AbstractEventLoop):
+            return self.app.loop
+        if issubclass(interface.annotation, Adapter):
+            return self.app.adapter
 
 
 class ContextDispatcher(BaseDispatcher):

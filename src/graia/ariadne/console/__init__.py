@@ -1,5 +1,6 @@
 """Ariadne 控制台"""
 import importlib.metadata
+import sys
 from asyncio.tasks import Task
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -11,6 +12,7 @@ from graia.broadcast.exceptions import DisabledNamespace, PropagationCancelled
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from loguru import logger
 from prompt_toolkit.formatted_text import AnyFormattedText
+from prompt_toolkit.patch_stdout import StdoutProxy
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.styles import Style
 
@@ -28,6 +30,7 @@ class Console:
         r_prompt: Union[Callable[[], str], AnyFormattedText] = "",
         style: Dict[str, Any] = None,
         extra_data_getter: Iterable[Callable[[], Dict[str, Any]]] = (),
+        replace_logger: bool = True,
     ) -> None:
         """初始化控制台.
 
@@ -39,6 +42,7 @@ class Console:
             默认为 "{library_name} {graia_ariadne_version}>".
             r_prompt (AnyFormattedText): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
             extra_data_getter (Iterable[() -> Dict[str, Any], optional): 额外的 Callable, 用于生成 prompt 的格式化数据.
+            replace_logger (bool, optional): 是否尝试替换 loguru 的 0 号 handler (sys.stderr) 为 StdoutProxy. 默认为 True.
         """
         self.broadcast = broadcast
 
@@ -54,6 +58,9 @@ class Console:
 
         self.running: bool = False
         self.task: Optional[Task] = None
+
+        self.handler_id: int = 0
+        self.replace_logger: bool = replace_logger
 
     def data_getter(self) -> Dict[str, Any]:
         """返回用于 prompt 的数据
@@ -92,7 +99,16 @@ class Console:
             r_prompt = self.r_prompt.format_map(self.data_getter())
         else:
             l_prompt = self.l_prompt
-        return await self.session.prompt_async(message=l_prompt, rprompt=r_prompt, style=self.style)
+        try:
+            return await self.session.prompt_async(
+                message=l_prompt,
+                rprompt=r_prompt,
+                style=self.style,
+                set_exception_handler=False,
+            )
+        except KeyboardInterrupt:
+            self.stop()
+            raise
 
     async def loop(self) -> None:
         """Console 的输入循环"""
@@ -109,36 +125,52 @@ class Console:
                 if interface.annotation is MessageChain:
                     return MessageChain([Plain(self.command)], inline=True)
 
-        async for command in yield_with_timeout(
-            self.prompt,
-            lambda: self.running,
-        ):
+        try:
+            async for command in yield_with_timeout(
+                self.prompt,
+                lambda: self.running,
+            ):
 
-            for func, dispatchers, decorators in self.registry:
-                try:
-                    result = await self.broadcast.Executor(
-                        ExecTarget(func, [_Dispatcher(command)] + dispatchers), decorators
-                    )
-                except DisabledNamespace as e:
-                    logger.exception(e)
-                except PropagationCancelled:
-                    break
-                except Exception:
-                    pass
-                else:
-                    if isinstance(result, str):
-                        logger.info(result)
-                    elif isinstance(result, MessageChain):
-                        logger.info(result.asDisplay())
+                for func, dispatchers, decorators in self.registry:
+                    try:
+                        result = await self.broadcast.Executor(
+                            ExecTarget(func, [_Dispatcher(command)] + dispatchers), decorators
+                        )
+                    except DisabledNamespace as e:
+                        logger.exception(e)
+                    except PropagationCancelled:
+                        break
+                    except Exception:
+                        pass
+                    else:
+                        if isinstance(result, str):
+                            logger.info(result)
+                        elif isinstance(result, MessageChain):
+                            logger.info(result.asDisplay())
+        except KeyboardInterrupt:
+            pass
 
     def start(self):
         """启动 Console"""
         self.running = True
+
+        if self.replace_logger:
+            try:
+                logger.remove(0)
+            except ValueError:
+                pass
+
+            self.handler_id = logger.add(StdoutProxy(raw=True))
+
         self.task = self.broadcast.loop.create_task(self.loop())
 
     def stop(self):
         """提示 Console 停止, 非异步"""
         self.running = False
+
+        if self.replace_logger:
+            logger.remove(self.handler_id)
+            self.handler_id = logger.add(sys.stderr)
 
     async def join(self):
         """等待 Console 结束, 异步"""

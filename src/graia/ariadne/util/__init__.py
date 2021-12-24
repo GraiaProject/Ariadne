@@ -28,7 +28,6 @@ from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
-from prompt_toolkit.patch_stdout import StdoutProxy
 
 from ..exception import (
     AccountMuted,
@@ -112,8 +111,6 @@ def loguru_async_handler(_, ctx: dict):
 
 def inject_loguru_traceback(loop: AbstractEventLoop = None):
     """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
-    logger.remove(0)
-    logger.add(StdoutProxy(raw=True))
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
     if loop:

@@ -11,6 +11,8 @@ from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Typ
 from graia.broadcast import Broadcast
 from loguru import logger
 
+from graia.ariadne.dispatcher import MiddlewareDispatcher
+
 from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
@@ -1351,6 +1353,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
 
+            self.broadcast.dispatcher_interface.inject_global_raw(MiddlewareDispatcher(self))
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
             await await_predicate(lambda: self.adapter.session_activated, 0.0001)
             self.status = AriadneStatus.RUNNING
@@ -1368,7 +1371,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})
 
     @deprecated("0.5.0")
-    async def request_stop(self):
+    async def request_stop(self):  # pylint: disable=missing-function-docstring
         # pylint: disable
         logger.warning("""use "stop" instead!""")
         await self.stop()
@@ -1379,11 +1382,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """
         if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
             await self.stop()
-            await await_predicate(lambda: self.status is AriadneStatus.STOP)
-            await self.daemon_task
+        await await_predicate(lambda: self.status is AriadneStatus.STOP)
+        await self.daemon_task
 
     @deprecated("0.5.0")
-    async def wait_for_stop(self):
+    async def wait_for_stop(self):  # pylint: disable=missing-function-docstring
         # pylint: disable
         logger.warning("""use "join" instead!""")
         await self.join()

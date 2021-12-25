@@ -9,11 +9,11 @@
 
  - 协助寻找 BUG 
  - 协助修复已发现的/潜在的 BUG
- - 为本项目开发新特性/功能 (请先通过 Github Issue 向我们提出建议 ~~然后我们可能会推出官方的方案~~ )
+ - 为本项目开发新特性/功能 (请先通过 Github Issue 向我们提出建议)
  - 添加非必要的功能支持
  - 修改异常的代码行为
  - 在 Github Issue 里写关于某个文档尚未提到的特性的使用方法探索
- - 帮助撰写 [Document](Document)
+ - 帮助撰写 [Document](https://github.com/GraiaProject/Ariadne/tree/master/document)
 
 注意事项:
  - 尽量别引入新的库

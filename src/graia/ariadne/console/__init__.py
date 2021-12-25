@@ -2,6 +2,7 @@
 注意, 本实现并不 robust, 但是可以使用"""
 import importlib.metadata
 import sys
+from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -17,6 +18,8 @@ from prompt_toolkit.patch_stdout import StdoutProxy
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.styles import Style
 
+from ..event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+
 
 class Console:
     """Ariadne 的控制台, 可以脱离 Ariadne 实例运行
@@ -25,27 +28,36 @@ class Console:
     def __init__(
         self,
         broadcast: Broadcast,
-        *,
         prompt: Union[Callable[[], str], AnyFormattedText] = "{library_name} {graia_ariadne_version}>",
+        *,
         r_prompt: Union[Callable[[], str], AnyFormattedText] = "",
         style: Optional[Style] = None,
         extra_data_getter: Iterable[Callable[[], Dict[str, Any]]] = (),
         replace_logger: bool = True,
+        listen_launch: bool = True,
+        listen_shutdown: bool = True,
     ) -> None:
         """初始化控制台.
 
         Args:
             broadcast (Broadcast): 事件系统.
-            bg (Optional[str], optional): 背景色.
-            fg (Optional[str], optional): 前景色.
             prompt (AnyFormattedText, optional): 输入提示, 可使用 f-string 形式的格式化字符串.
             默认为 "{library_name} {graia_ariadne_version}>".
             r_prompt (AnyFormattedText, optional): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
             style (Style, optional): 输入提示的格式, 详见 prompt_toolkit 的介绍.
             extra_data_getter (Iterable[() -> Dict[str, Any], optional): 额外的 Callable, 用于生成 prompt 的格式化数据.
             replace_logger (bool, optional): 是否尝试替换 loguru 的 0 号 handler (sys.stderr) 为 StdoutProxy. 默认为 True.
+            listen_launch (bool, optional): 是否监听 Ariadne 的 ApplicationLaunched 事件并启动自身, 默认为 True.
+            listen_shutdown (bool, optional): 是否监听 Ariadne 的 ApplicationShutdowned 事件并停止自身, 默认为 True.
         """
         self.broadcast = broadcast
+
+        # Handle Ariadne Event
+        if listen_launch:
+            broadcast.receiver(ApplicationLaunched)(self.start)
+
+        if listen_shutdown:
+            broadcast.receiver(ApplicationShutdowned)(self.stop)
 
         self.session: PromptSession[str] = PromptSession()
 
@@ -140,6 +152,10 @@ class Console:
                     return MessageChain([Plain(self.command)], inline=True)
                 if interface.annotation is Console:
                     return self.console
+                if interface.annotation is Broadcast:
+                    return self.console.broadcast
+                if interface.annotation is AbstractEventLoop:
+                    return self.console.broadcast.loop
 
         while self.running:
             try:
@@ -165,21 +181,22 @@ class Console:
                         logger.info(result.asDisplay())
 
     def start(self):
-        """启动 Console"""
-        self.running = True
+        """启动 Console, 幂等"""
+        if not self.running:
+            self.running = True
 
-        if self.replace_logger:
-            try:
-                logger.remove(0)
-            except ValueError:
-                pass
+            if self.replace_logger:
+                try:
+                    logger.remove(0)
+                except ValueError:
+                    pass
 
-            self.handler_id = logger.add(StdoutProxy(raw=True))
+                self.handler_id = logger.add(StdoutProxy(raw=True))
 
-        self.task = self.broadcast.loop.create_task(self.loop())
+            self.task = self.broadcast.loop.create_task(self.loop())
 
     def stop(self):
-        """提示 Console 停止, 非异步"""
+        """提示 Console 停止, 非异步, 幂等"""
 
         if self.running:
             logger.info("Stopping console...")
@@ -191,9 +208,10 @@ class Console:
                 self.handler_id = logger.add(sys.stderr)
 
     async def join(self):
-        """等待 Console 结束, 异步"""
-        await self.task
-        self.task = None
+        """等待 Console 结束, 异步, 幂等"""
+        if self.task:
+            await self.task
+            self.task = None
 
     def register(self, dispatchers: List[BaseDispatcher] = None, decorators: List[Decorator] = None):
         """注册命令处理函数

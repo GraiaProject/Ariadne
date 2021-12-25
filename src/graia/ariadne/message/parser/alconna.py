@@ -23,10 +23,10 @@ class AlconnaDispatcher(BaseDispatcher):
         super().__init__()
         self.alconna = alconna
 
-    def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
+    async def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
         """预处理消息链并存入 local_storage"""
         local_storage = interface.execution_contexts[-1].local_storage
-        chain: MessageChain = interface.event.messageChain
+        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None, [])
         result = self.alconna.analyse_message(chain)
         local_storage["arpamar"] = result
 

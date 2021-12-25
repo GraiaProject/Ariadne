@@ -46,8 +46,6 @@ if __name__ == "__main__":
         BroadcastBehaviour(bcc), ConsoleBehaviour(console), GraiaSchedulerBehaviour(GraiaScheduler(loop, bcc))
     )
 
-    console.start()
-
     with saya.module_context():
         saya.require("saya_test_downstream")
 

@@ -111,6 +111,7 @@ nav:
       - "额外内容":
           - "extra/log.md"
           - "extra/msg-chain-tool.md"
+          - "extra/console.md"
           - "extra/async-exec.md"
           - "extra/scheduler.md"
           - "Saya - 插件管理器":

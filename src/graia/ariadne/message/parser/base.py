@@ -3,7 +3,6 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 
-from ...event.message import MessageEvent
 from ..chain import MessageChain
 from ..element import Quote, Source
 
@@ -21,12 +20,13 @@ class DetectPrefix(Decorator):
         """
         self.prefix = prefix
 
-    def target(self, interface: DecoratorInterface):
+    async def target(self, interface: DecoratorInterface):
         """检测前缀并 decorate 参数"""
-        if not isinstance(interface.event, MessageEvent):
-            raise ExecutionStop
-        header = interface.event.messageChain.include(Quote, Source)
-        rest: MessageChain = interface.event.messageChain.exclude(Quote, Source)
+        chain: MessageChain = await interface.dispatcher_interface.lookup_param(
+            "message_chain", MessageChain, None, []
+        )
+        header = chain.include(Quote, Source)
+        rest: MessageChain = chain.exclude(Quote, Source)
         if not rest.startswith(self.prefix):
             raise ExecutionStop
         result = rest.removeprefix(self.prefix)
@@ -48,12 +48,13 @@ class DetectSuffix(Decorator):
         """
         self.suffix = suffix
 
-    def target(self, interface: DecoratorInterface):
+    async def target(self, interface: DecoratorInterface):
         """检测后缀并 decorate 参数"""
-        if not isinstance(interface.event, MessageEvent):
-            raise ExecutionStop
-        header = interface.event.messageChain.include(Quote, Source)
-        rest: MessageChain = interface.event.messageChain.exclude(Quote, Source)
+        chain: MessageChain = await interface.dispatcher_interface.lookup_param(
+            "message_chain", MessageChain, None, []
+        )
+        header = chain.include(Quote, Source)
+        rest: MessageChain = chain.exclude(Quote, Source)
         if not rest.endswith(self.suffix):
             raise ExecutionStop
         result = rest.removesuffix(self.suffix)

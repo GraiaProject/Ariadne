@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: 21.11b1
+    rev: 21.12b0
     hooks:
       - id: black
         # It is recommended to specify the latest version of Python
@@ -14,3 +14,21 @@ repos:
     hooks:
       - id: isort
         name: isort (python)
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1 # pick a git hash / tag to point to
+    hooks:
+      - id: flake8
+
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args: [
+            "-rn", # Only display messages
+            "-sn", # Don't display the score
+            "--rcfile=pyproject.toml",
+          ]

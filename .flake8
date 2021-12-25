@@ -9,3 +9,4 @@ exclude = .git,
     src/test/*,
     src/test_old/*
     src/graia/ariadne/entry/*
+    .venv,

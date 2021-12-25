@@ -13,8 +13,8 @@ _Another elegant framework for mirai and mirai-api-http v2._
   <a href="https://pypi.org/project/graia-ariadne"><img alt="PyPI" src="https://img.shields.io/pypi/v/graia-ariadne" /></a>
   <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne" /></a>
   <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne" /></a>
-  <a href="https://graia.readthedocs.io/zh_CN/latest"><img alt="docs" src="https://img.shields.io/badge/文档-readthedocs-black" /></a>
-  <a href="https://graiaproject.github.io/Ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-GitHub_Pages-black"></a>
+  <a href="https://graia.readthedocs.io/zh_CN/latest"><img alt="docs" src="https://img.shields.io/badge/文档_@_readthedocs-click_here-black" /></a>
+  <a href="https://graiaproject.github.io/Ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档_@_GitHub_Pages-click_here-black"></a>
   <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="black" /></a>
   <a href="https://pycqa.github.io/isort/"><img src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336" alt="isort"/></a>
 </p>
@@ -33,6 +33,8 @@ Ariadne 是 `Graia Project` 继承了 [`Application`](https://github.com/GraiaPr
 或
 
 `pip install graia-ariadne`
+
+> 我们强烈建议使用 [`poetry`](https://python-poetry.org) 进行管理
 
 ## 开始使用
 
@@ -53,7 +55,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
 app.launch_blocking()
 ```
 
-更多信息请看 [文档](https://graia-dev.readthedocs.io/zh_CN/latest/).
+更多信息请看 [文档](https://graia.readthedocs.io/zh_CN/latest/).
 
 ## 讨论
 
@@ -64,13 +66,23 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 [API 文档](https://graiaproject.github.io/Ariadne/)
 [![PDoc Deploy](https://img.shields.io/github/deployments/GraiaProject/Ariadne/github-pages)](https://graiaproject.github.io/Ariadne/)
 
-[文档](https://graia-dev.readthedocs.io/zh_CN/latest/)
+[文档](https://graia.readthedocs.io/zh_CN/latest/)
 [![Read The Docs Deploy](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.readthedocs.io/zh_CN/latest/)
 
-[鸣谢](https://graia-dev.readthedocs.io/zh_CN/latest/appendix/credits)
+[鸣谢](https://graia.readthedocs.io/zh_CN/latest/appendix/credits)
 
 **如果认为本项目有帮助, 欢迎点一个 `Star`.**
 
 ## 协议
 
 本项目以[`GNU AGPLv3`](https://choosealicense.com/licenses/agpl-3.0/) 作为开源协议, 这意味着你需要遵守相应的规则.
+
+## 开发构建
+
+[开发分支文档](https://graia-dev.rtfd.io/)
+
+[开发分支](https://github.com/GraiaProject/Ariadne/tree/dev)
+
+[开发版构建 PyPI](https://pypi.org/project/graia-ariadne-dev) [![Dev PyPI Version](https://img.shields.io/pypi/v/graia-ariadne-dev)](https://pypi.org/project/graia-ariadne-dev)
+
+[开始开发](./)

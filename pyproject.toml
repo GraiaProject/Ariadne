@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "graia-ariadne-dev"
-version = "2021.12.25.1"
+name = "graia-ariadne"
+version = "0.5.0-b1"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -107,6 +107,7 @@ disable = [
     "no-self-use", # pydantic validators
 
 ]
+ignore-paths = [".*test.*", ".*entry.*", ".*dev.*", ".*venv*"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

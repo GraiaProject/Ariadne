@@ -5,7 +5,6 @@ from typing import Any, Dict, List, Optional
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
-from pydantic.class_validators import validator
 from typing_extensions import Literal
 
 from ..context import adapter_ctx
@@ -330,19 +329,13 @@ class NudgeEvent(MiraiEvent):
 
     context_type: Literal["friend", "group", "stranger", None] = None
 
-    @validator("friend_id", pre=True, always=True, allow_reuse=True)
-    def _(cls, _, values):
-        if values["origin_subject_info"]["kind"] == "Friend":
-            return values["origin_subject_info"]["id"]
-
-    @validator("group_id", pre=True, always=True, allow_reuse=True)
-    def _(cls, _, values):
-        if values["origin_subject_info"]["kind"] == "Group":
-            return values["origin_subject_info"]["id"]
-
-    @validator("context_type", pre=True, always=True, allow_reuse=True)
-    def _(cls, _, values):
-        return str.lower(values["origin_subject_info"]["kind"])
+    def __init__(self, **data: Any) -> None:
+        ctx_type = data["context_type"] = str.lower(data["subject"]["kind"])
+        if ctx_type == "group":
+            data["group_id"] = data["subject"]["id"]
+        else:
+            data["friend_id"] = data["subject"]["id"]
+        super().__init__(**data)
 
 
 class GroupNameChangeEvent(GroupEvent):

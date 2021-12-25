@@ -18,6 +18,7 @@ from prompt_toolkit.patch_stdout import StdoutProxy
 from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.styles import Style
 
+from ..dispatcher import ContextDispatcher
 from ..event.lifecycle import ApplicationLaunched, ApplicationShutdowned
 
 
@@ -166,7 +167,8 @@ class Console:
             for func, dispatchers, decorators in self.registry:
                 try:
                     result = await self.broadcast.Executor(
-                        ExecTarget(func, [_Dispatcher(command, self)] + dispatchers), decorators
+                        ExecTarget(func, [_Dispatcher(command, self), ContextDispatcher()] + dispatchers),
+                        decorators,
                     )
                 except DisabledNamespace as e:
                     logger.exception(e)

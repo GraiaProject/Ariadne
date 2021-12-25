@@ -5,7 +5,7 @@ import re
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.adapter import WebsocketAdapter
+from graia.ariadne.adapter import DebugAdapter, WebsocketAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
@@ -21,7 +21,7 @@ from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 from graia.ariadne.model import Friend, Group, Member, MiraiSession
 
 if __name__ == "__main__":
-    url, account, verify_key = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
+    url, _, verify_key, account = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     ALL_FLAG = False
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
@@ -29,7 +29,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        WebsocketAdapter(bcc, MiraiSession(url, account, verify_key)),
+        DebugAdapter(bcc, MiraiSession(url, account, verify_key)),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
@@ -126,6 +126,20 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
+
+    from graia.ariadne.event.mirai import NudgeEvent
+
+    print(
+        NudgeEvent.parse_obj(
+            {
+                "fromId": 1048820232,
+                "target": 2907489501,
+                "subject": {"id": 722040415, "kind": "Group"},
+                "action": "戳了戳",
+                "suffix": "的终端并显示：错误",
+            }
+        )
+    )
 
     try:
         loop.run_until_complete(main())

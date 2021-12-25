@@ -1,11 +1,18 @@
 """Ariadne 内置的 Dispatcher"""
-from typing import TYPE_CHECKING
+from types import TracebackType
+from typing import TYPE_CHECKING, ContextManager, Optional, TypedDict
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from .context import adapter_ctx, ariadne_ctx, broadcast_ctx, event_loop_ctx
+from .context import (
+    adapter_ctx,
+    ariadne_ctx,
+    broadcast_ctx,
+    enter_context,
+    event_loop_ctx,
+)
 from .message.chain import MessageChain
 from .message.element import Source
 
@@ -21,30 +28,6 @@ class MessageChainDispatcher(BaseDispatcher):
     async def catch(interface: DispatcherInterface["MessageEvent"]):
         if interface.annotation is MessageChain:
             return interface.event.messageChain
-
-
-class MiddlewareDispatcher(BaseDispatcher):
-    """分发 Ariadne 等基础参数的 Dispatcher"""
-
-    def __init__(self, app: "Ariadne") -> None:
-        self.app: "Ariadne" = app
-
-    async def catch(self, interface: DispatcherInterface):
-        from asyncio import AbstractEventLoop
-
-        from graia.broadcast import Broadcast
-
-        from .adapter import Adapter
-        from .app import Ariadne
-
-        if issubclass(interface.annotation, Ariadne):
-            return self.app
-        if issubclass(interface.annotation, Broadcast):
-            return self.app.broadcast
-        if issubclass(interface.annotation, AbstractEventLoop):
-            return self.app.loop
-        if issubclass(interface.annotation, Adapter):
-            return self.app.adapter
 
 
 class ContextDispatcher(BaseDispatcher):
@@ -71,6 +54,37 @@ class ContextDispatcher(BaseDispatcher):
             return adapter_ctx.get()
         if issubclass(interface.annotation, Dispatchable):
             return interface.event
+
+
+class ContextLC(TypedDict):
+    """local storage 表示"""
+
+    __CONTEXT_MANAGER__: ContextManager
+
+
+class MiddlewareDispatcher(BaseDispatcher):
+    """分发 Ariadne 等基础参数的 Dispatcher"""
+
+    mixin = [ContextDispatcher]
+
+    def __init__(self, app: "Ariadne") -> None:
+        self.app: "Ariadne" = app
+
+    async def catch(self, _):
+        return
+
+    async def beforeExecution(self, interface: DispatcherInterface):
+        """进入事件分发上下文"""
+        lc: ContextLC = interface.execution_contexts[-1].local_storage
+        lc["__CONTEXT_MANAGER__"] = enter_context(self.app, interface.event)
+        lc["__CONTEXT_MANAGER__"].__enter__()
+
+    async def afterExecution(
+        self, interface: DispatcherInterface, exception: Optional[Exception], tb: Optional[TracebackType]
+    ):
+        """退出事件分发上下文"""
+        lc: ContextLC = interface.execution_contexts[-1].local_storage
+        lc["__CONTEXT_MANAGER__"].__exit__(exception.__class__ and exception, exception, tb)
 
 
 class SourceDispatcher(BaseDispatcher):

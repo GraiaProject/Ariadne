@@ -12,6 +12,7 @@ from prompt_toolkit.styles.style import Style
 from graia.ariadne.app import Ariadne
 from graia.ariadne.console import Console
 from graia.ariadne.console.saya import ConsoleSchema
+from graia.ariadne.context import ariadne_ctx
 from graia.ariadne.event.lifecycle import ApplicationShutdowned
 from graia.ariadne.event.message import FriendMessage
 from graia.ariadne.message.chain import MessageChain
@@ -41,8 +42,8 @@ async def info(app: Ariadne):
 
 
 @channel.use(SchedulerSchema(every_custom_seconds(10)))
-async def send(app: Ariadne):
-    logger.info("OK")
+async def send():
+    logger.info(await ariadne_ctx.get().getVersion())
 
 
 @channel.use(ConsoleSchema([Twilight.from_command(".stop")]))

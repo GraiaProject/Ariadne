@@ -30,6 +30,9 @@ async def friend_message_listener(app: Ariadne):
 
 -   `T_EventType`: 你所监听的事件类型, 如 `FriendMessage`, `GroupMessage` 等.
 -   `Ariadne`: 通过 `app = Ariadne(...)` 创建的 Ariadne 对象.
+-   `Broadcast`: 当前 `graia.broadcast.Broadcast` 实例.
+-   `AbstractEventLoop`: 当前事件循环.
+-   `Adapter`: 当前 `Adapter` 实例.
 -   `MessageChain`: 消息链对象, 将在 [下一章](../msg-chain) 介绍.
 -   `Source`: 消息元数据对象, 包括发送时间等信息.
 

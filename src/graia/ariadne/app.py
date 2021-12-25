@@ -1,5 +1,8 @@
+"""Ariadne 实例
+"""
 import asyncio
 import importlib.metadata
+import inspect
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
@@ -11,6 +14,7 @@ from loguru import logger
 from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
+from .dispatcher import MiddlewareDispatcher
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -18,19 +22,8 @@ from .event.lifecycle import (
     ApplicationShutdowned,
 )
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
-from .message.element import Source
-from .util import (
-    await_predicate,
-    inject_bypass_listener,
-    inject_loguru_traceback,
-    yield_with_timeout,
-)
-
-if TYPE_CHECKING:
-    from .message.element import Image, Voice
-    from .typing import T
-
 from .message.chain import MessageChain
+from .message.element import Source
 from .model import (
     AriadneStatus,
     BotMessage,
@@ -46,7 +39,18 @@ from .model import (
     Profile,
     UploadMethod,
 )
-from .util import ApplicationMiddlewareDispatcher, app_ctx_manager
+from .util import (
+    app_ctx_manager,
+    await_predicate,
+    deprecated,
+    inject_bypass_listener,
+    inject_loguru_traceback,
+    yield_with_timeout,
+)
+
+if TYPE_CHECKING:
+    from .message.element import Image, Voice
+    from .typing import T
 
 
 class AriadneMixin:
@@ -59,6 +63,7 @@ class AriadneMixin:
 
     @property
     def session_key(self) -> Optional[str]:
+        """返回 Ariadne 的 Mirai session key."""
         return self.mirai_session.session_key
 
 
@@ -67,6 +72,14 @@ class MessageMixin(AriadneMixin):
 
     @app_ctx_manager
     async def getMessageFromId(self, messageId: int) -> MessageEvent:
+        """从 消息 ID 提取 消息事件.
+
+        Args:
+            messageId (int): 消息 ID.
+
+        Returns:
+            MessageEvent: 提取的事件.
+        """
         result = await self.adapter.call_api(
             "messageFromId",
             CallMethod.GET,
@@ -309,6 +322,11 @@ class RelationshipMixin(AriadneMixin):
 
     @app_ctx_manager
     async def getFriendList(self) -> List[Friend]:
+        """获取本实例账号添加的好友列表.
+
+        Returns:
+            List[Friend]: 添加的好友.
+        """
         result = await self.adapter.call_api(
             "friendList",
             CallMethod.GET,
@@ -334,6 +352,11 @@ class RelationshipMixin(AriadneMixin):
 
     @app_ctx_manager
     async def getGroupList(self) -> List[Group]:
+        """获取本实例账号加入的群组列表.
+
+        Returns:
+            List[Group]: 加入的群组.
+        """
         result = await self.adapter.call_api(
             "groupList",
             CallMethod.GET,
@@ -359,6 +382,14 @@ class RelationshipMixin(AriadneMixin):
 
     @app_ctx_manager
     async def getMemberList(self, group: Union[Group, int]) -> List[Member]:
+        """尝试从已知的群组获取对应成员的列表.
+
+        Args:
+            group (Union[Group, int]): 已知的群组
+
+        Returns:
+            List[Member]: 群内成员的 Member 对象.
+        """
         result = await self.adapter.call_api(
             "memberList",
             CallMethod.GET,
@@ -388,6 +419,11 @@ class RelationshipMixin(AriadneMixin):
 
     @app_ctx_manager
     async def getBotProfile(self) -> Profile:
+        """获取本实例绑定账号的 Profile.
+
+        Returns:
+            Profile: 找到的 Profile.
+        """
         result = await self.adapter.call_api(
             "botProfile",
             CallMethod.GET,
@@ -397,6 +433,14 @@ class RelationshipMixin(AriadneMixin):
 
     @app_ctx_manager
     async def getFriendProfile(self, friend: Union[Friend, int]) -> Profile:
+        """获取好友的 Profile.
+
+        Args:
+            friend (Union[Friend, int]): 查找的好友.
+
+        Returns:
+            Profile: 找到的 Profile.
+        """
         result = await self.adapter.call_api(
             "friendProfile",
             CallMethod.GET,
@@ -411,6 +455,18 @@ class RelationshipMixin(AriadneMixin):
     async def getMemberProfile(
         self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
     ) -> Profile:
+        """获取群员的 Profile.
+
+        Args:
+            member (Union[Member, int]): 群员对象.
+            group (Optional[Union[Group, int]], optional): 检索的群. 提供 Member 形式的 member 参数后可以不提供.
+
+        Raises:
+            ValueError: 没有提供可检索的群 ID.
+
+        Returns:
+            Profile: 找到的 Profile 对象.
+        """
         member_id = member.id if isinstance(member, Member) else member
         group = group or (member.group if isinstance(member, Member) else None)
         group_id = group.id if isinstance(group, Group) else group
@@ -1179,7 +1235,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             return self.info[cls]
         call_args: list = []
         call_kwargs: Dict[str, Any] = {}
-        import inspect
 
         init_sig = inspect.signature(cls)
 
@@ -1199,6 +1254,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return obj
 
     async def daemon(self, retry_interval: float = 5.0):
+        """Ariadne 生命周期管理的具体方法.
+
+        Args:
+            retry_interval (float, optional): Adapter 重连间隔 (s). 默认 5.0.
+        """
         retry_cnt: int = 0
 
         logger.debug("Ariadne daemon started.")
@@ -1237,7 +1297,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
         exceptions: List[Tuple[Type[Exception], tuple]] = []
 
-        self.broadcast.postEvent(ApplicationShutdowned(self))
         logger.info("Stopping Ariadne...")
         self.status = AriadneStatus.CLEANUP
         for t in asyncio.all_tasks(self.loop):
@@ -1250,8 +1309,16 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     t.cancel()
                 try:
                     await t
-                except BaseException as e:
+                except Exception as e:
                     exceptions.append((e.__class__, e.args))
+
+        logger.info("Posting Ariadne shutdown event...")
+
+        await self.broadcast.layered_scheduler(
+            listener_generator=self.broadcast.default_listener_generator(ApplicationShutdowned),
+            event=ApplicationShutdowned(self),
+        )
+
         logger.info("Stopping adapter...")
         await self.adapter.stop()
         self.status = AriadneStatus.STOP
@@ -1262,7 +1329,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         """启动 Ariadne."""
         if self.status is AriadneStatus.STOP:
             self.status = AriadneStatus.LAUNCH
-            start_time = time.time()
 
             # Logo
             if not self.disable_logo:
@@ -1288,11 +1354,12 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     logger.opt(colors=True, raw=True).info(f"<cyan>{name}</> version: <yellow>{version}</>\n")
 
             logger.info("Launching app...")
-            self.broadcast.dispatcher_interface.inject_global_raw(ApplicationMiddlewareDispatcher(self))
+            start_time = time.time()
 
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
 
+            self.broadcast.dispatcher_interface.inject_global_raw(MiddlewareDispatcher(self))
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
             await await_predicate(lambda: self.adapter.session_activated, 0.0001)
             self.status = AriadneStatus.RUNNING
@@ -1301,35 +1368,61 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if not self.remote_version.startswith("2"):
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
-            self.broadcast.postEvent(ApplicationLaunched(self))
 
-    async def request_stop(self):
+            await self.broadcast.layered_scheduler(
+                listener_generator=self.broadcast.default_listener_generator(ApplicationLaunched),
+                event=ApplicationLaunched(self),
+            )
+
+    async def stop(self):
         """请求停止 Ariadne."""
         if self.status is AriadneStatus.RUNNING:
             self.status = AriadneStatus.SHUTDOWN
             await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})
 
-    async def wait_for_stop(self):
+    @deprecated("0.5.0")
+    async def request_stop(self):  # pylint: disable=missing-function-docstring
+        # pylint: disable
+        logger.warning("""use "stop" instead!""")
+        await self.stop()
+
+    async def join(self):
         """等待直到 Ariadne 真正停止.
         不要在与 Broadcast 相关的任务中使用.
         """
         if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
-            await self.request_stop()
-            await await_predicate(lambda: self.status is AriadneStatus.STOP)
-            await self.daemon_task
+            await self.stop()
+        await await_predicate(lambda: self.status is AriadneStatus.STOP)
+        await self.daemon_task
+
+    @deprecated("0.5.0")
+    async def wait_for_stop(self):  # pylint: disable=missing-function-docstring
+        # pylint: disable
+        logger.warning("""use "join" instead!""")
+        await self.join()
 
     async def lifecycle(self):
+        """以 async 阻塞方式启动 Ariadne 并等待其停止."""
         await self.launch()
         await self.daemon_task
 
     def launch_blocking(self):
+        """以阻塞方式启动 Ariadne 并等待其停止."""
         try:
             self.loop.run_until_complete(self.lifecycle())
         except KeyboardInterrupt:
-            self.loop.run_until_complete(self.wait_for_stop())
+            self.loop.run_until_complete(self.join())
 
     @app_ctx_manager
-    async def getVersion(self, auto_set: bool = True):
+    async def getVersion(self, auto_set: bool = True) -> str:
+        """获取后端 Mirai HTTP API 版本.
+
+        Args:
+            auto_set (bool, optional): 自动设置到实例的 MiraiSession.version. 默认为 True.
+
+        Returns:
+            str: 版本信息.
+        """
         if self.mirai_session.version:
             return self.mirai_session.version
         result = await self.adapter.call_api.__wrapped__(self.adapter, "about", CallMethod.GET)
@@ -1344,8 +1437,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         return self
 
     async def __aexit__(self, *exc):
-        await self.wait_for_stop()
+        await self.join()
 
     @property
     def account(self) -> Optional[int]:
+        """获取当前实例对应 MiraiSession 的账号."""
         return self.adapter.mirai_session.account

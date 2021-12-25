@@ -1,3 +1,7 @@
+"""Ariadne 事件相关的导入集合"""
+
+# no error
+
 from graia.ariadne.event import MiraiEvent
 from graia.ariadne.event.lifecycle import (
     AdapterLaunched,

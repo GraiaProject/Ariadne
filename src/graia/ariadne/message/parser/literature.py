@@ -1,3 +1,5 @@
+"""Literature, 将在 0.6.0 被移除"""
+# pylint: skip-file
 import getopt
 import itertools
 import re
@@ -188,7 +190,9 @@ class Literature(BaseDispatcher):
         ).merge(copy=True)
 
     async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
-        message_chain: MessageChain = interface.event.messageChain
+        message_chain: MessageChain = await interface.lookup_param(
+            "__literature_messagechain__", MessageChain, None, []
+        )
         if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()
         noprefix = self.prefix_match(message_chain)
@@ -219,6 +223,6 @@ class Literature(BaseDispatcher):
                 elif match_value is not None:
                     return match_value
 
-    async def beforeTargetExec(self, interface: "DispatcherInterface", e, tb):
+    async def beforeTargetExec(self, interface: "DispatcherInterface", _, __):
         if "literature_detect_result" in interface.broadcast.decorator_interface.local_storage:
             del interface.broadcast.decorator_interface.local_storage["literature_detect_result"]

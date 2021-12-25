@@ -1,3 +1,7 @@
+"""Ariadne 一站式导入的提供模块"""
+
+# no error
+
 from ..adapter import CombinedAdapter, DefaultAdapter, HttpAdapter, WebsocketAdapter
 from ..app import Ariadne
 from ..context import (
@@ -8,7 +12,7 @@ from ..context import (
     event_loop_ctx,
     upload_method_ctx,
 )
-from ..dispatcher import ApplicationDispatcher, MessageChainDispatcher, SourceDispatcher
+from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispatcher
 from ..exception import (
     AccountMuted,
     AccountNotFound,

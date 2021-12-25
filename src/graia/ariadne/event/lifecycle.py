@@ -1,3 +1,4 @@
+"""Ariadne, Adapter 生命周期相关事件"""
 import typing
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -18,7 +19,7 @@ class ApplicationLifecycleEvent(Dispatchable):
     def __init__(self, app) -> None:
         self.app = app
 
-    class Dispatcher(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
         @staticmethod
         async def catch(interface: "DispatcherInterface[ApplicationLifecycleEvent]"):
             from ..app import Ariadne
@@ -39,13 +40,13 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
     """
 
 
-class AdapterShutdowned(ApplicationLifecycleEvent):
-    """
-    指示远程适配器关闭了.
-    """
-
-
 class AdapterLaunched(ApplicationLifecycleEvent):
     """
     指示远程适配器启动了.
+    """
+
+
+class AdapterShutdowned(ApplicationLifecycleEvent):
+    """
+    指示远程适配器关闭了.
     """

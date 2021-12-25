@@ -5,7 +5,7 @@ import re
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.adapter import DebugAdapter, WebsocketAdapter
+from graia.ariadne.adapter import WebsocketAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
@@ -109,7 +109,7 @@ if __name__ == "__main__":
         dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop")]))],
     )
     async def stop(app: Ariadne):
-        await app.request_stop()
+        await app.stop()
 
     async def main():
         await app.launch()

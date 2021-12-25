@@ -1,3 +1,4 @@
+"""本模块创建了 Ariadne 中的上下文变量"""
 from contextlib import contextmanager
 from contextvars import ContextVar
 from typing import TYPE_CHECKING
@@ -6,20 +7,20 @@ if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
 
     from graia.broadcast import Broadcast
+    from graia.broadcast.entities.event import Dispatchable
 
     from .adapter import Adapter
     from .app import Ariadne
-    from .event import MiraiEvent
     from .model import UploadMethod
 
-    ariadne_ctx: ContextVar["Ariadne"] = ContextVar("application")
-    adapter_ctx: ContextVar["Adapter"] = ContextVar("adapter")
-    event_ctx: ContextVar["MiraiEvent"] = ContextVar("event")
-    event_loop_ctx: ContextVar["AbstractEventLoop"] = ContextVar("event_loop")
-    broadcast_ctx: ContextVar["Broadcast"] = ContextVar("broadcast")
-    upload_method_ctx: ContextVar["UploadMethod"] = ContextVar("upload_method")
+    ariadne_ctx: ContextVar[Ariadne] = ContextVar("ariadne")
+    adapter_ctx: ContextVar[Adapter] = ContextVar("adapter")
+    event_ctx: ContextVar[Dispatchable] = ContextVar("event")
+    event_loop_ctx: ContextVar[AbstractEventLoop] = ContextVar("event_loop")
+    broadcast_ctx: ContextVar[Broadcast] = ContextVar("broadcast")
+    upload_method_ctx: ContextVar[UploadMethod] = ContextVar("upload_method")
 else:  # for not crashing pdoc
-    ariadne_ctx = ContextVar("application")
+    ariadne_ctx = ContextVar("ariadne")
     adapter_ctx = ContextVar("adapter")
     event_ctx = ContextVar("event")
     event_loop_ctx = ContextVar("event_loop")
@@ -29,13 +30,24 @@ else:  # for not crashing pdoc
 
 @contextmanager
 def enter_message_send_context(method: "UploadMethod"):
+    """进入消息发送上下文
+
+    Args:
+        method (UploadMethod): 消息上下文的枚举对象
+    """
     t = upload_method_ctx.set(method)
     yield
     upload_method_ctx.reset(t)
 
 
 @contextmanager
-def enter_context(app: "Ariadne" = None, event: "MiraiEvent" = None):
+def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
+    """进入事件上下文
+
+    Args:
+        app (Ariadne, optional): Ariadne 实例.
+        event (Dispatchable, optional): 当前事件
+    """
     token_app = None
     token_event = None
     token_loop = None

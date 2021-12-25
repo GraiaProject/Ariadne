@@ -11,7 +11,6 @@ from asyncio.events import AbstractEventLoop
 from typing import (
     AsyncIterator,
     Callable,
-    ContextManager,
     Coroutine,
     Dict,
     Generator,
@@ -23,7 +22,6 @@ from typing import (
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
@@ -68,25 +66,43 @@ code_exceptions_mapping: Dict[int, Type[Exception]] = {
 
 
 def validate_response(code: Union[dict, int]):
+    """验证远程服务器的返回值
+
+    Args:
+        code (Union[dict, int]): 返回的对象
+
+    Raises:
+        Exception: 请参照 code_exceptions_mapping
+    """
     origin = code
     if isinstance(code, dict):
         code = code.get("code")
-    else:
-        code = code
     if not isinstance(code, int) or code == 200 or code == 0:
         return
     exc_cls = code_exceptions_mapping.get(code)
     if exc_cls:
         raise exc_cls(exc_cls.__doc__)
-    else:
-        raise UnknownError(f"{origin}")
+    raise UnknownError(f"{origin}")
 
 
 def loguru_excepthook(cls, val, tb, *_, **__):
+    """loguru 异常回调
+
+    Args:
+        cls (Type[Exception]): 异常类
+        val (Exception): 异常的实际值
+        tb (TracebackType): 回溯消息
+    """
     logger.opt(exception=(cls, val, tb)).error("Exception:")
 
 
-def loguru_async_handler(loop: AbstractEventLoop, ctx: dict):
+def loguru_async_handler(_, ctx: dict):
+    """loguru 异步异常回调
+
+    Args:
+        _ (AbstractEventLoop): 异常发生的事件循环
+        ctx (dict): 异常上下文
+    """
     if "exception" in ctx:
         logger.opt(exception=ctx["exception"]).error("Exception:")
     else:
@@ -109,6 +125,8 @@ def inject_bypass_listener(broadcast: Broadcast):
     """
 
     class BypassListener(Listener):
+        """透传监听器的实现"""
+
         def __init__(
             self,
             callable: Callable,
@@ -135,7 +153,7 @@ def inject_bypass_listener(broadcast: Broadcast):
     async def _(interface: DispatcherInterface):
         if isinstance(interface.event, interface.annotation):
             return interface.event
-        elif (
+        if (
             hasattr(interface.annotation, "__origin__")
             and interface.annotation.__origin__ is DispatcherInterface
         ):
@@ -143,6 +161,7 @@ def inject_bypass_listener(broadcast: Broadcast):
 
     import graia.broadcast.entities.listener
 
+    # pylint: disable=no-member
     graia.broadcast.entities.listener.Listener = BypassListener  # type: ignore
     graia.broadcast.Listener = BypassListener  # type: ignore
     try:  # Override saya listener
@@ -153,30 +172,16 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
-class ApplicationMiddlewareDispatcher(BaseDispatcher):
-    always = True
-    context: ContextManager
-
-    def __init__(self, app) -> None:
-        self.app = app
-
-    def beforeExecution(self, interface: "DispatcherInterface"):
-        from ..context import enter_context
-
-        self.context = enter_context(self.app, interface.event)
-        self.context.__enter__()
-
-    def afterExecution(self, interface: "DispatcherInterface", exception, tb):
-        self.context.__exit__(exception.__class__ if exception else None, exception, tb)
-
-    async def catch(self, interface: "DispatcherInterface"):
-        from ..app import Ariadne
-
-        if interface.annotation is Ariadne:
-            return self.app
-
-
 def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
+    """包装声明需要在 Ariadne Context 中执行的函数
+
+    Args:
+        func (Callable[P, R]): 被包装的函数
+
+    Returns:
+        Callable[P, R]: 包装后的函数
+    """
+
     @functools.wraps(func)
     async def wrapper(self, *args: P.args, **kwargs: P.kwargs):
         from ..context import enter_context
@@ -188,12 +193,21 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
 
 
 def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
+    """生成某个类的所有子类 (包括其自身)
+
+    Args:
+        cls (Type[T]): 类
+
+    Yields:
+        Type[T]: 子类
+    """
     yield cls
     for sub_cls in cls.__subclasses__():
         yield from gen_subclass(sub_cls)
 
 
 def wrap_bracket(string: str) -> str:
+    """替换 "[" 与 "]" 为其 Unicode 形式用于 JSON 解析"""
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
@@ -201,6 +215,12 @@ T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
 async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -> None:
+    """异步阻塞至满足 predicate 为 True
+
+    Args:
+        predicate (Callable[[], bool]): 回调函数
+        interval (float, optional): 每次等待时长 (s). Defaults to 0.01.
+    """
     while not predicate():
         await asyncio.sleep(interval)
 
@@ -210,6 +230,16 @@ async def yield_with_timeout(
     predicate: Callable[[], bool],
     await_length: float = 0.2,
 ) -> AsyncIterator[T]:
+    """在满足 predicate 时返回 getter_coro() 的值
+
+    Args:
+        getter_coro (Callable[[], Coroutine[None, None, T]]): 要循环返回协程函数.
+        predicate (Callable[[], bool]): 条件回调函数.
+        await_length (float, optional): 等待目前协程的时长. Defaults to 0.2.
+
+    Yields:
+        T: getter_coro 的返回值
+    """
     last_tsk = None
     while predicate():
         last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
@@ -225,6 +255,15 @@ async def yield_with_timeout(
 
 
 def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
+    """标注一个方法 / 函数已被弃用
+
+    Args:
+        remove_ver (str): 将被移除的版本.
+
+    Returns:
+        Callable[[T_Callable], T_Callable]: 包装器.
+    """
+
     def out_wrapper(func: T_Callable) -> T_Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -238,12 +277,9 @@ def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
     return out_wrapper
 
 
-def cast_to(obj, typ: Type[T]) -> T:
-    if typ:
-        return obj
-
-
 class Dummy:
+    """Dummy 类, 对所有调用返回 None. (可以预设某些值)"""
+
     def __init__(self, **kwds):
         for k, v in kwds:
             self.__setattr__(k, v)
@@ -253,6 +289,3 @@ class Dummy:
 
     def __call__(self, *_, **__):
         return self
-
-
-inject_loguru_traceback()

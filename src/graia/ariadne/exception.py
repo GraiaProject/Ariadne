@@ -1,3 +1,6 @@
+"""Ariadne 的异常定义"""
+
+
 class InvalidEventTypeDefinition(Exception):
     """不合法的事件类型定义."""
 

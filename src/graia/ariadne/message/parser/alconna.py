@@ -1,20 +1,7 @@
+"""Alconna 的简单封装"""
 from typing import TYPE_CHECKING
 
 from arclet.alconna import Alconna, Arpamar
-from arclet.alconna.component import (  # noqa: F401
-    CommandInterface,
-    Default,
-    Option,
-    OptionInterface,
-    Subcommand,
-)
-from arclet.alconna.exceptions import (  # noqa: F401
-    InvalidFormatMap,
-    InvalidOptionName,
-    NullName,
-    ParamsUnmatched,
-)
-from arclet.alconna.types import AnyDigit, AnyIP, AnyStr, AnyUrl, Bool  # noqa: F401
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -36,9 +23,10 @@ class AlconnaDispatcher(BaseDispatcher):
         super().__init__()
         self.alconna = alconna
 
-    def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
+    async def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
+        """预处理消息链并存入 local_storage"""
         local_storage = interface.execution_contexts[-1].local_storage
-        chain: MessageChain = interface.event.messageChain
+        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None, [])
         result = self.alconna.analyse_message(chain)
         local_storage["arpamar"] = result
 

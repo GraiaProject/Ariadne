@@ -86,20 +86,6 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 ## Twilight 与 Sparkle 的实例化
 
-`Sparkle` 在实例化时, 可接受一个 额外 **可迭代对象** `check_args` 与 额外字典 `matches`, 作用如下：
-
-- `check_args` 仅应当容纳 `RegexMatch` 与 `FullMatch` 对象, 用于对 `MessageChain` 进行预先检查
-
-- `matches` 为一个 `Dict[str, Match]` 映射, 相当于拓展 `sparkle.__class__.__dict__`
-
-!!! error "注意"
-
-    在 `0.4.4` 前, `check_args` 仅可传入 `Iterable[Match]`.
-
-    `0.4.4` 后, `Sparkle` 在必要时会自动交换 `check_args` 与 `matches`.
-
-## Twilight 与 Sparkle 的实例化
-
 `Sparkle` 在实例化时, 可接受一个 额外 **可迭代对象** `check` 与 额外字典 `match`, 作用如下：
 
 - `check_args` 仅应当容纳 `RegexMatch` 与 `FullMatch` 对象, 用于对 `MessageChain` 进行预先检查
@@ -176,6 +162,47 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 - epilog (str, optional): 本 Sparkle 的后置描述, 在 `add_help` 中用到.
 
 `Twilight` 可传入 `map_params` 字典用于控制 `MessageChain.asMappingString` 的行为.
+
+### from_command
+
+本 **类方法** 在 `Twilight` 与 `Sparkle` 类上均可使用, <span class="curtain">不过请不要在 Sparkle 子类上使用</span>
+
+通过 `command {0} {1}` 的类 `shell` 形式定义参数, 它可以快速地生成指令处理器.
+
+=== "直接实例化"
+
+    ```py
+    Twilight(
+        Sparkle(
+            [
+                FullMatch(".permission", space=FORCE),
+                FullMatch("user", space=FORCE),
+                ParamMatch(space=FORCE),
+                ParamMatch(space=NOSPACE),
+            ],
+            {
+                ArgumentMatch("--verbose", "-v", action="store_true"),
+            },
+        ),
+        map_params=...,
+    )
+    ```
+
+=== "from_command"
+
+    ```py
+    Twilight.from_command(
+        ".permission user {0} {1}",
+        {
+            ArgumentMatch("--verbose", "-v", action="store_true"),
+        },
+        map_params=...,
+    )
+    ```
+
+这二者等价.
+
+你可以通过 `param_1, param_2 = sparkle[ParamMatch]` 的形式获取 `ParamMatch`.
 
 ## 提取 Match 对象
 

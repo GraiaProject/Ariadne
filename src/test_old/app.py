@@ -127,20 +127,6 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
 
-    from graia.ariadne.event.mirai import NudgeEvent
-
-    print(
-        NudgeEvent.parse_obj(
-            {
-                "fromId": 1048820232,
-                "target": 2907489501,
-                "subject": {"id": 722040415, "kind": "Group"},
-                "action": "戳了戳",
-                "suffix": "的终端并显示：错误",
-            }
-        )
-    )
-
     try:
         loop.run_until_complete(main())
     except KeyboardInterrupt:

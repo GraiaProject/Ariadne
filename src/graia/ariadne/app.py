@@ -6,7 +6,18 @@ import inspect
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
-from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Coroutine,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -1300,17 +1311,19 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         logger.info("Stopping Ariadne...")
         self.status = AriadneStatus.CLEANUP
         for t in asyncio.all_tasks(self.loop):
-            if (
-                t is not asyncio.current_task(self.loop)
-                and hasattr(t.get_coro(), "__qualname__")
-                and t.get_coro().__qualname__ == "Broadcast.Executor"
-            ):
-                if not self.await_task:
-                    t.cancel()
-                try:
+            if t is asyncio.current_task(self.loop):
+                continue
+            coro: Coroutine = t.get_coro()
+            logger.debug(coro.__qualname__)
+            try:
+                if coro.__qualname__ == "Broadcast.Executor":
+                    if not self.await_task:
+                        t.cancel()
                     await t
-                except Exception as e:
-                    exceptions.append((e.__class__, e.args))
+                elif coro.__qualname__ == "print_track_async.<locals>.wrapper":  # Scheduler run
+                    t.cancel()
+            except Exception as e:
+                exceptions.append((e.__class__, e.args))
 
         logger.info("Posting Ariadne shutdown event...")
 

@@ -25,7 +25,6 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from loguru import logger
 
@@ -148,16 +147,6 @@ def inject_bypass_listener(broadcast: Broadcast):
                 decorators=decorators,
                 priority=priority,
             )
-
-    @broadcast.dispatcher_interface.inject_global_raw
-    async def _(interface: DispatcherInterface):
-        if isinstance(interface.event, interface.annotation):
-            return interface.event
-        if (
-            hasattr(interface.annotation, "__origin__")
-            and interface.annotation.__origin__ is DispatcherInterface
-        ):
-            return interface
 
     import graia.broadcast.entities.listener
 

@@ -24,7 +24,7 @@ repos:
     hooks:
       - id: pylint
         name: pylint
-        entry: pylint
+        entry: "poetry run pylint"
         language: system
         types: [python]
         args: [
@@ -32,3 +32,4 @@ repos:
             "-sn", # Don't display the score
             "--rcfile=pyproject.toml",
           ]
+        require_serial: true

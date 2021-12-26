@@ -1170,7 +1170,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
         use_bypass_listener: Optional[bool] = False,
-        await_task: bool = False,
         disable_telemetry: bool = False,
         disable_logo: bool = False,
     ):
@@ -1185,7 +1184,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持.
-            await_task (bool): 是否等待所有 Executor 任务完成再退出.
             disable_telemetry (bool): 是否禁用版本记录.
             disable_logo (bool): 是否禁用 logo 显示.
         """
@@ -1212,7 +1210,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         self.status: AriadneStatus = AriadneStatus.STOP
         self.remote_version: str = ""
         self.max_retry: int = max_retry
-        self.await_task: bool = await_task
         self.disable_telemetry: bool = disable_telemetry
         self.disable_logo: bool = disable_logo
         self.info: Dict[type, object] = {
@@ -1299,7 +1296,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 else:
                     retry_cnt = 0
                 await self.adapter.stop()
-                print(self.adapter.mirai_session)
                 logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
                 await asyncio.sleep(retry_interval)
                 logger.info("daemon: restarting adapter")
@@ -1314,14 +1310,10 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if t is asyncio.current_task(self.loop):
                 continue
             coro: Coroutine = t.get_coro()
-            logger.debug(coro.__qualname__)
             try:
-                if coro.__qualname__ == "Broadcast.Executor":
-                    if not self.await_task:
-                        t.cancel()
-                    await t
-                elif coro.__qualname__ == "print_track_async.<locals>.wrapper":  # Scheduler run
+                if coro.__qualname__ in ("Broadcast.Executor", "print_track_async.<locals>.wrapper"):
                     t.cancel()
+                    logger.debug(f"Cancelling {t.get_name()} wrapping {coro.__qualname__}")
             except Exception as e:
                 exceptions.append((e.__class__, e.args))
 

@@ -33,12 +33,16 @@ from pydantic.utils import Representation
 from ..chain import MessageChain
 from ..element import Element
 from .util import (
+    L_PAREN,
+    R_PAREN,
     ElementType,
     MessageChainType,
     TwilightParser,
     elem_mapping_ctx,
+    escape,
     split,
     transformed_regex,
+    unescape,
 )
 
 
@@ -531,34 +535,58 @@ class Sparkle(Representation):
         self._check_regex = re.compile(self._check_pattern)
 
     @classmethod
-    def from_command(
+    def from_command(  # ANCHOR: Sparkle: From command
         cls, command: str, extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None
     ) -> "Sparkle":
         """从 shell 式命令生成 Sparkle.
 
         Args:
-            command (str): 命令, 使用 {0} 的形式创建参数占位符.
+            command (str): 命令, 使用 {0} 的形式创建参数占位符. 使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
             extra_arg_mapping (Dict[str, ArgumentMatch], optional): 可选的额外 str -> ArgumentMatch 映射.
 
         Returns:
             Sparkle: 生成的 Sparkle.
         """
         extra_arg_mapping = extra_arg_mapping or {}
-        match: List[FullMatch, ParamMatch] = []
+        match: List[FullMatch, ParamMatch, UnionMatch] = []
 
-        from string import Formatter
+        command = escape(command)
 
-        formatter = Formatter()
+        paren: str = ""
+        char_stk: List[str] = []
 
-        def _get_value(*_, **__):
-            return "\x01"
+        for index, char in enumerate(command):
+            if char in L_PAREN + R_PAREN:
+                if char in L_PAREN:
+                    if char_stk:
+                        match.append(FullMatch(unescape("".join(char_stk)), space=SpacePolicy.NOSPACE))
+                        char_stk.clear()
+                    if paren:
+                        raise ValueError(
+                            f"Duplicated parenthesis character at index {index}!"
+                            """Are you sure you've escaped with "\\"?"""
+                        )
+                    paren = char
+                else:  # char in R_PAREN
+                    if paren == "[":  # UnionMatch
+                        match.append(
+                            UnionMatch(
+                                *map(unescape, "".join(char_stk).split("|")), space=SpacePolicy.NOSPACE
+                            )
+                        )
+                    elif paren == "{":  # ParamMatch
+                        match.append(ParamMatch(space=SpacePolicy.NOSPACE))
+                        # ANCHOR: parse "|" and verify index
 
-        formatter.get_value = _get_value
-        for i in formatter.format(command).split("\x01"):
-            if i:
-                match.append(FullMatch(i, space=SpacePolicy.NOSPACE))
-            match.append(ParamMatch(space=SpacePolicy.NOSPACE))
-        match.pop()
+                    char_stk.clear()
+                    paren = ""
+
+        if paren:
+            raise ValueError(f"Unclosed parenthesis: {paren}")
+
+        if char_stk:
+            match.append(FullMatch(unescape("".join(char_stk)), space=SpacePolicy.NOSPACE))
+            char_stk.clear()
 
         return cls(match, extra_arg_mapping)
 

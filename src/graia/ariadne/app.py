@@ -1087,7 +1087,7 @@ class FileMixin(AriadneMixin):
             {
                 "sessionKey": self.session_key,
                 "type": method.value,
-                "target": target,
+                "target": str(target),
                 "path": path,
                 "file": data,
             },

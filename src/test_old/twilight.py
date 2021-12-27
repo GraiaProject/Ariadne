@@ -115,3 +115,5 @@ if __name__ == "__main__":
     )
     devtools.debug(flag_sp.root._regex)
     devtools.debug(flag_sp.generate(MessageChain([".test op\nop\nseq"])))
+
+    devtools.debug(Sparkle.from_command("[lp|luckperm] {0} user {permission} [\{no_admin\}|no_admin] call"))

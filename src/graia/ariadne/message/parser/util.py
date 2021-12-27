@@ -9,6 +9,46 @@ from ..chain import Element_T, MessageChain
 
 elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
 
+L_PAREN = ("{", "[")
+R_PAREN = ("}", "]")
+ESCAPE = {
+    "\\": "\x00",
+    "[": "\x01",
+    "]": "\x02",
+    "{": "\x03",
+    "}": "\x04",
+    "|": "\x05",
+}
+R_ESCAPE = {v: k for k, v in ESCAPE.items()}
+
+
+def escape(string: str):
+    """转义字符串
+
+    Args:
+        string (str): 要转义的字符串
+
+    Returns:
+        str: 转义后的字符串
+    """
+    for k, v in ESCAPE.items():
+        string = string.replace("\\" + k, v)
+    return string
+
+
+def unescape(string: str):
+    """逆转义字符串
+
+    Args:
+        string (str): 要逆转义的字符串
+
+    Returns:
+        str: 逆转义后的字符串
+    """
+    for k, v in R_ESCAPE.items():
+        string = string.replace(k, v)
+    return string
+
 
 def split(string: str) -> List[str]:
     """尊重引号与转义的字符串切分

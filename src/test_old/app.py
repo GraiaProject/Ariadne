@@ -18,11 +18,13 @@ from graia.ariadne.message.parser.pattern import (
     WildcardMatch,
 )
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
-from graia.ariadne.model import Friend, Group, Member, MiraiSession
+from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
 
 if __name__ == "__main__":
-    url, _, verify_key, account = open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
-    ALL_FLAG = False
+    url, account, verify_key, target, t_group = (
+        open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
+    )
+    ALL_FLAG = True
     loop = asyncio.new_event_loop()
     loop.set_debug(True)
 
@@ -33,7 +35,6 @@ if __name__ == "__main__":
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
-        await_task=True,
     )
 
     bcc = app.create(Broadcast)
@@ -125,9 +126,12 @@ if __name__ == "__main__":
             logger.debug(await app.getFriendProfile(friend_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0]))
+            logger.debug(
+                await app.uploadFile(b"there's nothing in here", UploadMethod.Group, t_group, "", "test.txt")
+            )
         await app.lifecycle()
 
     try:
         loop.run_until_complete(main())
     except KeyboardInterrupt:
-        loop.run_until_complete(app.wait_for_stop())
+        loop.run_until_complete(app.join())

@@ -1060,25 +1060,34 @@ class FileMixin(AriadneMixin):
     async def uploadFile(
         self,
         data: bytes,
-        method: UploadMethod,
-        target: Union[Friend, Group, int],
+        method: UploadMethod = None,
+        target: Union[Friend, Group, int] = -1,
         path: str = "",
+        name: str = "",
     ) -> "FileInfo":
         """
         上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
         上传目标, (可选)上传目录ID.
         Args:
             data (bytes): 文件的原始数据
-            method (UploadMethod): 文件的上传类型
+            method (UploadMethod, optional): 文件的上传类型
+            target (Union[Friend, Group, int]): 文件上传目标, 即群组
+            path (str): 目标路径, 默认为根路径.
+            name (str): 文件名, 可选, 若 path 存在斜杠可从 path 推断.
         Returns:
             FileInfo: 文件信息
         """
+
+        method = method or UploadMethod[target.__class__]
 
         if method != UploadMethod.Group or isinstance(target, Friend):
             raise NotImplementedError(f"Not implemented for {method}")
 
         target = target.id if isinstance(target, Friend) else target
         target = target.id if isinstance(target, Group) else target
+
+        if "/" in path and not name:
+            path, name = path.rsplit("/", 1)
 
         result = await self.adapter.call_api(
             "file/upload",
@@ -1088,7 +1097,7 @@ class FileMixin(AriadneMixin):
                 "type": method.value,
                 "target": str(target),
                 "path": path,
-                "file": data,
+                "file": (data, {"filename": name} if name else {}),
             },
         )
 

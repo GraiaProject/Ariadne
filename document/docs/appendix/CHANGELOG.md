@@ -24,6 +24,8 @@
 
 添加 `space` 参数与 `SpacePolicy` 以替代 `preserve_space` ([#59](https://github.com/GraiaProject/Ariadne/issues/59))
 
+支持 `uploadFile` 指定文件名 ([#66](https://github.com/GraiaProject/Ariadne/issues/66))
+
 `Ariadne.request_stop` -> `Ariadne.stop`
 
 `Ariadne.wait_for_stop` -> `Ariadne.join`

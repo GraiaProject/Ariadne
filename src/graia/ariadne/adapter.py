@@ -6,7 +6,7 @@ import json
 from asyncio.futures import Future
 from asyncio.queues import Queue
 from asyncio.tasks import Task
-from typing import Any, Awaitable, Callable, Dict, Optional, Set, Union
+from typing import Any, Awaitable, Callable, Dict, Optional, Set, Tuple, Union
 
 import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
@@ -260,8 +260,12 @@ class HttpAdapter(Adapter):
             form = FormData()
             if not isinstance(data, dict):
                 raise ValueError("Data must be a dict in multipart call!")
+            data: Dict[str, Union[str, bytes, Tuple[tuple, Dict[str, Any]]]]
             for k, v in data.items():
-                form.add_field(k, v)
+                if isinstance(v, tuple):
+                    form.add_field(k, v[0], **v[1])
+                else:
+                    form.add_field(k, v)
             async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()

@@ -27,7 +27,7 @@ jobs:
 
       - name: Generate with pdoc
         run: |
-          poetry run pdoc --docformat google ./src/graia/ariadne --footer-text "© Graia Project 2021" -e "ariadne=https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/" -o ./api-doc
+          poetry run pdoc --docformat google ./src/graia/ariadne --footer-text "Copyright © Graia Project 2021-2022" -e "ariadne=https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/" -o ./api-doc
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.7

@@ -8,6 +8,7 @@ from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispat
 from ..message.chain import MessageChain
 from ..model import Client, Friend, Group, Member, Stranger
 from . import MiraiEvent
+from .mirai import FriendEvent, GroupEvent
 
 
 class MessageEvent(MiraiEvent):
@@ -25,7 +26,7 @@ class MessageEvent(MiraiEvent):
             pass
 
 
-class FriendMessage(MessageEvent):
+class FriendMessage(MessageEvent, FriendEvent):
     """好友消息"""
 
     type: str = "FriendMessage"
@@ -41,7 +42,7 @@ class FriendMessage(MessageEvent):
                 return interface.event.sender
 
 
-class GroupMessage(MessageEvent):
+class GroupMessage(MessageEvent, GroupEvent):
     """群组消息"""
 
     type: str = "GroupMessage"

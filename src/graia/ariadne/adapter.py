@@ -136,7 +136,10 @@ class Adapter(abc.ABC):
     @require_verified
     @error_wrapper
     async def call_api(
-        self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
+        self,
+        action: str,
+        method: CallMethod,
+        data: Optional[Union[Dict[str, Any], str, FormData]] = None,
     ) -> Union[dict, list]:
         """
         向Mirai端发送数据.
@@ -145,7 +148,7 @@ class Adapter(abc.ABC):
         Args:
             action (str): 要执行的操作.
             method (CallMethod): 指示对 mirai-api-http 端发送数据的方式.
-            data (dict): 要发送的数据.
+            data (Union[dict, FormData]): 要发送的数据.
         Returns:
             dict: 响应字典.
         """
@@ -236,7 +239,7 @@ class HttpAdapter(Adapter):
         self,
         action: str,
         method: CallMethod,
-        data: Optional[Union[Dict[str, Any], str]] = None,
+        data: Optional[Union[Dict[str, Any], str, FormData]] = None,
     ) -> Union[dict, list]:
         data = data or {}
         if not self.session:
@@ -257,15 +260,16 @@ class HttpAdapter(Adapter):
                 resp_json: dict = await response.json()
 
         else:  # MULTIPART
-            form = FormData()
-            if not isinstance(data, dict):
-                raise ValueError("Data must be a dict in multipart call!")
-            data: Dict[str, Union[str, bytes, Tuple[tuple, Dict[str, Any]]]]
-            for k, v in data.items():
-                if isinstance(v, tuple):
-                    form.add_field(k, v[0], **v[1])
-                else:
-                    form.add_field(k, v)
+            if isinstance(data, FormData):
+                form = data
+            elif isinstance(data, dict):
+                form = FormData()
+                for k, v in data.items():
+                    v: Union[str, bytes, Tuple[Any, dict]]
+                    if isinstance(v, tuple):
+                        form.add_field(k, v[0], **v[1])
+                    else:
+                        form.add_field(k, v)
             async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()

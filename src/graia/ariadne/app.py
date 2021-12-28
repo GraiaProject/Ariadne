@@ -1078,7 +1078,7 @@ class FileMixin(AriadneMixin):
             FileInfo: 文件信息
         """
 
-        method = method or UploadMethod[target.__class__]
+        method = method or UploadMethod[target.__class__.__name__]
 
         if method != UploadMethod.Group or isinstance(target, Friend):
             raise NotImplementedError(f"Not implemented for {method}")
@@ -1108,15 +1108,18 @@ class MultimediaMixin(AriadneMixin):
     """用于与多媒体信息交互的 Mixin 类."""
 
     @app_ctx_manager
-    async def uploadImage(self, data: bytes, method: UploadMethod) -> "Image":
+    async def uploadImage(self, data: bytes, method: UploadMethod = None) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
         Args:
             image_bytes (bytes): 图片的原始数据
-            method (UploadMethod): 图片的上传类型
+            method (UploadMethod): 图片的上传类型, 可从上下文推断
         Returns:
             Image: 生成的图片消息元素
         """
+        from .context import upload_method_ctx
         from .message.element import Image
+
+        method = method or upload_method_ctx.get()
 
         result = await self.adapter.call_api(
             "uploadImage",
@@ -1131,15 +1134,18 @@ class MultimediaMixin(AriadneMixin):
         return Image.parse_obj(result)
 
     @app_ctx_manager
-    async def uploadVoice(self, data: bytes, method: UploadMethod) -> "Voice":
+    async def uploadVoice(self, data: bytes, method: UploadMethod = None) -> "Voice":
         """上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
         Args:
             data (bytes): 语音的原始数据
-            method (UploadMethod): 语音的上传类型
+            method (UploadMethod): 语音的上传类型, 可从上下文推断
         Returns:
             Voice: 生成的语音消息元素
         """
+        from .context import upload_method_ctx
         from .message.element import Voice
+
+        method = method or upload_method_ctx.get()
 
         result = await self.adapter.call_api(
             "uploadVoice",
@@ -1275,6 +1281,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         Args:
             retry_interval (float, optional): Adapter 重连间隔 (s). 默认 5.0.
         """
+        from .event.mirai import FriendEvent, GroupEvent
+
         retry_cnt: int = 0
 
         logger.debug("Ariadne daemon started.")
@@ -1291,7 +1299,14 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     ),
                 ):
                     with enter_context(self, event):
-                        self.broadcast.postEvent(event)
+                        if isinstance(event, FriendEvent):
+                            with enter_message_send_context(UploadMethod.Friend):
+                                self.broadcast.postEvent(event)
+                        elif isinstance(event, GroupEvent):
+                            with enter_message_send_context(UploadMethod.Group):
+                                self.broadcast.postEvent(event)
+                        else:
+                            self.broadcast.postEvent(event)
             except Exception as e:
                 logger.exception(e)
             self.broadcast.postEvent(AdapterShutdowned(self))

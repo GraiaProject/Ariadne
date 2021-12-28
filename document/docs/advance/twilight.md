@@ -169,13 +169,19 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 通过 `command {0} {1}` 的类 `shell` 形式定义参数, 它可以快速地生成指令处理器.
 
+`[a|b]` 的形式允许你定义选择性参数. (`a` 或 `b`)
+
+请使用 `r-string` 原始字符串中的前导反斜杠转义, 未转移的嵌套括号会导致错误.
+否则你可能遇到 [反斜杠灾难](https://docs.python.org/zh-cn/3/howto/regex.html#the-backslash-plague) .
+值得指出的是, `f-string` 格式化字符串的双括号转义 (`{{` 与 `}}`) 是无效的.
+
 === "直接实例化"
 
     ```py
     Twilight(
         Sparkle(
             [
-                FullMatch(".permission", space=FORCE),
+                UnionMatch(".permission", ".perm", space=FORCE),
                 FullMatch("user", space=FORCE),
                 ParamMatch(space=FORCE),
                 ParamMatch(space=NOSPACE),
@@ -192,7 +198,7 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
     ```py
     Twilight.from_command(
-        ".permission user {0} {1}",
+        "[.permission|.perm] user {0} {1}",
         {
             ArgumentMatch("--verbose", "-v", action="store_true"),
         },
@@ -202,7 +208,9 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 这二者等价.
 
-你可以通过 `param_1, param_2 = sparkle[ParamMatch]` 的形式获取 `ParamMatch`.
+你可以通过 `param_1, param_2 = sparkle[ParamMatch]` 的形式获取 `ParamMatch`. 详见下一节.
+
+
 
 ## 提取 Match 对象
 

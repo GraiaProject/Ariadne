@@ -53,7 +53,6 @@ from .model import (
 from .util import (
     app_ctx_manager,
     await_predicate,
-    deprecated,
     inject_bypass_listener,
     inject_loguru_traceback,
     yield_with_timeout,
@@ -1385,12 +1384,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             self.status = AriadneStatus.SHUTDOWN
             await await_predicate(lambda: self.status in {AriadneStatus.CLEANUP, AriadneStatus.STOP})
 
-    @deprecated("0.5.0")
-    async def request_stop(self):  # pylint: disable=missing-function-docstring
-        # pylint: disable
-        logger.warning("""use "stop" instead!""")
-        await self.stop()
-
     async def join(self):
         """等待直到 Ariadne 真正停止.
         不要在与 Broadcast 相关的任务中使用.
@@ -1399,12 +1392,6 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             await self.stop()
         await await_predicate(lambda: self.status is AriadneStatus.STOP)
         await self.daemon_task
-
-    @deprecated("0.5.0")
-    async def wait_for_stop(self):  # pylint: disable=missing-function-docstring
-        # pylint: disable
-        logger.warning("""use "join" instead!""")
-        await self.join()
 
     async def lifecycle(self):
         """以 async 阻塞方式启动 Ariadne 并等待其停止."""

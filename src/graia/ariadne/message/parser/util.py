@@ -33,6 +33,7 @@ def escape(string: str):
     """
     for k, v in ESCAPE.items():
         string = string.replace("\\" + k, v)
+    string = string.replace("\\", "")
     return string
 
 

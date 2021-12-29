@@ -83,11 +83,12 @@ class Match(abc.ABC, Representation):
             raise ValueError("You can't instantiate Match class directly!")
 
     def __repr_args__(self):
-        return [
-            ("matched", self.matched),
-            ("result", self.result),
-            ("pattern", self.pattern),
-        ]
+        args = []
+        if self.matched is not None:
+            args.append(("matched", self.matched))
+            args.append(("result", self.result))
+        args.append(("pattern", self.pattern))
+        return args
 
 
 class RegexMatch(Match):
@@ -133,13 +134,19 @@ class RegexMatch(Match):
         """生成用于 `Sparkle.get_help()` 的描述性字符串."""
         return self.pattern.replace("( )?", " ") if not self.alt_help else self.alt_help
 
+    def __repr_args__(self):
+        return super().__repr_args__() + [("space", self.space.name)]
+
 
 class ParamMatch(RegexMatch):
     """与 WildcardMatch 类似, 但需要至少一个字符. 且仅匹配用空格分开的一段. (不支持输入的转义处理, 但是可以处理不同引号包裹)"""
 
+    num_tags: List[int]
+    str_tags: List[str]
+
     def __init__(
         self,
-        *,
+        *tags: Union[str, int],
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
         space: SpacePolicy = SpacePolicy.PRESERVE,
@@ -156,9 +163,14 @@ class ParamMatch(RegexMatch):
             alt_help=alt_help,
             preserve_space=preserve_space,
         )
+        self.num_tags: List[int] = list(filter(lambda x: isinstance(x, int), tags))
+        self.str_tags: List[str] = list(filter(lambda x: isinstance(x, str), tags))
 
     def get_help(self) -> str:
         return "PARAM"
+
+    def __repr_args__(self):
+        return super().__repr_args__() + [("tags", self.num_tags + self.str_tags)]
 
 
 class WildcardMatch(RegexMatch):
@@ -394,6 +406,18 @@ class Sparkle(Representation):
     def get_match(self, item: Tuple[T_RMatch, int]) -> T_RMatch:
         ...
 
+    def get_param(self, tag: Union[int, str]) -> ParamMatch:
+        """通过 tag 获取对应的 ParamMatch 实例
+
+        Args:
+            tag (Union[int, str]): ParamMatch 的 tag
+
+        Returns:
+            ParamMatch: 获取到的 ParamMatch
+
+        """
+        return self._param_match_ref[tag]
+
     def get_match(
         self, item: Union[str, int, Type[T_Match], Tuple[Type[T_RMatch], int]]
     ) -> Union[List[Match], Match]:
@@ -430,6 +454,7 @@ class Sparkle(Representation):
         copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
         copied._parser_ref = deepcopy(self._parser_ref, memo)
         copied._match_ref = deepcopy(self._match_ref, memo)
+        copied._param_match_ref = deepcopy(self._param_match_ref, memo)
 
         return copied
 
@@ -478,8 +503,16 @@ class Sparkle(Representation):
 
         self._parser = TwilightParser(prog="", add_help=False)
 
+        self._param_match_ref: Dict[Union[int, str], ParamMatch] = {}
+
         for v in check:
             self._match_ref[v.__class__].append(v)
+
+            if isinstance(v, ParamMatch):  # Validate ParamMatch's tags
+                for tag in v.num_tags + v.str_tags:
+                    if tag in self._param_match_ref:
+                        raise ValueError(f"Duplicated ParamMatch tag with {self._param_match_ref[tag]}")
+                    self._param_match_ref[tag] = v
 
         for k, v in match_map.items():
             if k.startswith("_") or k[0] in string.digits:
@@ -502,9 +535,17 @@ class Sparkle(Representation):
                 continue
 
             if isinstance(v, RegexMatch):  # add to self._mapping_regex_match
+
+                if isinstance(v, ParamMatch):  # Validate ParamMatch's tags
+                    for tag in v.num_tags + v.str_tags:
+                        if tag in self._param_match_ref:
+                            raise ValueError(f"Duplicated ParamMatch tag with {self._param_match_ref[tag]}")
+                        self._param_match_ref[tag] = v
+
                 self._mapping_regex_match[k] = (v, group_cnt + 1)
                 group_cnt += re.compile(v.gen_regex()).groups
                 match_pattern_list.append(v.gen_regex())
+
                 continue
 
             raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
@@ -536,7 +577,7 @@ class Sparkle(Representation):
 
     @classmethod
     def from_command(  # ANCHOR: Sparkle: From command
-        cls, command: str, extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None
+        cls: "Type[Sparkle]", command: str, extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None
     ) -> "Sparkle":
         """从 shell 式命令生成 Sparkle.
 
@@ -556,37 +597,41 @@ class Sparkle(Representation):
         char_stk: List[str] = []
 
         for index, char in enumerate(command):
-            if char in L_PAREN + R_PAREN:
+            if char in L_PAREN + R_PAREN + (" ",):
                 if char in L_PAREN:
-                    if char_stk:
-                        match.append(FullMatch(unescape("".join(char_stk)), space=SpacePolicy.NOSPACE))
-                        char_stk.clear()
                     if paren:
                         raise ValueError(
                             f"Duplicated parenthesis character at index {index}!"
                             """Are you sure you've escaped with "\\"?"""
                         )
                     paren = char
-                else:  # char in R_PAREN
+                elif char in R_PAREN:
                     if paren == "[":  # UnionMatch
                         match.append(
-                            UnionMatch(
-                                *map(unescape, "".join(char_stk).split("|")), space=SpacePolicy.NOSPACE
-                            )
+                            UnionMatch(*map(unescape, "".join(char_stk).split("|")), space=SpacePolicy.FORCE)
                         )
                     elif paren == "{":  # ParamMatch
-                        match.append(ParamMatch(space=SpacePolicy.NOSPACE))
-                        # ANCHOR: parse "|" and verify index
-
+                        placeholders = "".join(char_stk).split("|")
+                        placeholders = list(int(i) if re.fullmatch(r"\d+", i) else i for i in char_stk)
+                        match.append(ParamMatch(*placeholders, space=SpacePolicy.FORCE))
+                    else:
+                        raise ValueError(f"No matching parenthesis: {paren}")
                     char_stk.clear()
                     paren = ""
-
+                elif char_stk:
+                    match.append(FullMatch("".join(char_stk), space=SpacePolicy.FORCE))
+                    char_stk.clear()
+            else:
+                char_stk.append(char)
         if paren:
             raise ValueError(f"Unclosed parenthesis: {paren}")
 
         if char_stk:
-            match.append(FullMatch(unescape("".join(char_stk)), space=SpacePolicy.NOSPACE))
+            match.append(FullMatch(unescape("".join(char_stk)), space=SpacePolicy.FORCE))
             char_stk.clear()
+
+        if match:
+            match[-1].space = SpacePolicy.NOSPACE
 
         return cls(match, extra_arg_mapping)
 

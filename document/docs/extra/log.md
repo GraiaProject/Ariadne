@@ -21,3 +21,7 @@ logger.add("{time: YYYY-MM-DD}.log", rotation="00:00", encoding="utf-8")
 ```
 
 这些都不是很重要, 放在这里只是顺口一提.
+
+## Adapter log 配置
+
+在传入 `connect_info` 时, 可以传入一个自定义的 `Adapter`, 在此处使用 `log=False` 可以关闭 `Adapter` 的心跳记录.

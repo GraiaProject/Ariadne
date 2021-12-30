@@ -1,9 +1,10 @@
 """消息链处理器用到的工具函数, 类"""
 import argparse
+import enum
 import inspect
 import re
 from contextvars import ContextVar
-from typing import List, NoReturn, Type, Union
+from typing import List, NoReturn, Tuple, Type, Union
 
 from ..chain import Element_T, MessageChain
 
@@ -49,6 +50,72 @@ def unescape(string: str):
     for k, v in R_ESCAPE.items():
         string = string.replace(k, v)
     return string
+
+
+class CommandToken(enum.Enum):
+    """Command 的 Token."""
+
+    TEXT = "TEXT"
+    CHOICE = "CHOICE"
+    PARAM = "PARAM"
+
+
+def tokenize_command(string: str):
+    """将字符串转义化, 并处理为 Text, Choice, Param 三种 token
+
+    Args:
+        string (str): 要处理的字符串
+
+    Returns:
+        List[Tuple[CommandToken, List[str]]]: 处理后的 Token
+    """
+
+    string = escape(string)
+
+    paren: str = ""
+    char_stk: List[str] = []
+    token: List[Tuple[CommandToken, List[Union[int, str]]]] = []
+
+    for index, char in enumerate(string):
+        if char in L_PAREN + R_PAREN + (" ",):
+            if char in L_PAREN:
+                if paren:
+                    raise ValueError(
+                        f"""Duplicated parenthesis character "{char}" @ {index} !"""
+                        """Are you sure you've escaped with "\\"?"""
+                    )
+                paren = char
+            elif char in R_PAREN:
+                if paren == "[":  # CHOICE
+                    token.append((CommandToken.CHOICE, list(map(unescape, "".join(char_stk).split("|")))))
+                elif paren == "{":  # PARAM
+                    token.append(
+                        (
+                            CommandToken.PARAM,
+                            [
+                                int(i) if re.match(r"\d+", i) else unescape(i)
+                                for i in "".join(char_stk).split("|")
+                            ],
+                        )
+                    )
+                else:
+                    raise ValueError(f"No matching parenthesis: {paren} @ {index}")
+                char_stk.clear()
+                paren = ""
+            elif char_stk:
+                token.append((CommandToken.TEXT, ["".join(char_stk)]))
+            char_stk.clear()
+        else:
+            char_stk.append(char)
+
+    if paren:
+        raise ValueError(f"Unclosed parenthesis: {paren}")
+
+    if char_stk:
+        token.append((CommandToken.TEXT, ["".join(char_stk)]))
+        char_stk.clear()
+
+    return token
 
 
 def split(string: str) -> List[str]:
@@ -112,7 +179,7 @@ def gen_flags_repr(flags: re.RegexFlag) -> str:
     return "".join(flags_list)
 
 
-def transformed_regex(flag: re.RegexFlag, regex_pattern: str) -> str:
+def transform_regex(flag: re.RegexFlag, regex_pattern: str) -> str:
     """生成嵌套正则表达式字符串来达到至少最外层含有一个捕获组的效果
 
     Args:

@@ -560,6 +560,8 @@ class MessageChain(AriadneBaseModel):
         return self.exclude(Source, Quote, File)
 
     def __eq__(self, other: Union[List[Union[Element, str]], "MessageChain"]) -> bool:
+        if not isinstance(other, (list, MessageChain)):
+            return False
         if isinstance(other, list):
             other = MessageChain(other)
         return other.asSendable().__root__ == self.asSendable().__root__

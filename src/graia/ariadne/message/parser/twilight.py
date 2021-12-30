@@ -33,16 +33,14 @@ from pydantic.utils import Representation
 from ..chain import MessageChain
 from ..element import Element
 from .util import (
-    L_PAREN,
-    R_PAREN,
+    CommandToken,
     ElementType,
     MessageChainType,
     TwilightParser,
     elem_mapping_ctx,
-    escape,
     split,
-    transformed_regex,
-    unescape,
+    tokenize_command,
+    transform_regex,
 )
 
 
@@ -121,7 +119,7 @@ class RegexMatch(Match):
     def gen_regex(self) -> str:
         """生成 RegexMatch 相应的正则表达式."""
         return (
-            f"{transformed_regex(self.flags, self.regex_src)}"
+            f"{transform_regex(self.flags, self.regex_src)}"
             f"{'?' if self.optional else ''}{self.space.value}"
         )
 
@@ -589,46 +587,17 @@ class Sparkle(Representation):
             Sparkle: 生成的 Sparkle.
         """
         extra_arg_mapping = extra_arg_mapping or {}
-        match: List[FullMatch, ParamMatch, UnionMatch] = []
+        match: List[Union[FullMatch, ParamMatch, UnionMatch]] = []
 
-        command = escape(command)
-
-        paren: str = ""
-        char_stk: List[str] = []
-
-        for index, char in enumerate(command):
-            if char in L_PAREN + R_PAREN + (" ",):
-                if char in L_PAREN:
-                    if paren:
-                        raise ValueError(
-                            f"Duplicated parenthesis character at index {index}!"
-                            """Are you sure you've escaped with "\\"?"""
-                        )
-                    paren = char
-                elif char in R_PAREN:
-                    if paren == "[":  # UnionMatch
-                        match.append(
-                            UnionMatch(*map(unescape, "".join(char_stk).split("|")), space=SpacePolicy.FORCE)
-                        )
-                    elif paren == "{":  # ParamMatch
-                        placeholders = "".join(char_stk).split("|")
-                        placeholders = list(int(i) if re.fullmatch(r"\d+", i) else i for i in char_stk)
-                        match.append(ParamMatch(*placeholders, space=SpacePolicy.FORCE))
-                    else:
-                        raise ValueError(f"No matching parenthesis: {paren}")
-                    char_stk.clear()
-                    paren = ""
-                elif char_stk:
-                    match.append(FullMatch("".join(char_stk), space=SpacePolicy.FORCE))
-                    char_stk.clear()
+        for t_type, token_list in tokenize_command(command):
+            if t_type is CommandToken.TEXT:
+                match.append(FullMatch(*token_list, space=SpacePolicy.FORCE))
+            elif t_type is CommandToken.CHOICE:
+                match.append(UnionMatch(*token_list, space=SpacePolicy.FORCE))
+            elif t_type is CommandToken.PARAM:
+                match.append(ParamMatch(*token_list, space=SpacePolicy.FORCE))
             else:
-                char_stk.append(char)
-        if paren:
-            raise ValueError(f"Unclosed parenthesis: {paren}")
-
-        if char_stk:
-            match.append(FullMatch(unescape("".join(char_stk)), space=SpacePolicy.FORCE))
-            char_stk.clear()
+                raise ValueError(f"unexpected token type: {t_type}")
 
         if match:
             match[-1].space = SpacePolicy.NOSPACE

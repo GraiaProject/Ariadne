@@ -30,17 +30,17 @@
 
 向 `ParallelExecutor` 添加 `to_thread` 与 `to_process` ([#50](https://github.com/GraiaProject/Ariadne/issues/50))
 
-将 `graia.ariadne.message.parser.pattern` 的所有内容移到 `Literature` 与 `twilight` 模块里 ([#53](https://github.com/GraiaProject/Ariadne/issues/53))
+将 `graia.ariadne.message.parser.pattern` 的所有内容移到 `Literature` 与 `Twilight` 模块里 ([#53](https://github.com/GraiaProject/Ariadne/issues/53))
 
 添加 `ParamMatch` 并拓展 `Sparkle.__getitem__` ([#57](https://github.com/GraiaProject/Ariadne/issues/57))
 
 添加 `space` 参数与 `SpacePolicy` 以替代 `preserve_space` ([#59](https://github.com/GraiaProject/Ariadne/issues/59))
 
-`uploadFile` 支持指定文件名 ([#66](https://github.com/GraiaProject/Ariadne/issues/66))
+`Ariadne.uploadFile` 支持指定文件名 ([#66](https://github.com/GraiaProject/Ariadne/issues/66))
 
 ### 修复
 
-`uploadImage` 出错 ([#43](https://github.com/GraiaProject/Ariadne/issues/43))
+`Ariadne.uploadImage` 出错 ([#43](https://github.com/GraiaProject/Ariadne/issues/43))
 
 `async_exec` 相关 ([#50](https://github.com/GraiaProject/Ariadne/issues/50))
 

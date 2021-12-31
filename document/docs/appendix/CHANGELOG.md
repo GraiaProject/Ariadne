@@ -15,7 +15,7 @@
 - `ArgumentMatch` 支持类型匹配了
 - 新的启动与停止 `Ariadne` 的方法
 - `Adapter` 的停止过程更安全了 ([#30](https://github.com/GraiaProject/Ariadne/issues/30), [#65](https://github.com/GraiaProject/Ariadne/issues/65))
-- 可以更好的获取示例所辖账号了([#31](https://github.com/GraiaProject/Ariadne/issues/31))
+- 可以更好的获取实例所辖账号了([#31](https://github.com/GraiaProject/Ariadne/issues/31))
 - 提升 `Twilight` 的性能 ([#44](https://github.com/GraiaProject/Ariadne/issues/44))
 - `sendNudge`（发送戳一戳）现在更灵活了 ([#47](https://github.com/GraiaProject/Ariadne/issues/47))
 - 向 `ParallelExecutor` 添加 `to_thread` 与 `to_process` ([#50](https://github.com/GraiaProject/Ariadne/issues/50))

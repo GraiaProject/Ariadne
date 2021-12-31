@@ -130,7 +130,7 @@ dmypy.json
 
 # Temp files / directories
 .temp/
-temp/
+**temp**
 tmp/
 *.tmp
 *.temp

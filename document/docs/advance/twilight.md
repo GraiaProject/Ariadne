@@ -175,6 +175,8 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 否则你可能遇到 [反斜杠灾难](https://docs.python.org/zh-cn/3/howto/regex.html#the-backslash-plague) .
 值得指出的是, `f-string` 格式化字符串的双括号转义 (`{{` 与 `}}`) 是无效的.
 
+同时, 你可以传入 `extra_arg_mapping` (`Dict[str, ArgumentMatch]`) 来添加额外的 `ArgumentMatch`.
+
 === "直接实例化"
 
     ```py

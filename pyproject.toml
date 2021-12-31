@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.5.0-pre1"
+version = "0.5.0"
 description = "Another elegant framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",

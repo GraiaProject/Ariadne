@@ -237,9 +237,11 @@ class TwilightParser(argparse.ArgumentParser):
         Returns:
             bool: 是否接受 type 参数
         """
+        if action is ...:
+            action = "store"
         if isinstance(action, str):
             action_cls: Type[argparse.Action] = self._registry_get("action", action, action)
-        elif issubclass(action, argparse.Action):
+        elif isinstance(action, type) and issubclass(action, argparse.Action):
             action_cls = action
         else:
             return False

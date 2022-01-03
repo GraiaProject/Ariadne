@@ -109,7 +109,7 @@ class Adapter(abc.ABC):
         session: Session 实例, 存储了连接信息
     """
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, log: bool = True) -> None:
+    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, log: bool = False) -> None:
         self.broadcast: Broadcast = broadcast
         self.running: bool = False
         self.mirai_session: MiraiSession = mirai_session
@@ -460,7 +460,7 @@ class CombinedAdapter(Adapter):
     """
 
     def __init__(
-        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = True
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = False
     ) -> None:
         super().__init__(broadcast, mirai_session, log)
         self.ping = ping

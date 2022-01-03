@@ -15,6 +15,7 @@ from typing import (
     List,
     Optional,
     Sequence,
+    Set,
     Tuple,
     Type,
     TypedDict,
@@ -139,9 +140,6 @@ class RegexMatch(Match):
 class ParamMatch(RegexMatch):
     """与 WildcardMatch 类似, 但需要至少一个字符. 且仅匹配用空格分开的一段. (不支持输入的转义处理, 但是可以处理不同引号包裹)"""
 
-    num_tags: List[int]
-    str_tags: List[str]
-
     def __init__(
         self,
         *tags: Union[str, int],
@@ -153,7 +151,7 @@ class ParamMatch(RegexMatch):
         preserve_space: bool = ...,
     ) -> None:
         super().__init__(
-            r"""(?:").+?(?:")|(?:').+?(?:')|\b[^ ]+?\b""",
+            r"""(?:").+?(?:")|(?:').+?(?:')|[^ "']+""",
             optional=optional,
             flags=flags,
             space=space,
@@ -161,14 +159,16 @@ class ParamMatch(RegexMatch):
             alt_help=alt_help,
             preserve_space=preserve_space,
         )
-        self.num_tags: List[int] = list(filter(lambda x: isinstance(x, int), tags))
-        self.str_tags: List[str] = list(filter(lambda x: isinstance(x, str), tags))
+        self.tags: List[Union[int, str]] = tags
 
     def get_help(self) -> str:
         return "PARAM"
 
     def __repr_args__(self):
-        return super().__repr_args__() + [("tags", self.num_tags + self.str_tags)]
+        args = super().__repr_args__()
+        args.append(("tags", self.tags))
+        args.remove(("pattern", self.pattern))
+        return args
 
 
 class WildcardMatch(RegexMatch):
@@ -294,7 +294,7 @@ class ArgumentMatch(Match):
     const: Any
     default: Any
     regex: Optional[re.Pattern]
-    result: Union["MessageChain", Any]
+    result: Union["MessageChain", List, Any]
     add_arg_data: Dict[str, Any]
 
     def __init__(
@@ -332,7 +332,13 @@ class ArgumentMatch(Match):
         if default is not ...:
             data["default"] = default
         if type is not ...:
+            if type is MessageChain:
+                type = MessageChainType(self.regex)
+            elif isinstance(type, Type) and issubclass(type, Element):
+                type = ElementType(type)
             data["type"] = type
+        else:
+            data["type"] = MessageChainType(self.regex)
         if help is not ...:
             data["help"] = help
         if dest is not ...:
@@ -437,6 +443,8 @@ class Sparkle(Representation):
                 return self._mapping_arg_match[item]
             if item in self._mapping_regex_match:
                 return self._mapping_regex_match[item][0]
+            if item in self._param_match_ref:
+                return self._param_match_ref[item]
         if isinstance(item, type):
             return self._match_ref[item]
         if isinstance(item, tuple):
@@ -463,7 +471,7 @@ class Sparkle(Representation):
     @overload
     def __init__(
         self,
-        check: Iterable[RegexMatch] = (),
+        check: Iterable[Match] = (),
         match: Optional[Dict[str, Match]] = None,
     ):
         ...
@@ -483,16 +491,6 @@ class Sparkle(Representation):
         check = check if check and check is not ... else ()
         match = match if match and match is not ... else ()
 
-        match_map = {k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)}
-        match_map.update(match)
-
-        # ----
-        # ordinary matches
-        # ----
-
-        group_cnt: int = 0
-        match_pattern_list: List[str] = []
-
         self._match_ref: DefaultDict[Type[T_Match], List[T_Match]] = DefaultDict(list)
 
         self._mapping_regex_match: Dict[str, Tuple[RegexMatch, int]] = {}
@@ -503,14 +501,49 @@ class Sparkle(Representation):
 
         self._param_match_ref: Dict[Union[int, str], ParamMatch] = {}
 
+        # ----
+        # checking matches
+        # ----
+
+        self._list_check_match: List[Tuple[RegexMatch, int]] = []
+
+        group_cnt: int = 0
+
+        check_pattern_list: List[str] = []
+
         for v in check:
             self._match_ref[v.__class__].append(v)
+            if isinstance(v, RegexMatch):
+                self._list_check_match.append((v, group_cnt + 1))
+                check_pattern_list.append(v.gen_regex())
+                group_cnt += re.compile(v.gen_regex()).groups
 
-            if isinstance(v, ParamMatch):  # Validate ParamMatch's tags
-                for tag in v.num_tags + v.str_tags:
-                    if tag in self._param_match_ref:
-                        raise ValueError(f"Duplicated ParamMatch tag with {self._param_match_ref[tag]}")
-                    self._param_match_ref[tag] = v
+                if isinstance(v, ParamMatch):  # Validate ParamMatch's tags
+                    for tag in v.tags:
+                        if tag in self._param_match_ref:
+                            raise ValueError(f"Duplicated ParamMatch tag with {self._param_match_ref[tag]}")
+                        self._param_match_ref[tag] = v
+
+            elif isinstance(v, ArgumentMatch):
+                if not self._parser.accept_type(v.action) and "type" in v.add_arg_data:
+                    del v.add_arg_data["type"]
+                action = self._parser.add_argument(*v.pattern, **v.add_arg_data)
+                v.dest = action.dest
+                self._parser_ref[v.dest] = v
+                continue
+
+        self._check_pattern: str = "".join(check_pattern_list)
+
+        # ----
+        # ordinary matches
+        # ----
+
+        match_map = {k: v for k, v in self.__class__.__dict__.items() if isinstance(v, Match)}
+        match_map.update(match)
+
+        match_pattern_list: List[str] = []
+
+        group_cnt: int = 0
 
         for k, v in match_map.items():
             if k.startswith("_") or k[0] in string.digits:
@@ -520,13 +553,8 @@ class Sparkle(Representation):
 
             if isinstance(v, ArgumentMatch):  # add to self._parser
                 self._mapping_arg_match[k] = v
-                if v.action is ... or self._parser.accept_type(v.action):
-                    if "type" not in v.add_arg_data or v.add_arg_data["type"] is MessageChain:
-                        v.add_arg_data["type"] = MessageChainType(v.regex)
-                    elif isinstance(v.add_arg_data["type"], type) and issubclass(
-                        v.add_arg_data["type"], Element
-                    ):
-                        v.add_arg_data["type"] = ElementType(v.add_arg_data["type"])
+                if not self._parser.accept_type(v.action) and "type" in v.add_arg_data:
+                    del v.add_arg_data["type"]
                 action = self._parser.add_argument(*v.pattern, **v.add_arg_data)
                 v.dest = action.dest
                 self._parser_ref[v.dest] = v
@@ -534,60 +562,52 @@ class Sparkle(Representation):
 
             if isinstance(v, RegexMatch):  # add to self._mapping_regex_match
 
-                if isinstance(v, ParamMatch):  # Validate ParamMatch's tags
-                    for tag in v.num_tags + v.str_tags:
-                        if tag in self._param_match_ref:
-                            raise ValueError(f"Duplicated ParamMatch tag with {self._param_match_ref[tag]}")
-                        self._param_match_ref[tag] = v
-
                 self._mapping_regex_match[k] = (v, group_cnt + 1)
                 group_cnt += re.compile(v.gen_regex()).groups
                 match_pattern_list.append(v.gen_regex())
+
+                if isinstance(v, ParamMatch):  # Validate ParamMatch's tags
+                    for tag in v.tags:
+                        if tag in self._param_match_ref:
+                            raise ValueError(f"Duplicated ParamMatch tag with {self._param_match_ref[tag]}")
+                        self._param_match_ref[tag] = v
 
                 continue
 
             raise ValueError(f"{v} is neither RegexMatch nor ArgumentMatch!")
 
-        if (
-            not all(v.pattern[0].startswith("-") for v in self._mapping_arg_match.values())
-            and self._mapping_regex_match
-        ):  # inline validation for underscore
-            raise ValueError("ArgumentMatch's pattern can't start with '-' in this case!")
+        # --- validate ArgumentMatch ---
+
+        if match_pattern_list and self._parser_ref:
+            for arg_match in self._parser_ref.values():
+                if any(not i.startswith("-") for i in arg_match.pattern):
+                    raise ValueError(f'{arg_match} has a pattern not starting with "-"')
 
         self._regex_pattern = "".join(match_pattern_list)
-        self._regex = re.compile(self._regex_pattern)
-
-        # ----
-        # checking matches
-        # ----
-
-        self._list_check_match: List[Tuple[RegexMatch, int]] = []
-
-        group_cnt = 0
-
-        for check_match in check:
-            if not isinstance(check_match, RegexMatch):
-                raise ValueError(f"{check_match} can't be used as checking match!")
-            self._list_check_match.append((check_match, group_cnt + 1))
-            group_cnt += re.compile(check_match.gen_regex()).groups
-        self._check_pattern: str = "".join(check_match.gen_regex() for check_match in check)
-        self._check_regex = re.compile(self._check_pattern)
 
     @classmethod
     def from_command(  # ANCHOR: Sparkle: From command
-        cls: "Type[Sparkle]", command: str, extra_arg_mapping: Optional[Dict[str, ArgumentMatch]] = None
+        cls: "Type[Sparkle]",
+        command: str,
+        extra_args: Optional[Union[Dict[str, ArgumentMatch], List[ArgumentMatch]]] = None,
+        optional_tag: Iterable[Union[int, str]] = (),
     ) -> "Sparkle":
         """从 shell 式命令生成 Sparkle.
 
         Args:
             command (str): 命令, 使用 {0} 的形式创建参数占位符. 使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
-            extra_arg_mapping (Dict[str, ArgumentMatch], optional): 可选的额外 str -> ArgumentMatch 映射.
+
+            extra_args (Dict[str, ArgumentMatch] | List[ArgumentMatch], optional):
+            可选的额外 str -> ArgumentMatch 映射 / ArgumentMatch 列表.
+
+            optional (Iterable[int]): 标注为可选的参数 tag 迭代器.
 
         Returns:
             Sparkle: 生成的 Sparkle.
         """
-        extra_arg_mapping = extra_arg_mapping or {}
-        match: List[Union[FullMatch, ParamMatch, UnionMatch]] = []
+        extra_args = extra_args or {}
+        match: List[RegexMatch] = []
+        optional: Set[Union[int, str]] = set(optional_tag)
 
         for t_type, token_list in tokenize_command(command):
             if t_type is CommandToken.TEXT:
@@ -596,13 +616,19 @@ class Sparkle(Representation):
                 match.append(UnionMatch(*token_list, space=SpacePolicy.FORCE))
             elif t_type is CommandToken.PARAM:
                 match.append(ParamMatch(*token_list, space=SpacePolicy.FORCE))
+                if any(i in optional for i in token_list):
+                    match[-1].optional = True
+                    if len(match) >= 2:
+                        match[-2].space = SpacePolicy.PRESERVE
             else:
                 raise ValueError(f"unexpected token type: {t_type}")
 
         if match:
             match[-1].space = SpacePolicy.NOSPACE
 
-        return cls(match, extra_arg_mapping)
+        if isinstance(extra_args, dict):
+            return cls(match, extra_args)
+        return cls(match + extra_args)
 
     # ANCHOR: Sparkle runtime populate
 
@@ -621,7 +647,7 @@ class Sparkle(Representation):
         """
         if not self._check_pattern:
             return split(string)
-        if regex_match := self._check_regex.match(string):
+        if regex_match := re.match(self._check_pattern, string):
             for match, index in self._list_check_match:
                 current = regex_match.group(index) or ""
                 if isinstance(match, ElementMatch):
@@ -672,7 +698,7 @@ class Sparkle(Representation):
             ValueError: 匹配失败
         """
         if self._regex_pattern:
-            if regex_match := self._regex.fullmatch(" ".join(arg_list)):
+            if regex_match := re.fullmatch(self._regex_pattern, " ".join(arg_list)):
                 for _, (match, index) in self._mapping_regex_match.items():
                     current = regex_match.group(index) or ""
                     if isinstance(match, ElementMatch):

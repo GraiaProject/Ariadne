@@ -5,6 +5,9 @@ from graia.ariadne.message.element import *
 
 # from graia.ariadne.message.parser.pattern import *
 from graia.ariadne.message.parser.twilight import *
+from graia.ariadne.util import inject_loguru_traceback
+
+inject_loguru_traceback()
 
 
 class SparkleTest(Sparkle):
@@ -113,7 +116,7 @@ if __name__ == "__main__":
             },
         )
     )
-    devtools.debug(flag_sp.root._regex)
+    devtools.debug(flag_sp.root._regex_compiled)
     devtools.debug(flag_sp.generate(MessageChain([".test op\nop\nseq"])))
 
     devtools.debug(Sparkle.from_command("[lp|luckperm] {0} user {permission} [\{no_admin\}|no_admin] call "))

@@ -442,7 +442,7 @@ class MessageChain(AriadneBaseModel):
             bool: 是否以此字符串结尾
         """
 
-        if not self.__root__ or not isinstance(self.__root__[0], Plain):
+        if not self.__root__ or not isinstance(self.__root__[-1], Plain):
             return False
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)

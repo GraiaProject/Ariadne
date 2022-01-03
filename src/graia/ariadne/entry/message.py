@@ -3,6 +3,7 @@
 # no error
 
 from ..message.chain import MessageChain
+from ..message.commander import Arg, Commander, Slot
 from ..message.component import Component
 from ..message.element import (
     App,

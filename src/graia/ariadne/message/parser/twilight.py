@@ -465,14 +465,21 @@ class Sparkle(Representation):
         return copied
 
     @overload
-    def __init__(self, check: Dict[str, Match]):
+    def __init__(
+        self,
+        check: Dict[str, Match],
+        description: str = "",
+        epilog: str = "",
+    ):
         ...
 
     @overload
     def __init__(
         self,
-        check: Iterable[Match] = (),
+        check: Iterable[Union[Match, str]] = (),
         match: Optional[Dict[str, Match]] = None,
+        description: str = "",
+        epilog: str = "",
     ):
         ...
 
@@ -512,6 +519,9 @@ class Sparkle(Representation):
         check_pattern_list: List[str] = []
 
         for v in check:
+            if isinstance(v, str):  # Regex string
+                v = RegexMatch(v)
+
             self._match_ref[v.__class__].append(v)
             if isinstance(v, RegexMatch):
                 self._list_check_match.append((v, group_cnt + 1))
@@ -801,7 +811,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
     @overload
     def __init__(
         self,
-        root: Iterable[RegexMatch],
+        root: Iterable[Union[Match, str]],
         match: Dict[str, Match] = ...,
         *,
         map_params: Optional[Dict[str, bool]] = None,
@@ -810,7 +820,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
 
         Args:
             check (Iterable[RegexMatch]): 用于检查的 Match 对象.
-            match (Dict[str, Match]): 额外匹配的映射.
+            match (Iterable[Union[Match, str]]): 额外匹配的映射 / 正则字符串.
             map_params (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
         """
 

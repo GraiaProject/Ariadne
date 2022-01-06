@@ -1,5 +1,6 @@
 import asyncio
 
+from devtools import debug
 from graia.broadcast import Broadcast
 from loguru import logger
 
@@ -18,16 +19,19 @@ async def main():
             "group": Slot(0, type=At),
             "permission": Slot(1, type=str),
             "value": Slot(2, type=bool, default=True),
-            "scope": Arg("[--scope|-s] {scope|0}", lambda x: x["scope"].asDisplay()),
-            "fast": Arg("--fast"),
+            "scope": Arg("[--scope|-s] {scope|0}", lambda x: x[0].asDisplay(), default="global"),
+            "fast": Arg("--fast", default=False),
         },
     )
     def _(group: ..., permission: str, value: bool, fast: bool, scope: str):
         logger.info(f"Setting {group}'s permission {permission} to {value} with scope {scope}, fast: {fast}")
 
-    cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))
+    try:
+        cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))
+    except Exception as e:
+        debug(e)
     cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read false"))
-    cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s global"))
+    cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s local"))
     await asyncio.sleep(3)
 
 

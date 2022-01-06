@@ -6,6 +6,7 @@ from typing import (
     TYPE_CHECKING,
     Dict,
     Iterable,
+    Iterator,
     List,
     Optional,
     Tuple,
@@ -413,7 +414,7 @@ class MessageChain(AriadneBaseModel):
 
         return result
 
-    def __iter__(self) -> Iterable[Element]:
+    def __iter__(self) -> Iterator[Element]:
         return iter(self.__root__)
 
     def startswith(self, string: str) -> bool:

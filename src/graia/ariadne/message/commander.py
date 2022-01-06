@@ -1,7 +1,9 @@
 """Commander: 便捷的指令触发体系"""
+import inspect
 from typing import Any, Callable, Dict, List, NamedTuple, Sequence, Type, TypeVar, Union
 
 from graia.broadcast import Broadcast
+from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
@@ -31,7 +33,12 @@ class Arg:
     """Argument"""
 
     def __init__(
-        self, pattern: str, handler: Callable[[Union[Dict[Union[str, int], MessageChain], bool]], Any] = ...
+        self,
+        pattern: str,
+        handler: Callable[[Union[Dict[Union[str, int], MessageChain], bool]], Any] = ...,
+        *,
+        default: Any = ...,
+        default_factory: Callable[[], Any] = ...,
     ) -> None:
         self.pattern: str = pattern
         self.handler: Callable[[Union[Dict[Union[str, int], MessageChain], bool]], Any] = handler
@@ -66,6 +73,11 @@ class Arg:
         else:
             self.arg_match = ArgumentMatch(*self.args, action="store_true")
 
+        if default is not ... and default_factory is not ...:
+            raise ValueError("You supplied default and default_factory at the same time!")
+
+        self.default_factory = (lambda: default) if default is not ... else default_factory
+
 
 class CommanderReference(NamedTuple):
     """CommandReference NamedTuple"""
@@ -73,6 +85,8 @@ class CommanderReference(NamedTuple):
     twilight: Twilight[Sparkle]
     slot_map: Dict[Union[str, int], Union[Slot, Arg]]
     func: Callable
+    dispatchers: Sequence[BaseDispatcher]
+    decorators: Sequence[Decorator]
 
 
 class CommanderDispatcher(BaseDispatcher):
@@ -94,7 +108,11 @@ class Commander:
         self.refs: List[CommanderReference] = []
 
     def command(
-        self, command: str, setting: Dict[str, Union[Slot, Arg]]
+        self,
+        command: str,
+        setting: Dict[str, Union[Slot, Arg]],
+        dispatchers: Sequence[BaseDispatcher] = (),
+        decorators: Sequence[Decorator] = (),
     ) -> Callable[[T_Callable], T_Callable]:
         """装饰一个命令处理函数
 
@@ -108,26 +126,44 @@ class Commander:
         Returns:
             Callable[[T_Callable], T_Callable]: 装饰器
         """
-        arg_match: List[ArgumentMatch] = []
-        slot_map: Dict[Union[Sequence[str], int, str], Union[Slot, Arg]] = {}
-        optional_slot: List[Union[str, int]] = []
-        for param_name, arg in setting.items():
-            arg.param_name = param_name
-            if isinstance(arg, Arg):
-                arg_match.append(arg.arg_match)
-                slot_map[arg.arg_match.pattern] = arg
-            elif isinstance(arg, Slot):
-                slot_map[arg.slot] = arg
-                if arg.default is not ...:
-                    optional_slot.append(arg.slot)
-
-        sparkle_root: Sparkle = Sparkle.from_command(command, arg_match, optional_slot)
-        if any(param.optional for param in sparkle_root[ParamMatch].__getitem__(slice(None, -1))):
-            raise ValueError("You can only set last parameter as optional.")
 
         def wrapper(func: T_Callable) -> T_Callable:
             """append func to self.refs"""
-            self.refs.append(CommanderReference(Twilight(sparkle_root), slot_map, func))
+
+            # ANCHOR: scan function signature
+
+            sig_default = {}
+
+            for name, parameter in inspect.signature(func).parameters.items():
+                if parameter.default is not inspect.Signature.empty:
+                    sig_default[name] = parameter.default
+
+            arg_match: List[ArgumentMatch] = []
+            slot_map: Dict[Union[Sequence[str], int, str], Union[Slot, Arg]] = {}
+            optional_slot: List[Union[str, int]] = []
+            for param_name, arg in setting.items():  # ANCHOR: scan setting
+                # pylint: disable=cell-var-from-loop
+                arg.param_name = param_name
+                if isinstance(arg, Arg):
+                    if arg.default_factory is ...:
+                        if arg.param_name in sig_default:
+                            arg.default_factory = lambda: sig_default[arg.param_name]
+                        else:
+                            raise ValueError(f"Didn't find default for parameter {arg.param_name}")
+                    arg_match.append(arg.arg_match)
+                    slot_map[arg.arg_match.pattern] = arg
+                elif isinstance(arg, Slot):
+                    slot_map[arg.slot] = arg
+                    if arg.default is not ...:
+                        optional_slot.append(arg.slot)
+
+            sparkle_root: Sparkle = Sparkle.from_command(command, arg_match, optional_slot)
+            if any(param.optional for param in sparkle_root[ParamMatch].__getitem__(slice(None, -1))):
+                raise ValueError("You can only set last parameter as optional.")
+
+            self.refs.append(
+                CommanderReference(Twilight(sparkle_root), slot_map, func, dispatchers, decorators)
+            )
             return func
 
         return wrapper
@@ -137,10 +173,16 @@ class Commander:
 
         Args:
             chain (MessageChain): 触发的消息链
+
+        Raises:
+            ValueError: 消息链没有被任何一个命令处理器函数接受
         """
-        for twilight, slot_map, func in self.refs:
+        handled = False
+
+        for cmd_ref in self.refs:
+            slot_map = cmd_ref.slot_map
             try:
-                sparkle = twilight.generate(chain)
+                sparkle = cmd_ref.twilight.generate(chain)
                 param_result: Dict[str, Any] = {}
 
                 for param_match in sparkle[ParamMatch]:
@@ -153,18 +195,13 @@ class Commander:
                                 else slot.default
                             )
 
-                            def msg_chain_validator(cls, v):
+                            def _validator(cls, v):
                                 """validate message chain"""
                                 # pylint: disable=cell-var-from-loop
                                 if cls.__fields__["val"].type_ is MessageChain:
                                     return MessageChain.fromMappingString(
                                         v, param_match.result.asMappingString()[1]
                                     )
-                                return v
-
-                            def element_validator(cls, v):
-                                """validate element"""
-                                # pylint: disable=cell-var-from-loop
                                 if issubclass(cls.__fields__["val"].type_, Element):
                                     chain = MessageChain.fromMappingString(
                                         v, param_match.result.asMappingString()[1]
@@ -177,12 +214,7 @@ class Commander:
                             value = create_model(
                                 "CommanderValidator",
                                 __validators__={
-                                    "msg_chain_validator": validator("val", pre=True, allow_reuse=True)(
-                                        msg_chain_validator
-                                    ),
-                                    "element_validator": validator("val", pre=True, allow_reuse=True)(
-                                        element_validator
-                                    ),
+                                    "_validator": validator("val", pre=True, allow_reuse=True)(_validator),
                                 },
                                 val=(slot.type, ...),
                             )(val=value).__getattribute__("val")
@@ -192,7 +224,7 @@ class Commander:
                 for arg_match in sparkle[ArgumentMatch]:
                     arg: Arg = slot_map[arg_match.pattern]
                     if not arg_match.matched:
-                        param_result[arg.param_name] = Ellipsis
+                        param_result[arg.param_name] = arg.default_factory()
                         continue
                     if arg.handler is ...:
                         param_result[arg.param_name] = arg_match.result
@@ -207,8 +239,22 @@ class Commander:
             except ValueError:
                 continue
 
-            self.broadcast.loop.create_task(
-                self.broadcast.Executor(
-                    ExecTarget(func, [CommanderDispatcher(param_result), ContextDispatcher()])
+            else:
+                handled = True
+
+                self.broadcast.loop.create_task(
+                    self.broadcast.Executor(
+                        ExecTarget(
+                            cmd_ref.func,
+                            inline_dispatchers=[
+                                CommanderDispatcher(param_result),
+                                ContextDispatcher(),
+                                *cmd_ref.dispatchers,
+                            ],
+                            decorators=list(cmd_ref.decorators),
+                        )
+                    )
                 )
-            )
+
+        if not handled:
+            raise ValueError(f"{chain!r} is not handled!")

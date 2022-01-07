@@ -1,6 +1,17 @@
 """Commander: 便捷的指令触发体系"""
 import inspect
-from typing import Any, Callable, Dict, List, NamedTuple, Sequence, Type, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    NamedTuple,
+    Sequence,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -10,7 +21,6 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import create_model, validator
 
 from ..dispatcher import ContextDispatcher
-from ..typing import T
 from .chain import MessageChain
 from .element import Element
 from .parser.twilight import ArgumentMatch, ParamMatch, Sparkle, Twilight
@@ -22,7 +32,11 @@ T_Callable = TypeVar("T_Callable", bound=Callable)
 class Slot:
     """Slot"""
 
-    def __init__(self, slot: Union[str, int], type: Type[T] = MessageChain, default: T = ...) -> None:
+    @overload
+    def __init__(self, slot: Union[str, int], type: Type = MessageChain, default=...):
+        ...
+
+    def __init__(self, slot: Union[str, int], type: Type = ..., default=...) -> None:
         self.slot = slot
         self.type = type
         self.default = default
@@ -132,11 +146,10 @@ class Commander:
 
             # ANCHOR: scan function signature
 
-            sig_default = {}
+            sig = {}
 
             for name, parameter in inspect.signature(func).parameters.items():
-                if parameter.default is not inspect.Signature.empty:
-                    sig_default[name] = parameter.default
+                sig[name] = (parameter.annotation, parameter.default)
 
             arg_match: List[ArgumentMatch] = []
             slot_map: Dict[Union[Sequence[str], int, str], Union[Slot, Arg]] = {}
@@ -146,8 +159,8 @@ class Commander:
                 arg.param_name = param_name
                 if isinstance(arg, Arg):
                     if arg.default_factory is ...:
-                        if arg.param_name in sig_default:
-                            arg.default_factory = lambda: sig_default[arg.param_name]
+                        if arg.param_name in sig and sig[arg.param_name][1] is not inspect.Signature.empty:
+                            arg.default_factory = lambda: sig[arg.param_name][1]
                         else:
                             raise ValueError(f"Didn't find default for parameter {arg.param_name}")
                     arg_match.append(arg.arg_match)
@@ -156,6 +169,11 @@ class Commander:
                     slot_map[arg.slot] = arg
                     if arg.default is not ...:
                         optional_slot.append(arg.slot)
+                    if arg.type is ... and sig[arg.param_name][0] is not inspect.Signature.empty:
+                        if arg.param_name in sig:
+                            arg.type = sig[arg.param_name][0]
+                        else:
+                            arg.type = MessageChain
 
             sparkle_root: Sparkle = Sparkle.from_command(command, arg_match, optional_slot)
             if any(param.optional for param in sparkle_root[ParamMatch].__getitem__(slice(None, -1))):
@@ -187,39 +205,38 @@ class Commander:
 
                 for param_match in sparkle[ParamMatch]:
                     for tag in param_match.tags:
-                        if tag in slot_map:
-                            slot: Slot = slot_map[tag]
-                            value = (
-                                param_match.result.asMappingString()[0]
-                                if param_match.matched
-                                else slot.default
-                            )
+                        if tag not in slot_map:
+                            continue
 
-                            def _validator(cls, v):
-                                """validate message chain"""
-                                # pylint: disable=cell-var-from-loop
-                                if cls.__fields__["val"].type_ is MessageChain:
-                                    return MessageChain.fromMappingString(
-                                        v, param_match.result.asMappingString()[1]
-                                    )
-                                if issubclass(cls.__fields__["val"].type_, Element):
-                                    chain = MessageChain.fromMappingString(
-                                        v, param_match.result.asMappingString()[1]
-                                    )
-                                    assert len(chain) == 1
-                                    assert isinstance(chain[0], cls.__fields__["val"].type_)
-                                    return chain[0]
-                                return v
+                        slot: Slot = slot_map[tag]
 
-                            value = create_model(
-                                "CommanderValidator",
-                                __validators__={
-                                    "_validator": validator("val", pre=True, allow_reuse=True)(_validator),
-                                },
-                                val=(slot.type, ...),
-                            )(val=value).__getattribute__("val")
+                        value, mapping = (
+                            param_match.result.asMappingString()
+                            if param_match.matched
+                            else (slot.default, {})
+                        )
 
-                            param_result[slot.param_name] = value
+                        def _validator(cls, v: str):
+                            """validate message chain"""
+                            # pylint: disable=cell-var-from-loop
+                            if cls.__fields__["val"].type_ is MessageChain:
+                                return MessageChain.fromMappingString(v, mapping)
+                            if issubclass(cls.__fields__["val"].type_, Element):
+                                chain = MessageChain.fromMappingString(v, mapping)
+                                assert len(chain) == 1
+                                assert isinstance(chain[0], cls.__fields__["val"].type_)
+                                return chain[0]
+                            return v
+
+                        value = create_model(
+                            "CommanderValidator",
+                            __validators__={
+                                "_validator": validator("val", pre=True, allow_reuse=True)(_validator),
+                            },
+                            val=(slot.type, ...),
+                        )(val=value).__getattribute__("val")
+
+                        param_result[slot.param_name] = value
 
                 for arg_match in sparkle[ArgumentMatch]:
                     arg: Arg = slot_map[arg_match.pattern]

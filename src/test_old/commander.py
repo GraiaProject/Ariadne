@@ -16,14 +16,14 @@ async def main():
     @cmd.command(
         "[luckperm|lp] group {0} [permission|perm] set {1|permission} {2}",
         {
-            "group": Slot(0, type=At),
+            "group": Slot(0),
             "permission": Slot(1, type=str),
             "value": Slot(2, type=bool, default=True),
             "scope": Arg("[--scope|-s] {scope|0}", lambda x: x[0].asDisplay(), default="global"),
             "fast": Arg("--fast", default=False),
         },
     )
-    def _(group: ..., permission: str, value: bool, fast: bool, scope: str):
+    def _(group: At, permission: str, value: bool, fast: bool, scope: str):
         logger.info(f"Setting {group}'s permission {permission} to {value} with scope {scope}, fast: {fast}")
 
     try:
@@ -32,7 +32,7 @@ async def main():
         debug(e)
     cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read false"))
     cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s local"))
-    await asyncio.sleep(3)
+    await asyncio.sleep(0.5)
 
 
 if __name__ == "__main__":

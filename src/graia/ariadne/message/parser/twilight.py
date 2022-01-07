@@ -89,6 +89,9 @@ class Match(abc.ABC, Representation):
         args.append(("pattern", self.pattern))
         return args
 
+    def __deepcopy__(self, _):
+        return copy(self)
+
 
 class RegexMatch(Match):
     """基础的正则表达式匹配."""
@@ -455,12 +458,17 @@ class Sparkle(Representation):
     def __deepcopy__(self, memo):
         copied = copy(self)
 
-        copied._list_check_match = deepcopy(self._list_check_match, memo)
-        copied._mapping_arg_match = deepcopy(self._mapping_arg_match, memo)
-        copied._mapping_regex_match = deepcopy(self._mapping_regex_match, memo)
-        copied._parser_ref = deepcopy(self._parser_ref, memo)
-        copied._match_ref = deepcopy(self._match_ref, memo)
-        copied._param_match_ref = deepcopy(self._param_match_ref, memo)
+        COPY_ATTRS = {
+            "_list_check_match",
+            "_mapping_arg_match",
+            "_mapping_regex_match",
+            "_parser_ref",
+            "_match_ref",
+            "_param_match_ref",
+        }
+
+        for attr_name in COPY_ATTRS:
+            setattr(copied, attr_name, deepcopy(getattr(self, attr_name), memo))
 
         return copied
 

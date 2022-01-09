@@ -35,7 +35,7 @@ if __name__ == "__main__":
     twilight_args_kwargs = Twilight(
         Sparkle(
             [FullMatch(".command")],
-            {"param": ArgumentMatch("--option"), "at": ArgumentMatch("at", type=At)},
+            {"param": ArgumentMatch("--option"), "at": ElementMatch(type=At)},
         )
     )
 
@@ -48,11 +48,11 @@ if __name__ == "__main__":
         devtools.debug(e)
 
     sparkle_mixed = Twilight(
-        Sparkle(match={"foo": ArgumentMatch("foo"), "bar": ArgumentMatch("bar")})
+        Sparkle(match={"foo": ParamMatch("foo"), "bar": ArgumentMatch("--bar")})
     ).generate(MessageChain.create("test --bar opq"))
     devtools.debug(sparkle_mixed)
 
-    sparkle_next = Twilight(Sparkle([FullMatch(".command")], match={"foo": ArgumentMatch("foo")})).generate(
+    sparkle_next = Twilight(Sparkle([FullMatch(".command")], match={"foo": ParamMatch("foo")})).generate(
         MessageChain.create(".command opq")
     )
     devtools.debug(sparkle_next)

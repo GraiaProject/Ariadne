@@ -18,9 +18,11 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from pydantic import create_model, validator
+from pydantic import BaseModel, create_model, validator
+from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
+from ..model import AriadneBaseModel
 from .chain import MessageChain
 from .element import Element
 from .parser.twilight import ArgumentMatch, ParamMatch, Sparkle, Twilight
@@ -29,11 +31,35 @@ from .parser.util import CommandToken, tokenize_command
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
+def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChain, Element, str]:
+    """pydantic MessageChain validator,
+    convert MessageChain to string if type annotation is not related to MessageChain
+
+    Args:
+        v (MessageChain): message chain
+        field (ModelField): ModelField
+
+    Returns:
+        Union[MessageChain, Element, str]: Depending on type annotation
+    """
+    if field.type_ is MessageChain:
+        return value
+    if issubclass(field.type_, Element):
+        assert len(value) == 1
+        assert isinstance(value[0], field.type_)
+        return value[0]
+    if isinstance(value, MessageChain):
+        value = value.asDisplay()
+    if not value:
+        value = field.default
+    return value
+
+
 class Slot:
     """Slot"""
 
     @overload
-    def __init__(self, slot: Union[str, int], type: Type = MessageChain, default=...):
+    def __init__(self, slot: Union[str, int], type: Type = MessageChain, default=...) -> None:
         ...
 
     def __init__(self, slot: Union[str, int], type: Type = ..., default=...) -> None:
@@ -49,19 +75,18 @@ class Arg:
     def __init__(
         self,
         pattern: str,
-        handler: Callable[[Union[Dict[Union[str, int], MessageChain], bool]], Any] = ...,
+        type: Type[Union[BaseModel, Any]] = ...,
         *,
         default: Any = ...,
         default_factory: Callable[[], Any] = ...,
     ) -> None:
         self.pattern: str = pattern
-        self.handler: Callable[[Union[Dict[Union[str, int], MessageChain], bool]], Any] = handler
-
         self.args: List[str] = []
-        self.tag_ids: List[int] = []
-        self.tag_mapping: Dict[Union[int, str], int] = {}
-
+        self.tags: List[str] = []
         self.param_name: str = ""
+        self.default_factory = (lambda: default) if default is not ... else default_factory
+        if (default is ...) == (default_factory is ...):
+            raise ValueError("default and default_factory is both empty / not empty!")
 
         for index, (t_type, token_list) in enumerate(tokenize_command(pattern)):
             if t_type is CommandToken.TEXT:
@@ -76,21 +101,44 @@ class Arg:
                         """Use "{" and "}" for placeholders."""
                     )
             if t_type is CommandToken.PARAM:
-                self.tag_ids.append(len(self.tag_ids))
-                for token in token_list:
-                    if token in self.tag_mapping:
-                        raise ValueError(f"Duplicated tag reference: {token}")
-                    self.tag_mapping[token] = self.tag_ids[-1]
+                if len(token_list) != 1:
+                    raise ValueError("Arg doesn't support aliasing!")
+                self.tags.append(str(token_list[0]))
 
-        if self.tag_ids:
-            self.arg_match = ArgumentMatch(*self.args, nargs=len(self.tag_ids))
+        if self.tags:
+            self.arg_match = ArgumentMatch(*self.args, nargs=len(self.tags))
         else:
-            self.arg_match = ArgumentMatch(*self.args, action="store_true")
+            if default_factory is not ... or not isinstance(default, bool):
+                raise ValueError(
+                    "Boolean type Arg doesn't support default_factory / default value other than bool value!"
+                )
+            self.arg_match = ArgumentMatch(
+                *self.args, action={False: "store_true", True: "store_false"}[default]
+            )
 
-        if default is not ... and default_factory is not ...:
-            raise ValueError("You supplied default and default_factory at the same time!")
+        self.type = type
+        self.model: Type[BaseModel] = ...
 
-        self.default_factory = (lambda: default) if default is not ... else default_factory
+        if len(self.tags) == 0:  # Set default
+            type = type if type is not ... else bool
+            self.model = create_model(
+                "ArgModel",
+                __validators__={"validator": validator("*", pre=True, allow_reuse=True)(chain_validator)},
+                val=(type, ...),
+            )
+        elif len(self.tags) == 1:
+            type = type if type is not ... else MessageChain
+            self.model = create_model(
+                "ArgModel",
+                __validators__={"validator": validator("*", pre=True, allow_reuse=True)(chain_validator)},
+                **{self.tags[0]: (type, ...)},
+            )
+
+        if issubclass(type, BaseModel) and not issubclass(type, AriadneBaseModel):
+            self.model = type
+
+        if self.model is ...:
+            raise ValueError("You didn't supply a suitable type!")
 
 
 class CommanderReference(NamedTuple):
@@ -210,52 +258,34 @@ class Commander:
 
                         slot: Slot = slot_map[tag]
 
-                        value, mapping = (
-                            param_match.result.asMappingString()
-                            if param_match.matched
-                            else (slot.default, {})
-                        )
-
-                        def _validator(cls, v: str):
-                            """validate message chain"""
-                            # pylint: disable=cell-var-from-loop
-                            if cls.__fields__["val"].type_ is MessageChain:
-                                return MessageChain.fromMappingString(v, mapping)
-                            if issubclass(cls.__fields__["val"].type_, Element):
-                                chain = MessageChain.fromMappingString(v, mapping)
-                                assert len(chain) == 1
-                                assert isinstance(chain[0], cls.__fields__["val"].type_)
-                                return chain[0]
-                            return v
-
-                        value = create_model(
-                            "CommanderValidator",
+                        slot_model = create_model(
+                            "SlotModel",
                             __validators__={
-                                "_validator": validator("val", pre=True, allow_reuse=True)(_validator),
+                                "validator": validator("*", pre=True, allow_reuse=True)(chain_validator)
                             },
-                            val=(slot.type, ...),
-                        )(val=value).__getattribute__("val")
+                            val=(slot.type, slot.default),
+                        )
+                        value = slot_model(val=param_match.result).__dict__["val"]
 
                         param_result[slot.param_name] = value
 
                 for arg_match in sparkle[ArgumentMatch]:
                     arg: Arg = slot_map[arg_match.pattern]
-                    if not arg_match.matched:
-                        param_result[arg.param_name] = arg.default_factory()
-                        continue
-                    if arg.handler is ...:
-                        param_result[arg.param_name] = arg_match.result
-                        continue
-                    if arg.tag_mapping:
-                        param_result[arg.param_name] = arg.handler(
-                            {tag: arg_match.result[ref] for tag, ref in arg.tag_mapping.items()}
-                        )
+                    value = arg.default_factory() if not arg_match.matched else arg_match.result
+                    if not arg.tags:  # boolean
+                        param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
                     else:
-                        param_result[arg.param_name] = arg.handler(arg_match.result)
-
+                        if not isinstance(value, list):
+                            value = [value]
+                        param_result[arg.param_name] = arg.model(**dict(zip(arg.tags, value)))
+                        if not (
+                            isinstance(arg.type, Type)
+                            and issubclass(arg.type, BaseModel)
+                            and not issubclass(arg.type, AriadneBaseModel)
+                        ):
+                            param_result[arg.param_name] = param_result[arg.param_name].__dict__[arg.tags[0]]
             except ValueError:
                 continue
-
             else:
                 handled = True
 

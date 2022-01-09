@@ -220,12 +220,12 @@ class FullMatch(RegexMatch):
 class ElementMatch(RegexMatch):
     """元素类型匹配."""
 
-    pattern: Type["Element"]
-    result: "Element"
+    pattern: Type[Element]
+    result: Element
 
     def __init__(
         self,
-        pattern: Type["Element"],
+        type: Type[Element] = ...,
         *,
         optional: bool = False,
         flags: re.RegexFlag = re.RegexFlag(0),
@@ -235,7 +235,7 @@ class ElementMatch(RegexMatch):
         preserve_space: bool = ...,
     ) -> None:
         super().__init__(
-            pattern,
+            type,
             optional=optional,
             flags=flags,
             space=space,
@@ -289,7 +289,6 @@ class ArgumentMatch(Match):
     """参数匹配."""
 
     pattern: Sequence[str]
-    name: str
     nargs: Union[str, int]
     action: Union[str, Type[Action]]
     dest: Optional[str]
@@ -316,8 +315,9 @@ class ArgumentMatch(Match):
     ) -> None:
         if not pattern:
             raise ValueError("Expected at least 1 pattern!")
+        if any(not p.startswith("-") for p in pattern):
+            raise ValueError("use ParamMatch for positional argument!")
         super().__init__(pattern, optional, help)
-        self.name = pattern[0].lstrip("-").replace("-", "_")
         self.nargs = nargs
         self.action = action
         self.const = const
@@ -650,11 +650,11 @@ class Sparkle(Representation):
 
     # ANCHOR: Sparkle runtime populate
 
-    def populate_check_match(self, string: str, elem_mapping: Dict[int, Element]) -> List[str]:
+    def populate_check_match(self, arg_list: List[str], elem_mapping: Dict[int, Element]) -> List[str]:
         """从传入的 string 与 elem_mapping 填充本实例的 check_match
 
         Args:
-            string (str): 映射字符串
+            arg_list (List[str]): 参数列表
             elem_mapping (Dict[int, Element]): 元素映射
 
         Raises:
@@ -664,8 +664,8 @@ class Sparkle(Representation):
             List[str]: 剩下的字符串参数列表
         """
         if not self._check_pattern:
-            return split(string)
-        if regex_match := re.match(self._check_pattern, string):
+            return arg_list
+        if regex_match := re.match(self._check_pattern, " ".join(arg_list)):
             for match, index in self._list_check_match:
                 current = regex_match.group(index) or ""
                 if isinstance(match, ElementMatch):
@@ -680,23 +680,23 @@ class Sparkle(Representation):
                 match.result = result
                 match.matched = bool(current)
 
-                if match.__class__ is RegexMatch:
-                    match.regex_match = re.fullmatch(match.pattern, current)
-            return split(string[regex_match.end() :])
+                if isinstance(match, RegexMatch):
+                    match.regex_match = re.fullmatch(match.gen_regex(), current)
+            return split(" ".join(arg_list)[regex_match.end() :])
         raise ValueError(f"Not matching regex: {self._check_pattern}")
 
-    def populate_arg_match(self, args: List[str]) -> List[str]:
+    def populate_arg_match(self, arg_list: List[str]) -> List[str]:
         """从传入的 string 与填充本实例的 ArgumentMatch 对象
 
         Args:
-            string (str): 映射字符串
+            arg_list (List[str]): 参数列表
 
         Returns:
             List[str]: 剩下的字符串参数列表
         """
         if not self._parser_ref:  # Optimization: skip if no ArgumentMatch
-            return args
-        namespace, rest = self._parser.parse_known_args(args)
+            return arg_list
+        namespace, rest = self._parser.parse_known_args(arg_list)
         for arg_name, match in self._parser_ref.items():
             namespace_val = getattr(namespace, arg_name, ...)
             if namespace_val is not ...:
@@ -709,7 +709,7 @@ class Sparkle(Representation):
         """从传入的 string 与 elem_mapping 填充本实例的 RegexMatch
 
         Args:
-            string (str): 映射字符串
+            arg_list (List[str]): 参数列表
             elem_mapping (Dict[int, Element]): 元素映射
 
         Raises:
@@ -876,9 +876,10 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         mapping_str, elem_mapping = chain.asMappingString(**self._map_params)
         token = elem_mapping_ctx.set(chain)
         try:
-            str_list = sparkle.populate_check_match(mapping_str, elem_mapping)
-            arg_list = sparkle.populate_arg_match(str_list)
-            sparkle.populate_regex_match(arg_list, elem_mapping)
+            rest = split(mapping_str)
+            rest = sparkle.populate_arg_match(rest)
+            rest = sparkle.populate_check_match(rest, elem_mapping)
+            sparkle.populate_regex_match(rest, elem_mapping)
             return sparkle
         finally:
             elem_mapping_ctx.reset(token)

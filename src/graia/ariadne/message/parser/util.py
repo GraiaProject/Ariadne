@@ -4,7 +4,7 @@ import enum
 import inspect
 import re
 from contextvars import ContextVar
-from typing import List, NoReturn, Tuple, Type, Union
+from typing import List, NoReturn, Optional, Tuple, Type, Union
 
 from ..chain import Element_T, MessageChain
 
@@ -199,8 +199,8 @@ def transform_regex(flag: re.RegexFlag, regex_pattern: str) -> str:
 class MessageChainType:
     """用于标记类型为消息链, 在 ArgumentMatch 上使用"""
 
-    def __init__(self, regex: re.Pattern):
-        self.regex: re.Pattern = regex
+    def __init__(self, regex: Optional[re.Pattern]):
+        self.regex: Optional[re.Pattern] = regex
 
     def __call__(self, string: str) -> MessageChain:
         if self.regex and not self.regex.fullmatch(string):

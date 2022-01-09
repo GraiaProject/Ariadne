@@ -19,18 +19,21 @@ async def main():
             "group": Slot(0),
             "permission": Slot(1, type=str),
             "value": Slot(2, type=bool, default=True),
-            "scope": Arg("[--scope|-s] {scope|0}", lambda x: x[0].asDisplay(), default="global"),
-            "fast": Arg("--fast", default=False),
+            "scope": Arg("[--scope|-s] {scope}", type=str, default="global"),
+            "fast": Arg("--fast", default=True),
         },
     )
     def _(group: At, permission: str, value: bool, fast: bool, scope: str):
-        logger.info(f"Setting {group}'s permission {permission} to {value} with scope {scope}, fast: {fast}")
+        logger.info(
+            f"Setting {group!r}'s permission {permission} to {value} with scope {scope}, fast: {fast}"
+        )
 
     try:
         cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))
     except Exception as e:
         debug(e)
     cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read false"))
+    cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read --fast -s global"))
     cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s local"))
     await asyncio.sleep(0.5)
 

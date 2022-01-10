@@ -30,6 +30,10 @@
 
 元素不再分为 `Internal` `External` 与 `Shadow` 三态. 对应的, `Image_LocalFile` `Voice_LocalFile` **等** 类型被删除了.
 
+多媒体元素实例化签名更丰富, 可接受 `bytes` `url` `path` `id` `base64` 等.
+
+所以对于 `Image.fromLocalFile` 等类方法, 直接实例化即可.
+
 ## 与主实例交互
 
 统一所有方法为 谓词 + 名词 形式 (如 `kick` -> `kickMember`,`mute` -> `muteMember`...)

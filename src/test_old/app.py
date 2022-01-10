@@ -126,9 +126,6 @@ if __name__ == "__main__":
             logger.debug(await app.getFriendProfile(friend_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0]))
-            logger.debug(
-                await app.uploadFile(b"there's nothing in here", UploadMethod.Group, t_group, "", "test.txt")
-            )
         await app.lifecycle()
 
     try:

@@ -299,6 +299,15 @@ class ArgumentMatch(Match):
     result: Union["MessageChain", List, Any]
     add_arg_data: Dict[str, Any]
 
+    def __new__(cls: Type["ArgumentMatch"], *pattern: str, **kwargs):
+        if any(not p.startswith("-") for p in pattern):
+            import warnings
+
+            warnings.warn("use ParamMatch for positional argument!", DeprecationWarning)
+            warnings.warn("This behaviour will be removed in 0.5.2!", DeprecationWarning)
+            return ParamMatch(*pattern, **kwargs)
+        return super().__new__(cls)
+
     def __init__(
         self,
         *pattern: str,
@@ -315,8 +324,6 @@ class ArgumentMatch(Match):
     ) -> None:
         if not pattern:
             raise ValueError("Expected at least 1 pattern!")
-        if any(not p.startswith("-") for p in pattern):
-            raise ValueError("use ParamMatch for positional argument!")
         super().__init__(pattern, optional, help)
         self.nargs = nargs
         self.action = action

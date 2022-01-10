@@ -32,15 +32,17 @@ T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
 def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChain, Element, str]:
-    """pydantic MessageChain validator,
-    convert MessageChain to string if type annotation is not related to MessageChain
+    """
+    MessageChain 处理函数.
+    应用作 pydantic 的 Model validator.
+    取决于字段类型标注, 若与消息链, 消息元素无关则会直接把消息链用 asDisplay 转换为字符串.
 
     Args:
-        v (MessageChain): message chain
-        field (ModelField): ModelField
+        value (MessageChain): 消息链
+        field (ModelField): 当前的 model 字段
 
     Returns:
-        Union[MessageChain, Element, str]: Depending on type annotation
+        Union[MessageChain, Element, str]: 取决于字段类型标注
     """
     if field.type_ is MessageChain:
         return value

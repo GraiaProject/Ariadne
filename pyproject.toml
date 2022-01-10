@@ -88,6 +88,7 @@ disable = [
     "broad-except",
     "cyclic-import",
     "wrong-import-order", # isort conflict
+    "wrong-import-position",
     "unused-import", # flake8
     "invalid-name",
     "redefined-builtin",

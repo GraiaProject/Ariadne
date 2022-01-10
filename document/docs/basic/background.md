@@ -62,3 +62,7 @@ async def background(app: Ariadne):
 ```
 
 注意: 最好随着 `Ariadne` 生命周期一起清理后台任务, 否则我们无法担保你的事件循环会不会炸 (无法 Ctrl + C 退出等).
+
+!!! note "提示"
+
+    和其他监听器一样, 你的 `ApplicationLaunched` 监听器只会被运行一次, 所以最好将其作为一个循环运行.

@@ -41,15 +41,6 @@ from ..exception import (
 )
 from ..typing import P, R, T
 
-# Import layout
-from . import async_exec  # noqa: F401
-from .async_exec import (  # noqa: F401
-    IS_MAIN_PROCESS,
-    ParallelExecutor,
-    cpu_bound,
-    io_bound,
-)
-
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
     1: InvalidVerifyKey,
     2: AccountNotFound,
@@ -278,3 +269,13 @@ class Dummy:
 
     def __call__(self, *_, **__):
         return self
+
+
+# Import layout
+from . import async_exec  # noqa: F401, E402
+from .async_exec import (  # noqa: F401, E402
+    IS_MAIN_PROCESS,
+    ParallelExecutor,
+    cpu_bound,
+    io_bound,
+)

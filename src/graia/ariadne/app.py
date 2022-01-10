@@ -1174,6 +1174,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         adapter (Adapter): 后端适配器, 负责实际与 `mirai-api-http` 进行交互.
     """
 
+    loop: AbstractEventLoop
+    broadcast: Broadcast
+    adapter: Adapter
+    status: AriadneStatus
+
     def __init__(
         self,
         connect_info: Union[Adapter, MiraiSession],

@@ -5,6 +5,8 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from ..dispatcher import ContextDispatcher
+
 if typing.TYPE_CHECKING:
     from ..app import Ariadne
 
@@ -20,6 +22,9 @@ class ApplicationLifecycleEvent(Dispatchable):
         self.app = app
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+
+        mixin = [ContextDispatcher]
+
         @staticmethod
         async def catch(interface: "DispatcherInterface[ApplicationLifecycleEvent]"):
             from ..app import Ariadne

@@ -98,6 +98,7 @@ nav:
           - "basic/msg-chain.md"
           - "basic/configuration.md"
           - "basic/instance.md"
+          - "basic/background.md"
       - "进阶":
           - "advance/msg-chain.md"
           - "advance/base-parser.md"

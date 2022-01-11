@@ -215,6 +215,9 @@ class Friend(AriadneBaseModel):
     nickname: str
     remark: str
 
+    def __int__(self):
+        return self.id
+
 
 class Stranger(AriadneBaseModel):
     """描述 Tencent QQ 中的陌生人."""
@@ -222,6 +225,9 @@ class Stranger(AriadneBaseModel):
     id: int
     nickname: str
     remark: str
+
+    def __int__(self):
+        return self.id
 
 
 class MemberPerm(Enum):
@@ -239,6 +245,9 @@ class Group(AriadneBaseModel):
     name: str
     accountPerm: MemberPerm = Field(..., alias="permission")
 
+    def __int__(self):
+        return self.id
+
 
 class Member(AriadneBaseModel):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
@@ -251,6 +260,9 @@ class Member(AriadneBaseModel):
     lastSpeakTimestamp: Optional[int] = None
     mutetimeRemaining: Optional[int] = None
     group: Group
+
+    def __int__(self):
+        return self.id
 
 
 class GroupConfig(AriadneBaseModel):

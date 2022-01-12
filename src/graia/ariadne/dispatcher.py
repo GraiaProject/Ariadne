@@ -72,13 +72,13 @@ class MiddlewareDispatcher(BaseDispatcher):
 
     async def beforeExecution(self, interface: DispatcherInterface):
         """进入事件分发上下文"""
-        lc: ContextLC = interface.execution_contexts[-1].local_storage
+        lc: ContextLC = interface.execution_contexts[-1].local_storage  # type: ignore
         lc["__CONTEXT_MANAGER__"] = enter_context(self.app, interface.event)
         lc["__CONTEXT_MANAGER__"].__enter__()
 
     async def afterExecution(self, interface: DispatcherInterface, *_):
         """退出事件分发上下文"""
-        lc: ContextLC = interface.execution_contexts[-1].local_storage
+        lc: ContextLC = interface.execution_contexts[-1].local_storage  # type: ignore
         lc["__CONTEXT_MANAGER__"].__exit__(None, None, None)
 
 

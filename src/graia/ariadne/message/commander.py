@@ -23,6 +23,7 @@ from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
 from ..model import AriadneBaseModel
+from ..util import resolve_dispatchers_mixin
 from .chain import MessageChain
 from .element import Element
 from .parser.twilight import ArgumentMatch, ParamMatch, Sparkle, Twilight
@@ -51,10 +52,9 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
         assert isinstance(value[0], field.type_)
         return value[0]
     if isinstance(value, MessageChain):
-        value = value.asDisplay()
+        return value.asDisplay()
     if not value:
-        value = field.default
-    return value
+        return field.default
 
 
 class Slot:
@@ -295,11 +295,13 @@ class Commander:
                     self.broadcast.Executor(
                         ExecTarget(
                             cmd_ref.func,
-                            inline_dispatchers=[
-                                CommanderDispatcher(param_result),
-                                ContextDispatcher(),
-                                *cmd_ref.dispatchers,
-                            ],
+                            inline_dispatchers=resolve_dispatchers_mixin(
+                                [
+                                    CommanderDispatcher(param_result),
+                                    ContextDispatcher(),
+                                    *cmd_ref.dispatchers,
+                                ]
+                            ),
                             decorators=list(cmd_ref.decorators),
                         )
                     )

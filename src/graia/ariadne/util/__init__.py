@@ -9,7 +9,10 @@ import traceback
 import warnings
 from asyncio.events import AbstractEventLoop
 from typing import (
+    TYPE_CHECKING,
+    Any,
     AsyncIterator,
+    Awaitable,
     Callable,
     Coroutine,
     Dict,
@@ -26,7 +29,9 @@ from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
 from graia.broadcast.typing import T_Dispatcher
+from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
+from typing_extensions import Concatenate
 
 from ..exception import (
     AccountMuted,
@@ -40,6 +45,9 @@ from ..exception import (
     UnVerifiedSession,
 )
 from ..typing import P, R, T
+
+if TYPE_CHECKING:
+    from ..app import Ariadne
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
     1: InvalidVerifyKey,
@@ -55,7 +63,7 @@ code_exceptions_mapping: Dict[int, Type[Exception]] = {
 }
 
 
-def validate_response(code: Union[dict, int]):
+def validate_response(code: Union[Dict[str, Union[int, Any]], int]):
     """验证远程服务器的返回值
 
     Args:
@@ -64,15 +72,16 @@ def validate_response(code: Union[dict, int]):
     Raises:
         Exception: 请参照 code_exceptions_mapping
     """
-    origin = code
     if isinstance(code, dict):
-        code = code.get("code")
-    if not isinstance(code, int) or code == 200 or code == 0:
+        int_code = code.get("code")
+    else:
+        int_code = code
+    if not isinstance(int_code, int) or int_code == 200 or int_code == 0:
         return
-    exc_cls = code_exceptions_mapping.get(code)
+    exc_cls = code_exceptions_mapping.get(int_code)
     if exc_cls:
         raise exc_cls(exc_cls.__doc__)
-    raise UnknownError(f"{origin}")
+    raise UnknownError(f"{code}")
 
 
 def loguru_excepthook(cls, val, tb, *_, **__):
@@ -152,7 +161,9 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
-def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
+def app_ctx_manager(
+    func: Callable[Concatenate["Ariadne", P], Awaitable[R]]
+) -> Callable[Concatenate["Ariadne", P], Awaitable[R]]:
     """包装声明需要在 Ariadne Context 中执行的函数
 
     Args:
@@ -183,6 +194,8 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
     """
     yield cls
     for sub_cls in cls.__subclasses__():
+        if TYPE_CHECKING:
+            assert issubclass(sub_cls, cls)
         yield from gen_subclass(sub_cls)
 
 
@@ -234,7 +247,7 @@ async def yield_with_timeout(
             tsk.cancel()
 
 
-def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
+def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """标注一个方法 / 函数已被弃用
 
     Args:
@@ -244,9 +257,9 @@ def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
         Callable[[T_Callable], T_Callable]: 包装器.
     """
 
-    def out_wrapper(func: T_Callable) -> T_Callable:
+    def out_wrapper(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
             logger.warning(f"Deprecated function: {func.__qualname__}")
             logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
@@ -255,6 +268,21 @@ def deprecated(remove_ver: str) -> Callable[[T_Callable], T_Callable]:
         return wrapper
 
     return out_wrapper
+
+
+def resolve_dispatchers_mixin(dispatchers: List[T_Dispatcher]) -> List[T_Dispatcher]:
+    """解析 dispatcher list 的 mixin
+
+    Args:
+        dispatchers (List[T_Dispatcher]): dispatcher 列表
+
+    Returns:
+        List[T_Dispatcher]: 解析后的 dispatcher 列表
+    """
+    result = []
+    for dispatcher in dispatchers:
+        result.extend(dispatcher_mixin_handler(dispatcher))
+    return result
 
 
 class Dummy:

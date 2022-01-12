@@ -162,7 +162,7 @@ class ParamMatch(RegexMatch):
             alt_help=alt_help,
             preserve_space=preserve_space,
         )
-        self.tags: List[Union[int, str]] = tags
+        self.tags: List[Union[int, str]] = list(tags)
 
     def get_help(self) -> str:
         return "PARAM"
@@ -317,14 +317,14 @@ class ArgumentMatch(Match):
         const: Any = ...,
         default: Any = ...,
         type: Callable[[str], Any] = ...,
-        choices: Optional[Iterable] = ...,
-        help: Optional[str] = ...,
-        dest: Optional[str] = ...,
-        regex: Optional[str] = ...,
+        choices: Iterable = ...,
+        help: str = ...,
+        dest: str = ...,
+        regex: str = ...,
     ) -> None:
         if not pattern:
             raise ValueError("Expected at least 1 pattern!")
-        super().__init__(pattern, optional, help)
+        super().__init__(pattern, optional, help if help is not ... else "")
         self.nargs = nargs
         self.action = action
         self.const = const
@@ -376,11 +376,11 @@ class Sparkle(Representation):
 
     def __repr_args__(self):
         check = [(None, [item[0] for item in self._list_check_match])]
-        return (
-            check
-            + [(k, v) for k, (v, _) in self._mapping_regex_match.items()]
-            + list(self._mapping_arg_match.items())
-        )
+        return [
+            *check,
+            *[(k, v) for k, (v, _) in self._mapping_regex_match.items()],
+            *list(self._mapping_arg_match.items()),
+        ]
 
     @overload
     def __getitem__(self, item: Union[str, int]) -> Match:
@@ -688,7 +688,7 @@ class Sparkle(Representation):
                 match.matched = bool(current)
 
                 if isinstance(match, RegexMatch):
-                    match.regex_match = re.fullmatch(match.gen_regex(), current)
+                    match.regex_match = re.fullmatch(match.regex_src, current)
             return split(" ".join(arg_list)[regex_match.end() :])
         raise ValueError(f"Not matching regex: {self._check_pattern}")
 

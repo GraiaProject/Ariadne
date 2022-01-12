@@ -34,7 +34,7 @@ class ParallelExecutor:
     thread_exec: ThreadPoolExecutor
     proc_exec: ProcessPoolExecutor
     loop_ref_dict: ClassVar[Dict[AbstractEventLoop, "ParallelExecutor"]] = {}
-    func_mapping: ClassVar[Dict[str, Callable[P, R]]] = {}
+    func_mapping: ClassVar[Dict[str, Callable]] = {}
 
     def __init__(
         self,
@@ -92,7 +92,7 @@ class ParallelExecutor:
         self.proc_exec.shutdown()
 
     @classmethod
-    def run_func(cls, name: str, module: str, args: tuple, kwargs: dict) -> R:
+    def run_func(cls, name: str, module: str, args: tuple, kwargs: dict):
         """运行函数的实现
 
         Args:
@@ -108,11 +108,11 @@ class ParallelExecutor:
         return cls.func_mapping[name](*args, **kwargs)
 
     @classmethod
-    def run_func_static(cls, func: Callable[P, R], args: tuple, kwargs: dict) -> R:
+    def run_func_static(cls, func: Callable[..., R], args: tuple, kwargs: dict) -> R:
         """调用一个静态函数 (会自动解包装已被 ParallelExecutor 包装过的函数)
 
         Args:
-            func (Callable[P, R]): 要调用的函数
+            func (Callable[..., R]): 要调用的函数
             args (tuple): 位置参数
             kwargs (dict): 关键字参数
 
@@ -121,7 +121,7 @@ class ParallelExecutor:
         """
         if func.__qualname__ in cls.func_mapping:
             func = cls.func_mapping[func.__qualname__]
-        return func(*args, **kwargs)
+        return func(*args, **kwargs)  # type: ignore
 
     def to_thread(self, func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> Awaitable[R]:
         """在线程中异步运行 func 函数.

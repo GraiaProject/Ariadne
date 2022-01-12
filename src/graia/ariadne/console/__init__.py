@@ -20,6 +20,7 @@ from prompt_toolkit.styles import Style
 
 from ..dispatcher import ContextDispatcher
 from ..event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+from ..util import resolve_dispatchers_mixin
 
 
 class Console:
@@ -167,8 +168,13 @@ class Console:
             for func, dispatchers, decorators in self.registry:
                 try:
                     result = await self.broadcast.Executor(
-                        ExecTarget(func, [_Dispatcher(command, self), ContextDispatcher()] + dispatchers),
-                        decorators,
+                        ExecTarget(
+                            func,
+                            resolve_dispatchers_mixin(
+                                [_Dispatcher(command, self), ContextDispatcher(), *dispatchers]
+                            ),
+                            decorators,
+                        ),
                     )
                 except DisabledNamespace as e:
                     logger.exception(e)
@@ -193,7 +199,7 @@ class Console:
                 except ValueError:
                     pass
 
-                self.handler_id = logger.add(StdoutProxy(raw=True))
+                self.handler_id = logger.add(StdoutProxy(raw=True))  # type: ignore
 
             self.task = self.broadcast.loop.create_task(self.loop())
 

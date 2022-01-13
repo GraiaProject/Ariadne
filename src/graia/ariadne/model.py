@@ -3,7 +3,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from loguru import logger
 from pydantic import BaseModel, Field, validator
@@ -33,7 +33,7 @@ def datetime_encoder(v: datetime) -> float:
 class DatetimeEncoder(json.JSONEncoder):
     """可以编码 datetime 的 JSONEncoder"""
 
-    def default(self, o: Any) -> Any:
+    def default(self, o):
         if isinstance(o, datetime):
             return int(o.timestamp())
         return super().default(o)

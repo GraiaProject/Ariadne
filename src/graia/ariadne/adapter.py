@@ -15,14 +15,14 @@ from aiohttp.http_websocket import WebSocketError, WSMsgType
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.event import Dispatchable
 from loguru import logger
-from typing_extensions import Concatenate
+from typing_extensions import Concatenate, Self
 from yarl import URL
 
 from .event import MiraiEvent
 from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
 from .model import CallMethod, DatetimeEncoder, MiraiSession
-from .typing import P, R, Self
+from .typing import P, R
 from .util import await_predicate, validate_response, yield_with_timeout
 
 

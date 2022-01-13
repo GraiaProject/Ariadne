@@ -18,14 +18,12 @@ P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T")
 
-Self = TypeVar("Self")
-
 T_start = TypeVar("T_start")
 T_stop = TypeVar("T_stop")
 T_step = TypeVar("T_step")
 
 
-class Slice(Generic[T_start, T_stop, T_step]):
+class Slice(Generic[T_start, T_stop, T_step]):  # type: ignore
     """对 slice 对象的泛型化包装, 但无法直接继承于 slice"""
 
     start: T_start

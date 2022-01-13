@@ -108,3 +108,44 @@ assert MessageChain.fromMappingString(new_string, mapping) == MessageChain([Plai
     - remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
     - remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
     - remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
+
+## 元素安全性
+
+因为 `MessageChain` 是一个可变对象, 其底层的 `Element` 属性可以被修改, 所以自然可以这样做:
+
+```py
+>>> chain = MessageChain([Plain("hello"), At(12345)])
+>>> chain[1].target = 99999
+>>> chain
+MessageChain([Plain("hello"), At(99999)])
+```
+
+然后, 这样是 **预期行为** :
+
+```py
+>>> chain = MessageChain([Plain("Hello"), Plain("World"), At(12345)])
+>>> merged = chain.merge()
+>>> chain
+MessageChain([Plain(text='HelloWorld'), At(target=12345)])
+>>> merged[0].text = "test"
+>>> chain
+MessageChain([Plain(text='test'), At(target=12345)])
+```
+
+```py
+>>> chain = MessageChain([Plain("Hello"), Plain("World"), At(12345)])
+>>> merged = chain.merge(copy=True)
+>>> chain
+MessageChain([Plain(text='HelloWorld'), At(target=12345)])
+>>> merged[0].text = "test"
+>>> chain
+MessageChain([Plain(text='HelloWorld'), At(target=12345)])
+>>> merged
+MessageChain([Plain(text='test'), At(target=12345)])
+```
+
+原因很简单, `Ariadne` 的 `MessageChain` 是支持链式调用的, 所以 **所有对消息链的操作都会返回一个消息链引用** .
+
+自 `0.5.1` 起, 所有消息链的修改操作都支持布尔参数 `copy` (可能为仅关键字参数), `copy = True` 时会返回消息链的 **副本** (相当于在 `chain.copy()` 上操作),
+否则会返回自身的引用.
+

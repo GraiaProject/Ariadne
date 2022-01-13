@@ -44,7 +44,7 @@ ELEMENT_MAPPING: Dict[str, Type[Element]] = {
 
 class MessageChain(AriadneBaseModel):
     """
-    即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有继承了 Element 的各式类实例.
+    即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有元素实例.
     """
 
     __root__: List[Element]
@@ -103,6 +103,9 @@ class MessageChain(AriadneBaseModel):
         Args:
             *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
             字符串会被自动不可逆的转换为 `Plain`
+
+        Returns:
+            MessageChain: 创建的消息链
         """
 
         element_list = []
@@ -129,9 +132,7 @@ class MessageChain(AriadneBaseModel):
                 i.prepare()
             except NotSendableElement:
                 chain_ref.__root__.remove(i)
-        if copy:
-            return chain_ref
-        return self
+        return chain_ref
 
     def has(self, item: Union[Element, Type[Element], "MessageChain", str]) -> bool:
         """
@@ -144,7 +145,7 @@ class MessageChain(AriadneBaseModel):
             bool: 判断结果
         """
         if isinstance(item, str):
-            item = MessageChain([Plain(item)], inline=True)
+            return Plain(item) in self.merge(copy=True).__root__
         if isinstance(item, Element):
             return item in self.merge(copy=True).__root__
         if isinstance(item, type):
@@ -370,7 +371,7 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 返回的消息链中不包含参数中给出的消息元素类型
         """
-        return MessageChain([i for i in self.__root__ if type(i) not in types], inline=True)
+        return MessageChain([i for i in self.copy().__root__ if type(i) not in types], inline=True)
 
     def include(self, *types: Type[Element]) -> "MessageChain":
         """将只在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
@@ -381,7 +382,7 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 返回的消息链中只包含参数中给出的消息元素类型
         """
-        return MessageChain([i for i in self.__root__ if type(i) in types], inline=True)
+        return MessageChain([i for i in self.copy().__root__ if type(i) in types], inline=True)
 
     def split(self, pattern: str = " ", raw_string: bool = False) -> List["MessageChain"]:
         """和 `str.split` 差不多, 提供一个字符串, 然后返回分割结果.
@@ -486,13 +487,22 @@ class MessageChain(AriadneBaseModel):
         self.__root__ = result
         return self
 
-    def append(self, element: Union[Element, str]) -> None:
+    def append(self, element: Union[Element, str], copy: bool = False) -> "MessageChain":
         """
         向消息链最后追加单个元素
+
+        Args:
+            element (Element): 要添加的元素
+            copy (bool): 是否要在副本上修改.
+
+        Returns:
+            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
         """
+        chain_ref = self.copy() if copy else self
         if isinstance(element, str):
             element = Plain(element)
-        self.__root__.append(element)
+        chain_ref.__root__.append(element)
+        return chain_ref
 
     def extend(
         self,
@@ -501,8 +511,9 @@ class MessageChain(AriadneBaseModel):
     ) -> "MessageChain":
         """
         向消息链最后添加元素/元素列表/消息链
+
         Args:
-            *content (Union[MessageChain, Element, List[Element]])：要添加的元素/元素容器.
+            *content (Union[MessageChain, Element, List[Element]]): 要添加的元素/元素容器.
             copy (bool): 是否要在副本上修改.
 
         Returns:
@@ -530,6 +541,7 @@ class MessageChain(AriadneBaseModel):
     def copy(self) -> "MessageChain":
         """
         拷贝本消息链.
+
         Returns:
             MessageChain: 拷贝的副本.
         """
@@ -538,6 +550,13 @@ class MessageChain(AriadneBaseModel):
     def index(self, element_type: Type[Element_T]) -> Union[int, None]:
         """
         寻找第一个特定类型的元素, 并返回其下标.
+
+        Args:
+            element_type (Type[Element]): 元素或元素类型
+
+        Returns:
+            Optional[int]: 元素下标, 若未找到则为 None.
+
         """
         for i, e in enumerate(self.__root__):
             if isinstance(e, element_type):
@@ -547,6 +566,12 @@ class MessageChain(AriadneBaseModel):
     def count(self, element: Union[Type[Element_T], Element_T]) -> int:
         """
         统计共有多少个指定的元素.
+
+        Args:
+            element (Type[Element] | Element): 元素或元素类型
+
+        Returns:
+            int: 元素数量
         """
         if isinstance(element, Element):
             return sum(i == element for i in self.__root__)

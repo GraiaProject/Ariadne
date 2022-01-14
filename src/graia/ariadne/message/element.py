@@ -266,7 +266,7 @@ class App(Element):
         return "[APP消息]"
 
 
-class PokeMethods(Enum):
+class PokeMethods(str, Enum):
     """戳一戳可用方法"""
 
     ChuoYiChuo = "ChuoYiChuo"
@@ -291,9 +291,9 @@ class Poke(Element):
     """表示消息中戳一戳消息元素"""
 
     type = "Poke"
-    name: PokeMethods
+    name: Union[str, PokeMethods]
 
-    def __init__(self, name: PokeMethods, *_, **__) -> None:
+    def __init__(self, name: Union[str, PokeMethods], *_, **__) -> None:
         super().__init__(name=name)
 
     def asDisplay(self) -> str:

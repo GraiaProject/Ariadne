@@ -31,7 +31,7 @@ class Slice(Generic[T_start, T_stop, T_step]):  # type: ignore
     step: T_step
 
 
-MessageIndex = Tuple[int, Optional[int]]
+MessageIndex = Union[Tuple[int, Optional[int]], int]
 
 IntStr = Union[int, str]
 AbstractSetIntStr = AbstractSet[IntStr]

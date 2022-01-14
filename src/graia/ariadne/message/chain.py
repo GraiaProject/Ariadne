@@ -274,7 +274,10 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 分片后得到的新消息链, 绝对是原消息链的子集.
         """
-
+        if isinstance(item.start, int) and isinstance(item.stop, int):
+            return MessageChain(self.__root__[item], inline=True)
+        if isinstance(item.start, tuple) and isinstance(item.stop, tuple):
+            raise TypeError("f{item} is neither int slice nor tuple slice.")
         result = self.merge(copy=True).__root__[
             item.start[0] if item.start else None : item.stop[0] if item.stop else None
         ]

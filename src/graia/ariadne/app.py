@@ -17,6 +17,7 @@ from typing import (
     Tuple,
     Type,
     Union,
+    cast,
 )
 
 from graia.broadcast import Broadcast
@@ -50,6 +51,7 @@ from .model import (
     Profile,
     UploadMethod,
 )
+from .typing import SendMessageAction, SendMessageDict, SendMessageException
 from .util import (
     app_ctx_manager,
     await_predicate,
@@ -57,6 +59,7 @@ from .util import (
     inject_loguru_traceback,
     yield_with_timeout,
 )
+from .util.send import strict
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -79,6 +82,8 @@ class AriadneMixin:
 
 class MessageMixin(AriadneMixin):
     """用于发送, 撤回, 获取消息的 Mixin 类."""
+
+    default_action: SendMessageAction
 
     @app_ctx_manager
     async def getMessageFromId(self, messageId: int) -> MessageEvent:
@@ -237,7 +242,8 @@ class MessageMixin(AriadneMixin):
         message: MessageChain,
         *,
         quote: Union[bool, int, Source] = False,
-    ) -> BotMessage:
+        action: SendMessageAction["T"] = ...,
+    ) -> "T":
         """
         依据传入的 `target` 自动发送消息.
         请注意发送给群成员时会自动作为临时消息发送.
@@ -247,10 +253,14 @@ class MessageMixin(AriadneMixin):
             message (MessageChain): 要发送的消息链.
             quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息,
             否则会视为 `messageId` 处理.
+            action (SendMessageCaller[T], optional): 消息发送的处理 action, 可以在 graia.ariadne.util.send 查看自带的 action,
+            未传入使用默认 action
 
         Returns:
+            T: 默认实现为 Optional[BotMessage] (None 代表失败了)
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         """
+        action = action if action is not ... else self.default_action
         data = {"message": message}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
@@ -264,14 +274,24 @@ class MessageMixin(AriadneMixin):
             data["target"] = target.sender
         else:  # target: sender
             data["target"] = target
+        send_data: SendMessageDict = SendMessageDict(**data)
         # send message
-        if isinstance(data["target"], Friend):
-            return await self.sendFriendMessage(**data)
-        if isinstance(data["target"], Group):
-            return await self.sendGroupMessage(**data)
-        if isinstance(data["target"], Member):
-            return await self.sendTempMessage(**data)
-        raise NotImplementedError(f"Unable to send message with {target} as target.")
+        data = await action(send_data)
+
+        try:
+            if isinstance(data["target"], Friend):
+                val = await self.sendFriendMessage(**data)
+            elif isinstance(data["target"], Group):
+                val = await self.sendGroupMessage(**data)
+            elif isinstance(data["target"], Member):
+                val = await self.sendTempMessage(**data)
+            else:
+                raise NotImplementedError(f"Unable to send message with {target} as target.")
+        except Exception as e:
+            e.send_data = send_data
+            return await action(cast(SendMessageException, e))
+        else:
+            return await action(val)
 
     @app_ctx_manager
     async def sendNudge(
@@ -1184,6 +1204,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         *,
         loop: Optional[AbstractEventLoop] = None,
         broadcast: Optional[Broadcast] = None,
+        default_action: SendMessageAction = strict,
         max_retry: int = -1,
         chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
         use_loguru_traceback: Optional[bool] = True,
@@ -1198,6 +1219,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             connect_info (Union[Adapter, MiraiSession]) 提供与 `mirai-api-http` 交互的信息.
             loop (AbstractEventLoop, optional): 事件循环.
             broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
+            default_action (SendMessageAction, optional): sendMessage 方法的默认 action, 未配置则为 strict.
             chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
             设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
@@ -1240,6 +1262,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
         chat_log_enabled = chat_log_config is not False
         self.chat_log_cfg: ChatLogConfig = chat_log_config or ChatLogConfig(enabled=chat_log_enabled)
+
+        self.default_action = default_action
 
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)
@@ -1311,11 +1335,14 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                                 self.broadcast.postEvent(event)
                         else:
                             self.broadcast.postEvent(event)
+            except asyncio.exceptions.TimeoutError:
+                logger.critical("Timeout when connecting to mirai-api-http. Configuration problem?")
             except Exception as e:
                 logger.exception(e)
             self.broadcast.postEvent(AdapterShutdowned(self))
             if retry_cnt == self.max_retry:
-                logger.critical(f"Max retry exceeded: {self.max_retry}")
+                logger.critical(f"Max retry exceeded: {self.max_retry}. Stop Ariadne.")
+                logger.warning("Press Ctrl-C to confirm exit.")
                 break
             if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
                 if not self.adapter.session_activated:

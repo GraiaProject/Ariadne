@@ -406,6 +406,9 @@ class File(Element):
     def asPersistentString(self) -> str:
         return ""
 
+    def prepare(self) -> None:
+        raise NotSendableElement
+
 
 class MiraiCode(Element):
     """Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口."""

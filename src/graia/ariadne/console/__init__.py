@@ -77,6 +77,9 @@ class Console:
         self.handler_id: int = 0
         self.replace_logger: bool = replace_logger
 
+        logger.warning("Please note that console is NOT STABLE.")
+        logger.warning("Use it at your own risk.")
+
     def data_getter(self) -> Dict[str, Any]:
         """返回用于 prompt 的数据
 

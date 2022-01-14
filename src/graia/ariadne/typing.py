@@ -1,5 +1,6 @@
 """Ariadne 的类型标注"""
 from typing import (
+    TYPE_CHECKING,
     AbstractSet,
     Any,
     Dict,
@@ -8,11 +9,17 @@ from typing import (
     Optional,
     Sequence,
     Tuple,
+    TypedDict,
     TypeVar,
     Union,
+    overload,
 )
 
 from typing_extensions import ParamSpec
+
+if TYPE_CHECKING:
+    from .message.chain import MessageChain
+    from .model import BotMessage, Friend, Group, Member
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -39,3 +46,34 @@ DictIntStrAny = Dict[IntStr, Any]
 DictStrAny = Dict[str, Any]
 MappingIntStrAny = Mapping[IntStr, Any]
 ReprArgs = Sequence[Tuple[Optional[str], Any]]
+
+
+class SendMessageDict(TypedDict):
+    """使用 SendMessage 时, 对 action 传入的字典"""
+
+    message: "MessageChain"
+    target: "Union[Group, Friend, Member]"
+    quote: Optional[int]
+
+
+if TYPE_CHECKING:
+
+    class SendMessageException(Exception):
+        """携带了 SendMessageDict 的 Exception"""
+
+        send_data: SendMessageDict
+
+else:
+    SendMessageException = Exception
+
+
+class SendMessageAction(Generic[T]):
+    """表示 SendMessage 的 action"""
+
+    @overload
+    async def __call__(self, item: SendMessageDict) -> SendMessageDict:
+        ...
+
+    @overload
+    async def __call__(self, item: Union["BotMessage", SendMessageException]) -> T:
+        ...

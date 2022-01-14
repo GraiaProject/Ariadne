@@ -4,6 +4,7 @@ from devtools import debug
 from graia.broadcast import Broadcast
 from loguru import logger
 
+from graia.ariadne.console import Console
 from graia.ariadne.entry import *
 from graia.ariadne.entry.message import *
 

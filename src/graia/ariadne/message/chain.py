@@ -421,20 +421,23 @@ class MessageChain(AriadneBaseModel):
     def __iter__(self) -> Iterator[Element]:
         return iter(self.__root__)
 
-    def startswith(self, string: str) -> bool:
+    def startswith(self, string: str, ignore_header: bool = True) -> bool:
         """
         判定消息链是否以相应字符串开头
 
         Args:
             string (str): 需要判断的字符串
+            ignore_header(bool): 是否忽略元数据
 
         Returns:
             bool: 是否以此字符串开头
         """
 
-        if not self.__root__ or not isinstance(self.__root__[0], Plain):
+        ref_root = self.asSendable().__root__ if ignore_header else self.__root__
+
+        if not ref_root or not isinstance(ref_root[0], Plain):
             return False
-        return self.__root__[0].text.startswith(string)
+        return ref_root[0].text.startswith(string)
 
     def endswith(self, string: str) -> bool:
         """

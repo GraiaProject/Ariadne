@@ -1060,7 +1060,7 @@ class FileMixin(AriadneMixin):
     async def uploadFile(
         self,
         data: bytes,
-        method: UploadMethod = None,
+        method: Union[str, UploadMethod] = None,
         target: Union[Friend, Group, int] = -1,
         path: str = "",
         name: str = "",
@@ -1070,7 +1070,7 @@ class FileMixin(AriadneMixin):
         上传目标, (可选)上传目录ID.
         Args:
             data (bytes): 文件的原始数据
-            method (UploadMethod, optional): 文件的上传类型
+            method (str | UploadMethod, optional): 文件的上传类型
             target (Union[Friend, Group, int]): 文件上传目标, 即群组
             path (str): 目标路径, 默认为根路径.
             name (str): 文件名, 可选, 若 path 存在斜杠可从 path 推断.
@@ -1078,13 +1078,12 @@ class FileMixin(AriadneMixin):
             FileInfo: 文件信息
         """
 
-        method = method or UploadMethod[target.__class__.__name__]
+        method = str(method or UploadMethod[target.__class__.__name__]).lower()
 
-        if method != UploadMethod.Group or isinstance(target, Friend):
+        if method != "group":
             raise NotImplementedError(f"Not implemented for {method}")
 
-        target = target.id if isinstance(target, Friend) else target
-        target = target.id if isinstance(target, Group) else target
+        target = target.id if isinstance(target, (Friend, Group)) else target
 
         if "/" in path and not name:
             path, name = path.rsplit("/", 1)
@@ -1094,7 +1093,7 @@ class FileMixin(AriadneMixin):
             CallMethod.MULTIPART,
             {
                 "sessionKey": self.session_key,
-                "type": method.value,
+                "type": method,
                 "target": str(target),
                 "path": path,
                 "file": (data, {"filename": name} if name else {}),
@@ -1108,25 +1107,25 @@ class MultimediaMixin(AriadneMixin):
     """用于与多媒体信息交互的 Mixin 类."""
 
     @app_ctx_manager
-    async def uploadImage(self, data: bytes, method: UploadMethod = None) -> "Image":
+    async def uploadImage(self, data: bytes, method: Union[str, UploadMethod] = None) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
         Args:
             image_bytes (bytes): 图片的原始数据
-            method (UploadMethod): 图片的上传类型, 可从上下文推断
+            method (str | UploadMethod, optional): 图片的上传类型, 可从上下文推断
         Returns:
             Image: 生成的图片消息元素
         """
         from .context import upload_method_ctx
         from .message.element import Image
 
-        method = method or upload_method_ctx.get()
+        method = str(method or upload_method_ctx.get()).lower()
 
         result = await self.adapter.call_api(
             "uploadImage",
             CallMethod.MULTIPART,
             {
                 "sessionKey": self.session_key,
-                "type": method.value,
+                "type": method,
                 "img": data,
             },
         )
@@ -1134,25 +1133,25 @@ class MultimediaMixin(AriadneMixin):
         return Image.parse_obj(result)
 
     @app_ctx_manager
-    async def uploadVoice(self, data: bytes, method: UploadMethod = None) -> "Voice":
+    async def uploadVoice(self, data: bytes, method: Union[str, UploadMethod] = None) -> "Voice":
         """上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
         Args:
             data (bytes): 语音的原始数据
-            method (UploadMethod): 语音的上传类型, 可从上下文推断
+            method (str | UploadMethod, optional): 语音的上传类型, 可从上下文推断
         Returns:
             Voice: 生成的语音消息元素
         """
         from .context import upload_method_ctx
         from .message.element import Voice
 
-        method = method or upload_method_ctx.get()
+        method = str(method or upload_method_ctx.get()).lower()
 
         result = await self.adapter.call_api(
             "uploadVoice",
             CallMethod.MULTIPART,
             {
                 "sessionKey": self.session_key,
-                "type": method.value,
+                "type": method,
                 "voice": data,
             },
         )

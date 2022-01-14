@@ -54,7 +54,8 @@ regex = "^2021.11.10"
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna"]
-full = ["graia-saya", "graia-scheduler"]
+graia = ["graia-saya", "graia-scheduler"]
+full = ["graia-saya", "graia-scheduler", "arclet-alconna"]
 document = ["mkdocs-material", "pdoc"]
 
 [tool.poetry.dev-dependencies]

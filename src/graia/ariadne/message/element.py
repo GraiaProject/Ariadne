@@ -266,7 +266,7 @@ class App(Element):
         return "[APP消息]"
 
 
-class PokeMethods(Enum):
+class PokeMethods(str, Enum):
     """戳一戳可用方法"""
 
     ChuoYiChuo = "ChuoYiChuo"

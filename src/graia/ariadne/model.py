@@ -230,7 +230,7 @@ class Stranger(AriadneBaseModel):
         return self.id
 
 
-class MemberPerm(Enum):
+class MemberPerm(str, Enum):
     """描述群成员在群组中所具备的权限"""
 
     Member = "MEMBER"  # 普通成员
@@ -319,7 +319,7 @@ class FileInfo(AriadneBaseModel):
 FileInfo.update_forward_refs(FileInfo=FileInfo)
 
 
-class UploadMethod(Enum):
+class UploadMethod(str, Enum):
     """用于向 `upload` 系列方法描述上传类型"""
 
     Friend = "friend"
@@ -327,7 +327,7 @@ class UploadMethod(Enum):
     Temp = "temp"
 
 
-class CallMethod(Enum):
+class CallMethod(str, Enum):
     """
     用于向 `Adapter.call_api` 指示操作类型.
     """

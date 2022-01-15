@@ -177,6 +177,8 @@ def app_ctx_manager(
     async def wrapper(self, *args: P.args, **kwargs: P.kwargs):
         from ..context import enter_context
 
+        sys.audit("CallAriadneAPI", func.__name__, args, kwargs)
+
         with enter_context(app=self):
             return await func(self, *args, **kwargs)
 

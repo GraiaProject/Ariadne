@@ -914,5 +914,11 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             return sparkle
         if issubclass(interface.annotation, Twilight):
             return self
-        if issubclass(interface.annotation, Match):
-            return sparkle.get_match(interface.name)
+        try:
+            match = sparkle.get_match(interface.name)
+            if issubclass(interface.annotation, Match):
+                return match
+            if issubclass(interface.annotation, type(match.result)):
+                return match.result
+        except KeyError:
+            pass

@@ -12,7 +12,6 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
-    overload,
 )
 
 from typing_extensions import ParamSpec
@@ -67,13 +66,41 @@ else:
     SendMessageException = Exception
 
 
-class SendMessageAction(Generic[T]):
+class SendMessageAction(Generic[T, R]):
     """表示 SendMessage 的 action"""
 
-    @overload
-    async def __call__(self, item: SendMessageDict) -> SendMessageDict:
-        ...
+    @staticmethod
+    async def param(item: SendMessageDict, /) -> SendMessageDict:
+        """传入 SendMessageDict 作为参数, 传出 SendMessageDict 作为结果
 
-    @overload
-    async def __call__(self, item: Union["BotMessage", SendMessageException]) -> T:
-        ...
+        Args:
+            item (SendMessageDict): 调用参数
+
+        Returns:
+            SendMessageDict: 修改后的调用参数
+        """
+        return item
+
+    @staticmethod
+    async def result(item: "BotMessage", /) -> R:
+        """处理返回结果
+
+        Args:
+            item (BotMessage): SendMessage 成功时的结果
+
+        Returns:
+            R: 要实际由 SendMessage 返回的数据
+        """
+        return item
+
+    @staticmethod
+    async def exception(item: SendMessageException, /) -> T:
+        """发生异常时进行处理，可以选择不返回而是直接引发异常
+
+        Args:
+            item (SendMessageException): 发生的异常
+
+        Returns:
+            T: 将作为 sendMessage 的返回值
+        """
+        raise item

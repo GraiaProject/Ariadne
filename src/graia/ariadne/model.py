@@ -80,16 +80,29 @@ class ChatLogConfig:
     """配置日志如何记录 QQ 消息与事件."""
 
     enabled: bool = True
+    """是否开启聊天日志"""
+
     log_level: str = "INFO"
+    """聊天日志的 log 等级"""
+
     group_message_log_format: str = (
         "{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -> {message_string}"
     )
+    """群消息格式"""
+
     friend_message_log_format: str = "{bot_id}: [{friend_name}({friend_id})] -> {message_string}"
+    """好友消息格式"""
+
     temp_message_log_format: str = (
         "{bot_id}: [{group_name}({group_id}).{member_name}({member_id})] -> {message_string}"
     )
+    """临时消息格式"""
+
     other_client_message_log_format: str = "{bot_id}: [{platform_name}({platform_id})] -> {message_string}"
+    """其他客户端消息格式"""
+
     stranger_message_log_format: str = "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
+    """陌生人消息格式"""
 
     def initialize(self, app: "Ariadne"):
         """利用 Ariadne 对象注册事件日志处理器"""
@@ -180,11 +193,22 @@ class MiraiSession(AriadneBaseModel):
     """
 
     host: AnyHttpUrl
+    """链接地址, 以 http 开头"""
+
     single_mode: bool = False
+    """mirai-console 是否开启 single_mode (单例模式)"""
+
     account: Optional[int] = None
+    """账号"""
+
     verify_key: Optional[str] = None
+    """mirai-api-http 配置的 VerifyKey 字段"""
+
     session_key: Optional[str] = None
+    """会话标识"""
+
     version: Optional[str] = None
+    """mirai-api-http 的版本"""
 
     def __init__(
         self,
@@ -212,8 +236,13 @@ class Friend(AriadneBaseModel):
     """描述 Tencent QQ 中的好友."""
 
     id: int
+    """QQ 号"""
+
     nickname: str
+    """昵称"""
+
     remark: str
+    """自行设置的代称"""
 
     def __int__(self):
         return self.id
@@ -223,8 +252,13 @@ class Stranger(AriadneBaseModel):
     """描述 Tencent QQ 中的陌生人."""
 
     id: int
+    """QQ 号"""
+
     nickname: str
+    """昵称"""
+
     remark: str
+    """自行设置的代称"""
 
     def __int__(self):
         return self.id
@@ -242,8 +276,13 @@ class Group(AriadneBaseModel):
     """描述 Tencent QQ 中的群组."""
 
     id: int
+    """QQ 号"""
+
     name: str
+    """群名"""
+
     accountPerm: MemberPerm = Field(..., alias="permission")
+    """你在群中的权限"""
 
     def __int__(self):
         return self.id
@@ -253,13 +292,28 @@ class Member(AriadneBaseModel):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
 
     id: int
+    """QQ 号"""
+
     name: str = Field(..., alias="memberName")
+    """显示名称"""
+
     permission: MemberPerm
+    """群权限"""
+
     specialTitle: Optional[str] = None
+    """特殊头衔"""
+
     joinTimestamp: Optional[int] = None
+    """加入的时间"""
+
     lastSpeakTimestamp: Optional[int] = None
+    """最后发言时间"""
+
     mutetimeRemaining: Optional[int] = None
+    """禁言剩余时间"""
+
     group: Group
+    """所在群组"""
 
     def __int__(self):
         return self.id
@@ -269,43 +323,85 @@ class GroupConfig(AriadneBaseModel):
     """描述群组各项功能的设置."""
 
     name: str = ""
+    """群名"""
+
     announcement: str = ""
+    """群公告"""
+
     confessTalk: bool = False
+    """开启坦白说"""
+
     allowMemberInvite: bool = False
+    """允许群成员直接邀请入群"""
+
     autoApprove: bool = False
+    """自动通过加群申请"""
+
     anonymousChat: bool = False
+    """允许匿名聊天"""
 
 
 class MemberInfo(AriadneBaseModel):
     """描述群组成员的可修改状态, 修改需要管理员/群主权限."""
 
     name: str = ""
+    """昵称, 与 nickname不同"""
+
     specialTitle: str = ""
+    """特殊头衔"""
 
 
 class DownloadInfo(AriadneBaseModel):
     """描述一个文件的下载信息."""
 
     sha: str = ""
+    """文件 SHA256"""
+
     md5: str = ""
+    """文件 MD5"""
+
     download_times: int = Field(..., alias="downloadTimes")
+    """下载次数"""
+
     uploader_id: int = Field(..., alias="uploaderId")
+    """上传者 QQ 号"""
+
     upload_time: datetime = Field(..., alias="uploadTime")
+    """上传时间"""
+
     last_modify_time: datetime = Field(..., alias="lastModifyTime")
+    """最后修改时间"""
+
     url: Optional[str] = None
+    """下载 url"""
 
 
 class FileInfo(AriadneBaseModel):
     """群组文件详细信息"""
 
     name: str = ""
+    """文件名"""
+
     path: str = ""
+    """文件路径的字符串表示"""
+
     id: Optional[str] = ""
+    """文件 ID"""
+
     parent: Optional["FileInfo"] = None
+    """父文件夹的 FileInfo 对象, 没有则表示存在于根目录"""
+
     contact: Optional[Union[Group, Friend]] = None
+    """文件所在位置 (群组)"""
+
     is_file: bool = Field(..., alias="isFile")
+    """是否为文件"""
+
     is_directory: bool = Field(..., alias="isDirectory")
+    """是否为目录"""
+
     download_info: Optional[DownloadInfo] = Field(None, alias="downloadInfo")
+    """下载信息"""
 
     @validator("contact", pre=True, allow_reuse=True)
     def _(cls, val: Optional[dict]):
@@ -323,8 +419,13 @@ class UploadMethod(str, Enum):
     """用于向 `upload` 系列方法描述上传类型"""
 
     Friend = "friend"
+    """好友"""
+
     Group = "group"
+    """群组"""
+
     Temp = "temp"
+    """临时消息"""
 
 
 class CallMethod(str, Enum):
@@ -345,7 +446,10 @@ class Client(AriadneBaseModel):
     """
 
     id: int
+    """客户端 ID"""
+
     platform: str
+    """平台字符串表示"""
 
 
 class Profile(AriadneBaseModel):
@@ -354,11 +458,22 @@ class Profile(AriadneBaseModel):
     """
 
     nickname: str
+    """昵称"""
+
     email: Optional[str]
+    """电子邮件地址"""
+
     age: Optional[int]
+    """年龄"""
+
     level: int
+    """QQ 等级"""
+
     sign: str
+    """个性签名"""
+
     sex: Literal["UNKNOWN", "MALE", "FEMALE"]
+    """性别"""
 
 
 class BotMessage(AriadneBaseModel):
@@ -367,15 +482,26 @@ class BotMessage(AriadneBaseModel):
     """
 
     messageId: int
+    """消息 ID"""
 
     origin: Optional["MessageChain"]
+    """原始消息链 (发送的消息链)"""
 
 
 class AriadneStatus(Enum):
     """指示 Ariadne 状态的枚举类"""
 
     STOP = "stop"
+    """已停止"""
+
     LAUNCH = "launch"
+    """正在启动"""
+
     RUNNING = "running"
+    """正常运行"""
+
     SHUTDOWN = "shutdown"
+    """刚开始关闭"""
+
     CLEANUP = "cleanup"
+    """清理残留任务"""

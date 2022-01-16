@@ -1,12 +1,15 @@
 """Commander: 便捷的指令触发体系"""
 import inspect
+from contextlib import suppress
 from typing import (
     Any,
     Callable,
     Dict,
     List,
     NamedTuple,
+    Optional,
     Sequence,
+    Set,
     Type,
     TypeVar,
     Union,
@@ -23,11 +26,11 @@ from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
 from ..model import AriadneBaseModel
+from ..typing import T
 from ..util import resolve_dispatchers_mixin
 from .chain import MessageChain
 from .element import Element
-from .parser.twilight import ArgumentMatch, ParamMatch, Sparkle, Twilight
-from .parser.util import CommandToken, tokenize_command
+from .parser.util import CommandToken, split, tokenize_command
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
@@ -53,8 +56,21 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
         return value[0]
     if isinstance(value, MessageChain):
         return value.asDisplay()
-    if not value:
+    if value is None:
         return field.default
+    return value
+
+
+def const_call(val: T) -> Callable[[], T]:
+    """生成一个返回常量的 Callable
+
+    Args:
+        val (T): 常量
+
+    Returns:
+        Callable[[], T]: 返回的函数
+    """
+    return lambda: val
 
 
 class Slot:
@@ -69,6 +85,7 @@ class Slot:
         self.type = type
         self.default = default
         self.param_name: str = ""
+        self.model: Optional[BaseModel] = None
 
 
 class Arg:
@@ -83,41 +100,37 @@ class Arg:
         default_factory: Callable[[], Any] = ...,
     ) -> None:
         self.pattern: str = pattern
-        self.args: List[str] = []
+        self.params: List[str] = []
         self.tags: List[str] = []
-        self.param_name: str = ""
-        self.default_factory = (lambda: default) if default is not ... else default_factory
+        self.default_factory = const_call(default) if default is not ... else default_factory
+        self.param_name: Optional[str] = None
         if (default is ...) == (default_factory is ...):
             raise ValueError("default and default_factory is both empty / not empty!")
 
-        for index, (t_type, token_list) in enumerate(tokenize_command(pattern)):
-            if t_type is CommandToken.TEXT:
-                t_type = CommandToken.CHOICE  # it's a argument pattern at header
+        tokens = tokenize_command(pattern)
 
-            if t_type is CommandToken.CHOICE:
-                if index == 0:
-                    self.args = token_list
-                else:
-                    raise ValueError(
-                        """"Argument pattern can only be placed at head. """
-                        """Use "{" and "}" for placeholders."""
-                    )
+        if tokens[0][0] is CommandToken.PARAM:
+            raise ValueError("Required argument pattern!")
+
+        self.params = list(map(str, tokens[0][1]))
+
+        if any(not arg.startswith("-") for arg in self.params):
+            raise ValueError("Argument pattern should begin with a '-'!")
+
+        for t_type, token_list in tokens[1:]:
+            if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
+                raise ValueError(
+                    """"Argument pattern can only be placed at head. """
+                    """Use "{" and "}" for placeholders."""
+                )
             if t_type is CommandToken.PARAM:
                 if len(token_list) != 1:
                     raise ValueError("Arg doesn't support aliasing!")
+                if str(token_list[0]) in self.tags:
+                    raise ValueError("Duplicated tag!")
                 self.tags.append(str(token_list[0]))
 
-        if self.tags:
-            self.arg_match = ArgumentMatch(*self.args, nargs=len(self.tags))
-        else:
-            if default_factory is not ... or not isinstance(default, bool):
-                raise ValueError(
-                    "Boolean type Arg doesn't support default_factory / default value other than bool value!"
-                )
-            self.arg_match = ArgumentMatch(
-                *self.args, action={False: "store_true", True: "store_false"}[default]
-            )
-
+        self.nargs = len(self.tags)
         self.type = type
         self.model: Type[BaseModel] = ...
 
@@ -136,21 +149,33 @@ class Arg:
                 **{self.tags[0]: (type, ...)},
             )
 
-        if issubclass(type, BaseModel) and not issubclass(type, AriadneBaseModel):
+        if issubclass(type, BaseModel) and not issubclass(
+            type, AriadneBaseModel
+        ):  # filter MessageChain, Element, etc.
             self.model = type
 
         if self.model is ...:
             raise ValueError("You didn't supply a suitable type!")
 
 
-class CommanderReference(NamedTuple):
+class CommandReference(NamedTuple):
     """CommandReference NamedTuple"""
 
-    twilight: Twilight[Sparkle]
-    slot_map: Dict[Union[str, int], Union[Slot, Arg]]
+    token_list: "List[Set[str] | List[int | str]]"
+    slot_map: Dict[Union[str, int], Slot]
+    arg_map: Dict[str, Arg]
     func: Callable
     dispatchers: Sequence[BaseDispatcher]
     decorators: Sequence[Decorator]
+    last_optional: bool = False
+
+
+class CommandProcessData(NamedTuple):
+    """记录 Commander 处理时的临时数据"""
+
+    ref: CommandReference
+    param_data: Dict[Union[int, str], MessageChain]
+    arg_data: Dict[str, List[MessageChain]]
 
 
 class CommanderDispatcher(BaseDispatcher):
@@ -169,7 +194,7 @@ class Commander:
 
     def __init__(self, broadcast: Broadcast):
         self.broadcast = broadcast
-        self.refs: List[CommanderReference] = []
+        self.refs: List[CommandReference] = []
 
     def command(
         self,
@@ -191,6 +216,20 @@ class Commander:
             Callable[[T_Callable], T_Callable]: 装饰器
         """
 
+        token_list: "List[Set[str] | List[int | str]]" = []  # set: const, list: param
+
+        slot_names: Set[Union[int, str]] = set()
+
+        for t_type, tokens in tokenize_command(command):
+            if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
+                token_list.append(set(map(str, tokens)))
+            else:
+                token_list.append(tokens)
+                for param_name in tokens:
+                    if param_name in slot_names:
+                        raise ValueError("Duplicated parameter slot!")
+                    slot_names.add(param_name)
+
         def wrapper(func: T_Callable) -> T_Callable:
             """append func to self.refs"""
 
@@ -201,40 +240,88 @@ class Commander:
             for name, parameter in inspect.signature(func).parameters.items():
                 sig[name] = (parameter.annotation, parameter.default)
 
-            arg_match: List[ArgumentMatch] = []
-            slot_map: Dict[Union[Sequence[str], int, str], Union[Slot, Arg]] = {}
-            optional_slot: List[Union[str, int]] = []
+            slot_map: Dict[Union[int, str], Slot] = {}
+            arg_map: Dict[str, Arg] = {}
+            last_optional = False
             for param_name, arg in setting.items():  # ANCHOR: scan setting
-                # pylint: disable=cell-var-from-loop
                 arg.param_name = param_name
                 if isinstance(arg, Arg):
                     if arg.default_factory is ...:
                         if arg.param_name in sig and sig[arg.param_name][1] is not inspect.Signature.empty:
-                            arg.default_factory = lambda: sig[arg.param_name][1]
+                            arg.default_factory = const_call(sig[arg.param_name][1])
                         else:
-                            raise ValueError(f"Didn't find default for parameter {arg.param_name}")
-                    arg_match.append(arg.arg_match)
-                    slot_map[arg.arg_match.pattern] = arg
+                            raise ValueError(f"Didn't find default factory for parameter {arg.param_name}")
+                    for param in arg.params:
+                        if param in arg_map or param in slot_names:
+                            raise ValueError("Duplicated parameter pattern!")
+                        arg_map[param] = arg
+
                 elif isinstance(arg, Slot):
                     slot_map[arg.slot] = arg
                     if arg.default is not ...:
-                        optional_slot.append(arg.slot)
+                        if not isinstance(token_list[-1], list) or arg.slot not in token_list[-1]:
+                            raise ValueError("Optional slot can only be set on last parameter.")
+                        last_optional = True
                     if arg.type is ... and sig[arg.param_name][0] is not inspect.Signature.empty:
                         if arg.param_name in sig:
                             arg.type = sig[arg.param_name][0]
                         else:
                             arg.type = MessageChain
 
-            sparkle_root: Sparkle = Sparkle.from_command(command, arg_match, optional_slot)
-            if any(param.optional for param in sparkle_root[ParamMatch].__getitem__(slice(None, -1))):
-                raise ValueError("You can only set last parameter as optional.")
+                    arg.model = create_model(
+                        "SlotModel",
+                        __validators__={
+                            "validator": validator("*", pre=True, allow_reuse=True)(chain_validator)
+                        },
+                        val=(arg.type, arg.default),
+                    )
 
+                else:
+                    raise TypeError("Only Arg and Slot instances are allowed!")
             self.refs.append(
-                CommanderReference(Twilight(sparkle_root), slot_map, func, dispatchers, decorators)
+                CommandReference(token_list, slot_map, arg_map, func, dispatchers, decorators, last_optional)
             )
+
             return func
 
         return wrapper
+
+    @staticmethod
+    def resolve_result(pd: CommandProcessData) -> Dict[str, Any]:
+        """解析 CommandProcessData 并返回可用于 CommanderDispatcher 的数据
+
+        Args:
+            pd (CommandProcessData): Command 解析数据
+
+        Returns:
+            Dict[str, Any]: 返回的分发参数字典
+        """
+        param_result: Dict[str, Any] = {}
+        for arg in set(pd.ref.arg_map.values()):
+            value = arg.default_factory()
+            if arg.nargs:
+                if not isinstance(value, list):
+                    value = [value]
+                for param in arg.params:
+                    if param in pd.arg_data:
+                        value = dict(zip(arg.tags, pd.arg_data[param]))
+                        break
+                else:
+                    value = dict(zip(arg.tags, value))
+
+                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
+                    param_result[arg.param_name] = arg.model(**value).__dict__[arg.tags[0]]
+                else:
+                    param_result[arg.param_name] = arg.model(**value)
+
+            else:
+                if any(param in pd.arg_data for param in arg.params):
+                    value = not value
+                param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
+        for ind, slot in pd.ref.slot_map.items():
+            value = pd.param_data.get(ind, None) or slot.default
+            param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
+        return param_result
 
     def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -245,67 +332,54 @@ class Commander:
         Raises:
             ValueError: 消息链没有被任何一个命令处理器函数接受
         """
-        handled = False
 
-        for cmd_ref in self.refs:
-            slot_map = cmd_ref.slot_map
-            try:
-                sparkle = cmd_ref.twilight.generate(chain)
-                param_result: Dict[str, Any] = {}
+        mapping_str, elem_m = chain.asMappingString()
+        chain_args = split(mapping_str)
+        process_data: List[CommandProcessData] = [CommandProcessData(ref, {}, {}) for ref in self.refs]
 
-                for param_match in sparkle[ParamMatch]:
-                    for tag in param_match.tags:
-                        if tag not in slot_map:
-                            continue
+        for pd in reversed(process_data):  # starting from latest added
+            chain_index = 0
+            token_index = 0
+            with suppress(IndexError, ValueError):
+                while chain_index < len(chain_args):
+                    arg = chain_args[chain_index]
+                    chain_index += 1
+                    if arg in pd.ref.arg_map:  # Arg handle
+                        if arg in pd.arg_data:
+                            raise ValueError("Duplicated argument.")
+                        pd.arg_data[arg] = []
+                        for _ in range(pd.ref.arg_map[arg].nargs):
+                            pd.arg_data[arg].append(
+                                MessageChain.fromMappingString(chain_args[chain_index], elem_m)
+                            )
+                            chain_index += 1
 
-                        slot: Slot = slot_map[tag]
+                    else:  # Constant and Slot handle
+                        tokens = pd.ref.token_list[token_index]
+                        token_index += 1
+                        if isinstance(tokens, set) and arg not in tokens:
+                            raise ValueError("Mismatched constant.")
+                        if isinstance(tokens, list):
+                            for slot in tokens:
+                                pd.param_data[slot] = MessageChain.fromMappingString(arg, elem_m)
 
-                        slot_model = create_model(
-                            "SlotModel",
-                            __validators__={
-                                "validator": validator("*", pre=True, allow_reuse=True)(chain_validator)
-                            },
-                            val=(slot.type, slot.default),
-                        )
-                        value = slot_model(val=param_match.result).__dict__["val"]
+                if token_index < len(pd.ref.token_list) - (1 if pd.ref.last_optional else 0):
+                    continue
 
-                        param_result[slot.param_name] = value
-
-                for arg_match in sparkle[ArgumentMatch]:
-                    arg: Arg = slot_map[arg_match.pattern]
-                    value = arg.default_factory() if not arg_match.matched else arg_match.result
-                    if not arg.tags:  # boolean
-                        param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
-                    else:
-                        if not isinstance(value, list):
-                            value = [value]
-                        param_result[arg.param_name] = arg.model(**dict(zip(arg.tags, value)))
-                        if not (
-                            isinstance(arg.type, Type)
-                            and issubclass(arg.type, BaseModel)
-                            and not issubclass(arg.type, AriadneBaseModel)
-                        ):
-                            param_result[arg.param_name] = param_result[arg.param_name].__dict__[arg.tags[0]]
-            except ValueError:
-                continue
-            else:
-                handled = True
+                param_result = self.resolve_result(pd)
 
                 self.broadcast.loop.create_task(
                     self.broadcast.Executor(
                         ExecTarget(
-                            cmd_ref.func,
+                            pd.ref.func,
                             inline_dispatchers=resolve_dispatchers_mixin(
                                 [
                                     CommanderDispatcher(param_result),
                                     ContextDispatcher(),
-                                    *cmd_ref.dispatchers,
+                                    *pd.ref.dispatchers,
                                 ]
                             ),
-                            decorators=list(cmd_ref.decorators),
+                            decorators=list(pd.ref.decorators),
                         )
                     )
                 )
-
-        if not handled:
-            raise ValueError(f"{chain!r} is not handled!")

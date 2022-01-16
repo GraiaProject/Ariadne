@@ -1,5 +1,35 @@
 # 更改日志
 
+## 0.5.1
+
+### 添加
+
+实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76))
+
+`Ariadne.sendMessage` 支持通过 `action` 自定义行为. ([#75](https://github.com/GraiaProject/Ariadne/issues/75))
+
+支持 `MessageChain[int : int]` 格式的原始切片.
+
+支持对 `Friend` `Group` `Member` 等对象执行 `int` 以获取其 `id` 属性.
+
+`Ariadne` 的操作均会引发审计事件 (Audit Event): `CallAriadneAPI`, 带有 `api_name` `args` `kwargs` 三个参数. ([#74](https://github.com/GraiaProject/Ariadne/issues/74))
+
+`Ariadne` 收到的事件会额外引发 `AriadnePostRemoteEvent`, 携带 `event` 单个参数. ([#73](https://github.com/GraiaProject/Ariadne/issues/73))
+
+### 修复
+
+`MessageChain.endswith` 的行为异常 ([#68](https://github.com/GraiaProject/Ariadne/issues/68))
+
+消息元素中的戳一戳 (Poke) 无法发送 ([#77](https://github.com/GraiaProject/Ariadne/issues/77))
+
+`Commander` 与 `Console` 会自动解析 `dispatcher` 的 `mixin`.
+
+保证 `MessageChain` 元素对象安全性.
+
+### 弃用
+
+`Twilight` 中的 `ArgumentMatch` 若是位置匹配则会被静默替换为 `ParamMatch`. 在 `0.5.2` 中这样的构造方式会直接引发异常.
+
 ## 0.5.0
 
 ### 添加

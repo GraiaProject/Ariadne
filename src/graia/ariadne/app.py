@@ -3,6 +3,7 @@
 import asyncio
 import importlib.metadata
 import inspect
+import sys
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
@@ -1325,6 +1326,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                     ),
                 ):
                     with enter_context(self, event):
+                        sys.audit("AriadnePostRemoteEvent", event)
                         if isinstance(event, FriendEvent):
                             with enter_message_send_context(UploadMethod.Friend):
                                 self.broadcast.postEvent(event)

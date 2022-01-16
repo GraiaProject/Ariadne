@@ -33,6 +33,7 @@ class Element(AriadneBaseModel, abc.ABC):
     """
 
     type: str
+    """元素类型"""
 
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
@@ -84,7 +85,9 @@ class Plain(Element):
     """代表消息中的文本元素"""
 
     type: str = "Plain"
+
     text: str
+    """实际的文本"""
 
     def __init__(self, text: str, **kwargs) -> None:
         """实例化一个 Plain 消息元素, 用于承载消息中的文字.
@@ -105,8 +108,12 @@ class Source(Element):
     """表示消息在一个特定聊天区域内的唯一标识"""
 
     type: str = "Source"
+
     id: int
+    """消息 ID"""
+
     time: datetime
+    """发送时间"""
 
     def prepare(self) -> NoReturn:
         raise NotSendableElement
@@ -131,11 +138,21 @@ class Quote(Element):
     """表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"""
 
     type: str = "Quote"
+
     id: int
+    """引用的消息 ID"""
+
     groupId: int
+    """引用消息所在群号 (好友消息为 0)"""
+
     senderId: int
+    """发送者 QQ 号"""
+
     targetId: int
+    """原消息的接收者QQ号 (或群号) """
+
     origin: "MessageChain"
+    """原来的消息链"""
 
     @validator("origin", pre=True, allow_reuse=True)
     def _(cls, v):
@@ -154,8 +171,12 @@ class At(Element):
     """该消息元素用于承载消息中用于提醒/呼唤特定用户的部分."""
 
     type: str = "At"
+
     target: int
+    """At 的目标 QQ 号"""
+
     display: Optional[str] = None
+    """显示名称"""
 
     def __init__(self, target: Union[int, Member] = ..., **data) -> None:
         """实例化一个 At 消息元素, 用于承载消息中用于提醒/呼唤特定用户的部分.
@@ -211,8 +232,12 @@ class Face(Element):
     """表示消息中所附带的表情, 这些表情大多都是聊天工具内置的."""
 
     type: str = "Face"
+
     faceId: Optional[int] = None
+    """QQ 表情编号, 优先于 name"""
+
     name: Optional[str] = None
+    """QQ 表情名称"""
 
     def __init__(self, id: int = ..., name: str = ..., **data) -> None:
         if id is not ...:
@@ -222,7 +247,7 @@ class Face(Element):
         super().__init__(**data)
 
     def asDisplay(self) -> str:
-        return f"[表情:{f'{self.name}' if self.name else {self.faceId}}]"
+        return f"[表情: {self.name if self.name else self.faceId}]"
 
     def __eq__(self, other: "Face") -> bool:
         return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
@@ -232,7 +257,9 @@ class Xml(Element):
     """表示消息中的 XML 消息元素"""
 
     type = "Xml"
+
     xml: str
+    """XML文本"""
 
     def asDisplay(self) -> str:
         return "[XML消息]"
@@ -242,7 +269,9 @@ class Json(Element):
     """表示消息中的 JSON 消息元素"""
 
     type = "Json"
+
     Json: str = Field(..., alias="json")
+    """XML文本"""
 
     def __init__(self, json: Union[dict, str], **kwargs) -> None:
         if isinstance(json, dict):
@@ -260,7 +289,9 @@ class App(Element):
     """表示消息中自带的 App 消息元素"""
 
     type = "App"
+
     content: str
+    """App 内容"""
 
     def asDisplay(self) -> str:
         return "[APP消息]"
@@ -270,28 +301,61 @@ class PokeMethods(str, Enum):
     """戳一戳可用方法"""
 
     ChuoYiChuo = "ChuoYiChuo"
+    """戳一戳"""
+
     BiXin = "BiXin"
+    """比心"""
+
     DianZan = "DianZan"
+    """点赞"""
+
     XinSui = "XinSui"
+    """心碎"""
+
     LiuLiuLiu = "LiuLiuLiu"
+    """666"""
+
     FangDaZhao = "FangDaZhao"
+    """放大招"""
+
     BaoBeiQiu = "BaoBeiQiu"
+    """宝贝球"""
+
     Rose = "Rose"
+    """玫瑰花"""
+
     ZhaoHuanShu = "ZhaoHuanShu"
+    """召唤术"""
+
     RangNiPi = "RangNiPi"
+    """让你皮"""
+
     JeiYin = "JeiYin"
+    """结印"""
+
     ShouLei = "ShouLei"
+    """手雷"""
+
     GouYin = "GouYin"
+    """勾引"""
+
     ZhuaYiXia = "ZhuaYiXia"
+    """抓一下"""
+
     SuiPing = "SuiPing"
+    """碎屏"""
+
     QiaoMen = "QiaoMen"
+    """敲门"""
 
 
 class Poke(Element):
     """表示消息中戳一戳消息元素"""
 
     type = "Poke"
+
     name: PokeMethods
+    """戳一戳使用的方法"""
 
     def __init__(self, name: PokeMethods, *_, **__) -> None:
         super().__init__(name=name)
@@ -304,7 +368,9 @@ class Dice(Element):
     """表示消息中骰子消息元素"""
 
     type = "Dice"
+
     value: int
+    """骰子值"""
 
     def __init__(self, value: int, *_, **__) -> None:
         super().__init__(value=value)
@@ -333,10 +399,19 @@ class ForwardNode(AriadneBaseModel):
     """表示合并转发中的一个节点"""
 
     senderId: int
+    """发送者 QQ 号 (决定显示头像)"""
+
     time: datetime
+    """发送时间"""
+
     senderName: str
+    """发送者显示名字"""
+
     messageChain: Optional["MessageChain"]
+    """发送的消息链"""
+
     messageId: Optional[int]
+    """缓存的消息 ID"""
 
     def __init__(
         self,
@@ -372,7 +447,9 @@ class Forward(Element):
     """
 
     type = "Forward"
+
     nodeList: List[ForwardNode]
+    """转发节点列表"""
 
     def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -> None:
         if nodes:
@@ -396,9 +473,15 @@ class File(Element):
     """指示一个文件信息元素"""
 
     type = "File"
+
     id: str
+    """文件 ID"""
+
     name: str
+    """文件名"""
+
     size: int
+    """文件大小"""
 
     def asDisplay(self) -> str:
         return f"[文件:{self.name}]"
@@ -414,16 +497,25 @@ class MiraiCode(Element):
     """Mirai 码, 并不建议直接使用. Ariadne 也不会提供互转换接口."""
 
     type = "MiraiCode"
+
     code: str
+    """Mirai Code"""
 
 
 class ImageType(Enum):
     """Image 类型的枚举."""
 
     Friend = "Friend"
+    """好友消息"""
+
     Group = "Group"
+    """群组消息"""
+
     Temp = "Temp"
+    """临时消息"""
+
     Unknown = "Unknown"
+    """未知消息"""
 
 
 image_upload_method_type_map = {
@@ -437,8 +529,13 @@ class MultimediaElement(Element):
     """指示多媒体消息元素."""
 
     id: Optional[str]
+    """元素 ID"""
+
     url: Optional[str] = None
+    """元素的下载 url"""
+
     base64: Optional[str] = None
+    """元素的 base64"""
 
     def __init__(
         self,
@@ -515,7 +612,7 @@ class MultimediaElement(Element):
 
     @property
     def uuid(self):
-        """返回多媒体元素的 uuid, 即元素在 mirai 内部的标识"""
+        """多媒体元素的 uuid, 即元素在 mirai 内部的标识"""
         if self.id:
             return self.id.split(".")[0].strip("/{}").lower()
         return ""
@@ -536,6 +633,7 @@ class Image(MultimediaElement):
     """指示消息中的图片元素"""
 
     type = "Image"
+
     id: Optional[str] = Field(None, alias="imageId")
 
     def toFlashImage(self) -> "FlashImage":
@@ -589,8 +687,11 @@ class Voice(MultimediaElement):
     """指示消息中的语音元素"""
 
     type = "Voice"
+
     id: Optional[str] = Field(None, alias="voiceId")
+
     length: Optional[int]
+    """语音长度"""
 
     def asDisplay(self) -> str:
         return "[语音]"

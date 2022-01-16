@@ -48,6 +48,7 @@ class MessageChain(AriadneBaseModel):
     """
 
     __root__: List[Element]
+    """底层元素列表"""
 
     @staticmethod
     def build_chain(obj: List[Union[dict, Element, str]]) -> List[Element]:

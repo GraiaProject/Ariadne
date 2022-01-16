@@ -11,6 +11,7 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
     """Ariadne 的事件基类"""
 
     type: str
+    """事件类型"""
 
     @validator("type", allow_reuse=True)
     def validate_event_type(cls, v):

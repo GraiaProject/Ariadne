@@ -10,7 +10,7 @@
 
 支持 `MessageChain[int : int]` 格式的原始切片.
 
-支持对 `Friend` `Group` `Member` 等对象执行 `int` 以获取其 `id` 属性.
+支持对 `Friend` `Group` `Member` 等对象执行 `int` 以获取其 `id` 属性. 并拓展了一些方便方法.
 
 `Ariadne` 的操作均会引发审计事件 (Audit Event): `CallAriadneAPI`, 带有 `api_name` `args` `kwargs` 三个参数. ([#74](https://github.com/GraiaProject/Ariadne/issues/74))
 

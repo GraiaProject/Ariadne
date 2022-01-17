@@ -97,11 +97,12 @@ nav:
           - "basic/params.md"
           - "basic/msg-chain.md"
           - "basic/configuration.md"
-          - "basic/instance.md"
+          - "basic/overview.md"
           - "basic/background.md"
       - "进阶":
           - "advance/msg-chain.md"
           - "advance/base-parser.md"
+          - "advance/commander.md"
           - "advance/twilight.md"
           - "Alconna - 来自 Cesloi 的命令解析工具":
               - "advance/alconna/quickstart.md"

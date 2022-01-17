@@ -247,6 +247,16 @@ class Friend(AriadneBaseModel):
     def __int__(self):
         return self.id
 
+    async def getProfile(self) -> "Profile":
+        """获取该好友的 Profile
+
+        Returns:
+            Profile: 该好友的 Profile 对象
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().getFriendProfile(self)
+
 
 class Stranger(AriadneBaseModel):
     """描述 Tencent QQ 中的陌生人."""
@@ -287,6 +297,26 @@ class Group(AriadneBaseModel):
     def __int__(self):
         return self.id
 
+    async def getConfig(self) -> "GroupConfig":
+        """获取该群组的 Config
+
+        Returns:
+            Config: 该群组的设置对象.
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().getGroupConfig(self)
+
+    async def modifyConfig(self, config: "GroupConfig") -> None:
+        """修改该群组的 Config
+
+        Args:
+            config (GroupConfig): 经过修改后的群设置对象.
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().modifyGroupConfig(self, config)
+
 
 class Member(AriadneBaseModel):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
@@ -317,6 +347,54 @@ class Member(AriadneBaseModel):
 
     def __int__(self):
         return self.id
+
+    async def getProfile(self) -> "Profile":
+        """获取该群成员的 Profile
+
+        Returns:
+            Profile: 该群成员的 Profile 对象
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().getMemberProfile(self)
+
+    async def getInfo(self) -> "MemberInfo":
+        """获取该成员的可修改状态
+
+        Returns:
+            MemberInfo: 群组成员的可修改状态
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().getMemberInfo(self)
+
+    async def modifyInfo(self, info: "MemberInfo") -> None:
+        """
+        修改群组成员的可修改状态; 需要具有相应权限(管理员/群主).
+
+        Args:
+            info (MemberInfo): 已修改的指定群组成员的可修改状态
+
+        Returns:
+            None: 没有返回.
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().modifyMemberInfo(self, info)
+
+    async def modifyAdmin(self, assign: bool) -> None:
+        """
+        修改一位群组成员管理员权限; 需要有相应权限(群主)
+
+        Args:
+            assign (bool): 是否设置群成员为管理员.
+
+        Returns:
+            None: 没有返回.
+        """
+        from .context import ariadne_ctx
+
+        return await ariadne_ctx.get().modifyMemberAdmin(assign, self)
 
 
 class GroupConfig(AriadneBaseModel):

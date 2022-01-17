@@ -83,7 +83,7 @@ class AriadneMixin:
 class MessageMixin(AriadneMixin):
     """用于发送, 撤回, 获取消息的 Mixin 类."""
 
-    default_action: SendMessageAction
+    default_send_action: SendMessageAction
 
     @app_ctx_manager
     async def getMessageFromId(self, messageId: int) -> MessageEvent:
@@ -259,7 +259,7 @@ class MessageMixin(AriadneMixin):
         Returns:
             T, R: 默认实现为 BotMessage
         """
-        action = action if action is not ... else self.default_action
+        action = action if action is not ... else self.default_send_action
         data = {"message": message}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
@@ -1262,7 +1262,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
         from .util.send import Strict
 
-        self.default_action = Strict
+        self.default_send_action = Strict
 
         if use_bypass_listener:
             inject_bypass_listener(self.broadcast)

@@ -1308,6 +1308,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
         Args:
             retry_interval (float, optional): Adapter 重连间隔 (s). 默认 5.0.
         """
+        from .event.message import MessageEvent
         from .event.mirai import FriendEvent, GroupEvent
 
         retry_cnt: int = 0
@@ -1327,6 +1328,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
                 ):
                     with enter_context(self, event):
                         sys.audit("AriadnePostRemoteEvent", event)
+                        if isinstance(event, MessageEvent):
+                            if event.messageChain.onlyContains(Source):  # Contains unsupported type
+                                event.messageChain.append("<! 不支持的消息类型 !>")
                         if isinstance(event, FriendEvent):
                             with enter_message_send_context(UploadMethod.Friend):
                                 self.broadcast.postEvent(event)

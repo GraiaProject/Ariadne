@@ -80,12 +80,27 @@ class Slot:
     def __init__(self, slot: Union[str, int], type: Type = MessageChain, default=...) -> None:
         ...
 
-    def __init__(self, slot: Union[str, int], type: Type = ..., default=...) -> None:
+    def __init__(
+        self,
+        slot: Union[str, int],
+        type: Type = ...,
+        default: Any = ...,
+        default_factory: Callable[[], Any] = ...,
+    ) -> None:
         self.slot = slot
         self.type = type
-        self.default = default
+        self.default_factory = ...
         self.param_name: str = ""
         self.model: Optional[BaseModel] = None
+
+        if default is not ... and default_factory is not ...:
+            raise ValueError("default and default_factory is both set!")
+
+        if default is not ...:
+            self.default_factory = const_call(default)
+
+        if default_factory is not ...:
+            self.default_factory = default_factory
 
 
 class Arg:
@@ -247,7 +262,11 @@ class Commander:
                 arg.param_name = param_name
                 if isinstance(arg, Arg):
                     if arg.default_factory is ...:
-                        if arg.param_name in sig and sig[arg.param_name][1] is not inspect.Signature.empty:
+                        if (
+                            arg.param_name in sig
+                            and sig[arg.param_name][1] is not inspect.Signature.empty
+                            and not isinstance(sig[arg.param_name][1], Decorator)
+                        ):
                             arg.default_factory = const_call(sig[arg.param_name][1])
                         else:
                             raise ValueError(f"Didn't find default factory for parameter {arg.param_name}")
@@ -258,10 +277,17 @@ class Commander:
 
                 elif isinstance(arg, Slot):
                     slot_map[arg.slot] = arg
-                    if arg.default is not ...:
+                    if arg.default_factory is not ...:
                         if not isinstance(token_list[-1], list) or arg.slot not in token_list[-1]:
                             raise ValueError("Optional slot can only be set on last parameter.")
                         last_optional = True
+                    else:
+                        if (
+                            arg.param_name in sig
+                            and sig[arg.param_name][1] is not inspect.Signature.empty
+                            and not isinstance(sig[arg.param_name][1], Decorator)
+                        ):
+                            arg.default_factory = const_call(sig[arg.param_name][1])
                     if arg.type is ... and sig[arg.param_name][0] is not inspect.Signature.empty:
                         if arg.param_name in sig:
                             arg.type = sig[arg.param_name][0]
@@ -273,7 +299,7 @@ class Commander:
                         __validators__={
                             "validator": validator("*", pre=True, allow_reuse=True)(chain_validator)
                         },
-                        val=(arg.type, arg.default),
+                        val=(arg.type, ...),  # default is handled at exec
                     )
 
                 else:
@@ -300,14 +326,18 @@ class Commander:
         for arg in set(pd.ref.arg_map.values()):
             value = arg.default_factory()
             if arg.nargs:
-                if not isinstance(value, list):
-                    value = [value]
                 for param in arg.params:
                     if param in pd.arg_data:
                         value = dict(zip(arg.tags, pd.arg_data[param]))
                         break
                 else:
-                    value = dict(zip(arg.tags, value))
+                    if issubclass(arg.type, BaseModel) and isinstance(value, arg.type):
+                        param_result[arg.param_name] = value
+                        continue
+                    if not isinstance(value, list):
+                        value = [value]
+                    if not isinstance(value, dict):
+                        value = dict(zip(arg.tags, value))
 
                 if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
                     param_result[arg.param_name] = arg.model(**value).__dict__[arg.tags[0]]
@@ -318,8 +348,9 @@ class Commander:
                 if any(param in pd.arg_data for param in arg.params):
                     value = not value
                 param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
+
         for ind, slot in pd.ref.slot_map.items():
-            value = pd.param_data.get(ind, None) or slot.default
+            value = pd.param_data.get(ind, None) or slot.default_factory()
             param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
         return param_result
 
@@ -340,7 +371,7 @@ class Commander:
         for pd in reversed(process_data):  # starting from latest added
             chain_index = 0
             token_index = 0
-            with suppress(IndexError, ValueError):
+            with suppress(IndexError):
                 while chain_index < len(chain_args):
                     arg = chain_args[chain_index]
                     chain_index += 1

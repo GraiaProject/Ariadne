@@ -22,6 +22,8 @@
 
 消息元素中的戳一戳 (Poke) 无法发送 ([#77](https://github.com/GraiaProject/Ariadne/issues/77))
 
+自动处理不支持的消息类型 ([#79](https://github.com/GraiaProject/Ariadne/issues/79))
+
 `Commander` 与 `Console` 会自动解析 `dispatcher` 的 `mixin`.
 
 保证 `MessageChain` 元素对象安全性.

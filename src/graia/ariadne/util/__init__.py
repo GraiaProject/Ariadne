@@ -25,9 +25,11 @@ from typing import (
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
+from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
@@ -285,6 +287,17 @@ def resolve_dispatchers_mixin(dispatchers: List[T_Dispatcher]) -> List[T_Dispatc
     for dispatcher in dispatchers:
         result.extend(dispatcher_mixin_handler(dispatcher))
     return result
+
+
+class ConstantDispatcher(BaseDispatcher):
+    """分发常量给指定名称的参数"""
+
+    def __init__(self, data: Dict[str, Any]) -> None:
+        self.data = data
+
+    async def catch(self, interface: DispatcherInterface):
+        if interface.name in self.data:
+            return self.data[interface.name]
 
 
 class Dummy:

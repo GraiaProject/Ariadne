@@ -4,7 +4,7 @@
 
 ### 添加
 
-实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76))
+实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76) [#80](https://github.com/GraiaProject/Ariadne/issues/80))
 
 `Ariadne.sendMessage` 支持通过 `action` 自定义行为. ([#75](https://github.com/GraiaProject/Ariadne/issues/75))
 
@@ -12,9 +12,11 @@
 
 支持对 `Friend` `Group` `Member` 等对象执行 `int` 以获取其 `id` 属性. 并拓展了一些方便方法.
 
+有多个 `Member` 对象属性的事件对 `Member` 的分派 ([#81](https://github.com/GraiaProject/Ariadne/issues/81))
+
 `Ariadne` 的操作均会引发审计事件 (Audit Event): `CallAriadneAPI`, 带有 `api_name` `args` `kwargs` 三个参数. ([#74](https://github.com/GraiaProject/Ariadne/issues/74))
 
-`Ariadne` 收到的事件会额外引发 `AriadnePostRemoteEvent`, 携带 `event` 单个参数. ([#73](https://github.com/GraiaProject/Ariadne/issues/73))
+`Ariadne` 收到的事件会额外引发审计事件 (Audit Event): `AriadnePostRemoteEvent`, 携带 `event` 单个参数. ([#73](https://github.com/GraiaProject/Ariadne/issues/73))
 
 ### 修复
 
@@ -25,6 +27,8 @@
 自动处理不支持的消息类型 ([#79](https://github.com/GraiaProject/Ariadne/issues/79))
 
 `Commander` 与 `Console` 会自动解析 `dispatcher` 的 `mixin`.
+
+修复 `BotMuteEvent` 的 `Group` 解析问题.
 
 保证 `MessageChain` 元素对象安全性.
 

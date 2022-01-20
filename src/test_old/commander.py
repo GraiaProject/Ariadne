@@ -5,6 +5,7 @@ from devtools import debug
 from graia.broadcast import Broadcast
 from loguru import logger
 from pydantic import BaseModel
+from pydantic.fields import ModelField
 
 from graia.ariadne.console import Console
 from graia.ariadne.entry import *
@@ -17,23 +18,22 @@ async def main():
 
     cmd = Commander(bcc)
 
-    def set_perm(group: At, permission: str, value: bool, fast: bool, scope: str):
-        logger.info(
-            f"Setting {group!r}'s permission {permission} to {value} with scope {scope}, fast: {fast}"
-        )
-
     class Scope(BaseModel):
 
         _ = pydantic.validator("*", pre=True, allow_reuse=True)(chain_validator)
 
         scope: str
 
-    cmd.command(
-        "[luckperm|lp] group {0} [permission|perm] set {1|permission} {2}",
+    def cast_to_list(value: MessageChain, field: ModelField):
+        if field.type_ is list:
+            return list(value)
+        return value
+
+    cmd.add_type_caster(cast_to_list)
+
+    @cmd.command(
+        "[luckperm|lp] group {0|target} [permission|perm] set {1|permission} {2|value}",
         {
-            "group": Slot(0),
-            "permission": Slot(1, type=str),
-            "value": Slot(2, type=bool, default=True),
             "scope": Arg(
                 "[--scope|-s] {scope}",
                 type=Scope,
@@ -41,7 +41,11 @@ async def main():
             ),
             "fast": Arg("--fast", default=False),
         },
-    )(set_perm)
+    )
+    def set_perm(target: list, permission: str, fast: bool, scope: Scope, value: bool = True):
+        logger.info(
+            f"Setting {target!r}'s permission {permission} to {value} with scope {scope}, fast: {fast}"
+        )
 
     try:
         cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))

@@ -1,12 +1,13 @@
 """Commander: 便捷的指令触发体系"""
+import dataclasses
 import inspect
+import itertools
 from contextlib import suppress
 from typing import (
     Any,
     Callable,
     Dict,
     List,
-    NamedTuple,
     Optional,
     Sequence,
     Set,
@@ -20,14 +21,13 @@ from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
 from ..model import AriadneBaseModel
 from ..typing import T
-from ..util import resolve_dispatchers_mixin
+from ..util import ConstantDispatcher, resolve_dispatchers_mixin
 from .chain import MessageChain
 from .element import Element
 from .parser.util import CommandToken, split, tokenize_command
@@ -114,23 +114,22 @@ class Arg:
         default: Any = ...,
         default_factory: Callable[[], Any] = ...,
     ) -> None:
+
+        if default is not ... and default_factory is not ...:
+            raise ValueError("default and default_factory is both set!")
+
         self.pattern: str = pattern
-        self.params: List[str] = []
+        self.match_patterns: List[str] = []
         self.tags: List[str] = []
         self.default_factory = const_call(default) if default is not ... else default_factory
         self.param_name: Optional[str] = None
-        if (default is ...) == (default_factory is ...):
-            raise ValueError("default and default_factory is both empty / not empty!")
 
         tokens = tokenize_command(pattern)
 
         if tokens[0][0] is CommandToken.PARAM:
             raise ValueError("Required argument pattern!")
 
-        self.params = list(map(str, tokens[0][1]))
-
-        if any(not arg.startswith("-") for arg in self.params):
-            raise ValueError("Argument pattern should begin with a '-'!")
+        self.match_patterns = list(map(str, tokens[0][1]))
 
         for t_type, token_list in tokens[1:]:
             if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
@@ -149,72 +148,112 @@ class Arg:
         self.type = type
         self.model: Type[BaseModel] = ...
 
-        if len(self.tags) == 0:  # Set default
-            type = type if type is not ... else bool
-            self.model = create_model(
-                "ArgModel",
-                __validators__={"validator": validator("*", pre=True, allow_reuse=True)(chain_validator)},
-                val=(type, ...),
-            )
-        elif len(self.tags) == 1:
-            type = type if type is not ... else MessageChain
-            self.model = create_model(
-                "ArgModel",
-                __validators__={"validator": validator("*", pre=True, allow_reuse=True)(chain_validator)},
-                **{self.tags[0]: (type, ...)},
-            )
+        if self.nargs == 0:
+            self.type = type if type is not ... else bool
 
-        if issubclass(type, BaseModel) and not issubclass(
+        elif self.nargs == 1:
+            self.type = type if type is not ... else MessageChain
+
+        if issubclass(self.type, BaseModel) and not issubclass(
             type, AriadneBaseModel
         ):  # filter MessageChain, Element, etc.
-            self.model = type
-
-        if self.model is ...:
-            raise ValueError("You didn't supply a suitable type!")
+            self.model = self.type
 
 
-class CommandReference(NamedTuple):
-    """CommandReference NamedTuple"""
+@dataclasses.dataclass
+class CommandPattern:
+    """命令样式"""
 
     token_list: "List[Set[str] | List[int | str]]"
     slot_map: Dict[Union[str, int], Slot]
     arg_map: Dict[str, Arg]
-    func: Callable
-    dispatchers: Sequence[BaseDispatcher]
-    decorators: Sequence[Decorator]
     last_optional: bool = False
 
 
-class CommandProcessData(NamedTuple):
-    """记录 Commander 处理时的临时数据"""
+class CommandHandler(ExecTarget):
+    """Command 的 ExecTarget 对象, 承担了参数提取等任务"""
 
-    ref: CommandReference
-    param_data: Dict[Union[int, str], MessageChain]
-    arg_data: Dict[str, List[MessageChain]]
+    def __init__(
+        self,
+        record: CommandPattern,
+        callable: Callable,
+        dispatchers: Sequence[BaseDispatcher] = None,
+        decorators: Sequence[Decorator] = None,
+    ):
+        super().__init__(
+            callable,
+            [ConstantDispatcher({}), ContextDispatcher(), *resolve_dispatchers_mixin(dispatchers or [])],
+            list(decorators),
+        )
+        self.pattern: CommandPattern = record
 
+    def set_data(
+        self,
+        slot_data: Dict[Union[int, str], MessageChain],
+        arg_data: Dict[str, List[MessageChain]],
+    ):
+        """基于 CommandRecord 与解析数据设置 ConstantDispatcher 参数
 
-class CommanderDispatcher(BaseDispatcher):
-    "Command Dispatcher"
+        Args:
+            slot_data (Dict[Union[int, str], MessageChain]): Slot 的解析结果
+            arg_data (Dict[str, List[MessageChain]]): Arg 的解析结果
 
-    def __init__(self, data: Dict[str, Any]) -> None:
-        self.data = data
+        Raises:
+            RuntimeError: ConstantDispatcher 被移除了
+        """
+        param_result: Dict[str, Any] = {}
+        for arg in set(self.pattern.arg_map.values()):
+            value = arg.default_factory()
+            if arg.nargs:
+                for param in arg.match_patterns:
+                    if param in arg_data:
+                        value = dict(zip(arg.tags, arg_data[param]))
+                        break
+                else:
+                    if issubclass(arg.type, BaseModel) and isinstance(value, arg.type):
+                        param_result[arg.param_name] = value
+                        continue
+                    if not isinstance(value, list):
+                        value = [value]
+                    if not isinstance(value, dict):
+                        value = dict(zip(arg.tags, value))
 
-    async def catch(self, interface: DispatcherInterface):
-        if interface.name in self.data:
-            return self.data[interface.name]
+                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
+                    param_result[arg.param_name] = arg.model(**value).__dict__[arg.tags[0]]
+                else:
+                    param_result[arg.param_name] = arg.model(**value)
+
+            else:
+                if any(param in arg_data for param in arg.match_patterns):
+                    value = not value
+                param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
+
+        for ind, slot in self.pattern.slot_map.items():
+            value = slot_data.get(ind, None) or slot.default_factory()
+            param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
+
+        if isinstance(self.dispatchers[0], ConstantDispatcher):
+            self.dispatchers[0].data = param_result
+        else:
+            raise RuntimeError("ConstantDispatcher is removed!")
 
 
 class Commander:
-    """便捷的指令触发器"""
+    """便利的指令触发体系"""
 
     def __init__(self, broadcast: Broadcast):
         self.broadcast = broadcast
-        self.refs: List[CommandReference] = []
+        self.command_handlers: List[CommandHandler] = []
+        self.validators: List[Callable] = [chain_validator]
+
+    def add_type_cast(self, *caster: Callable):
+        """添加类型验证器 (type caster / validator)"""
+        self.validators = [*reversed(caster), *self.validators]
 
     def command(
         self,
         command: str,
-        setting: Dict[str, Union[Slot, Arg]],
+        setting: Dict[str, Union[Slot, Arg]] = None,
         dispatchers: Sequence[BaseDispatcher] = (),
         decorators: Sequence[Decorator] = (),
     ) -> Callable[[T_Callable], T_Callable]:
@@ -222,7 +261,9 @@ class Commander:
 
         Args:
             command (str): 要处理的命令
-            setting (Dict[str, Union[Slot, Arg]]): 参数名 -> Slot | Arg 映射, 用于分配参数
+            setting (Dict[str, Union[Slot, Arg]], optional): 参数名 -> Slot | Arg 映射, 用于分配参数, 可从函数中推断 `Slot`.
+            dispatchers (Sequence[BaseDispatcher], optional): 附加的 `Dispatcher` 序列.
+            decorators (Sequence[Decorator], optional): 附加的 `Headless Decorator` 序列.
 
         Raises:
             ValueError: 在将非最后一个参数设置为可选
@@ -230,6 +271,8 @@ class Commander:
         Returns:
             Callable[[T_Callable], T_Callable]: 装饰器
         """
+
+        setting = setting or {}
 
         token_list: "List[Set[str] | List[int | str]]" = []  # set: const, list: param
 
@@ -255,6 +298,14 @@ class Commander:
             for name, parameter in inspect.signature(func).parameters.items():
                 sig[name] = (parameter.annotation, parameter.default)
 
+                if name in slot_names and name not in setting:
+                    setting[name] = Slot(name, parameter.annotation)
+
+                    if parameter.default is not inspect.Signature.empty and not isinstance(
+                        parameter.default, Decorator
+                    ):
+                        setting[name].default_factory = const_call(parameter.default)
+
             slot_map: Dict[Union[int, str], Slot] = {}
             arg_map: Dict[str, Arg] = {}
             last_optional = False
@@ -270,10 +321,35 @@ class Commander:
                             arg.default_factory = const_call(sig[arg.param_name][1])
                         else:
                             raise ValueError(f"Didn't find default factory for parameter {arg.param_name}")
-                    for param in arg.params:
+                    for param in arg.match_patterns:
                         if param in arg_map or param in slot_names:
                             raise ValueError("Duplicated parameter pattern!")
                         arg_map[param] = arg
+
+                    if arg.model is not ...:
+                        continue
+
+                    if len(arg.tags) == 0:  # Set default
+                        arg.model = create_model(
+                            "ArgModel",
+                            __validators__={
+                                f"validator_{i}": validator("*", pre=True, allow_reuse=True)(v)
+                                for i, v in zip(itertools.count(), self.validators)
+                            },
+                            val=(arg.type, ...),
+                        )
+                    elif len(arg.tags) == 1:
+                        arg.model = create_model(
+                            "ArgModel",
+                            __validators__={
+                                f"validator_{i}": validator("*", pre=True, allow_reuse=True)(v)
+                                for i, v in zip(itertools.count(), self.validators)
+                            },
+                            **{arg.tags[0]: (arg.type, ...)},
+                        )
+
+                    if arg.model is ...:
+                        raise ValueError(f"You didn't supply a suitable model for {arg}!")
 
                 elif isinstance(arg, Slot):
                     slot_map[arg.slot] = arg
@@ -297,62 +373,26 @@ class Commander:
                     arg.model = create_model(
                         "SlotModel",
                         __validators__={
-                            "validator": validator("*", pre=True, allow_reuse=True)(chain_validator)
+                            f"validator_{i}": validator("*", pre=True, allow_reuse=True)(v)
+                            for i, v in zip(itertools.count(), self.validators)
                         },
                         val=(arg.type, ...),  # default is handled at exec
                     )
 
                 else:
                     raise TypeError("Only Arg and Slot instances are allowed!")
-            self.refs.append(
-                CommandReference(token_list, slot_map, arg_map, func, dispatchers, decorators, last_optional)
+            self.command_handlers.append(
+                CommandHandler(
+                    CommandPattern(token_list, slot_map, arg_map, last_optional),
+                    func,
+                    dispatchers,
+                    decorators,
+                )
             )
 
             return func
 
         return wrapper
-
-    @staticmethod
-    def resolve_result(pd: CommandProcessData) -> Dict[str, Any]:
-        """解析 CommandProcessData 并返回可用于 CommanderDispatcher 的数据
-
-        Args:
-            pd (CommandProcessData): Command 解析数据
-
-        Returns:
-            Dict[str, Any]: 返回的分发参数字典
-        """
-        param_result: Dict[str, Any] = {}
-        for arg in set(pd.ref.arg_map.values()):
-            value = arg.default_factory()
-            if arg.nargs:
-                for param in arg.params:
-                    if param in pd.arg_data:
-                        value = dict(zip(arg.tags, pd.arg_data[param]))
-                        break
-                else:
-                    if issubclass(arg.type, BaseModel) and isinstance(value, arg.type):
-                        param_result[arg.param_name] = value
-                        continue
-                    if not isinstance(value, list):
-                        value = [value]
-                    if not isinstance(value, dict):
-                        value = dict(zip(arg.tags, value))
-
-                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
-                    param_result[arg.param_name] = arg.model(**value).__dict__[arg.tags[0]]
-                else:
-                    param_result[arg.param_name] = arg.model(**value)
-
-            else:
-                if any(param in pd.arg_data for param in arg.params):
-                    value = not value
-                param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
-
-        for ind, slot in pd.ref.slot_map.items():
-            value = pd.param_data.get(ind, None) or slot.default_factory()
-            param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
-        return param_result
 
     def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -366,51 +406,41 @@ class Commander:
 
         mapping_str, elem_m = chain.asMappingString()
         chain_args = split(mapping_str)
-        process_data: List[CommandProcessData] = [CommandProcessData(ref, {}, {}) for ref in self.refs]
 
-        for pd in reversed(process_data):  # starting from latest added
+        for handler in reversed(self.command_handlers):  # starting from latest added
+            pattern = handler.pattern
             chain_index = 0
             token_index = 0
-            with suppress(IndexError):
+            arg_data: Dict[str, List[MessageChain]] = {}
+            slot_data: Dict[Union[str, int], MessageChain] = {}
+            with suppress(
+                IndexError,
+            ):
                 while chain_index < len(chain_args):
                     arg = chain_args[chain_index]
                     chain_index += 1
-                    if arg in pd.ref.arg_map:  # Arg handle
-                        if arg in pd.arg_data:
+                    if arg in pattern.arg_map:  # Arg handle
+                        if arg in arg_data:
                             raise ValueError("Duplicated argument.")
-                        pd.arg_data[arg] = []
-                        for _ in range(pd.ref.arg_map[arg].nargs):
-                            pd.arg_data[arg].append(
+                        arg_data[arg] = []
+                        for _ in range(pattern.arg_map[arg].nargs):
+                            arg_data[arg].append(
                                 MessageChain.fromMappingString(chain_args[chain_index], elem_m)
                             )
                             chain_index += 1
 
                     else:  # Constant and Slot handle
-                        tokens = pd.ref.token_list[token_index]
+                        tokens = pattern.token_list[token_index]
                         token_index += 1
                         if isinstance(tokens, set) and arg not in tokens:
                             raise ValueError("Mismatched constant.")
                         if isinstance(tokens, list):
                             for slot in tokens:
-                                pd.param_data[slot] = MessageChain.fromMappingString(arg, elem_m)
+                                slot_data[slot] = MessageChain.fromMappingString(arg, elem_m)
 
-                if token_index < len(pd.ref.token_list) - (1 if pd.ref.last_optional else 0):
+                if token_index < len(pattern.token_list) - int(pattern.last_optional):
                     continue
 
-                param_result = self.resolve_result(pd)
+                handler.set_data(slot_data, arg_data)
 
-                self.broadcast.loop.create_task(
-                    self.broadcast.Executor(
-                        ExecTarget(
-                            pd.ref.func,
-                            inline_dispatchers=resolve_dispatchers_mixin(
-                                [
-                                    CommanderDispatcher(param_result),
-                                    ContextDispatcher(),
-                                    *pd.ref.dispatchers,
-                                ]
-                            ),
-                            decorators=list(pd.ref.decorators),
-                        )
-                    )
-                )
+                self.broadcast.loop.create_task(self.broadcast.Executor(handler))

@@ -156,7 +156,6 @@ class BotMuteEvent(GroupEvent, BotEvent):
     type = "BotMuteEvent"
     durationSeconds: int
     operator: Optional[Member]
-    group: Optional[Group]
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
         mixin = [ContextDispatcher]
@@ -166,7 +165,7 @@ class BotMuteEvent(GroupEvent, BotEvent):
             if interface.annotation is Member:
                 return interface.event.operator
             if interface.annotation is Group:
-                return interface.event.group
+                return interface.event.operator.group
 
 
 class BotUnmuteEvent(GroupEvent, BotEvent):
@@ -182,7 +181,6 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
 
     type = "BotUnmuteEvent"
     operator: Optional[Member]
-    group: Optional[Group]
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
         mixin = [ContextDispatcher]
@@ -192,7 +190,7 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
             if interface.annotation is Member:
                 return interface.event.operator
             if interface.annotation is Group:
-                return interface.event.group
+                return interface.event.operator.group
 
 
 class BotJoinGroupEvent(GroupEvent, BotEvent):
@@ -561,6 +559,7 @@ class MemberLeaveEventKick(GroupEvent):
                     return interface.event.member
                 if interface.name == "operator":
                     return interface.event.operator
+                return interface.event.member
             elif interface.annotation is Group:
                 return interface.event.member.group
 
@@ -620,6 +619,7 @@ class MemberCardChangeEvent(GroupEvent):
                     return interface.event.member
                 if interface.name == "operator":
                     return interface.event.operator
+                return interface.event.member
             elif interface.annotation is Group:
                 return interface.event.member.group
 
@@ -691,6 +691,8 @@ class MemberMuteEvent(MiraiEvent):
         Member (annotation):
           - `"target"` (default, const, str): 被禁言的成员
           - `"operator"` (default, const, str, return:optional): 该操作的执行者, 也可能是应用实例所辖账号.
+
+          默认返回 `target`.
     """
 
     type = "MemberMuteEvent"
@@ -708,6 +710,7 @@ class MemberMuteEvent(MiraiEvent):
                     return interface.event.member
                 if interface.name == "operator":
                     return interface.event.operator
+                return interface.event.member
             elif interface.annotation is Group:
                 return interface.event.member.group
 
@@ -723,6 +726,8 @@ class MemberUnmuteEvent(GroupEvent):
         Member (annotation):
           - `"target"` (default, const, str): 被禁言的成员
           - `"operator"` (default, const, str, return:optional): 该操作的执行者, 可能是管理员或是群主, 也可能是应用实例所辖账号.
+
+          默认返回 `target`.
     """
 
     type = "MemberUnmuteEvent"
@@ -739,6 +744,7 @@ class MemberUnmuteEvent(GroupEvent):
                     return interface.event.member
                 if interface.name == "operator":
                     return interface.event.operator
+                return interface.event.member
             elif interface.annotation is Group:
                 return interface.event.member.group
 

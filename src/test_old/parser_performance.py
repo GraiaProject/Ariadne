@@ -1,6 +1,8 @@
 import os
 import sys
 
+from graia.ariadne.util import Dummy
+
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
 import time
@@ -8,6 +10,7 @@ import time
 from devtools import debug
 
 from graia.ariadne.message.chain import MessageChain
+from graia.ariadne.message.commander import Arg, Commander, Slot
 from graia.ariadne.message.element import At, Plain
 from graia.ariadne.message.parser.literature import (
     BoxParameter,
@@ -46,6 +49,27 @@ if __name__ == "__main__":
 
     print(f"Twilight: {RUN / (ed-st):.2f}msg/s")
 
+    cmd = Commander(Dummy())
+
+    @cmd.command(".test", {"v": Arg("--foo {v}", type=At)})
+    def _(v: At = None):
+        print(v)
+
+    cmd.broadcast.loop.create_task = lambda e: debug(e.dispatchers[0].data)
+    cmd.broadcast.Executor = lambda x: x
+
+    cmd.execute(msg)
+
+    cmd.broadcast.loop.create_task = Dummy()
+    cmd.broadcast.Executor = Dummy()
+
+    st = time.time()
+    for _ in range(RUN):
+        cmd.execute(msg)
+    ed = time.time()
+
+    print(f"Commander: {RUN / (ed-st):.2f}msg/s")
+
     print("Run 2:")
 
     twi = Twilight(Sparkle([FullMatch(".test"), WildcardMatch()]))
@@ -67,3 +91,24 @@ if __name__ == "__main__":
     ed = time.time()
 
     print(f"Twilight: {RUN / (ed-st):.2f}msg/s")
+
+    cmd = Commander(Dummy())
+
+    @cmd.command(".test --foo {v}")
+    def _(v: At = None):
+        print(v)
+
+    cmd.broadcast.loop.create_task = lambda e: debug(e.dispatchers[0].data)
+    cmd.broadcast.Executor = lambda x: x
+
+    cmd.execute(msg)
+
+    cmd.broadcast.loop.create_task = Dummy()
+    cmd.broadcast.Executor = Dummy()
+
+    st = time.time()
+    for _ in range(RUN):
+        cmd.execute(msg)
+    ed = time.time()
+
+    print(f"Commander: {RUN / (ed-st):.2f}msg/s")

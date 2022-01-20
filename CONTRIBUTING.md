@@ -28,6 +28,8 @@
  - 类名与方法名尽量符合 [`PEP 8`](https://www.python.org/dev/peps/pep-0008/). (`app` 与 `message.element`, `message.chain` 模块除外)
  - 需要添加一个实用函数请在 `graia.ariadne.util` 这个模块下面加
 
+**所有的 `Pull Request` 必须发到 `dev` 分支上**
+
 ## 部署开发环境
 
 我们强烈建议使用 [`poetry`](https://python-poetry.org).

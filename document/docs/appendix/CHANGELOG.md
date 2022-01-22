@@ -30,6 +30,8 @@
 
 修复 `BotMuteEvent` 的 `Group` 解析问题.
 
+修复不同类型子事件被同时监听时的 `Broadcast` 错误调用 `Dispatcher` 的问题 ([#83](https://github.com/GraiaProject/Ariadne/issues/83))
+
 保证 `MessageChain` 元素对象安全性.
 
 ### 弃用

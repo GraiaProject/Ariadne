@@ -111,6 +111,15 @@ class FriendInputStatusChangedEvent(FriendEvent):
     friend: Friend
     inputting: bool
 
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
+
+        @staticmethod
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, FriendInputStatusChangedEvent):
+                if interface.annotation is Friend:
+                    return interface.event.friend
+
 
 class FriendNickChangedEvent(FriendEvent):
     """当该事件发生时, 应用实例所辖账号的某一好友更改了昵称.
@@ -119,12 +128,22 @@ class FriendNickChangedEvent(FriendEvent):
 
     Allowed Extra Parameters(提供的额外注解支持):
         Ariadne (annotation): 发布事件的应用实例
+        Friend (annotation): 更改名称的好友
     """
 
     type = "FriendNickChangedEvent"
     friend: Friend
     from_name: str = Field(..., alias="from")
     to_name: str = Field(..., alias="to")
+
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
+
+        @staticmethod
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, FriendNickChangedEvent):
+                if interface.annotation is Friend:
+                    return interface.event.friend
 
 
 class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
@@ -134,12 +153,22 @@ class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
 
     Allowed Extra Parameters(提供的额外注解支持):
         Ariadne (annotation): 发布事件的应用实例
+        Group (annotation): 发生该事件的群组
     """
 
     type = "BotGroupPermissionChangeEvent"
     origin: MemberPerm
     current: MemberPerm
     group: Group
+
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        mixin = [ContextDispatcher]
+
+        @staticmethod
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotGroupPermissionChangeEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
 
 
 class BotMuteEvent(GroupEvent, BotEvent):
@@ -161,11 +190,12 @@ class BotMuteEvent(GroupEvent, BotEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["BotMuteEvent"]):
-            if interface.annotation is Member:
-                return interface.event.operator
-            if interface.annotation is Group:
-                return interface.event.operator.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotMuteEvent):
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
+                if interface.annotation is Group:
+                    return interface.event.operator.group
 
 
 class BotUnmuteEvent(GroupEvent, BotEvent):
@@ -186,11 +216,12 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["BotUnmuteEvent"]):
-            if interface.annotation is Member:
-                return interface.event.operator
-            if interface.annotation is Group:
-                return interface.event.operator.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotUnmuteEvent):
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
+                if interface.annotation is Group:
+                    return interface.event.operator.group
 
 
 class BotJoinGroupEvent(GroupEvent, BotEvent):
@@ -201,19 +232,23 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
     Allowed Extra Parameters(提供的额外注解支持):
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation, optional = None): 发生该事件的群组
+        Member / Optional[Member] (annotation, optional = None): 邀请者, 可以为 None
     """
 
     type = "BotJoinGroupEvent"
     group: Group
-    inviter: Optional[Member] = Field(..., alias="invitor")  # F**k you typo
+    inviter: Optional[Member] = Field(..., alias="invitor")
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["BotJoinGroupEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotJoinGroupEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.inviter
 
 
 class BotLeaveEventActive(GroupEvent, BotEvent):
@@ -233,9 +268,10 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["BotLeaveEventActive"]):
-            if interface.annotation is Group:
-                return interface.event.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotLeaveEventActive):
+                if interface.annotation is Group:
+                    return interface.event.group
 
 
 class BotLeaveEventKick(GroupEvent, BotEvent):
@@ -255,9 +291,10 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["BotLeaveEventKick"]):
-            if interface.annotation is Group:
-                return interface.event.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotLeaveEventKick):
+                if interface.annotation is Group:
+                    return interface.event.group
 
 
 class GroupRecallEvent(GroupEvent):
@@ -282,11 +319,12 @@ class GroupRecallEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupRecallEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupRecallEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class FriendRecallEvent(FriendEvent):
@@ -357,11 +395,12 @@ class GroupNameChangeEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupNameChangeEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupNameChangeEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class GroupEntranceAnnouncementChangeEvent(GroupEvent):
@@ -385,13 +424,12 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(
-            interface: DispatcherInterface["GroupEntranceAnnouncementChangeEvent"],
-        ):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupEntranceAnnouncementChangeEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class GroupMuteAllEvent(GroupEvent):
@@ -415,11 +453,12 @@ class GroupMuteAllEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupMuteAllEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupMuteAllEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class GroupAllowAnonymousChatEvent(GroupEvent):
@@ -443,11 +482,12 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupAllowAnonymousChatEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupAllowAnonymousChatEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class GroupAllowConfessTalkEvent(GroupEvent):
@@ -471,11 +511,12 @@ class GroupAllowConfessTalkEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupAllowConfessTalkEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupAllowConfessTalkEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class GroupAllowMemberInviteEvent(GroupEvent):
@@ -499,11 +540,12 @@ class GroupAllowMemberInviteEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupAllowMemberInviteEvent"]):
-            if interface.annotation is Group:
-                return interface.event.group
-            if interface.annotation is Member:
-                return interface.event.operator
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupAllowMemberInviteEvent):
+                if interface.annotation is Group:
+                    return interface.event.group
+                if interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.operator
 
 
 class MemberJoinEvent(GroupEvent):
@@ -525,11 +567,14 @@ class MemberJoinEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberJoinEvent"]):
-            if interface.annotation is Member:
-                return interface.event.member
-            if interface.annotation is Group:
-                return interface.event.member.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberJoinEvent):
+                if interface.name == "inviter" and interface.annotation in {Member, Optional[Member]}:
+                    return interface.event.inviter
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberLeaveEventKick(GroupEvent):
@@ -553,15 +598,14 @@ class MemberLeaveEventKick(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberLeaveEventKick"]):
-            if interface.annotation is Member:
-                if interface.name == "target":
-                    return interface.event.member
-                if interface.name == "operator":
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberLeaveEventKick):
+                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
                     return interface.event.operator
-                return interface.event.member
-            elif interface.annotation is Group:
-                return interface.event.member.group
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberLeaveEventQuit(GroupEvent):
@@ -582,11 +626,12 @@ class MemberLeaveEventQuit(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberLeaveEventQuit"]):
-            if interface.annotation is Member:
-                return interface.event.member
-            if interface.annotation is Group:
-                return interface.event.member.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberLeaveEventQuit):
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberCardChangeEvent(GroupEvent):
@@ -613,15 +658,14 @@ class MemberCardChangeEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberCardChangeEvent"]):
-            if interface.annotation is Member:
-                if interface.name == "target":
-                    return interface.event.member
-                if interface.name == "operator":
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberCardChangeEvent):
+                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
                     return interface.event.operator
-                return interface.event.member
-            elif interface.annotation is Group:
-                return interface.event.member.group
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberSpecialTitleChangeEvent(GroupEvent):
@@ -644,13 +688,12 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(
-            interface: DispatcherInterface["MemberSpecialTitleChangeEvent"],
-        ):
-            if interface.annotation is Member:
-                return interface.event.member
-            if interface.annotation is Group:
-                return interface.event.member.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberSpecialTitleChangeEvent):
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberPermissionChangeEvent(GroupEvent):
@@ -673,14 +716,15 @@ class MemberPermissionChangeEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberPermissionChangeEvent"]):
-            if interface.annotation is Member:
-                return interface.event.member
-            if interface.annotation is Group:
-                return interface.event.member.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberPermissionChangeEvent):
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
-class MemberMuteEvent(MiraiEvent):
+class MemberMuteEvent(GroupEvent):
     """该事件发生时, 有一群组成员被管理员/群组禁言, 当 `operator` 为 `None` 时为应用实例所辖账号操作.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
@@ -704,15 +748,14 @@ class MemberMuteEvent(MiraiEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberMuteEvent"]):
-            if interface.annotation is Member:
-                if interface.name == "target":
-                    return interface.event.member
-                if interface.name == "operator":
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberMuteEvent):
+                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
                     return interface.event.operator
-                return interface.event.member
-            elif interface.annotation is Group:
-                return interface.event.member.group
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberUnmuteEvent(GroupEvent):
@@ -738,15 +781,14 @@ class MemberUnmuteEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberUnmuteEvent"]):
-            if interface.annotation is Member:
-                if interface.name == "target":
-                    return interface.event.member
-                if interface.name == "operator":
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberUnmuteEvent):
+                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
                     return interface.event.operator
-                return interface.event.member
-            elif interface.annotation is Group:
-                return interface.event.member.group
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class MemberHonorChangeEvent(GroupEvent):
@@ -769,11 +811,12 @@ class MemberHonorChangeEvent(GroupEvent):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["MemberHonorChangeEvent"]):
-            if interface.annotation is Member:
-                return interface.event.member
-            if interface.annotation is Group:
-                return interface.event.member.group
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, MemberHonorChangeEvent):
+                if interface.annotation is Member:
+                    return interface.event.member
+                if interface.annotation is Group:
+                    return interface.event.member.group
 
 
 class RequestEvent(MiraiEvent):
@@ -810,7 +853,7 @@ class RequestEvent(MiraiEvent):
         )
 
 
-class NewFriendRequestEvent(RequestEvent):
+class NewFriendRequestEvent(RequestEvent, FriendEvent):
     """当该事件发生时, 有一用户向机器人提起好友请求.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
@@ -820,13 +863,15 @@ class NewFriendRequestEvent(RequestEvent):
 
     Addon Introduction:
         该事件的处理需要你获取原始事件实例.
+
         1. 读取该事件的基础信息:
-        ``` python
-        event.supplicant: int # 发起加好友请求的用户的 ID
-        event.sourceGroup: Optional[int] # 对方可能是从某个群发起对账号的请求的, mirai 可以解析对方从哪个群发起的请求.
-        event.nickname: str # 对方的昵称
-        event.message: str # 对方发起请求时填写的描述
-        ```
+
+            ```python
+            event.supplicant: int # 发起加好友请求的用户的 ID
+            event.sourceGroup: Optional[int] # 对方可能是从某个群发起对账号的请求的, mirai 可以解析对方从哪个群发起的请求.
+            event.nickname: str # 对方的昵称
+            event.message: str # 对方发起请求时填写的描述
+            ```
 
         2. 同意请求: `await event.accept()`, 具体查看该方法所附带的说明.
         3. 拒绝请求: `await event.reject()`, 具体查看该方法所附带的说明.
@@ -881,7 +926,7 @@ class NewFriendRequestEvent(RequestEvent):
         await self._operate(2, message)
 
 
-class MemberJoinRequestEvent(RequestEvent):
+class MemberJoinRequestEvent(RequestEvent, GroupEvent):
     """当该事件发生时, 有一用户向机器人作为管理员/群主的群组申请加入群组.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
@@ -891,14 +936,16 @@ class MemberJoinRequestEvent(RequestEvent):
 
     Addon Introduction:
         该事件的处理需要你获取原始事件实例.
+
         1. 读取该事件的基础信息:
-        ``` python
-        event.supplicant: int # 申请加入群组的用户的 ID
-        event.groupId: Optional[int] # 对方试图加入的群组的 ID
-        event.groupName: str # 对方试图加入的群组的名称
-        event.nickname: str # 对方的昵称
-        event.message: str # 对方发起请求时填写的描述
-        ```
+
+            ``` python
+            event.supplicant: int # 申请加入群组的用户的 ID
+            event.groupId: Optional[int] # 对方试图加入的群组的 ID
+            event.groupName: str # 对方试图加入的群组的名称
+            event.nickname: str # 对方的昵称
+            event.message: str # 对方发起请求时填写的描述
+            ```
 
         2. 同意请求: `await event.accept()`, 具体查看该方法所附带的说明.
         3. 拒绝请求: `await event.reject()`, 具体查看该方法所附带的说明.
@@ -991,7 +1038,7 @@ class MemberJoinRequestEvent(RequestEvent):
         await self._operate(4, message)
 
 
-class BotInvitedJoinGroupRequestEvent(RequestEvent):
+class BotInvitedJoinGroupRequestEvent(RequestEvent, BotEvent, GroupEvent):
     """当该事件发生时, 应用实例所辖账号接受到来自某个账号的邀请加入某个群组的请求.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
@@ -1001,14 +1048,16 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent):
 
     Addon Introduction:
         该事件的处理需要你获取原始事件实例.
+
         1. 读取该事件的基础信息:
-        ``` python
-        event.supplicant: int # 邀请所辖账号加入群组的用户的 ID
-        event.groupId: Optional[int] # 对方邀请所辖账号加入的群组的 ID
-        event.groupName: str # 对方邀请所辖账号加入的群组的名称
-        event.nickname: str # 对方的昵称
-        event.message: str # 对方发起请求时填写的描述
-        ```
+
+            ``` python
+            event.supplicant: int # 邀请所辖账号加入群组的用户的 ID
+            event.groupId: Optional[int] # 对方邀请所辖账号加入的群组的 ID
+            event.groupName: str # 对方邀请所辖账号加入的群组的名称
+            event.nickname: str # 对方的昵称
+            event.message: str # 对方发起请求时填写的描述
+            ```
 
         2. 同意请求: `await event.accept()`, 具体查看该方法所附带的说明.
         3. 拒绝请求: `await event.reject()`, 具体查看该方法所附带的说明.

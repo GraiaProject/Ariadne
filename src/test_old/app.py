@@ -8,7 +8,11 @@ from loguru import logger
 from graia.ariadne.adapter import DebugAdapter, WebsocketAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
-from graia.ariadne.event.mirai import GroupRecallEvent, NewFriendRequestEvent
+from graia.ariadne.event.mirai import (
+    GroupEvent,
+    GroupRecallEvent,
+    NewFriendRequestEvent,
+)
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, MultimediaElement, Plain, Source
 from graia.ariadne.message.parser.pattern import (
@@ -19,6 +23,7 @@ from graia.ariadne.message.parser.pattern import (
 )
 from graia.ariadne.message.parser.twilight import Sparkle, Twilight
 from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
+from graia.ariadne.util import gen_subclass
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
@@ -51,6 +56,10 @@ if __name__ == "__main__":
         if chain.has(MultimediaElement):
             elem = chain.getFirst(MultimediaElement)
             logger.info(elem.dict())
+
+    @bcc.receiver(GroupEvent)
+    async def log(group: Group):
+        logger.info(repr(group))
 
     @bcc.receiver(
         MessageEvent,

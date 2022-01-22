@@ -18,7 +18,7 @@ class ApplicationLifecycleEvent(Dispatchable):
 
     app: "Ariadne"
 
-    def __init__(self, app) -> None:
+    def __init__(self, app: "Ariadne") -> None:
         self.app = app
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
@@ -26,11 +26,12 @@ class ApplicationLifecycleEvent(Dispatchable):
         mixin = [ContextDispatcher]
 
         @staticmethod
-        async def catch(interface: "DispatcherInterface[ApplicationLifecycleEvent]"):
+        async def catch(interface: "DispatcherInterface"):
             from ..app import Ariadne
 
-            if interface.annotation is Ariadne:
-                return interface.event.app
+            if isinstance(interface.event, ApplicationLifecycleEvent):
+                if interface.annotation is Ariadne:
+                    return interface.event.app
 
 
 class ApplicationLaunched(ApplicationLifecycleEvent):

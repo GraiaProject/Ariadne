@@ -599,12 +599,16 @@ class MessageChain(AriadneBaseModel):
             other = MessageChain(other)
         return other.asSendable().__root__ == self.asSendable().__root__
 
-    def __add__(self, content: Union["MessageChain", List[Element]]) -> "MessageChain":
+    def __add__(self, content: Union["MessageChain", List[Element], Element]) -> "MessageChain":
+        if isinstance(content, Element):
+            content = [content]
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
-        return MessageChain(deepcopy(self.__root__) + content, inline=True)
+        return MessageChain(deepcopy(self.__root__ + content), inline=True)
 
-    def __iadd__(self, content: Union["MessageChain", List[Element]]) -> "MessageChain":
+    def __iadd__(self, content: Union["MessageChain", List[Element], Element]) -> "MessageChain":
+        if isinstance(content, Element):
+            content = [content]
         if isinstance(content, MessageChain):
             content: List[Element] = content.__root__
         self.__root__.extend(content)

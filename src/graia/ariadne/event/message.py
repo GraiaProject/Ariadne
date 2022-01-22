@@ -22,7 +22,7 @@ class MessageEvent(MiraiEvent):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface):
+        async def catch(*_):
             pass
 
 
@@ -37,9 +37,10 @@ class FriendMessage(MessageEvent, FriendEvent):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["FriendMessage"]):
-            if interface.annotation is Friend:
-                return interface.event.sender
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, FriendMessage):
+                if interface.annotation is Friend:
+                    return interface.event.sender
 
 
 class GroupMessage(MessageEvent, GroupEvent):
@@ -53,11 +54,12 @@ class GroupMessage(MessageEvent, GroupEvent):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["GroupMessage"]):
-            if interface.annotation is Group:
-                return interface.event.sender.group
-            if interface.annotation is Member:
-                return interface.event.sender
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, GroupMessage):
+                if interface.annotation is Group:
+                    return interface.event.sender.group
+                if interface.annotation is Member:
+                    return interface.event.sender
 
 
 class TempMessage(MessageEvent):
@@ -67,16 +69,17 @@ class TempMessage(MessageEvent):
     messageChain: MessageChain
     sender: Member
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable-next=missing-class-docstring
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
 
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["TempMessage"]):
-            if interface.annotation is Group:
-                return interface.event.sender.group
-            if interface.annotation is Member:
-                return interface.event.sender
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, TempMessage):
+                if interface.annotation is Group:
+                    return interface.event.sender.group
+                if interface.annotation is Member:
+                    return interface.event.sender
 
 
 class OtherClientMessage(MessageEvent):
@@ -86,14 +89,15 @@ class OtherClientMessage(MessageEvent):
     messageChain: MessageChain
     sender: Client
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable-next=missing-class-docstring
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
 
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["OtherClientMessage"]):
-            if interface.annotation is Client:
-                return interface.event.sender
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, OtherClientMessage):
+                if interface.annotation is Client:
+                    return interface.event.sender
 
 
 class StrangerMessage(MessageEvent):
@@ -103,11 +107,12 @@ class StrangerMessage(MessageEvent):
     messageChain: MessageChain
     sender: Stranger
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable-next=missing-class-docstring
+    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
 
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
 
         @staticmethod
-        async def catch(interface: DispatcherInterface["StrangerMessage"]):
-            if interface.annotation is Friend:
-                return interface.event.sender
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, StrangerMessage):
+                if interface.annotation is Friend:
+                    return interface.event.sender

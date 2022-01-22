@@ -17,16 +17,18 @@ from .message.element import Source
 
 if TYPE_CHECKING:
     from .app import Ariadne
-    from .event.message import MessageEvent
 
 
 class MessageChainDispatcher(BaseDispatcher):
     """从 MessageEvent 提取 MessageChain 的 Dispatcher"""
 
     @staticmethod
-    async def catch(interface: DispatcherInterface["MessageEvent"]):
-        if interface.annotation is MessageChain:
-            return interface.event.messageChain
+    async def catch(interface: DispatcherInterface):
+        from .event.message import MessageEvent
+
+        if isinstance(interface.event, MessageEvent):
+            if interface.annotation is MessageChain:
+                return interface.event.messageChain
 
 
 class ContextDispatcher(BaseDispatcher):
@@ -86,6 +88,9 @@ class SourceDispatcher(BaseDispatcher):
     """提取 MessageEvent 消息链 Source 元素的 Dispatcher"""
 
     @staticmethod
-    async def catch(interface: DispatcherInterface["MessageEvent"]):
-        if interface.annotation is Source:
-            return interface.event.messageChain.getFirst(Source)
+    async def catch(interface: DispatcherInterface):
+        from .event.message import MessageEvent
+
+        if isinstance(interface.event, MessageEvent):
+            if interface.annotation is Source:
+                return interface.event.messageChain.getFirst(Source)

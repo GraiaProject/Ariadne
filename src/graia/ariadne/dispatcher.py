@@ -105,5 +105,8 @@ class SenderDispatcher(BaseDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if isinstance(interface.event.sender, interface.annotation):
-            return interface.event.sender
+        from .event.message import MessageEvent
+
+        if isinstance(interface.event, MessageEvent):
+            if isinstance(interface.event.sender, interface.annotation):
+                return interface.event.sender

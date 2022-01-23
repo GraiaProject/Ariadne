@@ -18,6 +18,8 @@
 
 `Ariadne` 收到的事件会额外引发审计事件 (Audit Event): `AriadnePostRemoteEvent`, 携带 `event` 单个参数. ([#73](https://github.com/GraiaProject/Ariadne/issues/73))
 
+添加了 `SenderDispatcher`. ([#84](https://github.com/GraiaProject/Ariadne/pull/84))
+
 ### 修复
 
 `MessageChain.endswith` 的行为异常 ([#68](https://github.com/GraiaProject/Ariadne/issues/68))

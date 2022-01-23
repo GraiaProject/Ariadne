@@ -94,3 +94,16 @@ class SourceDispatcher(BaseDispatcher):
         if isinstance(interface.event, MessageEvent):
             if interface.annotation is Source:
                 return interface.event.messageChain.getFirst(Source)
+
+
+class SenderDispatcher(BaseDispatcher):
+    """
+    从 MessageEvent 提取 sender 的 Dispatcher.
+    支持实现了 __instancecheck__ 的注释, 如 Union, Optional (since Python3.10)
+    和被 typing.runtime_checkable 标记为运行时协议的 Protocol.
+    """
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if isinstance(interface.event.sender, interface.annotation):
+            return interface.event.sender

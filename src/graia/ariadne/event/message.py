@@ -4,7 +4,7 @@ from typing import Union
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispatcher
+from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispatcher, SenderDispatcher
 from ..message.chain import MessageChain
 from ..model import Client, Friend, Group, Member, Stranger
 from . import MiraiEvent
@@ -19,7 +19,7 @@ class MessageEvent(MiraiEvent):
     sender: Union[Friend, Member, Client, Stranger]
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(*_):
@@ -34,7 +34,7 @@ class FriendMessage(MessageEvent, FriendEvent):
     sender: Friend
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
@@ -51,7 +51,7 @@ class GroupMessage(MessageEvent, GroupEvent):
     sender: Member
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
@@ -70,8 +70,7 @@ class TempMessage(MessageEvent):
     sender: Member
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
@@ -90,8 +89,7 @@ class OtherClientMessage(MessageEvent):
     sender: Client
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
@@ -108,8 +106,7 @@ class StrangerMessage(MessageEvent):
     sender: Stranger
 
     class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
-
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher]
+        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):

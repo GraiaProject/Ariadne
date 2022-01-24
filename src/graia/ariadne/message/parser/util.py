@@ -39,7 +39,7 @@ def escape(string: str):
 
 
 def unescape(string: str):
-    """逆转义字符串
+    """逆转义字符串, 自动去除空白符
 
     Args:
         string (str): 要逆转义的字符串
@@ -49,7 +49,7 @@ def unescape(string: str):
     """
     for k, v in R_ESCAPE.items():
         string = string.replace(k, v)
-    return string
+    return string.strip()
 
 
 class CommandToken(enum.Enum):
@@ -77,7 +77,7 @@ def tokenize_command(string: str):
     token: List[Tuple[CommandToken, List[Union[int, str]]]] = []
 
     for index, char in enumerate(string):
-        if char in L_PAREN + R_PAREN + (" ",):
+        if char in L_PAREN + R_PAREN:
             if char in L_PAREN:
                 if paren:
                     raise ValueError(
@@ -102,9 +102,11 @@ def tokenize_command(string: str):
                     raise ValueError(f"No matching parenthesis: {paren} @ {index}")
                 char_stk.clear()
                 paren = ""
-            elif char_stk:
-                token.append((CommandToken.TEXT, ["".join(char_stk)]))
             char_stk.clear()
+        elif char == " " and not paren:
+            if char_stk:
+                token.append((CommandToken.TEXT, ["".join(char_stk)]))
+                char_stk.clear()
         else:
             char_stk.append(char)
 

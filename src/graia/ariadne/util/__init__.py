@@ -4,6 +4,7 @@
 # Utility Layout
 import asyncio
 import functools
+import inspect
 import sys
 import traceback
 import warnings
@@ -18,6 +19,7 @@ from typing import (
     Dict,
     Generator,
     List,
+    Tuple,
     Type,
     TypeVar,
     Union,
@@ -46,7 +48,7 @@ from ..exception import (
     UnknownTarget,
     UnVerifiedSession,
 )
-from ..typing import P, R, T
+from ..typing import DictStrAny, P, R, T
 
 if TYPE_CHECKING:
     from ..app import Ariadne
@@ -208,6 +210,31 @@ def wrap_bracket(string: str) -> str:
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
+def const_call(val: T) -> Callable[[], T]:
+    """生成一个返回常量的 Callable
+
+    Args:
+        val (T): 常量
+
+    Returns:
+        Callable[[], T]: 返回的函数
+    """
+    return lambda: val
+
+
+def eval_ctx(layer: int = 0) -> Tuple[DictStrAny, DictStrAny]:
+    """返回用于 eval 的 globals 与 locals 字典.
+
+    Args:
+        layer (int, optional): 从调用者向外的 Frame 数. 默认为 0.
+
+    Returns:
+        Tuple[DictStrAny, DictStrAny]: (globals, locals) 字典
+    """
+    frame = inspect.stack()[layer + 1].frame  # add the current frame
+    return frame.f_globals, frame.f_locals
+
+
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
@@ -216,7 +243,7 @@ async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01)
 
     Args:
         predicate (Callable[[], bool]): 回调函数
-        interval (float, optional): 每次等待时长 (s). Defaults to 0.01.
+        interval (float, optional): 每次等待时长 (s). 默认 0.01s.
     """
     while not predicate():
         await asyncio.sleep(interval)
@@ -230,9 +257,9 @@ async def yield_with_timeout(
     """在满足 predicate 时返回 getter_coro() 的值
 
     Args:
-        getter_coro (Callable[[], Coroutine[None, None, T]]): 要循环返回协程函数.
+        getter_coro (Callable[[], Coroutine[None, None, T]]): 要循环返回的协程函数.
         predicate (Callable[[], bool]): 条件回调函数.
-        await_length (float, optional): 等待目前协程的时长. Defaults to 0.2.
+        await_length (float, optional): 等待目前协程的时长. 默认 0.2s.
 
     Yields:
         T: getter_coro 的返回值

@@ -50,7 +50,6 @@ graia-scheduler = { version = "^0.0.6", optional = true }
 graia-saya = { version = "^0.0.13", optional = true }
 mkdocs-material = { version = ">=8.1.2", optional = true }
 pdoc = { version = "^8.0", optional = true }
-regex = "^2021.11.10"
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna"]
@@ -70,7 +69,6 @@ objgraph = ">= 3.5"
 pydeps = "^1.10"
 pre-commit = "^2.16"
 yappi = { version = "^1.3.3", optional = true }
-pylint = "^2.12.2"
 
 [tool.isort]
 profile = "black"
@@ -78,37 +76,6 @@ profile = "black"
 [tool.black]
 line-length = 110
 target-version = ['py39']
-
-[tool.pylint."MESSAGE CONTROL"]
-max-line-length = 110
-extension-pkg-whitelist = ["pydantic"]
-disable = [
-    "broad-except",
-    "cyclic-import",
-    "wrong-import-order", # isort conflict
-    "wrong-import-position",
-    "unused-import", # flake8
-    "invalid-name",
-    "redefined-builtin",
-    "redefined-outer-name",
-    "import-outside-toplevel",
-    "too-many-lines", # graia.ariadne.app
-    "too-many-arguments",
-    "too-many-branches",
-    "too-many-statements",
-    "too-many-instance-attributes",
-    "too-few-public-methods",
-    "too-many-public-methods",
-    "super-init-not-called",
-    "protected-access",
-    "inconsistent-return-statements", # bcc dispatchers
-    "duplicate-code", # imports and inherited method init
-    "no-self-argument", # pydantic validators
-    "no-member", # pydantic validators
-    "no-self-use", # pydantic validators
-
-]
-ignore-paths = [".*test.*", ".*entry.*", ".*dev.*", ".*venv*"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -4,7 +4,12 @@ from typing import Union
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ..dispatcher import ContextDispatcher, MessageChainDispatcher, SourceDispatcher, SenderDispatcher
+from ..dispatcher import (
+    ContextDispatcher,
+    MessageChainDispatcher,
+    SenderDispatcher,
+    SourceDispatcher,
+)
 from ..message.chain import MessageChain
 from ..model import Client, Friend, Group, Member, Stranger
 from . import MiraiEvent

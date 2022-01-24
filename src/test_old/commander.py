@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 
 import pydantic
 from devtools import debug
@@ -24,36 +25,42 @@ async def main():
 
         scope: str
 
+        def __str__(self) -> str:
+            return self.__repr__()
+
     def cast_to_list(value: MessageChain, field: ModelField):
-        if field.type_ is list:
-            return list(value)
+        if field.outer_type_ is List[str]:
+            return value.asDisplay().split(".")
+        if field.outer_type_ is List[MessageChain]:
+            return value.split(".")
         return value
 
-    cmd.add_type_caster(cast_to_list)
+    cmd.add_type_cast(cast_to_list)
 
     @cmd.command(
-        "[luckperm|lp] group {0|target} [permission|perm] set {1|permission} {2|value}",
+        "[luckperm | lp] group {0 | target} [permission | perm] set {1 | permission} {value = True}",
         {
             "scope": Arg(
-                "[--scope|-s] {scope}",
+                "[@scope|-s] {scope}",
                 type=Scope,
                 default=Scope(scope="global"),
             ),
             "fast": Arg("--fast", default=False),
+            "perm": Slot(1, List[MessageChain]),
         },
     )
-    def set_perm(target: list, permission: str, fast: bool, scope: Scope, value: bool = True):
-        logger.info(
-            f"Setting {target!r}'s permission {permission} to {value} with scope {scope}, fast: {fast}"
-        )
+    def set_perm(target: At, perm: List[MessageChain], fast: bool, scope: Scope, value: bool):
+        logger.info(f"Setting {target!r}'s permission {perm} to {value} with scope {scope}, fast: {fast}")
 
     try:
-        cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))
+        await cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))
     except Exception as e:
         debug(e)
-    cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read false"))
-    cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read --fast -s global"))
-    cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s local"))
+    await cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read false"))
+    await cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read --fast -s crab"))
+    await cmd.execute(
+        MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s local")
+    )
     await asyncio.sleep(0.5)
 
 

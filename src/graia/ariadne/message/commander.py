@@ -26,8 +26,7 @@ from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
 from ..model import AriadneBaseModel
-from ..typing import T
-from ..util import ConstantDispatcher, resolve_dispatchers_mixin
+from ..util import ConstantDispatcher, const_call, eval_ctx, resolve_dispatchers_mixin
 from .chain import MessageChain
 from .element import Element
 from .parser.util import CommandToken, split, tokenize_command
@@ -48,7 +47,7 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
     Returns:
         Union[MessageChain, Element, str]: 取决于字段类型标注
     """
-    if field.type_ is MessageChain:
+    if field.outer_type_ is MessageChain:
         return value
     if issubclass(field.type_, Element):
         assert len(value) == 1
@@ -59,18 +58,6 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
     if value is None:
         return field.default
     return value
-
-
-def const_call(val: T) -> Callable[[], T]:
-    """生成一个返回常量的 Callable
-
-    Args:
-        val (T): 常量
-
-    Returns:
-        Callable[[], T]: 返回的函数
-    """
-    return lambda: val
 
 
 class Slot:
@@ -283,6 +270,17 @@ class Commander:
                 token_list.append(set(map(str, tokens)))
             else:
                 token_list.append(tokens)
+                if len(tokens) == 1 and isinstance(tokens[0], str) and (":" in tokens[0] or "=" in tokens[0]):
+                    annotated, default, *_ = tokens[0].rsplit("=", 1) + ["", ""]
+                    name, annotation, *_ = annotated.split(":", 1) + ["", ""]
+                    name, annotation, default = name.strip(), annotation.strip(), default.strip()
+                    setting[name] = Slot(
+                        name,
+                        eval(annotation or "...", *eval_ctx(1)),
+                        eval(default or "...", *eval_ctx(1)),
+                    )
+                    tokens = [name]
+                    token_list[-1] = tokens
                 for param_name in tokens:
                     if param_name in slot_names:
                         raise ValueError("Duplicated parameter slot!")
@@ -370,6 +368,9 @@ class Commander:
                         else:
                             arg.type = MessageChain
 
+                    if arg.type is ...:
+                        raise ValueError("Slot type is not provided!")
+
                     arg.model = create_model(
                         "SlotModel",
                         __validators__={
@@ -394,7 +395,7 @@ class Commander:
 
         return wrapper
 
-    def execute(self, chain: MessageChain):
+    async def execute(self, chain: MessageChain):
         """触发 Commander.
 
         Args:
@@ -443,4 +444,4 @@ class Commander:
 
                 handler.set_data(slot_data, arg_data)
 
-                self.broadcast.loop.create_task(self.broadcast.Executor(handler))
+                await self.broadcast.Executor(handler)

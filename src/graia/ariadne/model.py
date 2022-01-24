@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Union
 
+from importlib_metadata import functools
 from loguru import logger
 from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra
@@ -274,12 +275,20 @@ class Stranger(AriadneBaseModel):
         return self.id
 
 
-class MemberPerm(str, Enum):
+@functools.total_ordering
+class MemberPerm(Enum):
     """描述群成员在群组中所具备的权限"""
 
     Member = "MEMBER"  # 普通成员
     Administrator = "ADMINISTRATOR"  # 管理员
     Owner = "OWNER"  # 群主
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __lt__(self, other: "MemberPerm"):
+        lv_map = {MemberPerm.Member: 1, MemberPerm.Administrator: 2, MemberPerm.Owner: 3}
+        return lv_map[self] < lv_map[other]
 
 
 class Group(AriadneBaseModel):

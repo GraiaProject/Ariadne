@@ -44,6 +44,8 @@ async def post_cmd(chain: MessageChain):
     cmd.execute(chain)
 ```
 
+<!-- TODO: 需要重新施工-->
+
 ## `command` 字段
 
 本字段允许使用以下三种标记符号, 均用空格分开

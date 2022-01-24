@@ -14,6 +14,8 @@
 
 `Group` `Friend` `Member` 上还有 `getInfo` `modifyInfo` `getProfile` `modifyAdmin` `getConfig` `modifyConfig` 等方便方法.
 
+`MemberPerm` 支持富比较操作, 也就是说你可以通过 `Member.permission >= MemberPerm.Administrator` 判断成员是否有管理权限.
+
 ## 某些事件的额外方法
 
 [`RequestEvent`](https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/event/mirai.py#L773)

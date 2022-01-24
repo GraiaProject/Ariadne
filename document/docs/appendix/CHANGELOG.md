@@ -4,7 +4,7 @@
 
 ### 添加
 
-实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76) [#80](https://github.com/GraiaProject/Ariadne/issues/80))
+实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76) [#80](https://github.com/GraiaProject/Ariadne/issues/80) [#82](https://github.com/GraiaProject/Ariadne/issues/82))
 
 `Ariadne.sendMessage` 支持通过 `action` 自定义行为. ([#75](https://github.com/GraiaProject/Ariadne/issues/75))
 
@@ -20,6 +20,8 @@
 
 添加了 `SenderDispatcher`. ([#84](https://github.com/GraiaProject/Ariadne/pull/84))
 
+支持对 `MemberPerm` 进行富比较操作. ([#85](https://github.com/GraiaProject/Ariadne/issues/85))
+
 ### 修复
 
 `MessageChain.endswith` 的行为异常 ([#68](https://github.com/GraiaProject/Ariadne/issues/68))
@@ -31,6 +33,8 @@
 `Commander` 与 `Console` 会自动解析 `dispatcher` 的 `mixin`.
 
 修复 `BotMuteEvent` 的 `Group` 解析问题.
+
+修复部分事件的分类错误问题.
 
 修复不同类型子事件被同时监听时的 `Broadcast` 错误调用 `Dispatcher` 的问题 ([#83](https://github.com/GraiaProject/Ariadne/issues/83))
 

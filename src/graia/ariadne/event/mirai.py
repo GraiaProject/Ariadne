@@ -111,7 +111,7 @@ class FriendInputStatusChangedEvent(FriendEvent):
     friend: Friend
     inputting: bool
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -136,7 +136,7 @@ class FriendNickChangedEvent(FriendEvent):
     from_name: str = Field(..., alias="from")
     to_name: str = Field(..., alias="to")
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -161,7 +161,7 @@ class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
     current: MemberPerm
     group: Group
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -186,7 +186,7 @@ class BotMuteEvent(GroupEvent, BotEvent):
     durationSeconds: int
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -212,7 +212,7 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
     type = "BotUnmuteEvent"
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -239,7 +239,7 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
     group: Group
     inviter: Optional[Member] = Field(..., alias="invitor")
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -264,7 +264,7 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
     type: str = "BotLeaveEventActive"
     group: Group
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -287,7 +287,7 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
     type: str = "BotLeaveEventKick"
     group: Group
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -315,7 +315,7 @@ class GroupRecallEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -391,7 +391,7 @@ class GroupNameChangeEvent(GroupEvent):
     group: Group
     operator: Optional[Member] = None
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -420,7 +420,7 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -449,7 +449,7 @@ class GroupMuteAllEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -478,7 +478,7 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -507,7 +507,7 @@ class GroupAllowConfessTalkEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -536,7 +536,7 @@ class GroupAllowMemberInviteEvent(GroupEvent):
     group: Group
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -563,7 +563,7 @@ class MemberJoinEvent(GroupEvent):
     member: Member
     inviter: Optional[Member] = Field(..., alias="invitor")
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -594,7 +594,7 @@ class MemberLeaveEventKick(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -622,7 +622,7 @@ class MemberLeaveEventQuit(GroupEvent):
     type = "MemberLeaveEventQuit"
     member: Member
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -654,7 +654,7 @@ class MemberCardChangeEvent(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -684,7 +684,7 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
     current: str
     member: Member
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -712,7 +712,7 @@ class MemberPermissionChangeEvent(GroupEvent):
     current: str
     member: Member
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -744,7 +744,7 @@ class MemberMuteEvent(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -777,7 +777,7 @@ class MemberUnmuteEvent(GroupEvent):
     member: Member
     operator: Optional[Member]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod
@@ -807,7 +807,7 @@ class MemberHonorChangeEvent(GroupEvent):
     action: str
     honor: str
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [ContextDispatcher]
 
         @staticmethod

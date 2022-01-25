@@ -85,9 +85,7 @@ class Safe(SendMessageAction):
         if not ignore:
             raise item
 
-    async def exception(  # pylint: disable=arguments-differ
-        s: Union["Safe", Exc_T], i: Optional[Exc_T] = None
-    ):
+    async def exception(s: Union["Safe", Exc_T], i: Optional[Exc_T] = None):
         if isinstance(s, Safe):
             return await Safe._handle(i, s.ignore)
         return await Safe._handle(s, True)

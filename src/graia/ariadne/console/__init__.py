@@ -145,7 +145,7 @@ class Console:
         from graia.ariadne.message.chain import MessageChain
         from graia.ariadne.message.element import Plain
 
-        class _Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+        class _Dispatcher(BaseDispatcher):
             def __init__(self, command: str, console: Console) -> None:
                 self.command = command
                 self.console = console

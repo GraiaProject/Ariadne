@@ -154,7 +154,6 @@ def inject_bypass_listener(broadcast: Broadcast):
 
     import graia.broadcast.entities.listener
 
-    # pylint: disable=no-member
     graia.broadcast.entities.listener.Listener = BypassListener  # type: ignore
     graia.broadcast.Listener = BypassListener  # type: ignore
     try:  # Override saya listener

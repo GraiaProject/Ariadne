@@ -21,7 +21,7 @@ class ApplicationLifecycleEvent(Dispatchable):
     def __init__(self, app: "Ariadne") -> None:
         self.app = app
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
 
         mixin = [ContextDispatcher]
 

@@ -23,7 +23,7 @@ class MessageEvent(MiraiEvent):
     messageChain: MessageChain
     sender: Union[Friend, Member, Client, Stranger]
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
@@ -38,7 +38,7 @@ class FriendMessage(MessageEvent, FriendEvent):
     messageChain: MessageChain
     sender: Friend
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
@@ -55,7 +55,7 @@ class GroupMessage(MessageEvent, GroupEvent):
     messageChain: MessageChain
     sender: Member
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
@@ -74,7 +74,7 @@ class TempMessage(MessageEvent):
     messageChain: MessageChain
     sender: Member
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
@@ -93,7 +93,7 @@ class OtherClientMessage(MessageEvent):
     messageChain: MessageChain
     sender: Client
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
@@ -110,7 +110,7 @@ class StrangerMessage(MessageEvent):
     messageChain: MessageChain
     sender: Stranger
 
-    class Dispatcher(BaseDispatcher):  # pylint: disable=missing-class-docstring
+    class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod

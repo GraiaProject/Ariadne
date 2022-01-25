@@ -99,7 +99,7 @@ class SourceDispatcher(BaseDispatcher):
 class SenderDispatcher(BaseDispatcher):
     """
     从 MessageEvent 提取 sender 的 Dispatcher.
-    支持实现了 __instancecheck__ 的注释, 如 Union, Optional (since Python3.10)
+    支持实现了 __instancecheck__ 的注释, 如 Union, Optional (Python 3.10+)
     和被 typing.runtime_checkable 标记为运行时协议的 Protocol.
     """
 
@@ -108,5 +108,8 @@ class SenderDispatcher(BaseDispatcher):
         from .event.message import MessageEvent
 
         if isinstance(interface.event, MessageEvent):
-            if isinstance(interface.event.sender, interface.annotation):
-                return interface.event.sender
+            try:
+                if isinstance(interface.event.sender, interface.annotation):
+                    return interface.event.sender
+            except TypeError:
+                pass

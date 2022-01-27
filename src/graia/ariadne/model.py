@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Union
 
-from importlib_metadata import functools
+import functools
 from loguru import logger
 from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra

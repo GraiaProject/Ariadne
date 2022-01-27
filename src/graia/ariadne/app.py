@@ -1422,7 +1422,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
 
-            self.broadcast.dispatcher_interface.inject_global_raw(MiddlewareDispatcher(self))
+            self.broadcast.finale_dispatchers.append(MiddlewareDispatcher(self))
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
             await await_predicate(lambda: self.adapter.session_activated, 0.0001)
             self.status = AriadneStatus.RUNNING

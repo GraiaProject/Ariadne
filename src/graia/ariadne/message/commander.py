@@ -430,8 +430,8 @@ class Commander:
                     slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
                     if default is not ...:
                         assert_(
-                            slot_map[name].placeholder in token_list[-1][1]
-                            and token_list[-1][0] in {CommandToken.ANNOTATED, CommandToken.PARAM},
+                            slot_map[name].placeholder in command_tokens[-1][1]
+                            and command_tokens[-1][0] in {CommandToken.ANNOTATED, CommandToken.PARAM},
                             "Not setting wildcard / optional on the last slot!",
                         )
                         nonlocal last

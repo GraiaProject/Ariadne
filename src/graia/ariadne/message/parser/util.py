@@ -104,7 +104,7 @@ def tokenize_command(string: str) -> List[CommandTokenTuple]:
                         r"(?P<default>=.+)?",
                         piece,
                     )
-                    if match and (":" in piece or "=" in piece):
+                    if match and any(s in piece for s in ".:="):
                         token.append(  # type: List[str]
                             (
                                 CommandToken.ANNOTATED,

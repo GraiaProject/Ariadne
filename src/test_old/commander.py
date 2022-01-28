@@ -52,7 +52,7 @@ async def main():
     def set_perm(target: At, perm: List[MessageChain], fast: bool, scope: Scope, value: bool):
         logger.info(f"Setting {target!r}'s permission {perm} to {value} with scope {scope}, fast: {fast}")
 
-    @cmd.command("[download_image|img] {...images:str}")
+    @cmd.command("[download_image|img] {...images}", {"images": Slot("images", type=str)})
     def get_img(images: Tuple[str]):
         logger.info(repr(images))
 

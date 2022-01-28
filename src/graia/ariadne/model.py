@@ -1,11 +1,11 @@
 """Ariadne 各种 model 存放的位置"""
+import functools
 import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Union
 
-from importlib_metadata import functools
 from loguru import logger
 from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra

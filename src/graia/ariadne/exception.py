@@ -53,5 +53,9 @@ class ConflictItem(Exception):
     """项冲突/其中一项被重复定义"""
 
 
+class RemoteException(Exception):
+    """网络异常: 无头客户端处发生错误, 你应该检查其输出的错误日志."""
+
+
 class UnknownError(Exception):
     """其他错误"""

@@ -19,6 +19,7 @@ from typing import (
     Dict,
     Generator,
     List,
+    NoReturn,
     Tuple,
     Type,
     TypeVar,
@@ -44,6 +45,7 @@ from ..exception import (
     InvalidSession,
     InvalidVerifyKey,
     MessageTooLong,
+    RemoteException,
     UnknownError,
     UnknownTarget,
     UnVerifiedSession,
@@ -64,6 +66,7 @@ code_exceptions_mapping: Dict[int, Type[Exception]] = {
     20: AccountMuted,
     30: MessageTooLong,
     400: InvalidArgument,
+    500: RemoteException,
 }
 
 
@@ -84,8 +87,8 @@ def validate_response(code: Union[Dict[str, Union[int, Any]], int]):
         return
     exc_cls = code_exceptions_mapping.get(int_code)
     if exc_cls:
-        raise exc_cls(exc_cls.__doc__)
-    raise UnknownError(f"{code}")
+        raise exc_cls(exc_cls.__doc__, code)
+    raise UnknownError(code)
 
 
 def loguru_excepthook(cls, val, tb, *_, **__):
@@ -221,6 +224,50 @@ def const_call(val: T) -> Callable[[], T]:
     return lambda: val
 
 
+def assert_on_(pre_condition: bool, condition: bool, *message: Any) -> Union[None, NoReturn]:
+    """引发 ValueError 的断言, 仅在满足 pre_condition 时进行
+
+    Args:
+        pre_condition(bool): 前置条件
+        condition (bool): 条件语句
+        message (Any, optional): 附带的消息.
+
+    Returns:
+        Union[None, NoReturn]: 成功时为 None, 否则引发异常.
+    """
+    if pre_condition:
+        if not condition:
+            raise ValueError(*message)
+
+
+def assert_(condition: bool, *message: Any) -> Union[None, NoReturn]:
+    """引发 ValueError 的断言
+
+    Args:
+        condition (bool): 条件语句
+        message (Any, optional): 附带的消息.
+
+    Returns:
+        Union[None, NoReturn]: 成功时为 None, 否则引发异常.
+    """
+    if not condition:
+        raise ValueError(*message)
+
+
+def assert_not_(condition: bool, *message: Any) -> Union[None, NoReturn]:
+    """引发 ValueError 的 **反向** 断言
+
+    Args:
+        condition (bool): 条件语句
+        message (Any, optional): 附带的消息.
+
+    Returns:
+        Union[None, NoReturn]: 失败时为 None, 否则引发异常.
+    """
+    if condition:
+        raise ValueError(*message)
+
+
 def eval_ctx(layer: int = 0) -> Tuple[DictStrAny, DictStrAny]:
     """返回用于 eval 的 globals 与 locals 字典.
 
@@ -330,7 +377,7 @@ class Dummy:
     """Dummy 类, 对所有调用返回 None. (可以预设某些值)"""
 
     def __init__(self, **kwds):
-        for k, v in kwds:
+        for k, v in kwds.items():
             self.__setattr__(k, v)
 
     def __getattr__(self, *_, **__):

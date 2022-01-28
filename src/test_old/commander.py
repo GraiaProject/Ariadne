@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Tuple
 
 import pydantic
 from devtools import debug
@@ -52,16 +52,20 @@ async def main():
     def set_perm(target: At, perm: List[MessageChain], fast: bool, scope: Scope, value: bool):
         logger.info(f"Setting {target!r}'s permission {perm} to {value} with scope {scope}, fast: {fast}")
 
+    @cmd.command("[download_image|img] {...images:str}")
+    def get_img(images: Tuple[str]):
+        logger.info(repr(images))
+
     try:
         await cmd.execute(MessageChain.create("lp group ", At(12345), "error perm set database.read false"))
     except Exception as e:
         debug(e)
     await cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read false"))
-    await cmd.execute(MessageChain.create("lp group ", At(12345), " perm set database.read --fast -s crab"))
+    await cmd.execute(MessageChain.create("lp group ", At(23456), " perm set system.overload --fast -s crab"))
     await cmd.execute(
         MessageChain.create("lp group ", At(12345), " perm set database.read 0 --fast -s local")
     )
-    await asyncio.sleep(0.5)
+    await cmd.execute(MessageChain.create("img img.net/1 img.net/2 img.net/3"))
 
 
 if __name__ == "__main__":

@@ -10,7 +10,6 @@ from typing_extensions import Literal
 from ..context import adapter_ctx
 from ..dispatcher import ContextDispatcher
 from ..exception import InvalidSession
-from ..message.element import Element
 from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
 from . import MiraiEvent
 
@@ -34,11 +33,11 @@ class GroupEvent(MiraiEvent):
 
 
 class BotOnlineEvent(BotEvent):
-    """当该事件发生时, 应用实例所辖账号登录成功
+    """Bot 账号登录成功
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -47,11 +46,11 @@ class BotOnlineEvent(BotEvent):
 
 
 class BotOfflineEventActive(BotEvent):
-    """当该事件发生时, 应用实例所辖账号主动离线
+    """Bot 账号主动离线
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -60,11 +59,11 @@ class BotOfflineEventActive(BotEvent):
 
 
 class BotOfflineEventForce(BotEvent):
-    """当该事件发生时, 应用实例所辖账号被迫离线
+    """Bot 账号被迫离线
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -73,11 +72,11 @@ class BotOfflineEventForce(BotEvent):
 
 
 class BotOfflineEventDropped(BotEvent):
-    """当该事件发生时, 应用实例所辖账号与服务器的连接被服务器主动断开, 或因网络原因离线
+    """Bot 账号与服务器的连接被服务器主动断开, 或因网络原因离线
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -86,11 +85,11 @@ class BotOfflineEventDropped(BotEvent):
 
 
 class BotReloginEvent(BotEvent):
-    """当该事件发生时, 应用实例所辖账号正尝试重新登录
+    """Bot 账号正尝试重新登录
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -99,11 +98,11 @@ class BotReloginEvent(BotEvent):
 
 
 class FriendInputStatusChangedEvent(FriendEvent):
-    """当该事件发生时, 应用实例所辖账号的某一好友输入状态改变.
+    """Bot 账号的某一好友输入状态改变.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -122,11 +121,11 @@ class FriendInputStatusChangedEvent(FriendEvent):
 
 
 class FriendNickChangedEvent(FriendEvent):
-    """当该事件发生时, 应用实例所辖账号的某一好友更改了昵称.
+    """Bot 账号的某一好友更改了昵称.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Friend (annotation): 更改名称的好友
     """
@@ -147,11 +146,11 @@ class FriendNickChangedEvent(FriendEvent):
 
 
 class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
-    """当该事件发生时, 应用实例所辖账号在一特定群组内所具有的权限发生变化
+    """Bot 账号在一特定群组内所具有的权限发生变化
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
     """
@@ -172,14 +171,14 @@ class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
 
 
 class BotMuteEvent(GroupEvent, BotEvent):
-    """当该事件发生时, 应用实例所辖账号在一特定群组内被管理员/群主禁言
+    """Bot 账号在一特定群组内被管理员/群主禁言
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
-        Member (annotation, optional = None): 执行禁言操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
-        Group (annotation, optional = None): 发生该事件的群组
+        Member (annotation, optional = None): 执行禁言操作的管理员/群主, 若为 None 则为 Bot 账号操作
+        Group (annotation): 发生该事件的群组
     """
 
     type = "BotMuteEvent"
@@ -199,14 +198,14 @@ class BotMuteEvent(GroupEvent, BotEvent):
 
 
 class BotUnmuteEvent(GroupEvent, BotEvent):
-    """当该事件发生时, 应用实例所辖账号在一特定群组内被管理员/群主解除禁言
+    """Bot 账号在一特定群组内被管理员/群主解除禁言
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
-        Member (annotation, optional = None): 执行解除禁言操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
-        Group (annotation, optional = None): 发生该事件的群组
+        Member (annotation, optional = None): 执行解除禁言操作的管理员/群主, 若为 None 则为 Bot 账号操作
+        Group (annotation): 发生该事件的群组
     """
 
     type = "BotUnmuteEvent"
@@ -225,13 +224,13 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
 
 
 class BotJoinGroupEvent(GroupEvent, BotEvent):
-    """当该事件发生时, 应用实例所辖账号加入指定群组
+    """Bot 账号加入指定群组
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
-        Group (annotation, optional = None): 发生该事件的群组
+        Group (annotation): 发生该事件的群组
         Member / Optional[Member] (annotation, optional = None): 邀请者, 可以为 None
     """
 
@@ -252,13 +251,13 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
 
 
 class BotLeaveEventActive(GroupEvent, BotEvent):
-    """当该事件发生时, 应用实例所辖账号主动退出了某群组.
+    """Bot 账号主动退出了某群组.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
-        Group (annotation, optional = None): 发生该事件的群组
+        Group (annotation): 发生该事件的群组
     """
 
     type: str = "BotLeaveEventActive"
@@ -275,13 +274,13 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
 
 
 class BotLeaveEventKick(GroupEvent, BotEvent):
-    """当该事件发生时, 应用实例所辖账号被某群组的管理员/群主从该群组中删除.
+    """Bot 账号被某群组的管理员/群主从该群组中删除.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
-        Group (annotation, optional = None): 发生该事件的群组
+        Group (annotation): 发生该事件的群组
     """
 
     type: str = "BotLeaveEventKick"
@@ -298,13 +297,13 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
 
 
 class GroupRecallEvent(GroupEvent):
-    """当该事件发生时, 有群成员在指定群组撤回了一条消息, 注意, 这里的群成员若具有管理员/群主权限, 则他们可以撤回其他普通群员的消息, 且不受发出时间限制.
+    """有群成员在指定群组撤回了一条消息, 注意, 这里的群成员若具有管理员/群主权限, 则他们可以撤回其他普通群员的消息, 且不受发出时间限制.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
-        Member (annotation, return:optional): 执行本操作的群成员, 若为 None 则为应用实例所辖账号操作
+        Member (annotation, optional): 执行本操作的群成员, 若为 None 则为 Bot 账号操作
         Group (annotation): 发生该事件的群组
     """
 
@@ -328,11 +327,11 @@ class GroupRecallEvent(GroupEvent):
 
 
 class FriendRecallEvent(FriendEvent):
-    """当该事件发生时, 有一位与应用实例所辖账号为好友关系的用户撤回了一条消息
+    """有一位与 Bot 账号为好友关系的用户撤回了一条消息
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -344,11 +343,11 @@ class FriendRecallEvent(FriendEvent):
 
 
 class NudgeEvent(MiraiEvent):
-    """当该事件发生时, 应用实例所辖账号被某个账号在相应上下文区域进行 "戳一戳"(Nudge) 的行为.
+    """Bot 账号被某个账号在相应上下文区域进行 "戳一戳"(Nudge) 的行为.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -375,11 +374,11 @@ class NudgeEvent(MiraiEvent):
 
 
 class GroupNameChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组被修改了群名称
+    """有一群组被修改了群名称
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 被修改了群名称的群组
         Member (annotation): 更改群名称的成员, 权限必定为管理员或是群主
@@ -404,14 +403,14 @@ class GroupNameChangeEvent(GroupEvent):
 
 
 class GroupEntranceAnnouncementChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组被修改了入群公告
+    """有一群组被修改了入群公告
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 被修改了入群公告的群组
-        Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
+        Member (annotation, optional = None): 作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作
     """
 
     type = "GroupEntranceAnnouncementChangeEvent"
@@ -433,14 +432,14 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
 
 
 class GroupMuteAllEvent(GroupEvent):
-    """该事件发生时, 有一群组开启了全体禁言
+    """有一群组开启了全体禁言
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 开启了全体禁言的群组
-        Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
+        Member (annotation, optional = None): 作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作
     """
 
     type = "GroupMuteAllEvent"
@@ -462,14 +461,14 @@ class GroupMuteAllEvent(GroupEvent):
 
 
 class GroupAllowAnonymousChatEvent(GroupEvent):
-    """该事件发生时, 有一群组修改了有关匿名聊天的相关设定
+    """有一群组修改了有关匿名聊天的相关设定
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 修改了相关设定的群组
-        Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
+        Member (annotation, optional = None): 作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作
     """
 
     type = "GroupAllowAnonymousChatEvent"
@@ -491,14 +490,14 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
 
 
 class GroupAllowConfessTalkEvent(GroupEvent):
-    """该事件发生时, 有一群组修改了有关坦白说的相关设定
+    """有一群组修改了有关坦白说的相关设定
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 修改了相关设定的群组
-        Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
+        Member (annotation, optional = None): 作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作
     """
 
     type = "GroupAllowConfessTalkEvent"
@@ -520,14 +519,14 @@ class GroupAllowConfessTalkEvent(GroupEvent):
 
 
 class GroupAllowMemberInviteEvent(GroupEvent):
-    """该事件发生时, 有一群组修改了有关是否允许已有成员邀请其他用户加入群组的相关设定
+    """有一群组修改了有关是否允许已有成员邀请其他用户加入群组的相关设定
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 修改了相关设定的群组
-        Member (annotation, return:optional): 作出此操作的管理员/群主, 若为 None 则为应用实例所辖账号操作
+        Member (annotation, optional = None): 作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作
     """
 
     type = "GroupAllowMemberInviteEvent"
@@ -549,11 +548,11 @@ class GroupAllowMemberInviteEvent(GroupEvent):
 
 
 class MemberJoinEvent(GroupEvent):
-    """该事件发生时, 有一新成员加入了一特定群组
+    """有一新成员加入了一特定群组
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 该用户加入的群组
         Member (annotation): 关于该用户的成员实例
@@ -578,16 +577,16 @@ class MemberJoinEvent(GroupEvent):
 
 
 class MemberLeaveEventKick(GroupEvent):
-    """该事件发生时, 有一群组成员被管理员/群主从群组中删除, 当 `operator` 为 `None` 时, 执行者为应用实例所辖账号.
+    """有一群组成员被管理员/群主从群组中删除, 当 `operator` 为 `None` 时, 执行者为 Bot 账号.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 指定的群组
         Member (annotation):
           - `"target"` (default, const, str): 被从群组删除的成员
-          - `"operator"` (default, const, str, return:optional): 执行了该操作的管理员/群主, 也可能是应用实例所辖账号.
+          - `"operator"` (default, const, str, optional = None): 执行了该操作的管理员/群主, 也可能是 Bot 账号.
     """
 
     type = "MemberLeaveEventKick"
@@ -609,11 +608,11 @@ class MemberLeaveEventKick(GroupEvent):
 
 
 class MemberLeaveEventQuit(GroupEvent):
-    """该事件发生时, 有一群组成员主动退出群组.
+    """有一群组成员主动退出群组.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生本事件的群组, 通常的, 在本事件发生后本群组成员数量少于之前
         Member (annotation): 主动退出群组的成员
@@ -635,17 +634,17 @@ class MemberLeaveEventQuit(GroupEvent):
 
 
 class MemberCardChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组成员的群名片被更改, 执行者可能是管理员/群主, 该成员自己, 也可能是应用实例所辖账号(这时, `operator` 为 `None`).
+    """有一群组成员的群名片被更改, 执行者可能是管理员/群主, 该成员自己, 也可能是 Bot 账号(这时, `operator` 为 `None`).
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被更改群名片的成员
           - `"operator"` (default, const, Optional[str]): 该操作的执行者, 可能是管理员/群主, 该成员自己,
-          也可能是应用实例所辖账号(这时, `operator` 为 `None`).
+          也可能是 Bot 账号(这时, `operator` 为 `None`).
     """
 
     type = "MemberCardChangeEvent"
@@ -669,11 +668,11 @@ class MemberCardChangeEvent(GroupEvent):
 
 
 class MemberSpecialTitleChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组成员的群头衔被更改, 执行者只可能是群组的群主.
+    """有一群组成员的群头衔被更改, 执行者只可能是群组的群主.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation): 被更改群头衔的群组成员
@@ -697,11 +696,11 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
 
 
 class MemberPermissionChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组成员的权限被更改/调整, 执行者只可能是群组的群主.
+    """有一群组成员的权限被更改/调整, 执行者只可能是群组的群主.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation): 被调整权限的群组成员
@@ -725,16 +724,16 @@ class MemberPermissionChangeEvent(GroupEvent):
 
 
 class MemberMuteEvent(GroupEvent):
-    """该事件发生时, 有一群组成员被管理员/群组禁言, 当 `operator` 为 `None` 时为应用实例所辖账号操作.
+    """有一群组成员被管理员/群组禁言, 当 `operator` 为 `None` 时为 Bot 账号操作.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被禁言的成员
-          - `"operator"` (default, const, str, return:optional): 该操作的执行者, 也可能是应用实例所辖账号.
+          - `"operator"` (default, const, str, optional = None): 该操作的执行者, 也可能是 Bot 账号.
 
           默认返回 `target`.
     """
@@ -759,16 +758,16 @@ class MemberMuteEvent(GroupEvent):
 
 
 class MemberUnmuteEvent(GroupEvent):
-    """该事件发生时, 有一群组成员被管理员/群组解除禁言, 当 `operator` 为 `None` 时为应用实例所辖账号操作.
+    """有一群组成员被管理员/群组解除禁言, 当 `operator` 为 `None` 时为 Bot 账号操作.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation):
           - `"target"` (default, const, str): 被禁言的成员
-          - `"operator"` (default, const, str, return:optional): 该操作的执行者, 可能是管理员或是群主, 也可能是应用实例所辖账号.
+          - `"operator"` (default, const, str, optional = None): 该操作的执行者, 可能是管理员或是群主, 也可能是 Bot 账号.
 
           默认返回 `target`.
     """
@@ -792,11 +791,11 @@ class MemberUnmuteEvent(GroupEvent):
 
 
 class MemberHonorChangeEvent(GroupEvent):
-    """该事件发生时, 有一群组成员获得/失去了某个荣誉.
+    """有一群组成员获得/失去了某个荣誉.
 
     ** 注意: 当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息! **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
         Group (annotation): 发生该事件的群组
         Member (annotation): 获得/失去荣誉的成员
@@ -854,14 +853,14 @@ class RequestEvent(MiraiEvent):
 
 
 class NewFriendRequestEvent(RequestEvent, FriendEvent):
-    """当该事件发生时, 有一用户向机器人提起好友请求.
+    """有一用户向机器人提起好友请求.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
 
-    Addon Introduction:
+    事件拓展支持:
         该事件的处理需要你获取原始事件实例.
 
         1. 读取该事件的基础信息:
@@ -927,14 +926,14 @@ class NewFriendRequestEvent(RequestEvent, FriendEvent):
 
 
 class MemberJoinRequestEvent(RequestEvent, GroupEvent):
-    """当该事件发生时, 有一用户向机器人作为管理员/群主的群组申请加入群组.
+    """有一用户向机器人作为管理员/群主的群组申请加入群组.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
 
-    Addon Introduction:
+    事件拓展支持:
         该事件的处理需要你获取原始事件实例.
 
         1. 读取该事件的基础信息:
@@ -1039,21 +1038,21 @@ class MemberJoinRequestEvent(RequestEvent, GroupEvent):
 
 
 class BotInvitedJoinGroupRequestEvent(RequestEvent, BotEvent, GroupEvent):
-    """当该事件发生时, 应用实例所辖账号接受到来自某个账号的邀请加入某个群组的请求.
+    """Bot 账号接受到来自某个账号的邀请加入某个群组的请求.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
 
-    Addon Introduction:
+    事件拓展支持:
         该事件的处理需要你获取原始事件实例.
 
         1. 读取该事件的基础信息:
 
             ``` python
             event.supplicant: int # 邀请所辖账号加入群组的用户的 ID
-            event.groupId: Optional[int] # 对方邀请所辖账号加入的群组的 ID
+            event.groupId: int # 对方邀请所辖账号加入的群组的 ID
             event.groupName: str # 对方邀请所辖账号加入的群组的名称
             event.nickname: str # 对方的昵称
             event.message: str # 对方发起请求时填写的描述
@@ -1066,7 +1065,7 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent, BotEvent, GroupEvent):
     type = "BotInvitedJoinGroupRequestEvent"
     requestId: int = Field(..., alias="eventId")
     supplicant: int = Field(..., alias="fromId")  # 即请求方 QQ
-    groupId: Optional[int] = Field(..., alias="groupId")
+    groupId: int = Field(..., alias="groupId")
     groupName: str = Field(..., alias="groupName")
     nickname: str = Field(..., alias="nick")
     message: str
@@ -1103,11 +1102,11 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent, BotEvent, GroupEvent):
 
 
 class OtherClientOnlineEvent(MiraiEvent):
-    """当该事件发生时, 应用实例所辖账号在其他客户端上线.
+    """Bot 账号在其他客户端上线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -1117,11 +1116,11 @@ class OtherClientOnlineEvent(MiraiEvent):
 
 
 class OtherClientOfflineEvent(MiraiEvent):
-    """当该事件发生时, 应用实例所辖账号在其他客户端下线.
+    """Bot 账号在其他客户端下线.
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -1130,11 +1129,17 @@ class OtherClientOfflineEvent(MiraiEvent):
 
 
 class CommandExecutedEvent(MiraiEvent):
-    """当该事件发生时, 有一条命令被执行
+    """有一条命令被执行
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    Allowed Extra Parameters(提供的额外注解支持):
+    - eventId (int): 事件标识，响应该事件时的标识
+    - name (str): 命令名称
+    - friend (Optional[Friend]): 发送命令的好友, 从控制台发送为 None
+    - member (Optional[Member]): 发送命令的群成员, 从控制台发送为 None
+    - args (List[str]): 指令的参数, 以消息类型传递
+
+    提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
@@ -1142,4 +1147,4 @@ class CommandExecutedEvent(MiraiEvent):
     name: str
     friend: Optional[Friend]
     member: Optional[Member]
-    args: List[Element]
+    args: List[str]

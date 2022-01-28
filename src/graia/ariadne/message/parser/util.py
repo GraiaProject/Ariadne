@@ -4,7 +4,7 @@ import enum
 import inspect
 import re
 from contextvars import ContextVar
-from typing import List, NoReturn, Optional, Tuple, Type, Union
+from typing import List, Literal, NoReturn, Optional, Tuple, Type, Union
 
 from ..chain import Element_T, MessageChain
 
@@ -58,23 +58,30 @@ class CommandToken(enum.Enum):
     TEXT = "TEXT"
     CHOICE = "CHOICE"
     PARAM = "PARAM"
+    ANNOTATED = "ANNOTATED"
 
 
-def tokenize_command(string: str):
-    """将字符串转义化, 并处理为 Text, Choice, Param 三种 token
+CommandTokenTuple = Union[
+    Tuple[Literal[CommandToken.PARAM], List[Union[int, str]]],
+    Tuple[Literal[CommandToken.ANNOTATED, CommandToken.CHOICE, CommandToken.PARAM], List[str]],
+]
+
+
+def tokenize_command(string: str) -> List[CommandTokenTuple]:
+    """将字符串转义化, 并处理为 Text, Choice, Param, AnnotatedParam 四种 token
 
     Args:
         string (str): 要处理的字符串
 
     Returns:
-        List[Tuple[CommandToken, List[str]]]: 处理后的 Token
+        List[Tuple[CommandToken, List[int, str]]]: 处理后的 Token
     """
 
     string = escape(string)
 
     paren: str = ""
     char_stk: List[str] = []
-    token: List[Tuple[CommandToken, List[Union[int, str]]]] = []
+    token: List[CommandTokenTuple] = []
 
     for index, char in enumerate(string):
         if char in L_PAREN + R_PAREN:
@@ -89,15 +96,31 @@ def tokenize_command(string: str):
                 if paren == "[":  # CHOICE
                     token.append((CommandToken.CHOICE, list(map(unescape, "".join(char_stk).split("|")))))
                 elif paren == "{":  # PARAM
-                    token.append(
-                        (
-                            CommandToken.PARAM,
-                            [
-                                int(i) if re.match(r"\d+", i) else unescape(i)
-                                for i in "".join(char_stk).split("|")
-                            ],
-                        )
+                    piece = "".join(char_stk)
+                    match = re.fullmatch(
+                        r"(?P<wildcard>\.\.\.)?"
+                        r"(?P<name>[^:=|]+)"
+                        r"(?P<annotation>:[^=]+)?"
+                        r"(?P<default>=.+)?",
+                        piece,
                     )
+                    if match and (":" in piece or "=" in piece):
+                        token.append(  # type: List[str]
+                            (
+                                CommandToken.ANNOTATED,
+                                list(map(lambda x: str.strip(x).lstrip(":=") if x else "", match.groups())),
+                            )
+                        )
+                    else:
+                        token.append(
+                            (
+                                CommandToken.PARAM,
+                                [
+                                    int(i) if re.match(r"\d+", i) else unescape(i)
+                                    for i in "".join(char_stk).split("|")
+                                ],
+                            )
+                        )
                 else:
                     raise ValueError(f"No matching parenthesis: {paren} @ {index}")
                 char_stk.clear()
@@ -133,20 +156,18 @@ def split(string: str) -> List[str]:
     quote = ""
     cache: List[str] = []
     for index, char in enumerate(string):
-        if char in "'\"":
+        if char in {"'", '"'}:
             if not quote:
                 quote = char
             elif char == quote and index and string[index - 1] != "\\":  # is current quote, not transfigured
                 quote = ""
             else:
                 cache.append(char)
-            continue
-        if not quote and char == " ":
+        elif not quote and char == " ":
             result.append("".join(cache))
             cache = []
-        else:
-            if char != "\\":
-                cache.append(char)
+        elif char != "\\":
+            cache.append(char)
     if cache:
         result.append("".join(cache))
     return result

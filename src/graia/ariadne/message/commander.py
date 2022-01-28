@@ -1,12 +1,16 @@
 """Commander: 便捷的指令触发体系"""
-import dataclasses
+import abc
+import enum
 import inspect
 import itertools
 from contextlib import suppress
+from dataclasses import dataclass
 from typing import (
     Any,
     Callable,
+    DefaultDict,
     Dict,
+    Iterable,
     List,
     Optional,
     Sequence,
@@ -14,7 +18,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
-    overload,
+    cast,
 )
 
 from graia.broadcast import Broadcast
@@ -26,10 +30,18 @@ from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
 from ..model import AriadneBaseModel
-from ..util import ConstantDispatcher, const_call, eval_ctx, resolve_dispatchers_mixin
+from ..util import (
+    ConstantDispatcher,
+    assert_,
+    assert_not_,
+    assert_on_,
+    const_call,
+    eval_ctx,
+    resolve_dispatchers_mixin,
+)
 from .chain import MessageChain
 from .element import Element
-from .parser.util import CommandToken, split, tokenize_command
+from .parser.util import CommandToken, CommandTokenTuple, split, tokenize_command
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
@@ -60,68 +72,93 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
     return value
 
 
-class Slot:
-    """Slot"""
+class ParamDesc(abc.ABC):
+    model: Optional[BaseModel]
+    default: Any
+    default_factory: Callable[[], Any]
 
-    @overload
-    def __init__(self, slot: Union[str, int], type: Type = MessageChain, default=...) -> None:
+    def __or__(self, other: "ParamDesc | Dict[str, Any]"):
+        dct = other.__dict__ if isinstance(other, ParamDesc) else other
+        for k, v in dct.items():
+            if v and v is not ... and not isinstance(v, Decorator):
+                self.__dict__[k] = v
+        return self
+
+    @abc.abstractmethod
+    def gen_model(self, validators: Iterable[Callable]) -> None:
+        """生成用于 pydantic 解析的 model 属性
+
+        Args:
+            validators (Iterable[Callable]): 用作 validator 的 Callable 可迭代对象
+        """
         ...
+
+
+@dataclass
+class Slot(ParamDesc):
+    """Slot"""
 
     def __init__(
         self,
-        slot: Union[str, int],
+        placeholder: Union[str, int],
         type: Type = ...,
         default: Any = ...,
         default_factory: Callable[[], Any] = ...,
     ) -> None:
-        self.slot = slot
+        self.placeholder = placeholder
         self.type = type
-        self.default_factory = ...
+        self.default = default
+        self.default_factory = default_factory
         self.param_name: str = ""
         self.model: Optional[BaseModel] = None
 
-        if default is not ... and default_factory is not ...:
-            raise ValueError("default and default_factory is both set!")
+    def gen_model(self, validators: Iterable[Callable]) -> None:
+        if self.model:
+            return
 
-        if default is not ...:
-            self.default_factory = const_call(default)
+        self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
 
-        if default_factory is not ...:
-            self.default_factory = default_factory
+        if self.type is ...:
+            self.type = MessageChain
+
+        self.model = create_model(
+            "SlotModel",
+            __validators__={
+                f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
+                for i, v in zip(itertools.count(), validators)
+            },
+            val=(self.type, ...),  # default is handled at exec
+        )
 
 
-class Arg:
+class Arg(ParamDesc):
     """Argument"""
 
     def __init__(
         self,
         pattern: str,
         type: Type[Union[BaseModel, Any]] = ...,
-        *,
         default: Any = ...,
         default_factory: Callable[[], Any] = ...,
     ) -> None:
 
-        if default is not ... and default_factory is not ...:
-            raise ValueError("default and default_factory is both set!")
-
         self.pattern: str = pattern
         self.match_patterns: List[str] = []
         self.tags: List[str] = []
-        self.default_factory = const_call(default) if default is not ... else default_factory
+        self.default = default
+        self.default_factory = default_factory
         self.param_name: Optional[str] = None
 
         tokens = tokenize_command(pattern)
 
-        if tokens[0][0] is CommandToken.PARAM:
-            raise ValueError("Required argument pattern!")
+        assert_(tokens[0][0] in {CommandToken.TEXT, CommandToken.CHOICE}, "Required argument pattern!")
 
         self.match_patterns = list(map(str, tokens[0][1]))
 
         for t_type, token_list in tokens[1:]:
             if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
                 raise ValueError(
-                    """"Argument pattern can only be placed at head. """
+                    """Argument pattern can only be placed at head. """
                     """Use "{" and "}" for placeholders."""
                 )
             if t_type is CommandToken.PARAM:
@@ -133,28 +170,68 @@ class Arg:
 
         self.nargs = len(self.tags)
         self.type = type
-        self.model: Type[BaseModel] = ...
+        self.model: Optional[BaseModel] = None
+
+    def gen_model(self, validators: Iterable[Callable]) -> None:
+        if self.model:
+            return
 
         if self.nargs == 0:
-            self.type = type if type is not ... else bool
-
+            self.type = self.type if self.type is not ... else bool
+            if self.default is ... and self.default_factory is ...:
+                self.default = False
         elif self.nargs == 1:
-            self.type = type if type is not ... else MessageChain
+            self.type = self.type if self.type is not ... else MessageChain
+        self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
 
-        if issubclass(self.type, BaseModel) and not issubclass(
-            type, AriadneBaseModel
-        ):  # filter MessageChain, Element, etc.
+        if (
+            isinstance(self.type, type)
+            and issubclass(self.type, BaseModel)
+            and not issubclass(self.type, AriadneBaseModel)
+        ):
             self.model = self.type
+            return
+
+        if self.nargs == 0:  # Set default
+            self.model = create_model(
+                "ArgModel",
+                __validators__={
+                    f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
+                    for i, v in zip(itertools.count(), validators)
+                },
+                val=(self.type, ...),
+            )
+        elif self.nargs == 1:
+            self.model = create_model(
+                "ArgModel",
+                __validators__={
+                    f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
+                    for i, v in zip(itertools.count(), validators)
+                },
+                **{self.tags[0]: (self.type, ...)},
+            )
+
+        if self.model is ...:
+            raise ValueError(f"You didn't supply a suitable model for {self.param_name}!")
 
 
-@dataclasses.dataclass
+@dataclass
 class CommandPattern:
     """命令样式"""
+
+    class ELast(enum.Enum):
+        REQUIRED = "required"
+        OPTIONAL = "optional"
+        WILDCARD = "wildcard"
 
     token_list: "List[Set[str] | List[int | str]]"
     slot_map: Dict[Union[str, int], Slot]
     arg_map: Dict[str, Arg]
-    last_optional: bool = False
+    last: ELast
+    wildcard: str = ""
+
+
+_raw = object()  # wildcard annotation object
 
 
 class CommandHandler(ExecTarget):
@@ -178,6 +255,7 @@ class CommandHandler(ExecTarget):
         self,
         slot_data: Dict[Union[int, str], MessageChain],
         arg_data: Dict[str, List[MessageChain]],
+        wildcard_chains: List[MessageChain],
     ):
         """基于 CommandRecord 与解析数据设置 ConstantDispatcher 参数
 
@@ -216,9 +294,16 @@ class CommandHandler(ExecTarget):
                 param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
 
         for ind, slot in self.pattern.slot_map.items():
-            value = slot_data.get(ind, None) or slot.default_factory()
-            param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
-
+            if slot.param_name != self.pattern.wildcard:
+                value = slot_data.get(ind, None) or slot.default_factory()
+                param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
+            else:
+                if slot.type is _raw:
+                    param_result[slot.param_name] = MessageChain([" "]).join(wildcard_chains)
+                else:
+                    param_result[slot.param_name] = tuple(
+                        slot.model(val=chain).__dict__["val"] for chain in wildcard_chains
+                    )
         if isinstance(self.dispatchers[0], ConstantDispatcher):
             self.dispatchers[0].data = param_result
         else:
@@ -259,132 +344,114 @@ class Commander:
             Callable[[T_Callable], T_Callable]: 装饰器
         """
 
-        setting = setting or {}
+        slot_map: Dict[Union[int, str], Slot] = {}
+        pattern_arg_map: Dict[str, Arg] = {}
+        param_arg_map: Dict[str, Arg] = {}
+        for name, val in (setting or {}).items():
+            if isinstance(val, Slot):
+                slot_map[val.placeholder] = val
+            elif isinstance(val, Arg):
+                for pattern in val.match_patterns:
+                    pattern_arg_map[pattern] = val
+                param_arg_map[name] = val
+            else:
+                raise TypeError(f"Unknown setting value: {name} - {val!r}")
+            val.param_name = name
 
         token_list: "List[Set[str] | List[int | str]]" = []  # set: const, list: param
 
-        slot_names: Set[Union[int, str]] = set()
+        placeholder_set: Set[Union[int, str]] = set()
 
-        for t_type, tokens in tokenize_command(command):
+        last: CommandPattern.ELast = CommandPattern.ELast.REQUIRED
+        wildcard_slot_name: str = ""
+
+        command_tokens: List[CommandTokenTuple] = tokenize_command(command)
+
+        for (t_type, tokens) in command_tokens:
             if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
-                token_list.append(set(map(str, tokens)))
-            else:
+                assert_not_(
+                    any(token in pattern_arg_map for token in tokens),
+                    f"{tokens} conflicts with a Arg object!",
+                )
+                token_list.append(set(cast(List[str], tokens)))
+
+            elif t_type is CommandToken.ANNOTATED:
+                wildcard, name, annotation, default = cast(List[str], tokens)
+                assert_on_(
+                    wildcard or default,
+                    tokens is command_tokens[-1][1],
+                    "Not setting wildcard / optional on the last slot!",
+                )
+                if wildcard:
+                    last = CommandPattern.ELast.WILDCARD
+                if default:
+                    last = CommandPattern.ELast.OPTIONAL
+                assert_not_(name in placeholder_set, "Duplicated parameter slot!")
+                placeholder_set.add(name)
+                eval_global, eval_local = eval_ctx(1)
+                if wildcard:
+                    eval_global = eval_global.copy()
+                    eval_global.update(raw=_raw)
+                parsed_slot = Slot(
+                    name,
+                    eval(annotation or "...", eval_global, eval_local),
+                    eval(default or "...", eval_global, eval_local),
+                )
+                parsed_slot.param_name = name  # assuming that param_name is consistent
+                slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
+                if wildcard:
+                    wildcard_slot_name = name
                 token_list.append(tokens)
-                if len(tokens) == 1 and isinstance(tokens[0], str) and (":" in tokens[0] or "=" in tokens[0]):
-                    annotated, default, *_ = tokens[0].rsplit("=", 1) + ["", ""]
-                    name, annotation, *_ = annotated.split(":", 1) + ["", ""]
-                    name, annotation, default = name.strip(), annotation.strip(), default.strip()
-                    setting[name] = Slot(
-                        name,
-                        eval(annotation or "...", *eval_ctx(1)),
-                        eval(default or "...", *eval_ctx(1)),
-                    )
-                    tokens = [name]
-                    token_list[-1] = tokens
+            elif t_type is CommandToken.PARAM:
                 for param_name in tokens:
-                    if param_name in slot_names:
-                        raise ValueError("Duplicated parameter slot!")
-                    slot_names.add(param_name)
+                    assert_not_(param_name in placeholder_set, "Duplicated parameter slot!")
+                    placeholder_set.add(param_name)
+                token_list.append(tokens)
 
         def wrapper(func: T_Callable) -> T_Callable:
-            """append func to self.refs"""
+            """register as command executor"""
 
-            # ANCHOR: scan function signature
+            # scan function signature
 
-            sig = {}
+            def __translate_obj(obj):
+                if obj is inspect.Parameter.empty:
+                    return ...
+                if isinstance(obj, Decorator):
+                    return ...
+                return obj
 
             for name, parameter in inspect.signature(func).parameters.items():
-                sig[name] = (parameter.annotation, parameter.default)
-
-                if name in slot_names and name not in setting:
-                    setting[name] = Slot(name, parameter.annotation)
-
-                    if parameter.default is not inspect.Signature.empty and not isinstance(
-                        parameter.default, Decorator
-                    ):
-                        setting[name].default_factory = const_call(parameter.default)
-
-            slot_map: Dict[Union[int, str], Slot] = {}
-            arg_map: Dict[str, Arg] = {}
-            last_optional = False
-            for param_name, arg in setting.items():  # ANCHOR: scan setting
-                arg.param_name = param_name
-                if isinstance(arg, Arg):
-                    if arg.default_factory is ...:
-                        if (
-                            arg.param_name in sig
-                            and sig[arg.param_name][1] is not inspect.Signature.empty
-                            and not isinstance(sig[arg.param_name][1], Decorator)
-                        ):
-                            arg.default_factory = const_call(sig[arg.param_name][1])
-                        else:
-                            raise ValueError(f"Didn't find default factory for parameter {arg.param_name}")
-                    for param in arg.match_patterns:
-                        if param in arg_map or param in slot_names:
-                            raise ValueError("Duplicated parameter pattern!")
-                        arg_map[param] = arg
-
-                    if arg.model is not ...:
-                        continue
-
-                    if len(arg.tags) == 0:  # Set default
-                        arg.model = create_model(
-                            "ArgModel",
-                            __validators__={
-                                f"validator_{i}": validator("*", pre=True, allow_reuse=True)(v)
-                                for i, v in zip(itertools.count(), self.validators)
-                            },
-                            val=(arg.type, ...),
+                annotation, default = __translate_obj(parameter.annotation), __translate_obj(
+                    parameter.default
+                )
+                if name in placeholder_set:
+                    parsed_slot = Slot(name, annotation, default)
+                    parsed_slot.param_name = name  # assuming that param_name is consistent
+                    slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
+                    if default is not ...:
+                        assert_(
+                            slot_map[name].placeholder in token_list[-1][1]
+                            and token_list[-1][0] in {CommandToken.ANNOTATED, CommandToken.PARAM},
+                            "Not setting wildcard / optional on the last slot!",
                         )
-                    elif len(arg.tags) == 1:
-                        arg.model = create_model(
-                            "ArgModel",
-                            __validators__={
-                                f"validator_{i}": validator("*", pre=True, allow_reuse=True)(v)
-                                for i, v in zip(itertools.count(), self.validators)
-                            },
-                            **{arg.tags[0]: (arg.type, ...)},
-                        )
+                        nonlocal last
+                        if last is CommandPattern.ELast.REQUIRED:
+                            last = CommandPattern.ELast.OPTIONAL
 
-                    if arg.model is ...:
-                        raise ValueError(f"You didn't supply a suitable model for {arg}!")
+                if name in param_arg_map:
+                    arg = param_arg_map[name]
+                    arg.type = arg.type if arg.type is not ... else parameter.annotation
+                    if arg.default is ... and arg.default_factory is ...:
+                        arg.default = parameter.default
 
-                elif isinstance(arg, Slot):
-                    slot_map[arg.slot] = arg
-                    if arg.default_factory is not ...:
-                        if not isinstance(token_list[-1], list) or arg.slot not in token_list[-1]:
-                            raise ValueError("Optional slot can only be set on last parameter.")
-                        last_optional = True
-                    else:
-                        if (
-                            arg.param_name in sig
-                            and sig[arg.param_name][1] is not inspect.Signature.empty
-                            and not isinstance(sig[arg.param_name][1], Decorator)
-                        ):
-                            arg.default_factory = const_call(sig[arg.param_name][1])
-                    if arg.type is ... and sig[arg.param_name][0] is not inspect.Signature.empty:
-                        if arg.param_name in sig:
-                            arg.type = sig[arg.param_name][0]
-                        else:
-                            arg.type = MessageChain
+            for slot in slot_map.values():
+                slot.gen_model(self.validators)
+            for arg in param_arg_map.values():
+                arg.gen_model(self.validators)
 
-                    if arg.type is ...:
-                        raise ValueError("Slot type is not provided!")
-
-                    arg.model = create_model(
-                        "SlotModel",
-                        __validators__={
-                            f"validator_{i}": validator("*", pre=True, allow_reuse=True)(v)
-                            for i, v in zip(itertools.count(), self.validators)
-                        },
-                        val=(arg.type, ...),  # default is handled at exec
-                    )
-
-                else:
-                    raise TypeError("Only Arg and Slot instances are allowed!")
             self.command_handlers.append(
                 CommandHandler(
-                    CommandPattern(token_list, slot_map, arg_map, last_optional),
+                    CommandPattern(token_list, slot_map, pattern_arg_map, last, wildcard_slot_name),
                     func,
                     dispatchers,
                     decorators,
@@ -400,48 +467,62 @@ class Commander:
 
         Args:
             chain (MessageChain): 触发的消息链
-
-        Raises:
-            ValueError: 消息链没有被任何一个命令处理器函数接受
         """
 
         mapping_str, elem_m = chain.asMappingString()
-        chain_args = split(mapping_str)
 
         for handler in reversed(self.command_handlers):  # starting from latest added
-            pattern = handler.pattern
-            chain_index = 0
-            token_index = 0
-            arg_data: Dict[str, List[MessageChain]] = {}
-            slot_data: Dict[Union[str, int], MessageChain] = {}
-            with suppress(
-                IndexError,
-            ):
-                while chain_index < len(chain_args):
-                    arg = chain_args[chain_index]
-                    chain_index += 1
-                    if arg in pattern.arg_map:  # Arg handle
-                        if arg in arg_data:
-                            raise ValueError("Duplicated argument.")
-                        arg_data[arg] = []
-                        for _ in range(pattern.arg_map[arg].nargs):
-                            arg_data[arg].append(
-                                MessageChain.fromMappingString(chain_args[chain_index], elem_m)
-                            )
-                            chain_index += 1
-
-                    else:  # Constant and Slot handle
-                        tokens = pattern.token_list[token_index]
-                        token_index += 1
-                        if isinstance(tokens, set) and arg not in tokens:
-                            raise ValueError("Mismatched constant.")
-                        if isinstance(tokens, list):
-                            for slot in tokens:
-                                slot_data[slot] = MessageChain.fromMappingString(arg, elem_m)
-
-                if token_index < len(pattern.token_list) - int(pattern.last_optional):
-                    continue
-
-                handler.set_data(slot_data, arg_data)
+            with suppress(IndexError, ValueError):
+                pattern = handler.pattern
+                arg_data: DefaultDict[str, List[MessageChain]] = DefaultDict(list)
+                slot_data: Dict[Union[str, int], MessageChain] = {}
+                # scan Arg data
+                mixed_str = split(mapping_str)
+                text_str: List[str] = []
+                scan_index: int = 0
+                while scan_index < len(mixed_str):
+                    current: str = mixed_str[scan_index]
+                    scan_index += 1
+                    if current not in pattern.arg_map:
+                        text_str.append(current)
+                    else:
+                        assert_not_(current in arg_data, "Duplicated argument.")
+                        nargs = pattern.arg_map[current].nargs
+                        arg_data[current] = [
+                            MessageChain.fromMappingString(piece, elem_m)
+                            for piece in mixed_str[scan_index : scan_index + nargs]
+                        ]
+                        scan_index += nargs
+                # scan text + Slot
+                for scan_index, tokens in enumerate(pattern.token_list[:-1]):
+                    if isinstance(tokens, set) and text_str[scan_index] not in tokens:
+                        raise ValueError("Mismatch")
+                    elif isinstance(tokens, list):
+                        for slot in tokens:
+                            slot_data[slot] = MessageChain.fromMappingString(text_str[scan_index], elem_m)
+                scan_index += 1
+                tokens = pattern.token_list[-1]
+                wildcard_chains: List[MessageChain] = []
+                if pattern.last is CommandPattern.ELast.REQUIRED:
+                    if len(text_str) - 1 != scan_index or (
+                        isinstance(tokens, set) and text_str[-1] not in tokens
+                    ):
+                        raise ValueError("Mismatch")
+                    if isinstance(tokens, list):
+                        for slot in tokens:
+                            slot_data[slot] = MessageChain.fromMappingString(text_str[-1], elem_m)
+                elif pattern.last is CommandPattern.ELast.OPTIONAL:
+                    if len(text_str) - 1 == scan_index:  # matched
+                        for slot in tokens:
+                            slot_data[slot] = MessageChain.fromMappingString(text_str[-1], elem_m)
+                    elif len(text_str) == scan_index:  # not matched
+                        pass
+                    else:  # length overflow
+                        raise ValueError("Mismatch")
+                elif pattern.last is CommandPattern.ELast.WILDCARD:
+                    wildcard_chains = [
+                        MessageChain.fromMappingString(text, elem_m) for text in text_str[scan_index:]
+                    ]
+                handler.set_data(slot_data, arg_data, wildcard_chains)
 
                 await self.broadcast.Executor(handler)

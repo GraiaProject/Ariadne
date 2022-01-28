@@ -75,5 +75,3 @@ from graia.ariadne.event.mirai import NudgeEvent as NudgeEvent
 from graia.ariadne.event.mirai import OtherClientOfflineEvent as OtherClientOfflineEvent
 from graia.ariadne.event.mirai import OtherClientOnlineEvent as OtherClientOnlineEvent
 from graia.ariadne.event.mirai import RequestEvent as RequestEvent
-from graia.ariadne.event.network import InvalidRequest as InvalidRequest
-from graia.ariadne.event.network import RemoteException as RemoteException

@@ -277,8 +277,6 @@ class MessageChain(AriadneBaseModel):
         """
         if isinstance(item.start, int) and isinstance(item.stop, int):
             return MessageChain(self.__root__[item], inline=True)
-        if isinstance(item.start, tuple) and isinstance(item.stop, tuple):
-            raise TypeError("f{item} is neither int slice nor tuple slice.")
         result = self.merge(copy=True).__root__[
             item.start[0] if item.start else None : item.stop[0] if item.stop else None
         ]
@@ -621,7 +619,7 @@ class MessageChain(AriadneBaseModel):
         return MessageChain(result, inline=True)
 
     def __imul__(self, time: int) -> "MessageChain":
-        self.__root__ = self.__mul__(time)
+        self.__root__ = self.__mul__(time).__root__
         return self
 
     def __len__(self) -> int:
@@ -696,7 +694,7 @@ class MessageChain(AriadneBaseModel):
         remove_source: bool = True,
         remove_quote: bool = True,
         remove_extra_space: bool = False,
-    ) -> Tuple[str, Dict[int, Element]]:
+    ) -> Tuple[str, Dict[str, Element]]:
         """转换消息链为映射字符串与映射字典的元组.
 
         Args:
@@ -705,7 +703,7 @@ class MessageChain(AriadneBaseModel):
             remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
 
         Returns:
-            Tuple[str, Dict[int, Element]]: 生成的映射字符串与映射字典的元组
+            Tuple[str, Dict[str, Element]]: 生成的映射字符串与映射字典的元组
         """
         elem_mapping: Dict[int, Element] = {}
         elem_str_list: List[str] = []
@@ -715,7 +713,7 @@ class MessageChain(AriadneBaseModel):
                     continue
                 if remove_source and isinstance(elem, Source):
                     continue
-                elem_mapping[i] = elem
+                elem_mapping[str(i)] = elem
                 elem_str_list.append(f"\x02{i}_{elem.type}\x03")
             else:
                 if (
@@ -732,7 +730,7 @@ class MessageChain(AriadneBaseModel):
         return "".join(elem_str_list), elem_mapping
 
     @classmethod
-    def fromMappingString(cls, string: str, mapping: Dict[int, Element]) -> "MessageChain":
+    def fromMappingString(cls, string: str, mapping: Dict[str, Element]) -> "MessageChain":
         """从映射字符串与映射字典的元组还原消息链.
 
         Args:
@@ -744,16 +742,17 @@ class MessageChain(AriadneBaseModel):
         """
         elements: List[Element] = []
         for x in re.split("(\x02\\d+_\\w+\x03)", string):
-            if match := re.match("\x02(\\d+)_(\\w+)\x03", x):
-                index = int(match.group(1))
-                class_name = match.group(2)
-                if not isinstance(mapping[index], ELEMENT_MAPPING[class_name]):
-                    raise ValueError("Validation failed: not matching element type!")
-                elements.append(mapping[index])
-            else:
-                if x:
+            if x:
+                if x[0] == "\x02" and x[-1] == "\x03":
+                    index, class_name = x[1:-1].split("_")
+                    if not isinstance(mapping[index], ELEMENT_MAPPING[class_name]):
+                        raise ValueError("Validation failed: not matching element type!")
+                    elements.append(mapping[index])
+                else:
                     elements.append(Plain(x))
-        return cls.create(elements)
+        chain = cls([], inline=True)
+        chain.__root__ = elements
+        return chain
 
     def removeprefix(self, prefix: str, *, copy: bool = True, skip_header: bool = True) -> "MessageChain":
         """移除消息链前缀.
@@ -811,6 +810,14 @@ class MessageChain(AriadneBaseModel):
             return MessageChain(elements, inline=True)
         self.__root__ = elements
         return self
+
+    def join(self, *chains: "MessageChain") -> "MessageChain":
+        result: List[Element] = []
+        for chain in chains:
+            if chain is not chains[0]:
+                result.extend(deepcopy(self.__root__))
+            result.extend(deepcopy(chain.__root__))
+        return MessageChain(result, inline=True)
 
 
 _update_forward_refs()

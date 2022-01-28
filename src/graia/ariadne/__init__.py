@@ -4,7 +4,6 @@
 import graia.ariadne.event.lifecycle  # noqa: F401
 import graia.ariadne.event.message  # noqa: F401
 import graia.ariadne.event.mirai  # noqa: F401
-import graia.ariadne.event.network  # noqa: F401
 
 # init event
 

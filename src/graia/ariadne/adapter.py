@@ -19,7 +19,6 @@ from typing_extensions import Concatenate, Self
 from yarl import URL
 
 from .event import MiraiEvent
-from .event.network import RemoteException
 from .exception import InvalidArgument, InvalidSession, NotSupportedAction
 from .model import CallMethod, DatetimeEncoder, MiraiSession
 from .typing import P, R
@@ -72,8 +71,7 @@ def error_wrapper(
                 raise NotSupportedAction(
                     f"{network_action_callable.__name__}: this action not supported"
                 ) from None
-            except aiohttp.web_exceptions.HTTPInternalServerError as e:
-                self.broadcast.postEvent(RemoteException(*e.args))
+            except aiohttp.web_exceptions.HTTPInternalServerError:
                 logger.error("An exception has thrown by remote, please check the console!")
                 raise
             except (

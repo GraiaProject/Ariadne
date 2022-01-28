@@ -117,14 +117,14 @@ def test_prefix_suffix():
 
 def test_mapping_string():
     msg_chain = MessageChain.create("Hello world!", At(target=12345))
-    assert msg_chain.asMappingString() == ("Hello world!\x021_At\x03", {1: At(target=12345)})
+    assert msg_chain.asMappingString() == ("Hello world!\x021_At\x03", {"1": At(target=12345)})
     string, mapping = msg_chain.asMappingString()
     new_string = string.removeprefix("Hello world")  # new_string = "!\x021_At\x03"
     assert MessageChain.fromMappingString(new_string, mapping) == MessageChain(
         [Plain(text="!"), At(target=12345)]
     )
     with pytest.raises(ValueError):
-        MessageChain.fromMappingString("\x020_At\x03", {0: AtAll()})
+        MessageChain.fromMappingString("\x020_At\x03", {"0": AtAll()})
 
     assert MessageChain.create(At(12345), "  hello!").asMappingString()[0] == "\x020_At\x03  hello!"
 
@@ -243,13 +243,14 @@ def test_persistent():
     )
 
 
+@pytest.mark.asyncio
 async def test_download():
     url = "https://avatars.githubusercontent.com/u/67151942?s=200&v=4"
     chain = MessageChain([Image(url=url)])
     async with aiohttp.ClientSession() as session:
         adapter_ctx.set(Dummy(session=session))
         await chain.download_binary()
-        assert chain.getFirst(Image).base64 == await (await session.get(url)).content
+        assert base64.b64decode(chain.getFirst(Image).base64) == await (await session.get(url)).content.read()
 
 
 def test_presentation():

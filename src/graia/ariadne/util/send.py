@@ -1,8 +1,7 @@
 """本模块包含许多用于 Ariadne.SendMessage 的 action 函数"""
 from typing import Optional, TypeVar, Union, overload
 
-from graia.ariadne.model import BotMessage
-
+from ..model import BotMessage
 from ..typing import SendMessageAction, SendMessageException
 
 Exc_T = TypeVar("Exc_T", bound=SendMessageException)

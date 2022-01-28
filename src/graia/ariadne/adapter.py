@@ -312,8 +312,10 @@ class WebsocketAdapter(Adapter):
             if sync_id in cls.allocated:
                 cls.allocated.remove(sync_id)
 
-    def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True) -> None:
-        super().__init__(broadcast, mirai_session)
+    def __init__(
+        self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = False
+    ) -> None:
+        super().__init__(broadcast, mirai_session, log)
         self.ping = ping
         self.ping_task: Optional[Task] = None
         self.ws_conn: Optional[ClientWebSocketResponse] = None

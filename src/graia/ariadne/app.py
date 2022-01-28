@@ -324,7 +324,7 @@ class MessageMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def recallMessage(self, target: Union[Source, BotMessage, int]) -> None:
+    async def recallMessage(self, target: Union[MessageChain, Source, BotMessage, int]) -> None:
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
@@ -334,11 +334,13 @@ class MessageMixin(AriadneMixin):
         Returns:
             None: 没有返回.
         """
+
         if isinstance(target, BotMessage):
             target = target.messageId
         elif isinstance(target, Source):
             target = target.id
-
+        elif isinstance(target, MessageChain):
+            target = target.getFirst(Source).id
         await self.adapter.call_api(
             "recall",
             CallMethod.POST,

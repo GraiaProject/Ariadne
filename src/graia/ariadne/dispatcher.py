@@ -1,17 +1,11 @@
 """Ariadne 内置的 Dispatcher"""
-from typing import TYPE_CHECKING, ContextManager, TypedDict
+from typing import TYPE_CHECKING
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from .context import (
-    adapter_ctx,
-    ariadne_ctx,
-    broadcast_ctx,
-    enter_context,
-    event_loop_ctx,
-)
+from .context import adapter_ctx, ariadne_ctx, broadcast_ctx, event_loop_ctx
 from .message.chain import MessageChain
 from .message.element import Source
 
@@ -57,31 +51,22 @@ class ContextDispatcher(BaseDispatcher):
             return interface.event
 
 
-class ContextLC(TypedDict):
-    """local storage 表示"""
-
-    __CONTEXT_MANAGER__: ContextManager
-
-
 class MiddlewareDispatcher(BaseDispatcher):
     """分发 Ariadne 等基础参数的 Dispatcher"""
+
+    mixin = [ContextDispatcher]
 
     def __init__(self, app: "Ariadne") -> None:
         self.app: "Ariadne" = app
 
     async def catch(self, interface: DispatcherInterface):
-        return await ContextDispatcher.catch(interface)
+        from .adapter import Adapter
+        from .app import Ariadne
 
-    async def beforeExecution(self, interface: DispatcherInterface):
-        """进入事件分发上下文"""
-        lc: ContextLC = interface.execution_contexts[-1].local_storage  # type: ignore
-        lc["__CONTEXT_MANAGER__"] = enter_context(self.app, interface.event)
-        lc["__CONTEXT_MANAGER__"].__enter__()
-
-    async def afterExecution(self, interface: DispatcherInterface, *_):
-        """退出事件分发上下文"""
-        lc: ContextLC = interface.execution_contexts[-1].local_storage  # type: ignore
-        lc["__CONTEXT_MANAGER__"].__exit__(None, None, None)
+        if issubclass(interface.annotation, Ariadne):
+            return self.app
+        if issubclass(interface.annotation, Adapter):
+            return self.app.adapter
 
 
 class SourceDispatcher(BaseDispatcher):

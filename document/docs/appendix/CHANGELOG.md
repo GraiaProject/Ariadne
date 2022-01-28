@@ -4,7 +4,7 @@
 
 ### 添加
 
-实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76) [#80](https://github.com/GraiaProject/Ariadne/issues/80) [#82](https://github.com/GraiaProject/Ariadne/issues/82))
+实现 `Ariadne Commander`. ([#70](https://github.com/GraiaProject/Ariadne/issues/70) [#76](https://github.com/GraiaProject/Ariadne/issues/76) [#80](https://github.com/GraiaProject/Ariadne/issues/80) [#82](https://github.com/GraiaProject/Ariadne/issues/82) [#86](https://github.com/GraiaProject/Ariadne/issues/86))
 
 `Ariadne.sendMessage` 支持通过 `action` 自定义行为. ([#75](https://github.com/GraiaProject/Ariadne/issues/75))
 
@@ -21,6 +21,15 @@
 添加了 `SenderDispatcher`. ([#84](https://github.com/GraiaProject/Ariadne/pull/84))
 
 支持对 `MemberPerm` 进行富比较操作. ([#85](https://github.com/GraiaProject/Ariadne/issues/85))
+
+`MessageChain` 部分操作加速.
+
+更好的 `Mirai Event` 文档字符串.
+
+`Ariadne.recallMessage` 支持使用 `MessageChain`.
+
+默认关闭适配器 `websocket` 日志.
+
 
 ### 修复
 
@@ -40,9 +49,17 @@
 
 保证 `MessageChain` 元素对象安全性.
 
+降低全局 `ApplicationMiddlewareDispatcher` 优先级.
+
+支持 `Graia Broadcast v0.15` ([#88](https://github.com/GraiaProject/Ariadne/issues/88))
+
 ### 弃用
 
 `Twilight` 中的 `ArgumentMatch` 若是位置匹配则会被静默替换为 `ParamMatch`. 在 `0.5.2` 中这样的构造方式会直接引发异常.
+
+### 移除
+
+移除模块 `graia.ariadne.event.network`. ( ~~因为没有人用~~ )
 
 ## 0.5.0
 

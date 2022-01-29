@@ -709,7 +709,7 @@ class Sparkle(Representation):
                     if isinstance(match, ElementMatch):
                         if current:
                             index = re.fullmatch("\x02(\\d+)_\\w+\x03", current).group(1)
-                            result = elem_mapping[int(index)]
+                            result = elem_mapping[index]
                         else:
                             result = None
                     else:

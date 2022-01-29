@@ -900,7 +900,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
         Raises:
             ExecutionStop: 匹配以任意方式失败
         """
-        local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
+        local_storage: _TwilightLocalStorage = interface.local_storage
         chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None, [])
         try:
             local_storage["result"] = self.generate(chain)
@@ -908,7 +908,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             raise ExecutionStop from e
 
     async def catch(self, interface: DispatcherInterface) -> Optional[Union["Twilight", T_Sparkle, Match]]:
-        local_storage: _TwilightLocalStorage = interface.execution_contexts[-1].local_storage
+        local_storage: _TwilightLocalStorage = interface.local_storage
         sparkle = local_storage["result"]
         if issubclass(interface.annotation, Sparkle):
             return sparkle

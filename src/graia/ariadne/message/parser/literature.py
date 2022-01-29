@@ -198,15 +198,13 @@ class Literature(BaseDispatcher):
         if noprefix is None:
             raise ExecutionStop()
 
-        interface.broadcast.decorator_interface.local_storage[
-            "literature_detect_result"
-        ] = self.parse_message(noprefix)
+        interface.local_storage["literature_detect_result"] = self.parse_message(noprefix)
 
     async def catch(self, interface: DispatcherInterface):
         if interface.name == "__literature_messagechain__":
             return
 
-        result = interface.broadcast.decorator_interface.local_storage.get("literature_detect_result")
+        result = interface.local_storage.get("literature_detect_result")
         if result:
             match_result, variargs = result
             if interface.default == "__literature_variables__":
@@ -223,5 +221,5 @@ class Literature(BaseDispatcher):
                     return match_value
 
     async def beforeTargetExec(self, interface: "DispatcherInterface", _, __):
-        if "literature_detect_result" in interface.broadcast.decorator_interface.local_storage:
-            del interface.broadcast.decorator_interface.local_storage["literature_detect_result"]
+        if "literature_detect_result" in interface.local_storage:
+            del interface.local_storage["literature_detect_result"]

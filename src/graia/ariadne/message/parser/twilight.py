@@ -28,7 +28,6 @@ from typing import (
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from loguru import logger
 from pydantic.utils import Representation
 
 from ..chain import MessageChain
@@ -108,16 +107,11 @@ class RegexMatch(Match):
         space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
-        preserve_space: bool = ...,
     ) -> None:
         super().__init__(pattern=pattern, optional=optional, help=help, alt_help=alt_help)
         self.flags = flags
         self.regex_match = None
         self.space = space
-        if preserve_space is not ...:
-            logger.warning('"preserve_space argument" is deprecated and will be removed in 0.5.2!')
-            logger.warning('use "space" instead!')
-            self.space = SpacePolicy.PRESERVE if preserve_space else SpacePolicy.NOSPACE
 
     @final
     def gen_regex(self) -> str:
@@ -151,7 +145,6 @@ class ParamMatch(RegexMatch):
         space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
-        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
             r"""(?:").+?(?:")|(?:').+?(?:')|[^ "']+""",
@@ -160,7 +153,6 @@ class ParamMatch(RegexMatch):
             space=space,
             help=help,
             alt_help=alt_help,
-            preserve_space=preserve_space,
         )
         self.tags: List[Union[int, str]] = list(tags)
 
@@ -188,7 +180,6 @@ class WildcardMatch(RegexMatch):
         space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
-        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
             ".*",
@@ -197,7 +188,6 @@ class WildcardMatch(RegexMatch):
             space=space,
             help=help,
             alt_help=alt_help,
-            preserve_space=preserve_space,
         )
         self.greed = greed
 
@@ -232,7 +222,6 @@ class ElementMatch(RegexMatch):
         space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
-        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
             type,
@@ -241,7 +230,6 @@ class ElementMatch(RegexMatch):
             space=space,
             help=help,
             alt_help=alt_help,
-            preserve_space=preserve_space,
         )
 
     @property
@@ -265,7 +253,6 @@ class UnionMatch(RegexMatch):
         space: SpacePolicy = SpacePolicy.PRESERVE,
         help: str = "",
         alt_help: str = "",
-        preserve_space: bool = ...,
     ) -> None:
         super().__init__(
             pattern,
@@ -274,7 +261,6 @@ class UnionMatch(RegexMatch):
             space=space,
             help=help,
             alt_help=alt_help,
-            preserve_space=preserve_space,
         )
 
     @property
@@ -299,15 +285,6 @@ class ArgumentMatch(Match):
     result: Union["MessageChain", List, Any]
     add_arg_data: Dict[str, Any]
 
-    def __new__(cls: Type["ArgumentMatch"], *pattern: str, **kwargs):
-        if any(not p.startswith("-") for p in pattern):
-            import warnings
-
-            warnings.warn("use ParamMatch for positional argument!", DeprecationWarning)
-            warnings.warn("This behaviour will be removed in 0.5.2!", DeprecationWarning)
-            return ParamMatch(*pattern, **kwargs)
-        return super().__new__(cls)
-
     def __init__(
         self,
         *pattern: str,
@@ -324,6 +301,9 @@ class ArgumentMatch(Match):
     ) -> None:
         if not pattern:
             raise ValueError("Expected at least 1 pattern!")
+        if not all(p.startswith("-") for p in pattern):
+            raise ValueError("Use ParamMatch for positional argument!")
+
         super().__init__(pattern, optional, help if help is not ... else "")
         self.nargs = nargs
         self.action = action

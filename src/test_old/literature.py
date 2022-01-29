@@ -5,8 +5,11 @@ sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Plain
-from graia.ariadne.message.parser.literature import Literature
-from graia.ariadne.message.parser.pattern import BoxParameter, SwitchParameter
+from graia.ariadne.message.parser.literature import (
+    BoxParameter,
+    Literature,
+    SwitchParameter,
+)
 
 if __name__ == "__main__":
     from graia.ariadne.message.element import At

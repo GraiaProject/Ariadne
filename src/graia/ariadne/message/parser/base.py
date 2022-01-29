@@ -23,7 +23,7 @@ class DetectPrefix(Decorator):
     async def target(self, interface: DecoratorInterface):
         """检测前缀并 decorate 参数"""
         chain: MessageChain = await interface.dispatcher_interface.lookup_param(
-            "message_chain", MessageChain, None, []
+            "message_chain", MessageChain, None
         )
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
@@ -51,7 +51,7 @@ class DetectSuffix(Decorator):
     async def target(self, interface: DecoratorInterface):
         """检测后缀并 decorate 参数"""
         chain: MessageChain = await interface.dispatcher_interface.lookup_param(
-            "message_chain", MessageChain, None, []
+            "message_chain", MessageChain, None
         )
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)

@@ -190,7 +190,7 @@ class Literature(BaseDispatcher):
 
     async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
         message_chain: MessageChain = await interface.lookup_param(
-            "__literature_messagechain__", MessageChain, None, []
+            "__literature_messagechain__", MessageChain, None
         )
         if set([i.__class__ for i in message_chain.__root__]).intersection(BLOCKING_ELEMENTS):
             raise ExecutionStop()

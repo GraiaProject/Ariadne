@@ -881,7 +881,7 @@ class Twilight(BaseDispatcher, Generic[T_Sparkle]):
             ExecutionStop: 匹配以任意方式失败
         """
         local_storage: _TwilightLocalStorage = interface.local_storage
-        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None, [])
+        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
         try:
             local_storage["result"] = self.generate(chain)
         except Exception as e:

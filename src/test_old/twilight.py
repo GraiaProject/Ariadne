@@ -2,8 +2,6 @@ import devtools
 
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import *
-
-# from graia.ariadne.message.parser.pattern import *
 from graia.ariadne.message.parser.twilight import *
 from graia.ariadne.util import inject_loguru_traceback
 

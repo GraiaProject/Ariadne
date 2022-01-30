@@ -50,7 +50,7 @@ assert msg_chain.split("world!") == [MessageChain([Plain(text='Hello ')]), Messa
 
 ### 前缀与后缀操作
 
-与字符串对象一样, 消息链对象支持 `startswith`, `endswith`, `removeprefix` `removesuffix` 四个方法.
+与字符串对象一样, 消息链对象支持 `startswith`, `endswith`, `removeprefix`, `removesuffix` 四个方法.
 
 !!! warning "注意"
 
@@ -72,6 +72,28 @@ assert not msg_chain.endswith("world!")
     你知道的, `Python` 在 3.9 以后才正式引入 `removeprefix` 与 `removesuffix` 方法......
 
     不过 `Ariadne` 中的这两个方法并不需要 `Python` 3.9+
+
+### replace 方法
+
+`MessageChain` 的 `replace` 方法与 `str` 的 `replace` 方法有异曲同工之妙.
+
+在其表面下, `findSubChain` 承担了大部分工作, 找出所有符合 `old` 的部分, 之后由简单的循环完成替换.
+
+```py
+>>> MessageChain(["Hello World!Hello World!""How are you?", At(1), "yo"]).replace(
+        MessageChain(["Hello World!"]),
+        MessageChain(["No!"])
+    )
+MessageChain([Plain("No!No!How are you?"), At(1), Plain("yo")])
+```
+
+!!! note "提示"
+
+    这对于 `At` 等元素也适用. 此外, `replace` 的 `old`, `new` 参数为 `MessageChain`, `Iterable[Element]`, `Element` 中一种即可.
+
+    ```py
+    msg.replace(At(app.account), Plain("[bot]"))
+    ```
 
 ### 映射字符串
 

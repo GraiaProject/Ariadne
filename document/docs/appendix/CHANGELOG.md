@@ -1,5 +1,25 @@
 # 更改日志
 
+## 0.5.2
+
+### 添加
+
+实现 `MessageChain.replace` ([#97](https://github.com/GraiaProject/Ariadne/issues/97))
+
+### 修复
+
+`Commander` 行为错误, 性能过低.
+
+`0.5.1` 对 `Broadcast Control` `v0.15` 的适配不完善.
+
+部分消息链处理器因 `asMappingString` API 变动损坏.
+
+### 删除
+
+`Twilight` 中的 `ArgumentMatch` 若是位置匹配现在会引发异常.
+
+删除 `graia.ariadne.message.parser.pattern` 模块.
+
 ## 0.5.1
 
 ### 添加
@@ -28,7 +48,7 @@
 
 `Ariadne.recallMessage` 支持使用 `MessageChain`.
 
-默认关闭适配器 `websocket` 日志.
+默认关闭适配器 `websocket` 日志, 更好的连接失败提示.
 
 
 ### 修复

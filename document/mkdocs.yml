@@ -106,7 +106,7 @@ nav:
           - "advance/twilight.md"
           - "Alconna - 来自 Cesloi 的命令解析工具":
               - "advance/alconna/quickstart.md"
-              - Alconna 官方文档: https://github.com/RF-Tar-Railt/Cesloi/wiki/Alconna-Introduction
+              - Alconna 官方文档: https://arcletproject.github.io/docs/alconna/tutorial
           - "Broadcast 简介":
               - "advance/broadcast/interrupt.md"
               - "advance/broadcast/depend.md"
@@ -119,6 +119,7 @@ nav:
           - "Saya - 插件管理器":
               - "extra/saya/start.md"
               - "extra/saya/channel.md"
+              - "extra/saya/cross-module.md"
       - "迁移":
           - "porting/guide.md"
           - "porting/cheatsheet.md"

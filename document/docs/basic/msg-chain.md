@@ -119,7 +119,7 @@ assert message_chain[0] == Plain("Hello World!")
 
 !!! note "注意"
 
-    这个方法会在[进阶](/advance/msg-chain/#subchain)篇中细讲.
+    这个方法会在 [进阶](/advance/msg-chain/#subchain) 篇中细讲.
 
 消息链的 `get` 方法和索引操作等价.
 
@@ -153,13 +153,15 @@ assert MessageChain(['Hello World!']) * 2 == MessageChain([Plain("Hello World!")
 
 ### 其他
 
-除此之外, 消息链还支持很多 list 拥有的操作, 比如 `index` 和 `count`.
+除此之外, 消息链还支持很多 `list` 拥有的操作, 比如 `index` 和 `count`.
 
 ```py
 message_chain = MessageChain([AtAll(), "Hello World!"])
 assert message_chain.index(Plain) == 0
 assert message_chain.count(Plain) == 1
 ```
+
+还有继承于 `str` 的 `startswith`, `endswith`, `removeprefix`, `removesuffix`, `replace` 方法, 将在 [进阶篇](/advance/msg-chain) 中讲到.
 
 ## 多媒体元素
 
@@ -202,4 +204,4 @@ assert message_chain.count(Plain) == 1
     -   url
 
 如果你只是想对 `Ariadne` 有个粗略的了解, 并着手开始编写自己的 QQ bot, 相信这些知识已经足够.
-如果你想进一步挖掘 `Ariadne` 的特性, 请看进阶篇.
+如果你想进一步挖掘 `Ariadne` 的 `MessageChain` 特性, 请看 [进阶篇](/advance/msg-chain) .

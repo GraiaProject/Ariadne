@@ -824,7 +824,11 @@ class MessageChain(AriadneBaseModel):
             result.extend(deepcopy(chain.__root__))
         return MessageChain(result, inline=True)
 
-    def replace(self, old: "MessageChain", new: "MessageChain") -> "MessageChain":
+    def replace(
+        self,
+        old: "MessageChain | Iterable[Element] | Element",
+        new: "MessageChain | Iterable[Element] | Element",
+    ) -> "MessageChain":
         """替换消息链中的一部分. (在副本上操作)
 
         Args:
@@ -834,6 +838,10 @@ class MessageChain(AriadneBaseModel):
         Returns:
             MessageChain: 修改后的消息链, 若未替换则原样返回.
         """
+        if not isinstance(old, MessageChain):
+            old = MessageChain.create(old)
+        if not isinstance(new, MessageChain):
+            new = MessageChain.create(new)
         index_list: List[int] = self.findSubChain(old)
         unzipped_new: List[Union[str, Element]] = new.unzip()
         unzipped_old: List[Union[str, Element]] = old.unzip()

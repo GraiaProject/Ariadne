@@ -11,8 +11,8 @@ _Another elegant framework for mirai and mirai-api-http v2._
 <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne" /></a>
 <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne" /></a>
 
-<a href="https://graia.rtfd.io/"><img alt="docs" src="https://img.shields.io/badge/文档-here-black" /></a>
-<a href="https://graiaproject.github.io/Ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-here-black"></a>
+<a href="https://graia.rtfd.io/"><img alt="docs" src="https://img.shields.io/badge/文档-here-blue" /></a>
+<a href="https://graiaproject.github.io/Ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-here-purple"></a>
 <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-black.svg" alt="black" /></a>
 <a href="https://pycqa.github.io/isort/"><img src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat" alt="isort"/></a>
 <a href="https://github.com/GraiaProject/Ariadne/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/GraiaProject/Ariadne"></a>
@@ -66,7 +66,7 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 ## 文档
 
-[![API 文档](https://img.shields.io/badge/API_文档-here-black)](https://graiaproject.github.io/Ariadne/)
+[![API 文档](https://img.shields.io/badge/API_文档-here-purple)](https://graiaproject.github.io/Ariadne/)
 [![官方文档](https://img.shields.io/badge/官方文档-here-blue)](https://graia.rtfd.io/)
 [![社区文档](https://img.shields.io/badge/社区文档-here-pink)](https://graiax.cn)
 [![鸣谢](https://img.shields.io/badge/鸣谢-here-lightgreen)](https://graia.rtfd.io/appendix/credits)
@@ -86,7 +86,6 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 [![Publish to PyPI](https://github.com/GraiaProject/Ariadne/actions/workflows/release-to-pypi.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/release-to-pypi.yml)
 ## 开发版资源 / 参与开发
 
-[![Dev PyPI Version](https://img.shields.io/pypi/v/graia-ariadne-dev?label=dev-pypi&color=333399)](https://pypi.org/project/graia-ariadne-dev)
 [![开发分支文档](https://img.shields.io/badge/开发分支文档-here-000099)](https://graia-dev.rtfd.io/)
 [![开发分支](https://img.shields.io/badge/开发分支-here-green)](https://github.com/GraiaProject/Ariadne/tree/dev)
 [![开始开发](https://img.shields.io/badge/开始开发-here-003399)](./CONTRIBUTING.md)

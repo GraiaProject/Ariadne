@@ -108,7 +108,12 @@ def tokenize_command(string: str) -> List[CommandTokenTuple]:
                         token.append(  # type: List[str]
                             (
                                 CommandToken.ANNOTATED,
-                                list(map(lambda x: str.strip(x).lstrip(":=") if x else "", match.groups())),
+                                list(
+                                    map(
+                                        lambda x: unescape(x).strip().lstrip(":=").strip() if x else "",
+                                        match.groups(),
+                                    )
+                                ),
                             )
                         )
                     else:

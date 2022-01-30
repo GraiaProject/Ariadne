@@ -8,7 +8,6 @@ from dataclasses import dataclass
 from typing import (
     Any,
     Callable,
-    DefaultDict,
     Dict,
     Iterable,
     List,
@@ -107,13 +106,15 @@ class Slot(ParamDesc):
     ) -> None:
         self.placeholder = placeholder
         self.type = type
+        if self.type == "raw":
+            self.type = _raw
         self.default = default
         self.default_factory = default_factory
         self.param_name: str = ""
         self.model: Optional[BaseModel] = None
 
     def gen_model(self, validators: Iterable[Callable]) -> None:
-        if self.model:
+        if self.model or self.type is _raw:
             return
 
         self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
@@ -227,11 +228,15 @@ class CommandPattern:
     token_list: "List[Set[str] | List[int | str]]"
     slot_map: Dict[Union[str, int], Slot]
     arg_map: Dict[str, Arg]
-    last: ELast
+    last_type: ELast
     wildcard: str = ""
 
 
 _raw = object()  # wildcard annotation object
+
+
+class MismatchError(ValueError):
+    """指令失配"""
 
 
 class CommandHandler(ExecTarget):
@@ -255,7 +260,7 @@ class CommandHandler(ExecTarget):
         self,
         slot_data: Dict[Union[int, str], MessageChain],
         arg_data: Dict[str, List[MessageChain]],
-        wildcard_chains: List[MessageChain],
+        wildcard_list: List[MessageChain],
     ):
         """基于 CommandRecord 与解析数据设置 ConstantDispatcher 参数
 
@@ -299,10 +304,10 @@ class CommandHandler(ExecTarget):
                 param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
             else:
                 if slot.type is _raw:
-                    param_result[slot.param_name] = MessageChain([" "]).join(wildcard_chains)
+                    param_result[slot.param_name] = MessageChain([" "]).join(wildcard_list, merge=True)
                 else:
                     param_result[slot.param_name] = tuple(
-                        slot.model(val=chain).__dict__["val"] for chain in wildcard_chains
+                        slot.model(val=chain).__dict__["val"] for chain in wildcard_list
                     )
         if isinstance(self.dispatchers[0], ConstantDispatcher):
             self.dispatchers[0].data = param_result
@@ -333,12 +338,12 @@ class Commander:
 
         Args:
             command (str): 要处理的命令
-            setting (Dict[str, Union[Slot, Arg]], optional): 参数名 -> Slot | Arg 映射, 用于分配参数, 可从函数中推断 `Slot`.
-            dispatchers (Sequence[BaseDispatcher], optional): 附加的 `Dispatcher` 序列.
-            decorators (Sequence[Decorator], optional): 附加的 `Headless Decorator` 序列.
+            setting (Dict[str, Union[Slot, Arg]], optional): 参数设置.
+            dispatchers (Sequence[BaseDispatcher], optional): 可选的额外 Dispatcher 序列.
+            decorators (Sequence[Decorator], optional): 可选的额外 Decorator 序列.
 
         Raises:
-            ValueError: 在将非最后一个参数设置为可选
+            ValueError: 命令格式错误
 
         Returns:
             Callable[[T_Callable], T_Callable]: 装饰器
@@ -388,20 +393,16 @@ class Commander:
                     last = CommandPattern.ELast.OPTIONAL
                 assert_not_(name in placeholder_set, "Duplicated parameter slot!")
                 placeholder_set.add(name)
-                eval_global, eval_local = eval_ctx(1)
-                if wildcard:
-                    eval_global = eval_global.copy()
-                    eval_global.update(raw=_raw)
                 parsed_slot = Slot(
                     name,
-                    eval(annotation or "...", eval_global, eval_local),
-                    eval(default or "...", eval_global, eval_local),
+                    eval(annotation or "...", *eval_ctx(1, {"raw": _raw})),
+                    eval(default or "...", *eval_ctx(1)),
                 )
                 parsed_slot.param_name = name  # assuming that param_name is consistent
                 slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
                 if wildcard:
                     wildcard_slot_name = name
-                token_list.append(tokens)
+                token_list.append([name])
             elif t_type is CommandToken.PARAM:
                 for param_name in tokens:
                     assert_not_(param_name in placeholder_set, "Duplicated parameter slot!")
@@ -430,8 +431,8 @@ class Commander:
                     slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
                     if default is not ...:
                         assert_(
-                            slot_map[name].placeholder in token_list[-1][1]
-                            and token_list[-1][0] in {CommandToken.ANNOTATED, CommandToken.PARAM},
+                            slot_map[name].placeholder in command_tokens[-1][1]
+                            and command_tokens[-1][0] in {CommandToken.ANNOTATED, CommandToken.PARAM},
                             "Not setting wildcard / optional on the last slot!",
                         )
                         nonlocal last
@@ -472,57 +473,41 @@ class Commander:
         mapping_str, elem_m = chain.asMappingString()
 
         for handler in reversed(self.command_handlers):  # starting from latest added
-            with suppress(IndexError, ValueError):
-                pattern = handler.pattern
-                arg_data: DefaultDict[str, List[MessageChain]] = DefaultDict(list)
-                slot_data: Dict[Union[str, int], MessageChain] = {}
-                # scan Arg data
-                mixed_str = split(mapping_str)
-                text_str: List[str] = []
-                scan_index: int = 0
-                while scan_index < len(mixed_str):
-                    current: str = mixed_str[scan_index]
-                    scan_index += 1
-                    if current not in pattern.arg_map:
-                        text_str.append(current)
-                    else:
-                        assert_not_(current in arg_data, "Duplicated argument.")
-                        nargs = pattern.arg_map[current].nargs
-                        arg_data[current] = [
-                            MessageChain.fromMappingString(piece, elem_m)
-                            for piece in mixed_str[scan_index : scan_index + nargs]
-                        ]
-                        scan_index += nargs
-                # scan text + Slot
-                for scan_index, tokens in enumerate(pattern.token_list[:-1]):
-                    if isinstance(tokens, set) and text_str[scan_index] not in tokens:
-                        raise ValueError("Mismatch")
-                    elif isinstance(tokens, list):
-                        for slot in tokens:
-                            slot_data[slot] = MessageChain.fromMappingString(text_str[scan_index], elem_m)
-                scan_index += 1
-                tokens = pattern.token_list[-1]
-                wildcard_chains: List[MessageChain] = []
-                if pattern.last is CommandPattern.ELast.REQUIRED:
-                    if len(text_str) - 1 != scan_index or (
-                        isinstance(tokens, set) and text_str[-1] not in tokens
-                    ):
-                        raise ValueError("Mismatch")
-                    if isinstance(tokens, list):
-                        for slot in tokens:
-                            slot_data[slot] = MessageChain.fromMappingString(text_str[-1], elem_m)
-                elif pattern.last is CommandPattern.ELast.OPTIONAL:
-                    if len(text_str) - 1 == scan_index:  # matched
-                        for slot in tokens:
-                            slot_data[slot] = MessageChain.fromMappingString(text_str[-1], elem_m)
-                    elif len(text_str) == scan_index:  # not matched
-                        pass
-                    else:  # length overflow
-                        raise ValueError("Mismatch")
-                elif pattern.last is CommandPattern.ELast.WILDCARD:
-                    wildcard_chains = [
-                        MessageChain.fromMappingString(text, elem_m) for text in text_str[scan_index:]
-                    ]
-                handler.set_data(slot_data, arg_data, wildcard_chains)
+            pattern = handler.pattern
+            text_index: int = 0
+            token_index: int = 0
+            arg_data: Dict[str, List[MessageChain]] = {}
+            slot_data: Dict[Union[str, int], MessageChain] = {}
+            text_list: List[str] = split(mapping_str)
+            wildcard_list: List[MessageChain] = []
+            with suppress(IndexError, MismatchError):  # TODO: add ValueError
+                while text_index < len(text_list):
+                    text = text_list[text_index]
+                    text_index += 1
 
+                    if text in pattern.arg_map:  # Arg handle
+                        if text in arg_data:
+                            raise MismatchError("Duplicated argument")
+                        nargs: int = pattern.arg_map[text].nargs
+                        arg_data[text] = [
+                            MessageChain.fromMappingString(t, elem_m)
+                            for t in text_list[text_index : text_index + nargs]
+                        ]
+                        text_index += nargs
+
+                    else:  # Constant and Slot handle
+                        tokens = pattern.token_list[token_index]
+                        token_index += 1
+                        if isinstance(tokens, set) and text not in tokens:
+                            raise MismatchError
+                        if isinstance(tokens, list):
+                            if pattern.last_type is CommandPattern.ELast.WILDCARD and token_index == len(
+                                pattern.token_list
+                            ):
+                                wildcard_list.append(MessageChain.fromMappingString(text, elem_m))
+                                token_index -= 1
+                            for slot in tokens:
+                                slot_data[slot] = MessageChain.fromMappingString(text, elem_m)
+
+                handler.set_data(slot_data, arg_data, wildcard_list)
                 await self.broadcast.Executor(handler)

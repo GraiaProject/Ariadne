@@ -816,13 +816,22 @@ class MessageChain(AriadneBaseModel):
         self.__root__ = elements
         return self
 
-    def join(self, *chains: "MessageChain") -> "MessageChain":
+    def join(self, chains: Iterable["MessageChain"], merge: bool = False) -> "MessageChain":
+        """将多个消息链连接起来, 并在其中插入自身.
+
+        Args:
+            chains (Iterable[MessageChain]): 要连接的消息链.
+            merge (bool, optional): 是否合并消息链文本, 默认为 False.
+
+        Returns:
+            MessageChain: 连接后的消息链.
+        """
         result: List[Element] = []
         for chain in chains:
             if chain is not chains[0]:
                 result.extend(deepcopy(self.__root__))
             result.extend(deepcopy(chain.__root__))
-        return MessageChain(result, inline=True)
+        return MessageChain(result, inline=True) if not merge else MessageChain(result, inline=True).merge()
 
     def replace(
         self,

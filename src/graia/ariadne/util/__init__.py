@@ -20,6 +20,7 @@ from typing import (
     Generator,
     List,
     NoReturn,
+    Optional,
     Tuple,
     Type,
     TypeVar,
@@ -208,7 +209,7 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
 
 
 def wrap_bracket(string: str) -> str:
-    """替换 "[" 与 "]" 为其 Unicode 形式用于 JSON 解析"""
+    """在字符串中转义中括号括号"""
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
@@ -225,7 +226,7 @@ def const_call(val: T) -> Callable[[], T]:
 
 
 def assert_on_(pre_condition: bool, condition: bool, *message: Any) -> Union[None, NoReturn]:
-    """引发 ValueError 的断言, 仅在满足 pre_condition 时进行
+    """检查条件是否成立, 如果不成立则抛出 ValueError
 
     Args:
         pre_condition(bool): 前置条件
@@ -233,7 +234,7 @@ def assert_on_(pre_condition: bool, condition: bool, *message: Any) -> Union[Non
         message (Any, optional): 附带的消息.
 
     Returns:
-        Union[None, NoReturn]: 成功时为 None, 否则引发异常.
+        Union[None, NoReturn]: 无返回值
     """
     if pre_condition:
         if not condition:
@@ -245,40 +246,47 @@ def assert_(condition: bool, *message: Any) -> Union[None, NoReturn]:
 
     Args:
         condition (bool): 条件语句
-        message (Any, optional): 附带的消息.
+        *message (Any): 附带的消息.
 
     Returns:
-        Union[None, NoReturn]: 成功时为 None, 否则引发异常.
+        Union[None, NoReturn]: 无返回值
     """
     if not condition:
         raise ValueError(*message)
 
 
 def assert_not_(condition: bool, *message: Any) -> Union[None, NoReturn]:
-    """引发 ValueError 的 **反向** 断言
+    """检查条件是否成立, 如果不成立则抛出 ValueError
 
     Args:
         condition (bool): 条件语句
-        message (Any, optional): 附带的消息.
+        *message (Any): 附带的消息.
 
     Returns:
-        Union[None, NoReturn]: 失败时为 None, 否则引发异常.
+        Union[None, NoReturn]: 无返回值
     """
     if condition:
         raise ValueError(*message)
 
 
-def eval_ctx(layer: int = 0) -> Tuple[DictStrAny, DictStrAny]:
-    """返回用于 eval 的 globals 与 locals 字典.
+def eval_ctx(
+    layer: int = 0, globals_: Optional[DictStrAny] = None, locals_: Optional[DictStrAny] = None
+) -> Tuple[DictStrAny, DictStrAny]:
+    """获取一个上下文的全局和局部变量
 
     Args:
-        layer (int, optional): 从调用者向外的 Frame 数. 默认为 0.
+        layer (int, optional): 层数. Defaults to 0.
+        globals_ (Optional[DictStrAny], optional): 全局变量. Defaults to None.
+        locals_ (Optional[DictStrAny], optional): 局部变量. Defaults to None.
 
     Returns:
-        Tuple[DictStrAny, DictStrAny]: (globals, locals) 字典
+        Tuple[DictStrAny, DictStrAny]: 全局和局部变量字典.
     """
     frame = inspect.stack()[layer + 1].frame  # add the current frame
-    return frame.f_globals, frame.f_locals
+    global_dict, local_dict = frame.f_globals, frame.f_locals
+    global_dict.update(globals_ or {})
+    local_dict.update(locals_ or {})
+    return global_dict, local_dict
 
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
@@ -288,8 +296,8 @@ async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01)
     """异步阻塞至满足 predicate 为 True
 
     Args:
-        predicate (Callable[[], bool]): 回调函数
-        interval (float, optional): 每次等待时长 (s). 默认 0.01s.
+        predicate (Callable[[], bool]): 判断条件
+        interval (float, optional): 每次检查间隔. Defaults to 0.01.
     """
     while not predicate():
         await asyncio.sleep(interval)
@@ -384,6 +392,10 @@ class Dummy:
         return self
 
     def __call__(self, *_, **__):
+        return self
+
+    def __await__(self):
+        yield
         return self
 
 

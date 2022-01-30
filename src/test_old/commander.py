@@ -1,4 +1,5 @@
 import asyncio
+from typing import *
 from typing import List, Tuple
 
 import pydantic
@@ -50,10 +51,29 @@ async def main():
         },
     )
     def set_perm(target: At, perm: List[MessageChain], fast: bool, scope: Scope, value: bool):
-        logger.info(f"Setting {target!r}'s permission {perm} to {value} with scope {scope}, fast: {fast}")
+        logger.info(
+            f"Simplified: Setting {target!r}'s permission {perm} to {value} with scope {scope}, fast: {fast}"
+        )
 
-    @cmd.command("[download_image|img] {...images}", {"images": Slot("images", type=str)})
-    def get_img(images: Tuple[str]):
+    @cmd.command(
+        r"[luckperm | lp] group {0 | target} [permission | perm] set {perm: List\[MessageChain\]} {value = True}",
+        {
+            "scope": Arg(
+                "[@scope|-s] {scope}",
+                type=Scope,
+                default=Scope(scope="global"),
+            ),
+        },
+    )
+    def set_perm(target: At, perm: List[MessageChain], scope: Scope):
+        logger.info(f"Setting {target!r}'s permission {perm} with scope {scope}")
+
+    @cmd.command("[download_image|img] {...images}", {"images": Slot("images", "raw")})
+    def get_img(images):
+        logger.info(repr(images))
+
+    @cmd.command("[download_image|img] {...images:str}")
+    def get_img(images):
         logger.info(repr(images))
 
     try:

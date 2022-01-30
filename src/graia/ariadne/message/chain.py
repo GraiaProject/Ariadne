@@ -135,6 +135,21 @@ class MessageChain(AriadneBaseModel):
                 chain_ref.__root__.remove(i)
         return chain_ref
 
+    def unzip(self) -> List[Union[str, Element]]:
+        """解压消息链为元素/单字符列表.
+        Args:
+            self (MessageChain): 消息链.
+        Return:
+            List[Union[str, Element]]: 解压后的元素/字符列表.
+        """
+        unzipped: List[Union[str, Element]] = []
+        for e in self.__root__:
+            if isinstance(e, Plain):
+                unzipped.extend(e.text)
+            else:
+                unzipped.append(e)
+        return unzipped
+
     def has(self, item: Union[Element, Type[Element], "MessageChain", str]) -> bool:
         """
         判断消息链中是否含有特定的元素/元素类型/消息链/字符串.
@@ -326,19 +341,9 @@ class MessageChain(AriadneBaseModel):
         Returns:
             List[int]: 所有找到的下标.
         """
-        pattern: List[Union[str, Element]] = []
-        for e in subchain:
-            if isinstance(e, Plain):
-                pattern.extend(e.text)
-            else:
-                pattern.append(e)
+        pattern: List[Union[str, Element]] = subchain.unzip()
 
-        match_target: List[Union[str, Element]] = []
-        for e in self.__root__:
-            if isinstance(e, Plain):
-                match_target.extend(e.text)
-            else:
-                match_target.append(e)
+        match_target: List[Union[str, Element]] = self.unzip()
 
         if len(match_target) < len(pattern):
             return []
@@ -818,6 +823,41 @@ class MessageChain(AriadneBaseModel):
                 result.extend(deepcopy(self.__root__))
             result.extend(deepcopy(chain.__root__))
         return MessageChain(result, inline=True)
+
+    def replace(self, old: "MessageChain", new: "MessageChain") -> "MessageChain":
+        """替换消息链中的一部分. (在副本上操作)
+
+        Args:
+            old (MessageChain): 要替换的消息链.
+            new (MessageChain): 替换后的消息链.
+
+        Returns:
+            MessageChain: 修改后的消息链, 若未替换则原样返回.
+        """
+        index_list: List[int] = self.findSubChain(old)
+        unzipped_new: List[Union[str, Element]] = new.unzip()
+        unzipped_old: List[Union[str, Element]] = old.unzip()
+        unzipped_self: List[Union[str, Element]] = self.unzip()
+        unzipped_result: List[Union[str, Element]] = []
+        last_end: int = 0
+        for start in index_list:
+            unzipped_result.extend(unzipped_self[last_end:start])
+            last_end = start + len(unzipped_old)
+            unzipped_result.extend(unzipped_new)
+        unzipped_result.extend(unzipped_self[last_end:])
+        # Merge result
+        result_list: List[Element] = []
+        char_stk: List[str] = []
+        for v in unzipped_result:
+            if isinstance(v, str):
+                char_stk.append(v)
+            else:
+                result_list.append(Plain("".join(char_stk)))
+                char_stk = []
+                result_list.append(v)
+        if char_stk:
+            result_list.append(Plain("".join(char_stk)))
+        return MessageChain(result_list, inline=True)
 
 
 _update_forward_refs()

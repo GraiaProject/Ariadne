@@ -246,7 +246,7 @@ def test_persistent():
 @pytest.mark.asyncio
 async def test_download():
     url = "https://avatars.githubusercontent.com/u/67151942?s=200&v=4"
-    chain = MessageChain([Image(url=url)])
+    chain = MessageChain(["text", Image(url=url)])
     async with aiohttp.ClientSession() as session:
         adapter_ctx.set(Dummy(session=session))
         await chain.download_binary()
@@ -303,6 +303,17 @@ def test_merge():
     assert MessageChain(
         [Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?"), At(12345)]
     ).merge(copy=True) == MessageChain([Plain("Hello World!Hello World!How are you?"), At(12345)])
+
+
+def test_replace():
+    assert MessageChain(
+        [Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?"), At(1), "yo"]
+    ).replace(MessageChain(["Hello World!"]), MessageChain(["No!"])) == MessageChain(
+        ["No!No!How are you?", At(1), "yo"]
+    )
+    assert MessageChain([Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?"), At(1)]).replace(
+        MessageChain(["Hello World!"]), MessageChain(["No!"])
+    ) == MessageChain(["No!No!How are you?", At(1)])
 
 
 def test_list_method():

@@ -54,19 +54,27 @@ class ContextDispatcher(BaseDispatcher):
 class MiddlewareDispatcher(BaseDispatcher):
     """分发 Ariadne 等基础参数的 Dispatcher"""
 
-    mixin = [ContextDispatcher]
-
     def __init__(self, app: "Ariadne") -> None:
         self.app: "Ariadne" = app
 
     async def catch(self, interface: DispatcherInterface):
+        from asyncio import AbstractEventLoop
+
+        from graia.broadcast import Broadcast
+
         from .adapter import Adapter
         from .app import Ariadne
 
+        if not isinstance(interface.annotation, type):
+            return
         if issubclass(interface.annotation, Ariadne):
             return self.app
         if issubclass(interface.annotation, Adapter):
             return self.app.adapter
+        if issubclass(interface.annotation, Broadcast):
+            return self.app.broadcast
+        if issubclass(interface.annotation, AbstractEventLoop):
+            return self.app.loop
 
 
 class SourceDispatcher(BaseDispatcher):

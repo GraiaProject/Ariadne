@@ -387,6 +387,35 @@ class Dummy:
         return self
 
 
+def signal_handler(callback: Callable[[], None], one_time: bool = True) -> None:
+    """注册信号处理器
+    Args:
+        callback (Callable[[], None]): 信号处理器
+        one_time (bool, optional): 是否只执行一次. 默认为 True.
+    Returns:
+        None
+    """
+    import signal
+    import threading
+
+    if not threading.main_thread().ident == threading.current_thread().ident:
+        return
+
+    HANDLED_SIGNAL = (signal.SIGINT, signal.SIGTERM)
+
+    for sig in HANDLED_SIGNAL:
+        handler = signal.getsignal(sig)
+
+        def handler_wrapper(sig_num, frame):
+            if handler:
+                handler(sig_num, frame)
+            callback()
+            if one_time:
+                signal.signal(sig_num, handler)
+
+        signal.signal(sig, handler_wrapper)
+
+
 # Import layout
 from . import async_exec  # noqa: F401, E402
 from .async_exec import (  # noqa: F401, E402

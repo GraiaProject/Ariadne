@@ -58,6 +58,7 @@ from .util import (
     await_predicate,
     inject_bypass_listener,
     inject_loguru_traceback,
+    signal_handler,
     yield_with_timeout,
 )
 
@@ -1456,6 +1457,12 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
 
     async def lifecycle(self):
         """以 async 阻塞方式启动 Ariadne 并等待其停止."""
+
+        def sig_handler(*_):
+            if self.status is AriadneStatus.RUNNING:
+                self.status = AriadneStatus.SHUTDOWN
+
+        signal_handler(sig_handler)
         await self.launch()
         await self.daemon_task
 

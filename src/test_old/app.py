@@ -3,6 +3,8 @@ import os
 import re
 
 from graia.broadcast import Broadcast
+from graia.scheduler import GraiaScheduler
+from graia.scheduler.timers import every_custom_seconds
 from loguru import logger
 
 from graia.ariadne.adapter import DebugAdapter, WebsocketAdapter
@@ -43,7 +45,11 @@ if __name__ == "__main__":
         max_retry=5,
     )
 
-    bcc = app.create(Broadcast)
+    sched = app.create(GraiaScheduler)
+
+    @sched.schedule(every_custom_seconds(10))
+    async def print_ver(app: Ariadne):
+        logger.debug(await app.getVersion())
 
     @bcc.receiver(FriendMessage)
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):

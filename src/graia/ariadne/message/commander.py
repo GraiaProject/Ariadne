@@ -28,6 +28,7 @@ from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
 
 from ..dispatcher import ContextDispatcher
+from ..event.message import MessageEvent
 from ..model import AriadneBaseModel
 from ..util import (
     ConstantDispatcher,
@@ -36,6 +37,7 @@ from ..util import (
     assert_on_,
     const_call,
     eval_ctx,
+    gen_subclass,
     resolve_dispatchers_mixin,
 )
 from .chain import MessageChain
@@ -318,10 +320,24 @@ class CommandHandler(ExecTarget):
 class Commander:
     """便利的指令触发体系"""
 
-    def __init__(self, broadcast: Broadcast):
+    def __init__(self, broadcast: Broadcast, listen: bool = True):
+        """ """
         self.broadcast = broadcast
         self.command_handlers: List[CommandHandler] = []
         self.validators: List[Callable] = [chain_validator]
+
+        async def execute_func(chain: MessageChain):
+            await self.execute(chain)
+
+        self.listen_func = execute_func
+
+        if listen:
+            for event in gen_subclass(MessageEvent):
+                self.broadcast.receiver(event)(self.listen_func)
+
+    def __del__(self):
+        while listener := self.broadcast.getListener(self.listen_func):
+            self.broadcast.removeListener(listener)
 
     def add_type_cast(self, *caster: Callable):
         """添加类型验证器 (type caster / validator)"""

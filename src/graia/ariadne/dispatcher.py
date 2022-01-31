@@ -39,16 +39,19 @@ class ContextDispatcher(BaseDispatcher):
 
         if not isinstance(interface.annotation, type):
             return
-        if issubclass(interface.annotation, Ariadne):
-            return ariadne_ctx.get()
-        if issubclass(interface.annotation, Broadcast):
-            return broadcast_ctx.get()
-        if issubclass(interface.annotation, AbstractEventLoop):
-            return event_loop_ctx.get()
-        if issubclass(interface.annotation, Adapter):
-            return adapter_ctx.get()
-        if issubclass(interface.annotation, Dispatchable):
-            return interface.event
+        try:
+            if issubclass(interface.annotation, Ariadne):
+                return ariadne_ctx.get()
+            if issubclass(interface.annotation, Broadcast):
+                return broadcast_ctx.get()
+            if issubclass(interface.annotation, AbstractEventLoop):
+                return event_loop_ctx.get()
+            if issubclass(interface.annotation, Adapter):
+                return adapter_ctx.get()
+            if issubclass(interface.annotation, Dispatchable):
+                return interface.event
+        except LookupError:
+            pass
 
 
 class MiddlewareDispatcher(BaseDispatcher):

@@ -152,6 +152,11 @@ except KeyboardInterrupt:
     exit()
 ```
 
+!!! note "提示“
+    
+    实际上 `with saya.module_context():` 是给 `require` 导入的模块提供 `Saya` 实例的上下文,
+    从而可以使用 `Saya.current()` 获取当前 `Saya` 实例.
+
 就这样, 一个入口文件就这样完成了, 现在主要是插件部分.
 
 ## 第一次运行
@@ -193,11 +198,13 @@ from graia.saya.builtins.broadcast.schema import ListenerSchema
 from graia.saya.event import SayaModuleInstalled
 saya = Saya.current()
 channel = Channel.current()
+
 @channel.use(ListenerSchema(
     listening_events=[SayaModuleInstalled]
 ))
 async def module_listener(event: SayaModuleInstalled):
     print(f"{event.module} :: 模块加载成功!!!")
+
 ```
 
 我们对 `modules/module_as_dir/__init__.py` 也如法炮制, copy 上方的代码, 进入虚拟环境, 然后运行 `main.py`.

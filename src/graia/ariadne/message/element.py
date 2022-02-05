@@ -261,6 +261,9 @@ class Xml(Element):
     xml: str
     """XML文本"""
 
+    def __init__(self, xml: str, **_) -> None:
+        super().__init__(xml=xml)
+
     def asDisplay(self) -> str:
         return "[XML消息]"
 
@@ -292,6 +295,9 @@ class App(Element):
 
     content: str
     """App 内容"""
+
+    def __init__(self, content: str, **_) -> None:
+        super().__init__(content=content)
 
     def asDisplay(self) -> str:
         return "[APP消息]"
@@ -379,20 +385,74 @@ class Dice(Element):
         return f"[骰子:{self.value}]"
 
 
+class MusicShareKind(str, Enum):
+    """音乐分享的来源。"""
+
+    NeteaseCloudMusic = "NeteaseCloudMusic"
+    """网易云音乐"""
+
+    QQMusic = "QQMusic"
+    """QQ音乐"""
+
+    MiguMusic = "MiguMusic"
+    """咪咕音乐"""
+
+    KugouMusic = "KugouMusic"
+    """酷狗音乐"""
+
+    KuwoMusic = "KuwoMusic"
+    """酷我音乐"""
+
+
 class MusicShare(Element):
     """表示消息中音乐分享消息元素"""
 
     type = "MusicShare"
-    kind: Optional[str]
+    kind: MusicShareKind
+    """音乐分享的来源"""
+
     title: Optional[str]
+    """音乐标题"""
+
     summary: Optional[str]
+    """音乐摘要"""
+
     jumpUrl: Optional[str]
+    """音乐跳转链接"""
+
     pictureUrl: Optional[str]
+    """音乐图片链接"""
+
     musicUrl: Optional[str]
+    """音乐链接"""
+
     brief: Optional[str]
+    """音乐简介"""
+
+    def __init__(
+        self,
+        kind: MusicShareKind,
+        title: Optional[str] = None,
+        summary: Optional[str] = None,
+        jumpUrl: Optional[str] = None,
+        pictureUrl: Optional[str] = None,
+        musicUrl: Optional[str] = None,
+        brief: Optional[str] = None,
+        *_,
+        **__,
+    ) -> None:
+        super().__init__(
+            kind=kind,
+            title=title,
+            summary=summary,
+            jumpUrl=jumpUrl,
+            pictureUrl=pictureUrl,
+            musicUrl=musicUrl,
+            brief=brief,
+        )
 
     def asDisplay(self) -> str:
-        return f"[音乐分享:{self.title}]"
+        return f"[音乐分享:{self.title}, {self.brief}]"
 
 
 class ForwardNode(AriadneBaseModel):

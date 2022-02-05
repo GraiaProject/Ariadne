@@ -24,8 +24,11 @@ async def main():
             group=Group(id=123, name="test", permission=MemberPerm.Member),
         ),
     )
+    listeners = list(a.broadcast.default_listener_generator(ev.__class__))
     for _ in range(5):
-        await a.broadcast.layered_scheduler(a.broadcast.default_listener_generator(ev.__class__), ev)
+        print("Before broadcast: ", listeners[0].oplog)
+        await a.broadcast.layered_scheduler(listeners, ev)
+        print("After broadcast: ", listeners[0].oplog)
 
 
 asyncio.run(main())

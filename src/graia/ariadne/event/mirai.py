@@ -1,5 +1,6 @@
 """Mirai 的各种事件"""
 from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -1103,6 +1104,36 @@ class BotInvitedJoinGroupRequestEvent(RequestEvent, BotEvent, GroupEvent):
         await self._operate(1, message)
 
 
+class ClientKind(int, Enum):
+    """详细设备类型。"""
+
+    ANDROID_PAD = 68104
+    AOL_CHAOJIHUIYUAN = 73730
+    AOL_HUIYUAN = 73474
+    AOL_SQQ = 69378
+    CAR = 65806
+    HRTX_IPHONE = 66566
+    HRTX_PC = 66561
+    MC_3G = 65795
+    MISRO_MSG = 69634
+    MOBILE_ANDROID = 65799
+    MOBILE_ANDROID_NEW = 72450
+    MOBILE_HD = 65805
+    MOBILE_HD_NEW = 71426
+    MOBILE_IPAD = 68361
+    MOBILE_IPAD_NEW = 72194
+    MOBILE_IPHONE = 67586
+    MOBILE_OTHER = 65794
+    MOBILE_PC_QQ = 65793
+    MOBILE_PC_TIM = 77313
+    MOBILE_WINPHONE_NEW = 72706
+    QQ_FORELDER = 70922
+    QQ_SERVICE = 71170
+    TV_QQ = 69130
+    WIN8 = 69899
+    WINPHONE = 65804
+
+
 class OtherClientOnlineEvent(MiraiEvent):
     """Bot 账号在其他客户端上线.
 
@@ -1114,7 +1145,7 @@ class OtherClientOnlineEvent(MiraiEvent):
 
     type = "OtherClientOnlineEvent"
     client: Client
-    kind: Optional[int]
+    kind: Optional[ClientKind]
 
 
 class OtherClientOfflineEvent(MiraiEvent):

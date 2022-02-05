@@ -364,7 +364,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "graia-broadcast"
-version = "0.15.2"
+version = "0.15.4"
 description = "a highly customizable, elegantly designed event system based on asyncio"
 category = "main"
 optional = false
@@ -1250,7 +1250,7 @@ graia = ["graia-saya", "graia-scheduler"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f8f87552b61419be9b4997e4e1e4c07bc508aaf8c8220189559166a63d64a6fa"
+content-hash = "1bc57efb9c749b6bbdcd859d3373e3920ab7ff7fe706904a16e883e136c36da5"
 
 [metadata.files]
 aiohttp = [
@@ -1531,8 +1531,8 @@ ghp-import = [
     {file = "ghp_import-2.0.2-py3-none-any.whl", hash = "sha256:5f8962b30b20652cdffa9c5a9812f7de6bcb56ec475acac579807719bf242c46"},
 ]
 graia-broadcast = [
-    {file = "graia-broadcast-0.15.2.tar.gz", hash = "sha256:7b917f909d4ae7c8977d3a3208970956d6ff82b2de3f6cd5d058e3533751e7bf"},
-    {file = "graia_broadcast-0.15.2-py3-none-any.whl", hash = "sha256:8062c99cb3f6c1dd55d9b2cb0f950ce454f202994f828362f0f8408cc35150ad"},
+    {file = "graia-broadcast-0.15.4.tar.gz", hash = "sha256:d930fb6ec4773c8e1eab25a59277451210521e0e31489af0d0eee44069e736fa"},
+    {file = "graia_broadcast-0.15.4-py3-none-any.whl", hash = "sha256:cdaf17c83bf22a54d19b8caadf76ed7eeef593cafd985033ed20e4930bbd3bd5"},
 ]
 graia-saya = [
     {file = "graia-saya-0.0.14.tar.gz", hash = "sha256:ffeb3e7cf39442c219481e0713e868a15c42e522f32b35685915dd3b7bab7f08"},

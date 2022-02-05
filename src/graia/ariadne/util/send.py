@@ -63,12 +63,12 @@ class Safe(SendMessageAction):
 
     @staticmethod
     async def _handle(item: Exc_T, ignore: bool):
-        from ..context import ariadne_ctx
+        from ..app import Ariadne
         from ..message.chain import MessageChain
         from ..message.element import At, AtAll, Forward, MultimediaElement, Plain, Poke
 
         chain: MessageChain = item.send_data["message"]
-        ariadne = ariadne_ctx.get()
+        ariadne = Ariadne.get_running(Ariadne)
 
         def convert(msg_chain: MessageChain, type) -> None:
             for ind, elem in enumerate(msg_chain.__root__[:]):

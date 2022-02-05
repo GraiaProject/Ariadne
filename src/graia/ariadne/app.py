@@ -10,10 +10,12 @@ from asyncio.tasks import Task
 from typing import (
     TYPE_CHECKING,
     Any,
+    ClassVar,
     Coroutine,
     Dict,
     List,
     Literal,
+    MutableSet,
     Optional,
     Tuple,
     Type,
@@ -26,8 +28,8 @@ from loguru import logger
 
 from . import ARIADNE_ASCII_LOGO
 from .adapter import Adapter, DefaultAdapter
-from .context import enter_context, enter_message_send_context
-from .dispatcher import MiddlewareDispatcher
+from .context import context_map, enter_context, enter_message_send_context
+from .dispatcher import ContextDispatcher
 from .event.lifecycle import (
     AdapterLaunched,
     AdapterShutdowned,
@@ -1199,6 +1201,24 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
     broadcast: Broadcast
     adapter: Adapter
     status: AriadneStatus
+    running: ClassVar[MutableSet["Ariadne"]] = set()
+
+    @classmethod
+    def get_running(cls, type: Type["T"] = "Ariadne") -> "T":
+        """获取一个实例.
+        Args:
+            type (Type[T], optional): 实例类型, 默认为 Ariadne.
+        Returns:
+            T: 当前正在运行的实例
+        """
+        if type == "Ariadne":
+            type = Ariadne
+        if type in {Adapter, Ariadne, Broadcast, AbstractEventLoop}:
+            if val := context_map.get(type.__name__).get(None):
+                return val
+        for ariadne_inst in cls.running:
+            if type in ariadne_inst.info:
+                return ariadne_inst.info[type]
 
     def __init__(
         self,
@@ -1385,6 +1405,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             event=ApplicationShutdowned(self),
         )
 
+        self.running.remove(self)
+
         logger.info("Stopping adapter...")
         await self.adapter.stop()
         self.status = AriadneStatus.STOP
@@ -1425,7 +1447,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if self.chat_log_cfg.enabled:
                 self.chat_log_cfg.initialize(self)
 
-            self.broadcast.finale_dispatchers.append(MiddlewareDispatcher(self))
+            if ContextDispatcher not in self.broadcast.finale_dispatchers:
+                self.broadcast.finale_dispatchers.append(ContextDispatcher)
+
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
             await await_predicate(lambda: self.adapter.session_activated, 0.0001)
             self.status = AriadneStatus.RUNNING
@@ -1434,6 +1458,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, Multim
             if not self.remote_version.startswith("2"):
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
+
+            self.running.add(self)
 
             await self.broadcast.layered_scheduler(
                 listener_generator=self.broadcast.default_listener_generator(ApplicationLaunched),

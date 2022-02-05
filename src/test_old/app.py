@@ -135,6 +135,7 @@ if __name__ == "__main__":
         if ALL_FLAG:
             group_list = await app.getGroupList()
             logger.debug(group_list)
+            logger.debug(await group_list[0].getConfig())
             friend_list = await app.getFriendList()
             logger.debug(friend_list)
             member_list = await app.getMemberList(group_list[0])

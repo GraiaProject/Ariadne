@@ -1,7 +1,7 @@
 """本模块创建了 Ariadne 中的上下文变量"""
 from contextlib import contextmanager
 from contextvars import ContextVar
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
@@ -26,6 +26,15 @@ else:  # for not crashing pdoc
     event_loop_ctx = ContextVar("event_loop")
     broadcast_ctx = ContextVar("broadcast")
     upload_method_ctx = ContextVar("upload_method")
+
+context_map: Dict[str, ContextVar] = {
+    "Ariadne": ariadne_ctx,
+    "Adapter": adapter_ctx,
+    "Dispatchable": event_ctx,
+    "AbstractEventLoop": event_loop_ctx,
+    "Broadcast": broadcast_ctx,
+    "UploadMethod": upload_method_ctx,
+}
 
 
 @contextmanager

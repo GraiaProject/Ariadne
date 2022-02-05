@@ -254,9 +254,9 @@ class Friend(AriadneBaseModel):
         Returns:
             Profile: 该好友的 Profile 对象
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().getFriendProfile(self)
+        return await Ariadne.get_running(Ariadne).getFriendProfile(self)
 
 
 class Stranger(AriadneBaseModel):
@@ -312,9 +312,9 @@ class Group(AriadneBaseModel):
         Returns:
             Config: 该群组的设置对象.
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().getGroupConfig(self)
+        return await Ariadne.get_running(Ariadne).getGroupConfig(self)
 
     async def modifyConfig(self, config: "GroupConfig") -> None:
         """修改该群组的 Config
@@ -322,9 +322,9 @@ class Group(AriadneBaseModel):
         Args:
             config (GroupConfig): 经过修改后的群设置对象.
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().modifyGroupConfig(self, config)
+        return await Ariadne.get_running(Ariadne).modifyGroupConfig(self, config)
 
 
 class Member(AriadneBaseModel):
@@ -363,9 +363,9 @@ class Member(AriadneBaseModel):
         Returns:
             Profile: 该群成员的 Profile 对象
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().getMemberProfile(self)
+        return await Ariadne.get_running(Ariadne).getMemberProfile(self)
 
     async def getInfo(self) -> "MemberInfo":
         """获取该成员的可修改状态
@@ -373,9 +373,9 @@ class Member(AriadneBaseModel):
         Returns:
             MemberInfo: 群组成员的可修改状态
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().getMemberInfo(self)
+        return await Ariadne.get_running(Ariadne).getMemberInfo(self)
 
     async def modifyInfo(self, info: "MemberInfo") -> None:
         """
@@ -387,9 +387,9 @@ class Member(AriadneBaseModel):
         Returns:
             None: 没有返回.
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().modifyMemberInfo(self, info)
+        return await Ariadne.get_running(Ariadne).modifyMemberInfo(self, info)
 
     async def modifyAdmin(self, assign: bool) -> None:
         """
@@ -401,9 +401,9 @@ class Member(AriadneBaseModel):
         Returns:
             None: 没有返回.
         """
-        from .context import ariadne_ctx
+        from .app import Ariadne
 
-        return await ariadne_ctx.get().modifyMemberAdmin(assign, self)
+        return await Ariadne.get_running(Ariadne).modifyMemberAdmin(assign, self)
 
 
 class GroupConfig(AriadneBaseModel):
@@ -513,6 +513,9 @@ class UploadMethod(str, Enum):
 
     Temp = "temp"
     """临时消息"""
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class CallMethod(str, Enum):

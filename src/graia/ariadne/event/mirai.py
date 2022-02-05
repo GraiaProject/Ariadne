@@ -7,7 +7,6 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
 from typing_extensions import Literal
 
-from ..context import adapter_ctx
 from ..dispatcher import ContextDispatcher
 from ..exception import InvalidSession
 from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
@@ -834,7 +833,10 @@ class RequestEvent(MiraiEvent):
         """
         内部接口, 用于内部便捷发送相应操作.
         """
-        adapter = adapter_ctx.get()
+        from ..adapter import Adapter
+        from ..app import Ariadne
+
+        adapter = Ariadne.get_running(Adapter)
         if not adapter.mirai_session.session_key:
             raise InvalidSession("you must authenticate before this.")
         api_route = self.type[0].lower() + self.type[1:]

@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 from pydantic import validator
 from pydantic.fields import Field
 
-from ..context import adapter_ctx, upload_method_ctx
+from ..context import upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod
 from ..util import wrap_bracket
@@ -580,11 +580,13 @@ class MultimediaElement(Element):
         Returns:
             bytes: 元素原始数据
         """
+        from ..app import Ariadne
+
         if self.base64:
             return b64decode(self.base64)
         if not self.url:
             raise ValueError("you should offer a url.")
-        session = adapter_ctx.get().session
+        session = Ariadne.get_running(Ariadne).adapter.session
         if not session:
             raise RuntimeError("Unable to get session!")
         async with session.get(self.url) as response:

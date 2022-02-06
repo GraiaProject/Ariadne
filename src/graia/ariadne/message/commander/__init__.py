@@ -20,17 +20,17 @@ from typing import (
     cast,
 )
 
-from graia.broadcast import Broadcast
+from graia.broadcast import Broadcast, Listener
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
 from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
 
-from ..dispatcher import ContextDispatcher
-from ..event.message import MessageEvent
-from ..model import AriadneBaseModel
-from ..util import (
+from ...dispatcher import ContextDispatcher
+from ...event.message import MessageEvent
+from ...model import AriadneBaseModel
+from ...util import (
     ConstantDispatcher,
     assert_,
     assert_not_,
@@ -40,9 +40,9 @@ from ..util import (
     gen_subclass,
     resolve_dispatchers_mixin,
 )
-from .chain import MessageChain
-from .element import Element
-from .parser.util import CommandToken, CommandTokenTuple, split, tokenize_command
+from ..chain import MessageChain
+from ..element import Element
+from ..parser.util import CommandToken, CommandTokenTuple, split, tokenize_command
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
@@ -321,7 +321,11 @@ class Commander:
     """便利的指令触发体系"""
 
     def __init__(self, broadcast: Broadcast, listen: bool = True):
-        """ """
+        """
+        Args:
+            broadcast (Broadcast): 事件系统
+            listen (bool): 是否监听指令
+        """
         self.broadcast = broadcast
         self.command_handlers: List[CommandHandler] = []
         self.validators: List[Callable] = [chain_validator]
@@ -332,12 +336,16 @@ class Commander:
         self.listen_func = execute_func
 
         if listen:
-            for event in gen_subclass(MessageEvent):
-                self.broadcast.receiver(event)(self.listen_func)
+            self.broadcast.listeners.append(
+                Listener(
+                    self.listen_func,
+                    self.broadcast.getDefaultNamespace(),
+                    list(gen_subclass(MessageEvent)),
+                )
+            )
 
     def __del__(self):
-        while listener := self.broadcast.getListener(self.listen_func):
-            self.broadcast.removeListener(listener)
+        self.broadcast.listeners = [i for i in self.broadcast.listeners if i.callable != self.listen_func]
 
     def add_type_cast(self, *caster: Callable):
         """添加类型验证器 (type caster / validator)"""
@@ -496,7 +504,7 @@ class Commander:
             slot_data: Dict[Union[str, int], MessageChain] = {}
             text_list: List[str] = split(mapping_str)
             wildcard_list: List[MessageChain] = []
-            with suppress(IndexError, MismatchError):  # TODO: add ValueError
+            with suppress(IndexError, MismatchError, ValueError):
                 while text_index < len(text_list):
                     text = text_list[text_index]
                     text_index += 1

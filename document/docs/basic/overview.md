@@ -46,6 +46,8 @@
 
 其他的信息你应该可以从 `doc string` 里得到.
 
+!!! warning "API 文档指路: <https://graiaproject.github.io/Ariadne/ariadne/app.html>"
+
 ## 获取实例所管账号
 
 `Ariadne` 通过一个只读属性 `account` 来帮助用户获取当前机器人实例的 QQ 号

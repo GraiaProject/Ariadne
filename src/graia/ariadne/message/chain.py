@@ -161,7 +161,7 @@ class MessageChain(AriadneBaseModel):
             bool: 判断结果
         """
         if isinstance(item, str):
-            return Plain(item) in self.merge(copy=True).__root__
+            return bool(self.findSubChain(MessageChain([Plain(item)], inline=True)))
         if isinstance(item, Element):
             return item in self.merge(copy=True).__root__
         if isinstance(item, type):
@@ -816,12 +816,12 @@ class MessageChain(AriadneBaseModel):
         self.__root__ = elements
         return self
 
-    def join(self, chains: Iterable["MessageChain"], merge: bool = False) -> "MessageChain":
+    def join(self, chains: Iterable["MessageChain"], merge: bool = True) -> "MessageChain":
         """将多个消息链连接起来, 并在其中插入自身.
 
         Args:
             chains (Iterable[MessageChain]): 要连接的消息链.
-            merge (bool, optional): 是否合并消息链文本, 默认为 False.
+            merge (bool, optional): 是否合并消息链文本, 默认为 True.
 
         Returns:
             MessageChain: 连接后的消息链.

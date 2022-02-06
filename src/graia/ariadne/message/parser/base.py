@@ -97,22 +97,6 @@ class MentionMe(Decorator):
         raise ExecutionStop
 
 
-class HasKeyword(Decorator):
-    """消息中含有指定关键字"""
-
-    pre = True
-
-    def __init__(self, keyword: str) -> None:
-        self.keyword: str = keyword
-
-    async def target(self, interface: DecoratorInterface):
-        chain: MessageChain = await interface.dispatcher_interface.lookup_param(
-            "message_chain", MessageChain, None
-        )
-        if self.keyword not in chain:
-            raise ExecutionStop
-
-
 class Mention(Decorator):
     """At 或提到指定人"""
 
@@ -136,6 +120,22 @@ class Mention(Decorator):
                 return header + rest[1:]
 
         raise ExecutionStop
+
+
+class ContainKeyword(Decorator):
+    """消息中含有指定关键字"""
+
+    pre = True
+
+    def __init__(self, keyword: str) -> None:
+        self.keyword: str = keyword
+
+    async def target(self, interface: DecoratorInterface):
+        chain: MessageChain = await interface.dispatcher_interface.lookup_param(
+            "message_chain", MessageChain, None
+        )
+        if self.keyword not in chain:
+            raise ExecutionStop
 
 
 class MatchContent(Decorator):

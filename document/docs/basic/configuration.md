@@ -48,7 +48,7 @@ def __init__(
 因为其默认事件分发器只支持原事件 (`listening_event is posted_event`:
 
 ```python
-@bcc.receiver(MessageEvent)
+@broadcast.receiver(MessageEvent)
 async def reply(app: Ariadne, event: MessageEvent):
     await app.sendMessage(event, MessageChain.create("Hello!"))
 ```

@@ -1,0 +1,146 @@
+# 基础消息链处理器
+
+!!! info "提示"
+
+    这里介绍的所有处理器都是 `Broadcast Decorator`.
+
+    想知道更多关于 `Decorator` 的事可以点击 [这里](https://autumn-psi.vercel.app/docs/broadcast/basic/decorator).
+
+本部分代码在 [`base.py`](https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/message/parser/base.py)
+
+不匹配时它们都会通过引发 `ExecutionStop` 停止执行.
+
+## DetectPrefix
+
+顾名思义, 检测前缀.
+
+实例化时传入前缀 **字符串** 即可.
+
+### 使用
+
+作为 `Decorator`, 你应该放到 `broadcast.receiver` / `ListenerSchema` 的 `decorators` 参数列表里.
+
+```py
+@broadcast.receiver(..., decorators=[DetectPrefix('/')])
+def on_message(chain: MessageChain): # chain 必定以 "/" 打头
+    ...
+```
+
+或者也可以这样:
+
+```py
+async def foo_func(chain: MessageChain = DetectPrefix(".Test")): # 以这种形式使用, 发送的消息以 ".Test" 打头, 但收到时会被去除
+    ... # ".TestSomething" -> "Something"
+```
+
+这会自动去掉前缀. 但是不会改动 `Quote` 与 `Source` 等元数据元素.
+
+
+## DetectSuffix
+
+顾名思义, 检测后缀.
+
+实例化时传入后缀 **字符串** 即可.
+
+### 使用
+
+作为 `Decorator`, 放到 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+```py
+@broadcast.receiver(..., decorators=[DetectSuffix('启动')])
+def on_message(chain: MessageChain): # chain 必定以 "启动" 结尾
+    ...
+```
+
+或者也可以这样:
+
+```py
+async def foo_func(chain: MessageChain = DetectSuffix("Suffix")): # 以这种形式使用, 发送的消息以 "suffix" 结尾, 但收到时会被去除
+    ... # "TestSuffix" -> "Test"
+```
+
+这会自动去掉后缀. 但是不会改动 `Quote` 与 `Source` 等元数据元素.
+
+## MentionMe
+
+检测在聊天中提到 Bot (At Bot 或以 Bot 群昵称/自己名称 打头).
+
+### 使用
+
+`Decorator`: 放到 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+```py
+@broadcast.receiver(..., decorators=[MentionMe()]) # 注意要实例化
+async def on_mention_me(chain: MessageChain): # 不会改动消息链
+    ...
+```
+
+## Mention
+
+检测在聊天中提到指定的人 (At 指定的人 或以 指定的人 群昵称/名称打头).
+
+### 使用
+
+`Decorator`: 放到 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+同时你需要为其提供 target 参数.
+
+```py
+@broadcast.receiver(..., decorators=[Mention(target=...)]) # target: int | str  
+# int: 用户 QQ 号, str: 用户的名字
+async def on_mention(chain: MessageChain): # 不会改动消息链
+    ...
+```
+
+## ContainKeyword
+
+检测消息链是否包含指定关键字.
+
+### 使用
+
+`Decorator`: 放入 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+同时你需要为其提供 keyword 参数.
+
+```py
+@broadcast.receiver(..., decorators=[ContainKeyword(keyword=...)]) # keyword: str
+async def on_contain_keyword(chain: MessageChain): # 不会改动消息链
+    ...
+```
+
+## MatchContent
+
+检测消息链是否与对应消息链相等.
+
+!!! warning "注意 Image 等元素的特殊对比规则"
+
+### 使用
+
+`Decorator`: 放入 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+```py
+@broadcast.receiver(..., decorators=[MatchContent(content=...)]) 
+# content: str | MessageChain 
+# 当 content 为 str 时, 将会与MessageChain.asDisplay()进行比较, 当 content 为 MessageChain 时, 将会与 MessageChain 进行比较
+async def on_match_content(chain: MessageChain): # 不会改动消息链
+    ...
+```
+
+## MatchRegex
+
+
+检测消息链是否匹配指定正则表达式.
+
+!!! warning "注意 [] 等特殊字符, 因为是使用 `MessageChain.asDisplay` 结果作为匹配源的."
+
+### 使用
+
+`Decorator`: 放入 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+```py
+@broadcast.receiver(..., decorators=[MatchRegex(regex=r"\d+")]) # regex 参数为 regex 表达式
+async def on_match_regex(chain: MessageChain): # 不会改动消息链
+    ...
+```
+
+

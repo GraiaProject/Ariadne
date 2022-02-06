@@ -11,14 +11,14 @@
 ```py
 bg_tsk: Optional[Task] = None
 
-@bcc.receiver(ApplicationLaunched)
+@broadcast.receiver(ApplicationLaunched)
 async def start_background(loop: AbstractEventLoop):
     global bg_tsk
     if not bg_tsk:
         bg_tsk = loop.create_task(whatever_coroutine(...))
 
 
-@bcc.receiver(ApplicationShutdowned)
+@broadcast.receiver(ApplicationShutdowned)
 async def stop_background():
     global bg_tsk
     if bg_tsk:
@@ -39,7 +39,7 @@ def add_background_task(app: Ariadne, async_func: Callable[[...], Awaitable], *a
             bg_tsk = loop.create_task(async_func(*args, **kwargs))
 
 
-    @bcc.receiver(ApplicationShutdowned)
+    @broadcast.receiver(ApplicationShutdowned)
     async def stop_background():
         if bg_tsk:
             bg_tsk.cancel() # 取不取消随你, 但不要留到 Ariadne 生命周期外
@@ -54,7 +54,7 @@ def add_background_task(app: Ariadne, async_func: Callable[[...], Awaitable], *a
 ```py
 from graia.ariadne.model import AriadneStatus
 
-@bcc.receiver(ApplicationLaunched)
+@broadcast.receiver(ApplicationLaunched)
 async def background(app: Ariadne):
     while app.status in (AriadneStatus.LAUNCH, AriadneStatus.RUNNING):
         ...

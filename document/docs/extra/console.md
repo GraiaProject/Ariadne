@@ -78,7 +78,7 @@ Ariadne A.A.A>
 
 有以下两种风格的注册方式
 
-=== "类 bcc.receiver"
+=== "类 broadcast.receiver"
 
     ```py
     con = Console(...)

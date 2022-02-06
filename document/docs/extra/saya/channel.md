@@ -28,7 +28,7 @@ async def fetch(...):
 
 有以下几个 `Schema`.
 
--   `ListenerSchema`: 需要 `BroadcastBehaviour`, 相当于使用 `bcc.receiver`.
+-   `ListenerSchema`: 需要 `BroadcastBehaviour`, 相当于使用 `broadcast.receiver`.
 -   `SchedulerSchema`: 需要 `GraiaSchedulerBehaviour`, 相当于使用 `scheduler.schedule`.
 
 !!! note "提示"

@@ -9,3 +9,10 @@ for (let i = 0; i < admonition_summaries.length; i++) {
     let color = window.getComputedStyle(admonition_summaries[i]).borderColor
     admonition_summaries[i].style.color = color
 }
+
+window.addEventListener('load', function () {
+    var p = localStorage.getItem("data-md-color-primary");
+    if (p) {
+        document.body.setAttribute('data-md-color-primary', p);
+    }
+}, false);

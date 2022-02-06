@@ -231,14 +231,14 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
 ## 配合 Broadcast 使用
 
-`Twilight` 应作为 `dispatcher` 传入 `bcc.receiver` / `ListenerSchema` 中.
+`Twilight` 应作为 `dispatcher` 传入 `broadcast.receiver` / `ListenerSchema` 中.
 
 在 `receiver` 函数的类型标注中, 通过 标注参数为 `Sparkle` 获取当前 `Sparkle`, 通过 `name: Match` 的形式获取 `name` 对应的匹配对象.
 
 像这样:
 
 ```py hl_lines="2"
-@bcc.receiver(MessageEvent, dispatchers=[
+@broadcast.receiver(MessageEvent, dispatchers=[
     Twilight(Sparkle(
         [FullMatch(".command")],
         {"arg": RegexMatch(r"\d+", optional=True)}

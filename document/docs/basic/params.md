@@ -9,7 +9,7 @@
 在 [快速开始](../../quickstart/) 一节中, 我们使用了这样的写法来处理好友的消息:
 
 ```python
-@bcc.receiver("FriendMessage")
+@broadcast.receiver("FriendMessage")
 async def friend_message_listener(app: Ariadne, friend: Friend):
     ......
 ```
@@ -19,7 +19,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
 上面的例子中, `app: Ariadne` 的 `Ariadne` 部分, 与 `friend: Friend` 的 `Friend` 部分是不可以省略的. 用不到的参数, 可以省略. 比如说, 如果你在 `friend_message_lister` 中, 没有用到 `friend` 参数, 那么就可以写成这样:
 
 ```python
-@bcc.receiver("FriendMessage")
+@broadcast.receiver("FriendMessage")
 async def friend_message_listener(app: Ariadne):
     ......
 ```

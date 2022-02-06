@@ -95,6 +95,22 @@ MessageChain([Plain("No!No!How are you?"), At(1), Plain("yo")])
     msg.replace(At(app.account), Plain("[bot]"))
     ```
 
+### join 方法
+
+`MessageChain` 的 `join` 方法与 `str` 的 `join` 方法大致相同.
+
+接受一个内容为 `MessageChain` 的可迭代对象, 并用其自身拼接.
+
+`merge` 参数决定是否自动帮你拼接消息链, 默认为是.
+
+```py
+>>> MessageChain([" "]).join([MessageChain(["A"]), MessageChain(["B"]), MessageChain(["C"])])
+MessageChain([Plain("A B C")])
+
+>>> MessageChain([" "]).join([MessageChain(["A"]), MessageChain(["B"]), MessageChain(["C"])], merge=False)
+MessageChain([Plain("A"), Plain(" "), Plain("B"), Plain(" "), Plain("C")])
+```
+
 ### 映射字符串
 
 映射字符串部分解决了 `MessageChain` 与 `str` 的互操作性问题. 其核心思想为 将 `Element` 看作一个特殊的字符序列.

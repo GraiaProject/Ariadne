@@ -25,3 +25,11 @@ ul.clear-list {
     margin: 0;
     padding: 0;
 }
+
+.mdx-switch button> code {
+    cursor: pointer;
+    transition: opacity 250ms;
+    display: block;
+    color: var(--md-primary-bg-color);
+    background-color: var(--md-primary-fg-color);
+  }

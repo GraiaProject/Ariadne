@@ -1,4 +1,4 @@
-site_name: Ariadne 文档
+site_name: Graia Ariadne 文档
 theme:
   features:
     - navigation.tabs
@@ -96,12 +96,12 @@ nav:
       - "基础":
           - "basic/params.md"
           - "basic/msg-chain.md"
+          - "basic/base-parser.md"
           - "basic/configuration.md"
           - "basic/overview.md"
           - "basic/background.md"
       - "进阶":
           - "advance/msg-chain.md"
-          - "advance/base-parser.md"
           - "advance/commander.md"
           - "advance/twilight.md"
           - "Alconna - 来自 Cesloi 的命令解析工具":
@@ -137,3 +137,4 @@ nav:
   - API 文档: https://graiaproject.github.io/Ariadne/ariadne
   - GitHub 仓库: https://github.com/GraiaProject/Ariadne
   - Broadcast 官方文档: https://autumn-psi.vercel.app/
+  - 社区文档: https://graiax.cn/

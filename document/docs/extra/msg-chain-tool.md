@@ -45,7 +45,7 @@
 像这样:
 
 ```py
-@bcc.receiver(...)
+@broadcast.receiver(...)
 async def reply(msg: MessageChain = Component[(Plain, Image): 2], ...):
     assert len(msg) <= 2
     assert msg.onlyContains(Plain, Image)
@@ -61,7 +61,7 @@ def e_filter(e: Element) -> bool:
             return False
     return True
 
-@bcc.receiver(...)
+@broadcast.receiver(...)
 async def reply(msg: MessageChain = Component[e_filter, 5], ...):
     assert len(msg) <= 5
     assert all(i.text.startswith("test") for i in msg if isinstance(i, Plain))

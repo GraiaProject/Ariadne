@@ -51,7 +51,7 @@ def waiter(...):
 !!! warning "注意"
 
     `waiter()` 函数内填充的参数 **不能通过手工传入**,
-    而应该通过与 `bcc.receiver()` 一样的参数分派机制进行自动填充.
+    而应该通过与 `broadcast.receiver()` 一样的参数分派机制进行自动填充.
 
     注意 `ListeningEvent` 不能使用 `"GroupMessage"` 这种字符串形式,
     而要导入具体事件之后填入.
@@ -67,7 +67,7 @@ def waiter(...):
 之后在主监听函数中:
 
 ```py
-@bcc.receiver(ListeningEvent)
+@broadcast.receiver(ListeningEvent)
 async def handler(...):
     ...
     result = await inc.wait(waiter) # 在此处等待

@@ -21,7 +21,7 @@ poetry add graia-scheduler
 ```py
 from graia.scheduler import GraiaScheduler
 
-scheduler = GraiaScheduler(loop=bcc.loop, broadcast=bcc)
+scheduler = GraiaScheduler(loop=broadcast.loop, broadcast=broadcast)
 ```
 
 我们就可以开始了.

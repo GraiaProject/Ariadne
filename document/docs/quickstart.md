@@ -96,9 +96,9 @@ from graia.ariadne.model import Friend, MiraiSession
 
 loop = asyncio.new_event_loop()
 
-bcc = Broadcast(loop=loop)
+broadcast = Broadcast(loop=loop)
 app = Ariadne(
-    broadcast=bcc,
+    broadcast=broadcast,
     connect_info=MiraiSession(
         host="http://localhost:8080",  # 填入 HTTP API 服务运行的地址
         verify_key="ServiceVerifyKey",  # 填入 verifyKey
@@ -107,7 +107,7 @@ app = Ariadne(
 )
 
 
-@bcc.receiver("FriendMessage")
+@broadcast.receiver("FriendMessage")
 async def friend_message_listener(app: Ariadne, friend: Friend):
     await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
     # 实际上 MessageChain.create(...) 有没有 "[]" 都没关系

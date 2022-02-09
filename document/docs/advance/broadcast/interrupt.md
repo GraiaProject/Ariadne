@@ -74,6 +74,8 @@ async def handler(...):
     ...
 ```
 
+!!! note "在 `InterruptControl.wait` 上使用 `timeout` 参数可以设置超时时间, 超时会引发 `TimeoutError`."
+
 ## 它是怎么运作的?
 
 `Interrupt` 创建的 `Waiter` 对象很像 `asyncio.Future`, 是基于回调的设计.

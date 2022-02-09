@@ -33,6 +33,11 @@
 
 
 ## 文档: 切换主题色
+
+> 按下对应颜色即可切换.
+
+> 默认颜色: `indigo`.
+
 <div class="mdx-switch">
 <button data-md-color-primary="red"><code>red</code></button>
 <button data-md-color-primary="pink"><code>pink</code></button>

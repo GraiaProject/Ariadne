@@ -52,6 +52,7 @@ from .model import (
     MemberInfo,
     MiraiSession,
     Profile,
+    Stranger,
     UploadMethod,
 )
 from .typing import SendMessageAction, SendMessageDict, SendMessageException
@@ -466,6 +467,26 @@ class RelationshipMixin(AriadneMixin):
         return Profile.parse_obj(result)
 
     @app_ctx_manager
+    async def getUserProfile(self, target: Union[int, Friend, Member, Stranger]) -> Profile:
+        """获取任意 QQ 用户的 Profile.
+
+        Args:
+            target (Union[int, Friend, Member, Stranger]): 任意 QQ 用户.
+
+        Returns:
+            Profile: 找到的 Profile.
+        """
+        result = await self.adapter.call_api(
+            "userProfile",
+            CallMethod.GET,
+            {
+                "sessionKey": self.session_key,
+                "userId": int(target),
+            },
+        )
+        return Profile.parse_obj(result)
+
+    @app_ctx_manager
     async def getFriendProfile(self, friend: Union[Friend, int]) -> Profile:
         """获取好友的 Profile.
 
@@ -480,7 +501,7 @@ class RelationshipMixin(AriadneMixin):
             CallMethod.GET,
             {
                 "sessionKey": self.session_key,
-                "target": friend.id if isinstance(friend, Friend) else friend,
+                "target": int(friend),
             },
         )
         return Profile.parse_obj(result)

@@ -249,8 +249,29 @@ class Face(Element):
     def asDisplay(self) -> str:
         return f"[表情: {self.name if self.name else self.faceId}]"
 
-    def __eq__(self, other: "Face") -> bool:
+    def __eq__(self, other) -> bool:
         return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
+
+
+class MarketFace(Element):
+    """表示消息中的商城表情.
+
+    注意: 本类型不支持用户发送
+    """
+
+    type: str = "MarketFace"
+
+    faceId: Optional[int] = Field(None, alias="id")
+    """QQ 表情编号"""
+
+    name: Optional[str] = None
+    """QQ 表情名称"""
+
+    def asDisplay(self) -> str:
+        return f"[商城表情: {self.name if self.name else self.faceId}]"
+
+    def __eq__(self, other) -> bool:
+        return isinstance(other, MarketFace) and (self.faceId == other.faceId or self.name == other.name)
 
 
 class Xml(Element):

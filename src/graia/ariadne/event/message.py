@@ -154,6 +154,9 @@ class ActiveMessage(MiraiEvent):
     subject: Union[Friend, Group, Member, Stranger]
     """消息接收者"""
 
+    sync: bool = False
+    """是否为同步消息"""
+
 
 class ActiveFriendMessage(ActiveMessage):
     """主动好友消息"""
@@ -246,11 +249,15 @@ class FriendSyncMessage(ActiveFriendMessage):
 
     type: str = "FriendSyncMessage"
 
+    sync = True
+
 
 class GroupSyncMessage(ActiveGroupMessage):
     """群组同步消息"""
 
     type: str = "GroupSyncMessage"
+
+    sync = True
 
 
 class TempSyncMessage(ActiveTempMessage):
@@ -258,8 +265,12 @@ class TempSyncMessage(ActiveTempMessage):
 
     type: str = "TempSyncMessage"
 
+    sync = True
+
 
 class StrangerSyncMessage(ActiveStrangerMessage):
     """陌生人同步消息"""
 
     type: str = "StrangerSyncMessage"
+
+    sync = True

@@ -7,6 +7,7 @@ import sys
 import time
 from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
+from datetime import datetime
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -124,6 +125,8 @@ class MessageMixin(AriadneMixin):
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         """
+        from .event.message import ActiveFriendMessage
+
         with enter_message_send_context(UploadMethod.Friend):
             new_msg = message.copy()
             new_msg.prepare()
@@ -132,26 +135,23 @@ class MessageMixin(AriadneMixin):
                 CallMethod.POST,
                 {
                     "sessionKey": self.session_key,
-                    "target": target.id if isinstance(target, Friend) else target,
+                    "target": int(target),
                     "messageChain": new_msg.dict()["__root__"],
                     **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
-            logger.info(
-                "{bot_id}: [Friend({friend_id})] <- {message}".format_map(
-                    {
-                        "bot_id": self.mirai_session.account,
-                        "friend_id": target.id if isinstance(target, Friend) else target,
-                        "message": new_msg.asDisplay().__repr__(),
-                    }
-                )
+            event: ActiveFriendMessage = ActiveFriendMessage(
+                messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())]) + message,
+                subject=(await RelationshipMixin.getFriend(self, int(target))),
             )
+            with enter_context(self, event):
+                self.broadcast.postEvent(event)
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
     async def sendGroupMessage(
         self,
-        target: Union[Group, int],
+        target: Union[Group, Member, int],
         message: MessageChain,
         *,
         quote: Optional[Union[Source, int]] = None,
@@ -159,13 +159,18 @@ class MessageMixin(AriadneMixin):
         """发送消息到群组内, 可以指定回复的消息.
 
         Args:
-            target (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
+            target (Union[Group, Member, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 或 Member 实例.
             message (MessageChain): 有效的, 可发送的(Sendable)消息链.
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         """
+        from .event.message import ActiveGroupMessage
+
+        if isinstance(target, Member):
+            target = target.group
+
         with enter_message_send_context(UploadMethod.Group):
             new_msg = message.copy()
             new_msg.prepare()
@@ -174,20 +179,17 @@ class MessageMixin(AriadneMixin):
                 CallMethod.POST,
                 {
                     "sessionKey": self.session_key,
-                    "target": target.id if isinstance(target, Group) else target,
+                    "target": int(target),
                     "messageChain": new_msg.dict()["__root__"],
                     **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
-            logger.info(
-                "{bot_id}: [Group({group_id})] <- {message}".format_map(
-                    {
-                        "bot_id": self.mirai_session.account,
-                        "group_id": target.id if isinstance(target, Group) else target,
-                        "message": new_msg.asDisplay().__repr__(),
-                    }
-                )
+            event: ActiveGroupMessage = ActiveGroupMessage(
+                messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())]) + message,
+                subject=(await RelationshipMixin.getGroup(self, int(target))),
             )
+            with enter_context(self, event):
+                self.broadcast.postEvent(event)
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
@@ -210,6 +212,8 @@ class MessageMixin(AriadneMixin):
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         """
+        from .event.message import ActiveTempMessage
+
         new_msg = message.copy()
         new_msg.prepare()
         group = target.group if (isinstance(target, Member) and not group) else group
@@ -221,22 +225,18 @@ class MessageMixin(AriadneMixin):
                 CallMethod.POST,
                 {
                     "sessionKey": self.session_key,
-                    "group": group.id if isinstance(group, Group) else group,
-                    "qq": target.id if isinstance(target, Member) else target,
+                    "group": int(group),
+                    "qq": int(target),
                     "messageChain": new_msg.dict()["__root__"],
                     **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
                 },
             )
-            logger.info(
-                "{bot_id}: [Member({member_id}) of Group({group_id})] <- {message}".format_map(
-                    {
-                        "bot_id": self.mirai_session.account,
-                        "member_id": target.id if isinstance(target, Member) else target,
-                        "group_id": group.id if isinstance(group, Group) else group,
-                        "message": new_msg.asDisplay().__repr__(),
-                    }
-                )
+            event: ActiveTempMessage = ActiveTempMessage(
+                messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())]) + message,
+                subject=(await RelationshipMixin.getMember(self, int(group), int(target))),
             )
+            with enter_context(self, event):
+                self.broadcast.postEvent(event)
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager

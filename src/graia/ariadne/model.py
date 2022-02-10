@@ -4,14 +4,17 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Dict, Optional, Union
 
+from graia.broadcast.entities.listener import Listener
 from loguru import logger
 from pydantic import BaseModel, Field, validator
 from pydantic.main import BaseConfig, Extra
 from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
+
+from graia.ariadne.util import gen_subclass
 
 if TYPE_CHECKING:
     from .app import Ariadne
@@ -105,9 +108,12 @@ class ChatLogConfig:
     stranger_message_log_format: str = "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
     """陌生人消息格式"""
 
+    active_message_log_format: str = "{bot_id}: {sync_label}[{subject}] <- {message_string}"
+
     def initialize(self, app: "Ariadne"):
         """利用 Ariadne 对象注册事件日志处理器"""
         from .event.message import (
+            ActiveMessage,
             FriendMessage,
             GroupMessage,
             OtherClientMessage,
@@ -181,6 +187,23 @@ class ChatLogConfig:
                 ),
             )
 
+        def log_active_message(event: ActiveMessage):
+            logger.log(
+                self.log_level,
+                self.active_message_log_format.format(
+                    bot_id=app.mirai_session.account,
+                    sync_label="[SYNC]" if event.sync else "",
+                    subject=event.subject,
+                    message_string=event.messageChain.asDisplay().__repr__(),
+                ),
+            )
+
+        app.broadcast.listeners.append(
+            Listener(
+                log_active_message, app.broadcast.getDefaultNamespace(), list(gen_subclass(ActiveMessage))
+            )
+        )
+
 
 class MiraiSession(AriadneBaseModel):
     """
@@ -248,6 +271,14 @@ class MemberPerm(Enum):
         lv_map = {MemberPerm.Member: 1, MemberPerm.Administrator: 2, MemberPerm.Owner: 3}
         return lv_map[self] < lv_map[other]
 
+    def __repr__(self) -> str:
+        perm_map: Dict[str, str] = {
+            "MEMBER": "<普通成员>",
+            "ADMINISTRATOR": "<管理员>",
+            "OWNER": "<群主>",
+        }
+        return perm_map[self.value]
+
 
 class Group(AriadneBaseModel):
     """描述 Tencent QQ 中的群组."""
@@ -263,6 +294,9 @@ class Group(AriadneBaseModel):
 
     def __int__(self):
         return self.id
+
+    def __str__(self) -> str:
+        return f"{self.name}({self.id})"
 
     async def getConfig(self) -> "GroupConfig":
         """获取该群组的 Config
@@ -325,6 +359,9 @@ class Member(AriadneBaseModel):
 
     group: Group
     """所在群组"""
+
+    def __str__(self) -> str:
+        return f"{self.name}({self.id} @ {self.group})"
 
     def __int__(self):
         return self.id
@@ -410,6 +447,9 @@ class Friend(AriadneBaseModel):
     def __int__(self):
         return self.id
 
+    def __str__(self) -> str:
+        return f"{self.remark}({self.id})"
+
     async def getProfile(self) -> "Profile":
         """获取该好友的 Profile
 
@@ -452,6 +492,9 @@ class Stranger(AriadneBaseModel):
 
     def __int__(self):
         return self.id
+
+    def __str__(self) -> str:
+        return f"Stranger({self.id}, {self.nickname})"
 
     async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该陌生人的头像

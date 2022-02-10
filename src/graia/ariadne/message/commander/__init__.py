@@ -540,6 +540,11 @@ class Commander:
                             for slot in tokens:
                                 slot_data[slot] = MessageChain.fromMappingString(text, elem_m)
 
+                if text_index < len(pattern.token_list) - (
+                    pattern.last_type is not CommandPattern.ELast.REQUIRED
+                ):
+                    continue
+
                 dispatchers = []
                 if event := event_ctx.get(None):
                     dispatchers = resolve_dispatchers_mixin([event.Dispatcher])

@@ -25,6 +25,7 @@ from graia.broadcast import Broadcast, Listener
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
+from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
 
@@ -510,7 +511,7 @@ class Commander:
             slot_data: Dict[Union[str, int], MessageChain] = {}
             text_list: List[str] = split(mapping_str)
             wildcard_list: List[MessageChain] = []
-            with suppress(IndexError, MismatchError, ValueError):
+            with suppress(IndexError, MismatchError, ValueError, RequirementCrashed, ExecutionStop):
                 while text_index < len(text_list):
                     text = text_list[text_index]
                     text_index += 1

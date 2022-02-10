@@ -6,7 +6,7 @@ import importlib
 import multiprocessing
 from asyncio.events import AbstractEventLoop
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import Awaitable, Callable, ClassVar, Dict
+from typing import Awaitable, Callable, ClassVar, Dict, Tuple
 
 from ..typing import P, R
 
@@ -34,7 +34,7 @@ class ParallelExecutor:
     thread_exec: ThreadPoolExecutor
     proc_exec: ProcessPoolExecutor
     loop_ref_dict: ClassVar[Dict[AbstractEventLoop, "ParallelExecutor"]] = {}
-    func_mapping: ClassVar[Dict[str, Callable]] = {}
+    func_mapping: ClassVar[Dict[Tuple[str, str], Callable]] = {}
 
     def __init__(
         self,
@@ -105,7 +105,7 @@ class ParallelExecutor:
             R: 底层函数的返回值
         """
         importlib.import_module(module)
-        return cls.func_mapping[name](*args, **kwargs)
+        return cls.func_mapping[module, name](*args, **kwargs)
 
     @classmethod
     def run_func_static(cls, func: Callable[..., R], args: tuple, kwargs: dict) -> R:
@@ -119,8 +119,8 @@ class ParallelExecutor:
         Returns:
             R: 底层函数的返回值
         """
-        if func.__qualname__ in cls.func_mapping:
-            func = cls.func_mapping[func.__qualname__]
+        if (func.__module__, func.__qualname__) in cls.func_mapping:
+            func = cls.func_mapping[func.__module__, func.__qualname__]
         return func(*args, **kwargs)  # type: ignore
 
     def to_thread(self, func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> Awaitable[R]:
@@ -171,7 +171,7 @@ def io_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
     Returns:
         Callable[P, Awaitable[R]]: 包装后的函数
     """
-    ParallelExecutor.func_mapping[func.__qualname__] = func
+    ParallelExecutor.func_mapping[func.__module__, func.__qualname__] = func
 
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
@@ -198,7 +198,7 @@ def cpu_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
     Returns:
         Callable[P, Awaitable[R]]: 包装后的函数
     """
-    ParallelExecutor.func_mapping[func.__qualname__] = func
+    ParallelExecutor.func_mapping[func.__module__, func.__qualname__] = func
 
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:

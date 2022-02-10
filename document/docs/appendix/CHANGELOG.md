@@ -1,5 +1,31 @@
 # 更改日志
 
+## 0.5.3
+
+### 添加
+
+完成新版 `Mirai API HTTP` 支持: ([#102](https://github.com/GraiaProject/Ariadne/issues/102))
+
+- 添加 `ActiveMessage` 系列主动事件:
+`ActiveFriendMessage` `ActiveGroupMessage` `ActiveTempMessage`
+及其对应 `SyncMessage`.
+
+- 添加 `MarketFace` 元素类型 (用户无法发送).
+
+- 添加 `getUserProfile` API (未 merge).
+
+在 `Member` `Group` `Friend` 上添加 `getAvatar` API.
+
+`Ariadne.get_running` API 用于替代旧的 `xxx_ctx.get()`.
+
+`Commander` 的 `Saya` 支持.
+
+### 修复
+
+`Broadcast` 的 `Decorator` 无法正常运作.
+
+更好的多账号支持.
+
 ## 0.5.2
 
 ### 添加

@@ -9,6 +9,7 @@ import sys
 import traceback
 import warnings
 from asyncio.events import AbstractEventLoop
+from contextvars import ContextVar
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -373,12 +374,12 @@ def resolve_dispatchers_mixin(dispatchers: List[T_Dispatcher]) -> List[T_Dispatc
 class ConstantDispatcher(BaseDispatcher):
     """分发常量给指定名称的参数"""
 
-    def __init__(self, data: Dict[str, Any]) -> None:
-        self.data = data
+    def __init__(self, context: ContextVar[Dict[str, Any]]) -> None:
+        self.ctx_var = context
 
     async def catch(self, interface: DispatcherInterface):
-        if interface.name in self.data:
-            return self.data[interface.name]
+        if interface.name in self.ctx_var.get():
+            return self.ctx_var.get()[interface.name]
 
 
 class Dummy:

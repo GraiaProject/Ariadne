@@ -4,6 +4,7 @@ import enum
 import inspect
 import itertools
 from contextlib import suppress
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import (
     Any,
@@ -27,6 +28,7 @@ from graia.broadcast.entities.exectarget import ExecTarget
 from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
 
+from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
@@ -241,6 +243,9 @@ class MismatchError(ValueError):
     """指令失配"""
 
 
+commander_data_ctx: ContextVar[Dict[str, Any]] = ContextVar("commander_data_ctx", default={})
+
+
 class CommandHandler(ExecTarget):
     """Command 的 ExecTarget 对象, 承担了参数提取等任务"""
 
@@ -253,12 +258,16 @@ class CommandHandler(ExecTarget):
     ):
         super().__init__(
             callable,
-            [ConstantDispatcher({}), ContextDispatcher(), *resolve_dispatchers_mixin(dispatchers or [])],
+            [
+                ConstantDispatcher(commander_data_ctx),
+                ContextDispatcher(),
+                *resolve_dispatchers_mixin(dispatchers or []),
+            ],
             list(decorators),
         )
         self.pattern: CommandPattern = record
 
-    def set_data(
+    def get_data(
         self,
         slot_data: Dict[Union[int, str], MessageChain],
         arg_data: Dict[str, List[MessageChain]],
@@ -270,8 +279,8 @@ class CommandHandler(ExecTarget):
             slot_data (Dict[Union[int, str], MessageChain]): Slot 的解析结果
             arg_data (Dict[str, List[MessageChain]]): Arg 的解析结果
 
-        Raises:
-            RuntimeError: ConstantDispatcher 被移除了
+        Returns:
+            Dict[str, Any]: 参数
         """
         param_result: Dict[str, Any] = {}
         for arg in set(self.pattern.arg_map.values()):
@@ -311,10 +320,7 @@ class CommandHandler(ExecTarget):
                     param_result[slot.param_name] = tuple(
                         slot.model(val=chain).__dict__["val"] for chain in wildcard_list
                     )
-        if isinstance(self.dispatchers[0], ConstantDispatcher):
-            self.dispatchers[0].data = param_result
-        else:
-            raise RuntimeError("ConstantDispatcher is removed!")
+        return param_result
 
 
 class Commander:
@@ -533,5 +539,9 @@ class Commander:
                             for slot in tokens:
                                 slot_data[slot] = MessageChain.fromMappingString(text, elem_m)
 
-                handler.set_data(slot_data, arg_data, wildcard_list)
-                await self.broadcast.Executor(handler)
+                dispatchers = []
+                if event := event_ctx.get(None):
+                    dispatchers = resolve_dispatchers_mixin([event.Dispatcher])
+                token = commander_data_ctx.set(handler.get_data(slot_data, arg_data, wildcard_list))
+                await self.broadcast.Executor(handler, dispatchers)
+                commander_data_ctx.reset(token)

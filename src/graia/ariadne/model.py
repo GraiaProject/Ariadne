@@ -233,48 +233,6 @@ class MiraiSession(AriadneBaseModel):
         return str(URL(self.host) / route)
 
 
-class Friend(AriadneBaseModel):
-    """描述 Tencent QQ 中的好友."""
-
-    id: int
-    """QQ 号"""
-
-    nickname: str
-    """昵称"""
-
-    remark: str
-    """自行设置的代称"""
-
-    def __int__(self):
-        return self.id
-
-    async def getProfile(self) -> "Profile":
-        """获取该好友的 Profile
-
-        Returns:
-            Profile: 该好友的 Profile 对象
-        """
-        from .app import Ariadne
-
-        return await Ariadne.get_running(Ariadne).getFriendProfile(self)
-
-
-class Stranger(AriadneBaseModel):
-    """描述 Tencent QQ 中的陌生人."""
-
-    id: int
-    """QQ 号"""
-
-    nickname: str
-    """昵称"""
-
-    remark: str
-    """自行设置的代称"""
-
-    def __int__(self):
-        return self.id
-
-
 @functools.total_ordering
 class MemberPerm(Enum):
     """描述群成员在群组中所具备的权限"""
@@ -325,6 +283,20 @@ class Group(AriadneBaseModel):
         from .app import Ariadne
 
         return await Ariadne.get_running(Ariadne).modifyGroupConfig(self, config)
+
+    async def getAvatar(self) -> bytes:
+        """获取该群组的头像
+
+        Returns:
+            bytes: 群头像的二进制内容.
+        """
+        from .app import Ariadne
+
+        return await (
+            await Ariadne.get_running(Ariadne).adapter.session.get(
+                f"https://p.qlogo.cn/gh/{self.id}/{self.id}/"
+            )
+        ).content.read()
 
 
 class Member(AriadneBaseModel):
@@ -404,6 +376,99 @@ class Member(AriadneBaseModel):
         from .app import Ariadne
 
         return await Ariadne.get_running(Ariadne).modifyMemberAdmin(assign, self)
+
+    async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
+        """获取该群成员的头像
+
+        Args:
+            size (Literal[640, 140]): 头像尺寸
+
+        Returns:
+            bytes: 群成员头像的二进制内容.
+        """
+        from .app import Ariadne
+
+        return await (
+            await Ariadne.get_running(Ariadne).adapter.session.get(
+                f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+            )
+        ).content.read()
+
+
+class Friend(AriadneBaseModel):
+    """描述 Tencent QQ 中的好友."""
+
+    id: int
+    """QQ 号"""
+
+    nickname: str
+    """昵称"""
+
+    remark: str
+    """自行设置的代称"""
+
+    def __int__(self):
+        return self.id
+
+    async def getProfile(self) -> "Profile":
+        """获取该好友的 Profile
+
+        Returns:
+            Profile: 该好友的 Profile 对象
+        """
+        from .app import Ariadne
+
+        return await Ariadne.get_running(Ariadne).getFriendProfile(self)
+
+    async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
+        """获取该好友的头像
+
+        Args:
+            size (Literal[640, 140]): 头像尺寸
+
+        Returns:
+            bytes: 好友头像的二进制内容.
+        """
+        from .app import Ariadne
+
+        return await (
+            await Ariadne.get_running(Ariadne).adapter.session.get(
+                f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+            )
+        ).content.read()
+
+
+class Stranger(AriadneBaseModel):
+    """描述 Tencent QQ 中的陌生人."""
+
+    id: int
+    """QQ 号"""
+
+    nickname: str
+    """昵称"""
+
+    remark: str
+    """自行设置的代称"""
+
+    def __int__(self):
+        return self.id
+
+    async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
+        """获取该陌生人的头像
+
+        Args:
+            size (Literal[640, 140]): 头像尺寸
+
+        Returns:
+            bytes: 陌生人头像的二进制内容.
+        """
+        from .app import Ariadne
+
+        return await (
+            await Ariadne.get_running(Ariadne).adapter.session.get(
+                f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+            )
+        ).content.read()
 
 
 class GroupConfig(AriadneBaseModel):

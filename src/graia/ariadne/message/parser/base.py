@@ -89,10 +89,10 @@ class MentionMe(Decorator):
         first: Element = rest[0]
         if rest and isinstance(first, Plain):
             if first.asDisplay().startswith(name):
-                return header + rest.removeprefix(name)
+                return header + rest.removeprefix(name).removeprefix(" ")
         if rest and isinstance(first, At):
             if first.target == ariadne.account:
-                return header + rest[1:]
+                return header + rest[1:].removeprefix(" ")
 
         raise ExecutionStop
 
@@ -114,10 +114,10 @@ class Mention(Decorator):
         first: Element = rest[0]
         if rest and isinstance(first, Plain):
             if isinstance(self.target, str) and first.asDisplay().startswith(self.target):
-                return header + rest.removeprefix(self.target)
+                return header + rest.removeprefix(self.target).removeprefix(" ")
         if rest and isinstance(first, At):
             if isinstance(self.target, int) and first.target == self.target:
-                return header + rest[1:]
+                return header + rest[1:].removeprefix(" ")
 
         raise ExecutionStop
 
@@ -161,12 +161,19 @@ class MatchRegex(Decorator):
 
     pre = True
 
-    def __init__(self, regex: str) -> None:
+    def __init__(self, regex: str, flags: re.RegexFlag = re.RegexFlag(0)) -> None:
+        """初始化匹配正则表达式.
+
+        Args:
+            regex (str): 正则表达式
+            flags (re.RegexFlag): 正则表达式标志
+        """
         self.regex: str = regex
+        self.flags: re.RegexFlag = flags
 
     async def target(self, interface: DecoratorInterface):
         chain: MessageChain = await interface.dispatcher_interface.lookup_param(
             "message_chain", MessageChain, None
         )
-        if not re.match(self.regex, chain.asDisplay()):
+        if not re.match(self.regex, chain.asDisplay(), self.flags):
             raise ExecutionStop

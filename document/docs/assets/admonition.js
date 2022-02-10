@@ -10,9 +10,12 @@ for (let i = 0; i < admonition_summaries.length; i++) {
     admonition_summaries[i].style.color = color
 }
 
-window.addEventListener('load', function () {
+function reload_color() {
     var p = localStorage.getItem("data-md-color-primary");
     if (p) {
         document.body.setAttribute('data-md-color-primary', p);
     }
-}, false);
+}
+
+window.addEventListener('change', reload_color, false);
+window.addEventListener('load', reload_color, false);

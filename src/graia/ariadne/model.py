@@ -284,7 +284,7 @@ class Group(AriadneBaseModel):
     """描述 Tencent QQ 中的群组."""
 
     id: int
-    """QQ 号"""
+    """群号"""
 
     name: str
     """群名"""

@@ -42,3 +42,5 @@ value = saya.require("saya.other_module")
 ```
 
 `value` 可以是其 `Channel` 或通过 `Channel.export` 导出的对象.
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/)"

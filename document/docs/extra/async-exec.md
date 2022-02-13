@@ -89,3 +89,5 @@ def foo(n: int) -> int:
 
 这样执行时 `io_bound` `cpu_bound` 只传递 `__qualname__` 与 `__module__` 给实际的执行函数, 它会通过导入 `__module__` 完成另一个进程中的函数注册.
 之后通过 `ParallelExecutor.func_mapping[func_qualname](*args, **kwargs)` 完成调用.
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/)"

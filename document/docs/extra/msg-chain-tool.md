@@ -99,3 +99,5 @@ async def reply(msg: MessageChain = Component[e_filter, 5], ...):
 -   签名为 `(Element) -> bool` 的函数.
 
 `match_time` 为一个 `int`, 代表总匹配次数.
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/8_huaji.html)"

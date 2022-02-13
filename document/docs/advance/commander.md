@@ -254,3 +254,5 @@ cmd.add_type_cast(cast_to_list)
 async def eval_command(name: str, option: str):
     ...
 ```
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_3_commander.html)"

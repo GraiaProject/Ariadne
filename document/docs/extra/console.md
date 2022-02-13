@@ -183,3 +183,5 @@ async def prompt(
 - **r_prompt** (`AnyFormattedText, optional`): 右侧提示, 可使用 `f-string` 形式的格式化字符串. 默认为空.
 
 - **style** (`Style, optional`): 输入提示的格式, 详见 `prompt_toolkit` 的介绍.
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/)"

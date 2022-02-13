@@ -51,6 +51,8 @@ async def friend_message_listener(app: Ariadne):
 -   `StrangerMessage`
     -   `Stranger` 发送者.
 
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/2_other_event.html)"
+
 !!! info "提示"
 
     参数解析功能, 是由 `Dispatcher` 机制来实现的, 可阅读 [`Dispatcher` 文档](https://autumn-psi.vercel.app/docs/broadcast/basic/dispatcher) , 以简要了解其原理.

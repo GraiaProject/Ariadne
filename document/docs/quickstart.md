@@ -63,8 +63,6 @@ poetry add graia-ariadne
 
 ## 第一次对话
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/1_hello_ero.html)"
-
 现在我们需要协定好 `mirai-api-http` 的配置, 以便于接下来的说明.
 
 根据 `mirai-api-http` 的相关文档, 我们可以得出这么一个配置文件的方案:
@@ -127,6 +125,8 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
 loop.run_until_complete(app.lifecycle())
 ```
 
-!!! info "技巧"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/1_hello_ero.html)"
+
+!!! info "提示"
 
     将 `CombinedAdapter` 换为 `DebugAdapter` 可以输出所有接收到的事件, 但在生产环境下并不推荐.

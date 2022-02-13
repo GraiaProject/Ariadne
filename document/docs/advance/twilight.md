@@ -364,3 +364,5 @@ async def reply(..., arg: RegexMatch):
 你可以通过运行 `test/parser_performance.py` 来测试 `Twilight` 的性能.
 
 在 `i5-10500` 处理器上, `Twilight` 的性能大约为 `6000 ~ 10000 msg/s`, 取决于 `Twilight` 的复杂程度.
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_2_twilight.html)"

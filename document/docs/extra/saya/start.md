@@ -152,7 +152,7 @@ except KeyboardInterrupt:
     exit()
 ```
 
-!!! note "提示“
+!!! note "提示"
     
     实际上 `with saya.module_context():` 是给 `require` 导入的模块提供 `Saya` 实例的上下文,
     从而可以使用 `Saya.current()` 获取当前 `Saya` 实例.
@@ -223,4 +223,6 @@ modules.module_as_dir :: 模块加载成功!!!
 modules.module_as_dir :: 模块加载成功!!!
 ```
 
-很好, 恭喜你, 完成了第一个 `Saya Application`, 我们可以前往下一章了.
+恭喜你, 完成了第一个 `Saya Application`, 我们可以前往下一章了.
+
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/11_classification.html)"

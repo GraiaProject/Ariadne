@@ -38,15 +38,54 @@ from graia.broadcast.interrupt.waiter import Waiter
     inc = AriadneInstance.create(InterruptControl)
     ```
 
-之后通过函数包装创建 `Waiter`:
+之后创建 `Waiter`:
 
-```py
-@Waiter.create_using_function([ListeningEvent])
-def waiter(...):
-    # 判断和处理
-    if condition:
-        return True # 只要不是 None 就会继续执行
-```
+=== "通过函数创建"
+
+    ```py
+    @Waiter.create_using_function([ListeningEvent])
+    def waiter(...):
+        # 判断和处理
+        if condition:
+            return True # 只要不是 None 就会继续执行
+    ```
+
+    !!! info "提示: 这个函数 **推荐** 为闭包(局部)函数"
+
+=== "继承 Waiter.create 生成的类"
+
+    ```py
+    class DirectWaiter(Waiter.create([GroupMessage])):
+
+    def __init__(self, group: Union[Group, int], member: Union[Member, int]):
+        self.group = group if isinstance(group, int) else group.id
+        self.member = member if isinstance(member, int) else member.id
+
+    # detected_event 方法是必须的
+    async def detected_event(self, group: Group, member: Member, message: MessageChain): 
+        if self.group == group.id and self.member == member.id:
+            return message
+    ```
+
+== "直接继承 Waiter"
+
+    ```py
+    class DirectWaiter(Waiter):
+    listening_events = [GroupMessage]
+    using_dispatchers = None
+    using_decorators = None
+    priority = 15
+    block_propagation = False
+
+    def __init__(self, group: Union[Group, int], member: Union[Member, int]):
+        self.group = group if isinstance(group, int) else group.id
+        self.member = member if isinstance(member, int) else member.id
+
+    # detected_event 方法是必须的
+    async def detected_event(self, group: Group, member: Member, message: MessageChain): 
+        if self.group == group.id and self.member == member.id:
+            return message
+    ```
 
 !!! warning "注意"
 
@@ -99,28 +138,6 @@ async def handler(...):
     通过往 `Waiter.create_using_function` 添加事件类型可以同时监听多个事件,
 
     或者直接传入 `list(graia.ariadne.util.gen_subclass(EventType))` 一口气接受所有子事件.
-
-## 几个例子
-
-`Ariadne` 并没有 `Application` 中封装好的 `Waiter` 包装器, 不过这里有一些你可以跟着做的示例.
-
-=== "验证群"
-
-    ```py
-    @Waiter.create_using_function([GroupMessage])
-    async def validate_group(group: Group):
-        if group.id == 1234567: # 随便你怎么处理, 反正成立时返回一个不为 None 的就行.
-            return True
-    ```
-
-=== "验证好友"
-
-    ```py
-    @Waiter.create_using_function([FriendMessage])
-    async def validate_friend(friend: Friend):
-        if friend.id == 7654321: # 随便你怎么处理, 反正返回一个不为 None 的就行.
-            return True
-    ```
 
 
 就这么多, 接下来我们将介绍在 `FastAPI` 中广泛运用的特性: 依赖注入 (`Depend`).

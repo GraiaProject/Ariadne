@@ -4,11 +4,13 @@ import enum
 import inspect
 import re
 from contextvars import ContextVar
-from typing import List, Literal, NoReturn, Optional, Tuple, Type, Union
+from typing import Dict, List, Literal, NoReturn, Tuple, Type, Union
+
+from graia.ariadne.message.element import Element
 
 from ..chain import Element_T, MessageChain
 
-elem_mapping_ctx: ContextVar["MessageChain"] = ContextVar("elem_mapping_ctx")
+elem_mapping_ctx: ContextVar[Dict[str, Element]] = ContextVar("elem_mapping_ctx")
 
 L_PAREN = ("{", "[")
 R_PAREN = ("}", "]")
@@ -148,11 +150,12 @@ def tokenize_command(string: str) -> List[CommandTokenTuple]:
     return token
 
 
-def split(string: str) -> List[str]:
+def split(string: str, keep_quote: bool = False) -> List[str]:
     """尊重引号与转义的字符串切分
 
     Args:
         string (str): 要切割的字符串
+        keep_quote (bool): 是否保留引号, 默认 False.
 
     Returns:
         List[str]: 切割后的字符串, 可能含有空格
@@ -167,6 +170,9 @@ def split(string: str) -> List[str]:
             elif char == quote and index and string[index - 1] != "\\":  # is current quote, not transfigured
                 quote = ""
             else:
+                cache.append(char)
+                continue
+            if keep_quote:
                 cache.append(char)
         elif not quote and char == " ":
             result.append("".join(cache))
@@ -227,12 +233,8 @@ def transform_regex(flag: re.RegexFlag, regex_pattern: str) -> str:
 class MessageChainType:
     """用于标记类型为消息链, 在 ArgumentMatch 上使用"""
 
-    def __init__(self, regex: Optional[re.Pattern]):
-        self.regex: Optional[re.Pattern] = regex
-
-    def __call__(self, string: str) -> MessageChain:
-        if self.regex and not self.regex.fullmatch(string):
-            raise ValueError(f"{string} not matching {self.regex.pattern}")
+    @staticmethod
+    def __call__(string: str) -> MessageChain:
         return MessageChain.fromMappingString(string, elem_mapping_ctx.get())
 
 

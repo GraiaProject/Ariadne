@@ -30,7 +30,7 @@ RUN = 20000
 if __name__ == "__main__":
     print("Run 1:")
     li = Literature(".test", arguments={"f": BoxParameter(["foo"])})
-    twi = Twilight(Sparkle([FullMatch(".test")], {"foo": ArgumentMatch("--foo", "-f")}))
+    twi = Twilight([FullMatch(".test"), "foo" @ ArgumentMatch("--foo", "-f")])
     msg = MessageChain.create(".test", " --foo ", At(123))
     debug(li.parse_message(li.prefix_match(msg)))
     st = time.time()
@@ -91,24 +91,3 @@ if __name__ == "__main__":
     ed = time.time()
 
     print(f"Twilight: {RUN / (ed-st):.2f}msg/s")
-
-    cmd = Commander(Dummy())
-
-    @cmd.command(".test --foo {v}")
-    def _(v: At = None):
-        print(v)
-
-    cmd.broadcast.loop.create_task = lambda e: debug(e.dispatchers[0].data)
-    cmd.broadcast.Executor = lambda x: x
-
-    cmd.execute(msg)
-
-    cmd.broadcast.loop.create_task = Dummy()
-    cmd.broadcast.Executor = Dummy()
-
-    st = time.time()
-    for _ in range(RUN):
-        cmd.execute(msg)
-    ed = time.time()
-
-    print(f"Commander: {RUN / (ed-st):.2f}msg/s")

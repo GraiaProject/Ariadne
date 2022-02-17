@@ -72,14 +72,12 @@ if __name__ == "__main__":
         MessageEvent,
         dispatchers=[
             Twilight(
-                Sparkle(
-                    [FullMatch(".test")],
-                    {
-                        "help": ArgumentMatch("--help", "-h", action="store_true"),
-                        "arg": WildcardMatch(flags=re.DOTALL),
-                        "verbose": ArgumentMatch("--verbose", action="store_true"),
-                    },
-                )
+                [
+                    FullMatch(".test"),
+                    "help" @ ArgumentMatch("--help", "-h", action="store_true"),
+                    "arg" @ WildcardMatch().flags(re.DOTALL),
+                    "verbose" @ ArgumentMatch("--verbose", action="store_true"),
+                ]
             )
         ],
     )
@@ -104,7 +102,7 @@ if __name__ == "__main__":
     async def accept(event: NewFriendRequestEvent):
         await event.accept("Welcome!")
 
-    @bcc.receiver(MessageEvent, dispatchers=[Twilight(Sparkle([FullMatch(".test")]))])
+    @bcc.receiver(MessageEvent, dispatchers=[Twilight([FullMatch(".test")])])
     async def reply2(app: Ariadne, event: MessageEvent):
         await app.sendMessage(event, MessageChain.create("Auto reply to /test!"))
 
@@ -123,7 +121,7 @@ if __name__ == "__main__":
 
     @bcc.receiver(
         FriendMessage,
-        dispatchers=[Twilight(Sparkle([RegexMatch("[./]stop")]))],
+        dispatchers=[Twilight([RegexMatch("[./]stop")])],
     )
     async def stop(app: Ariadne):
         await app.stop()
@@ -143,6 +141,7 @@ if __name__ == "__main__":
             logger.debug(await app.getFriendProfile(friend_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0]))
+            logger.debug(await app.uploadFile(b"hello", UploadMethod.Group, 931587979, "", "测试.txt"))
         await app.lifecycle()
 
     try:

@@ -16,7 +16,7 @@ from graia.ariadne.context import ariadne_ctx
 from graia.ariadne.event.lifecycle import ApplicationShutdowned
 from graia.ariadne.event.message import FriendMessage
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.parser.twilight import ParamMatch, Sparkle, Twilight
+from graia.ariadne.message.parser.twilight import FullMatch, Twilight
 from graia.ariadne.model import Friend, MiraiSession
 
 saya = Saya.current()
@@ -26,11 +26,6 @@ channel = Channel.current()
 @channel.use(ListenerSchema([FriendMessage]))
 async def reply(app: Ariadne, chain: MessageChain, friend: Friend):
     await app.sendFriendMessage(friend, MessageChain.create("Hello, World!"))
-
-
-@channel.use(ConsoleSchema([Twilight.from_command("permission set {0} {1}")]))
-async def display(sparkle: Sparkle):
-    logger.info(f"Set {sparkle[ParamMatch, 0].result}'s permission to {sparkle[ParamMatch, 1].result}")
 
 
 @channel.use(ListenerSchema([ApplicationShutdowned]))
@@ -46,7 +41,7 @@ async def send():
     logger.info(await ariadne_ctx.get().getVersion())
 
 
-@channel.use(ConsoleSchema([Twilight.from_command(".stop")]))
+@channel.use(ConsoleSchema([Twilight([FullMatch(".stop")])]))
 async def stop(app: Ariadne, console: Console):
 
     res: str = await console.prompt(

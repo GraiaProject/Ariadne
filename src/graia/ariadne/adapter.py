@@ -261,13 +261,14 @@ class HttpAdapter(Adapter):
             if isinstance(data, FormData):
                 form = data
             elif isinstance(data, dict):
-                form = FormData()
+                form = FormData(quote_fields=False)
                 for k, v in data.items():
                     v: Union[str, bytes, Tuple[Any, dict]]
                     if isinstance(v, tuple):
                         form.add_field(k, v[0], **v[1])
                     else:
                         form.add_field(k, v)
+            print(form.is_multipart)
             async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()

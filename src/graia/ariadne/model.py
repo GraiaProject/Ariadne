@@ -121,7 +121,7 @@ class ChatLogConfig:
             TempMessage,
         )
 
-        @app.broadcast.receiver(GroupMessage)
+        @app.broadcast.receiver(GroupMessage, -1)
         def log_group_message(event: GroupMessage):
             logger.log(
                 self.log_level,
@@ -136,7 +136,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(FriendMessage)
+        @app.broadcast.receiver(FriendMessage, -1)
         def log_friend_message(event: FriendMessage):
             logger.log(
                 self.log_level,
@@ -148,7 +148,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(TempMessage)
+        @app.broadcast.receiver(TempMessage, -1)
         def log_temp_message(event: TempMessage):
             logger.log(
                 self.log_level,
@@ -163,7 +163,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(StrangerMessage)
+        @app.broadcast.receiver(StrangerMessage, -1)
         def log_stranger_message(event: StrangerMessage):
             logger.log(
                 self.log_level,
@@ -175,7 +175,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(OtherClientMessage)
+        @app.broadcast.receiver(OtherClientMessage, -1)
         def log_other_client_message(event: OtherClientMessage):
             logger.log(
                 self.log_level,
@@ -200,7 +200,10 @@ class ChatLogConfig:
 
         app.broadcast.listeners.append(
             Listener(
-                log_active_message, app.broadcast.getDefaultNamespace(), list(gen_subclass(ActiveMessage))
+                log_active_message,
+                app.broadcast.getDefaultNamespace(),
+                list(gen_subclass(ActiveMessage)),
+                priority=-1,
             )
         )
 

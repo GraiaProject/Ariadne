@@ -268,7 +268,6 @@ class HttpAdapter(Adapter):
                         form.add_field(k, v[0], **v[1])
                     else:
                         form.add_field(k, v)
-            print(form.is_multipart)
             async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
                 response.raise_for_status()
                 resp_json: dict = await response.json()

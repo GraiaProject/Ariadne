@@ -103,7 +103,7 @@ class Mention(Decorator):
     pre = True
 
     def __init__(self, target: Union[int, str]) -> None:
-        self.target: Union[int, str] = target
+        self.person: Union[int, str] = target
 
     async def target(self, interface: DecoratorInterface):
         chain: MessageChain = await interface.dispatcher_interface.lookup_param(
@@ -113,10 +113,10 @@ class Mention(Decorator):
         rest: MessageChain = chain.exclude(Quote, Source)
         first: Element = rest[0]
         if rest and isinstance(first, Plain):
-            if isinstance(self.target, str) and first.asDisplay().startswith(self.target):
-                return header + rest.removeprefix(self.target).removeprefix(" ")
+            if isinstance(self.person, str) and first.asDisplay().startswith(self.person):
+                return header + rest.removeprefix(self.person).removeprefix(" ")
         if rest and isinstance(first, At):
-            if isinstance(self.target, int) and first.target == self.target:
+            if isinstance(self.person, int) and first.target == self.person:
                 return header + rest[1:].removeprefix(" ")
 
         raise ExecutionStop

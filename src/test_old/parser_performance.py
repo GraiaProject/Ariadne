@@ -49,30 +49,9 @@ if __name__ == "__main__":
 
     print(f"Twilight: {RUN / (ed-st):.2f}msg/s")
 
-    cmd = Commander(Dummy())
-
-    @cmd.command(".test", {"v": Arg("--foo {v}", type=At)})
-    def _(v: At = None):
-        print(v)
-
-    cmd.broadcast.loop.create_task = lambda e: debug(e.dispatchers[0].data)
-    cmd.broadcast.Executor = lambda x: x
-
-    cmd.execute(msg)
-
-    cmd.broadcast.loop.create_task = Dummy()
-    cmd.broadcast.Executor = Dummy()
-
-    st = time.time()
-    for _ in range(RUN):
-        cmd.execute(msg)
-    ed = time.time()
-
-    print(f"Commander: {RUN / (ed-st):.2f}msg/s")
-
     print("Run 2:")
 
-    twi = Twilight(Sparkle([FullMatch(".test"), WildcardMatch()]))
+    twi = Twilight([FullMatch(".test"), WildcardMatch()])
     debug(li.parse_message(li.prefix_match(msg)))
     st = time.time()
     for _ in range(RUN):
@@ -83,7 +62,7 @@ if __name__ == "__main__":
 
     debug(twi.generate(msg))
 
-    debug(twi.generate(msg)[0])
+    debug(twi.generate(msg))
 
     st = time.time()
     for _ in range(RUN):

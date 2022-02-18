@@ -241,6 +241,20 @@ class ArgumentMatch(Match, Generic[T]):
     ):
         ...
 
+    @overload
+    def __init__(
+        self,
+        *pattern: str,
+        action: Union[str, Type[Action]] = ...,
+        nargs: Union[int, str] = ...,
+        const: T = ...,
+        default: T = ...,
+        type: Callable[[str], T] = ...,
+        choices: Iterable[T] = ...,
+        optional: bool = True,
+    ):
+        ...
+
     def __init__(self, *pattern, **kwargs) -> None:
         super().__init__()
         if not pattern:
@@ -280,11 +294,9 @@ class Sparkle(Representation):
     def __init__(self, match_result: Dict[str, MatchResult]):
         self.res = match_result
 
-    @overload
     def __getitem__(self, item: str) -> MatchResult:
-        return self.get()
+        return self.get(item)
 
-    @overload
     def get(self, item: str) -> MatchResult:
         return self.res[item]
 
@@ -303,7 +315,7 @@ class TwilightMatcher:
         self._dest_map: Dict[str, ArgumentMatch] = {}
         self._group_map: Dict[int, RegexMatch] = {}
         self.dispatch_ref: Dict[str, Match] = {}
-        self.match_ref: DefaultDict[Type[T_Match], List[T_Match]] = DefaultDict(list)
+        self.match_ref: DefaultDict[Type[Match], List[Match]] = DefaultDict(list)
 
         regex_str_list: List[str] = []
         regex_group_cnt: int = 0
@@ -314,7 +326,8 @@ class TwilightMatcher:
             for m in i:
                 self.match_ref[type(m)].append(m)
                 if isinstance(m, RegexMatch):
-                    self._group_map[regex_group_cnt + 1] = m
+                    if m.dest:
+                        self._group_map[regex_group_cnt + 1] = m
                     regex_str_list.append(m._regex_str)
                     regex_group_cnt += re.compile(m._regex_str).groups
 
@@ -323,7 +336,8 @@ class TwilightMatcher:
                         if not self._parser.accept_type(m.arg_data["action"]):
                             del m.arg_data["type"]
                     action = self._parser.add_argument(*m.pattern, **m.arg_data)
-                    self._dest_map[action.dest] = m
+                    if m.dest:
+                        self._dest_map[action.dest] = m
 
                 if m.dest:
                     if m.dest in self.dispatch_ref:
@@ -346,8 +360,7 @@ class TwilightMatcher:
             namespace, arguments = self._parser.parse_known_args(arguments)
             nbsp_dict: Dict[str, Any] = namespace.__dict__
             for k, v in self._dest_map.items():
-                if v.dest:
-                    result[v.dest] = MatchResult(k in nbsp_dict, v, nbsp_dict[k])
+                result[v.dest] = MatchResult(k in nbsp_dict, v, nbsp_dict[k])
         if total_match := self._regex_pattern.fullmatch(" ".join(arguments)):
             for index, match in self._group_map.items():
                 group: Optional[str] = total_match.group(index)
@@ -401,14 +414,14 @@ class TwilightMatcher:
         return formatter.format_help()
 
     def __repr__(self) -> str:
-        return f"<TwilightMatcher {list(self._group_map.values()) + list(self._dest_map.values())!r}>"
+        return f"<Matcher {list(self._group_map.values()) + list(self._dest_map.values())!r}>"  # type: ignore
 
     def __str__(self) -> str:
-        return repr(list(self._group_map.values()) + list(self._dest_map.values()))
+        return repr(list(self._group_map.values()) + list(self._dest_map.values()))  # type: ignore
 
 
 class _TwilightLocalStorage(TypedDict):
-    result: Optional[Sparkle]
+    result: Sparkle
 
 
 class Twilight(Generic[T_Sparkle], BaseDispatcher):
@@ -445,7 +458,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         arguments: List[str] = split(mapping_str, keep_quote=True)
         res = self.matcher.match(arguments, elem_mapping)
         elem_mapping_ctx.reset(token)
-        return Sparkle(res)
+        return Sparkle(res)  # type: ignore
 
     def get_help(self, usage: str = "", description: str = "", epilog: str = "") -> str:
         """利用 Match 中的信息生成帮助字符串.
@@ -469,15 +482,15 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         Raises:
             ExecutionStop: 匹配以任意方式失败
         """
-        local_storage: _TwilightLocalStorage = interface.local_storage
+        local_storage: _TwilightLocalStorage = interface.local_storage  # type: ignore
         chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
         try:
             local_storage["result"] = self.generate(chain)
         except Exception as e:
             raise ExecutionStop from e
 
-    async def catch(self, interface: DispatcherInterface) -> Optional[Union["Twilight", T_Sparkle, Match]]:
-        local_storage: _TwilightLocalStorage = interface.local_storage
+    async def catch(self, interface: DispatcherInterface):
+        local_storage: _TwilightLocalStorage = interface.local_storage  # type: ignore
         sparkle = local_storage["result"]
         if issubclass(interface.annotation, Sparkle):
             return sparkle

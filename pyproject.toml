@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.5.3-post3"
+version = "0.6.0-alpha1"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -46,7 +46,7 @@ yarl = "^1.7"
 loguru = "^0.6"
 typing-extensions = "^4.0.0"
 prompt-toolkit = "^3.0.24"
-arclet-alconna = { version = "^0.4.1", optional = true }
+arclet-alconna = { version = "^0.6", optional = true }
 graia-scheduler = { version = "^0.0.6", optional = true }
 graia-saya = { version = "^0.0.14", optional = true }
 mkdocs-material = { version = ">=8.1.2", optional = true }

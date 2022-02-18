@@ -1,8 +1,11 @@
 """Ariadne 实例
 """
 import asyncio
+import base64
 import importlib.metadata
 import inspect
+import io
+import os
 import sys
 import time
 from asyncio.events import AbstractEventLoop
@@ -14,6 +17,7 @@ from typing import (
     ClassVar,
     Coroutine,
     Dict,
+    Generator,
     List,
     Literal,
     MutableSet,
@@ -41,6 +45,7 @@ from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessag
 from .message.chain import MessageChain
 from .message.element import Source
 from .model import (
+    Announcement,
     AriadneStatus,
     BotMessage,
     CallMethod,
@@ -245,7 +250,7 @@ class MessageMixin(AriadneMixin):
         target: Union[MessageEvent, Group, Friend, Member],
         message: MessageChain,
         *,
-        quote: Union[bool, int, Source] = False,
+        quote: Union[bool, int, Source, MessageChain] = False,
         action: SendMessageAction["T", "R"] = ...,
     ) -> Union["T", "R"]:
         """
@@ -270,6 +275,8 @@ class MessageMixin(AriadneMixin):
             data["quote"] = target.messageChain.getFirst(Source)
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
+        elif isinstance(quote, MessageChain):
+            data["quote"] = quote.getFirst(Source)
         # target: MessageEvent
         if isinstance(target, GroupMessage):
             data["target"] = target.sender.group
@@ -874,13 +881,181 @@ class OperationMixin(AriadneMixin):
         )
 
 
+class AnnouncementMixin(AriadneMixin):
+    """对群公告进行操作的 Mixin 类."""
+
+    @app_ctx_manager
+    async def getAnnouncementIterator(
+        self,
+        target: Union[Group, int],
+        offset: Optional[int] = 0,
+        size: Optional[int] = 10,
+    ) -> Generator[Announcement, None, None]:
+        """
+        获取群公告列表.
+
+        Args:
+            target (Union[Group, int]): 指定的群组.
+            offset (Optional[int], optional): 起始偏移量. 默认为 0.
+            size (Optional[int], optional): 列表大小. 默认为 10.
+
+        Returns:
+            Generator[Announcement, None, None]: 列出群组下所有的公告.
+        """
+
+        target = int(target)
+        current_offset = offset
+        cache: List[FileInfo] = []
+        while True:
+            while cache:
+                yield cache[0]
+                cache.pop(0)
+            cache = await self.getAnnouncementList(target, current_offset, size)
+            current_offset += len(cache)
+            if not cache:
+                return
+
+    @app_ctx_manager
+    async def getAnnouncementList(
+        self,
+        target: Union[Group, int],
+        offset: Optional[int] = 0,
+        size: Optional[int] = 10,
+    ):
+        """
+        列出群组下所有的公告.
+
+        Args:
+            target (Union[Group, int]): 指定的群组.
+            offset (Optional[int], optional): 起始偏移量. 默认为 0.
+            size (Optional[int], optional): 列表大小. 默认为 10.
+
+        Returns:
+            List[Announcement]: 列出群组下所有的公告.
+        """
+
+        result = await self.adapter.call_api(
+            "anno/list",
+            CallMethod.GET,
+            {
+                "sessionKey": self.session_key,
+                "target": int(target),
+                "offset": offset,
+                "size": size,
+            },
+        )
+
+        return [Announcement.parse_obj(announcement) for announcement in result]
+
+    @app_ctx_manager
+    async def publishAnnouncement(
+        self,
+        target: Union[Group, int],
+        content: str,
+        *,
+        send_to_new_member: bool = False,
+        pinned: bool = False,
+        show_edit_card: bool = False,
+        show_popup: bool = False,
+        require_confirmation: bool = False,
+        image: Optional[Union[str, bytes, os.PathLike, io.IOBase]] = None,
+    ) -> Announcement:
+        """
+        发布一个公告.
+
+        Args:
+            target (Union[Group, int]): 指定的群组.
+            content (str): 公告内容.
+            send_to_new_member (bool, optional): 是否公开. 默认为 False.
+            pinned (bool, optional): 是否置顶. 默认为 False.
+            show_edit_card (bool, optional): 是否自动删除. 默认为 False.
+            show_popup (bool, optional): 是否在阅读后自动删除. 默认为 False.
+            require_confirmation (bool, optional): 是否需要确认. 默认为 False.
+            image (Union[str, bytes, os.PathLike, io.IOBase, Image], optional): 图片. 默认为 None.
+            为 str 代表 url, 为 bytes / os.PathLike / io.IOBase 代表原始数据
+
+        Raises:
+            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
+
+        Returns:
+            None: 没有返回.
+        """
+
+        data: Dict[str, Any] = {
+            "sessionKey": self.session_key,
+            "target": int(target),
+            "content": content,
+            "sendToNewMember": send_to_new_member,
+            "pinned": pinned,
+            "showEditCard": show_edit_card,
+            "showPopup": show_popup,
+            "requireConfirmation": require_confirmation,
+        }
+
+        if image:
+            if isinstance(image, bytes):
+                data["imageBase64"] = base64.b64encode(image)
+            elif isinstance(image, os.PathLike):
+                data["imageBase64"] = base64.b64encode(open(image, "rb").read())
+            elif isinstance(image, io.IOBase):
+                data["imageBase64"] = base64.b64encode(image.read())
+            elif isinstance(image, str):
+                data["imageUrl"] = image
+
+        result = await self.adapter.call_api(
+            "anno/publish",
+            CallMethod.POST,
+            data,
+        )
+        return Announcement.parse_obj(result)
+
+    @app_ctx_manager
+    async def deleteAnnouncement(self, target: Union[Group, int], anno: Union[Announcement, int]) -> None:
+        """"""
+
+
 class FileMixin(AriadneMixin):
     """用于对文件进行各种操作的 Mixin 类."""
 
     @app_ctx_manager
+    async def getFileIterator(
+        self,
+        target: Union[Group, int],
+        id: str = "",
+        offset: Optional[int] = 0,
+        size: Optional[int] = 1,
+        with_download_info: bool = False,
+    ) -> Generator[FileInfo, None, None]:
+        """
+        以生成器形式列出指定文件夹下的所有文件.
+
+        Args:
+            target (Union[Group, int]): 要列出文件的根位置,
+            为群组或群号（当前仅支持群组）
+            id (str): 文件夹ID, 空串为根目录
+            offset (int): 起始分页偏移
+            size (int): 单次分页大小
+            with_download_info (bool): 是否携带下载信息, 无必要不要携带
+
+        Returns:
+            Generator[FileInfo, None, None]: 文件信息生成器.
+        """
+        target = int(target)
+        current_offset = offset
+        cache: List[FileInfo] = []
+        while True:
+            while cache:
+                yield cache[0]
+                cache.pop(0)
+            cache = await self.getFileList(target, id, current_offset, size, with_download_info)
+            current_offset += len(cache)
+            if not cache:
+                return
+
+    @app_ctx_manager
     async def getFileList(
         self,
-        target: Union[Friend, Group, int],
+        target: Union[Group, int],
         id: str = "",
         offset: Optional[int] = 0,
         size: Optional[int] = 1,
@@ -890,8 +1065,8 @@ class FileMixin(AriadneMixin):
         列出指定文件夹下的所有文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置,
-            为群组或好友或QQ号（当前仅支持群组）
+            target (Union[Group, int]): 要列出文件的根位置,
+            为群组或群号（当前仅支持群组）
             id (str): 文件夹ID, 空串为根目录
             offset (int): 分页偏移
             size (int): 分页大小
@@ -900,11 +1075,7 @@ class FileMixin(AriadneMixin):
         Returns:
             List[FileInfo]: 返回的文件信息列表.
         """
-        if isinstance(target, Friend):
-            raise NotImplementedError("Not implemented for friend")
-
-        target = target.id if isinstance(target, Friend) else target
-        target = target.id if isinstance(target, Group) else target
+        target = int(target)
 
         result = await self.adapter.call_api(
             "file/list",
@@ -1104,7 +1275,7 @@ class FileMixin(AriadneMixin):
     @app_ctx_manager
     async def uploadFile(
         self,
-        data: bytes,
+        data: Union[bytes, io.IOBase, os.PathLike],
         method: Union[str, UploadMethod] = None,
         target: Union[Friend, Group, int] = -1,
         path: str = "",
@@ -1114,7 +1285,7 @@ class FileMixin(AriadneMixin):
         上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
         上传目标, (可选)上传目录ID.
         Args:
-            data (bytes): 文件的原始数据
+            data (Union[bytes, io.IOBase, os.PathLike]): 文件的原始数据
             method (str | UploadMethod, optional): 文件的上传类型
             target (Union[Friend, Group, int]): 文件上传目标, 即群组
             path (str): 目标路径, 默认为根路径.
@@ -1132,6 +1303,9 @@ class FileMixin(AriadneMixin):
 
         if "/" in path and not name:
             path, name = path.rsplit("/", 1)
+
+        if isinstance(data, os.PathLike):
+            data = open(data, "rb")
 
         result = await self.adapter.call_api(
             "file/upload",
@@ -1152,10 +1326,12 @@ class MultimediaMixin(AriadneMixin):
     """用于与多媒体信息交互的 Mixin 类."""
 
     @app_ctx_manager
-    async def uploadImage(self, data: bytes, method: Union[str, UploadMethod] = None) -> "Image":
+    async def uploadImage(
+        self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[str, UploadMethod] = None
+    ) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
         Args:
-            image_bytes (bytes): 图片的原始数据
+            image_bytes (Union[bytes, io.IOBase, os.PathLike]): 图片的原始数据
             method (str | UploadMethod, optional): 图片的上传类型, 可从上下文推断
         Returns:
             Image: 生成的图片消息元素
@@ -1164,6 +1340,9 @@ class MultimediaMixin(AriadneMixin):
         from .message.element import Image
 
         method = str(method or upload_method_ctx.get()).lower()
+
+        if isinstance(data, os.PathLike):
+            data = open(data, "rb")
 
         result = await self.adapter.call_api(
             "uploadImage",
@@ -1178,10 +1357,12 @@ class MultimediaMixin(AriadneMixin):
         return Image.parse_obj(result)
 
     @app_ctx_manager
-    async def uploadVoice(self, data: bytes, method: Union[str, UploadMethod] = None) -> "Voice":
+    async def uploadVoice(
+        self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[str, UploadMethod] = None
+    ) -> "Voice":
         """上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
         Args:
-            data (bytes): 语音的原始数据
+            data (Union[bytes, io.IOBase, os.PathLike]): 语音的原始数据
             method (str | UploadMethod, optional): 语音的上传类型, 可从上下文推断
         Returns:
             Voice: 生成的语音消息元素
@@ -1190,6 +1371,9 @@ class MultimediaMixin(AriadneMixin):
         from .message.element import Voice
 
         method = str(method or upload_method_ctx.get()).lower()
+
+        if isinstance(data, os.PathLike):
+            data = open(data, "rb")
 
         result = await self.adapter.call_api(
             "uploadVoice",
@@ -1204,7 +1388,7 @@ class MultimediaMixin(AriadneMixin):
         return Voice.parse_obj(result)
 
 
-class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, FileMixin, MultimediaMixin):
+class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin, FileMixin, MultimediaMixin):
     """
     艾莉亚德妮 (Ariadne).
 

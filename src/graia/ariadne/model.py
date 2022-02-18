@@ -574,6 +574,28 @@ class DownloadInfo(AriadneBaseModel):
     """下载 url"""
 
 
+class Announcement(AriadneBaseModel):
+    """群公告"""
+
+    group: Group
+    """公告所在的群"""
+
+    senderId: int
+    """发送者QQ号"""
+
+    fid: str
+    """公告唯一标识ID"""
+
+    allConfirmed: bool
+    """群成员是否已全部确认"""
+
+    confirmedMembersCount: int
+    """已确认群成员人数"""
+
+    publicationTime: datetime
+    """公告发布时间"""
+
+
 class FileInfo(AriadneBaseModel):
     """群组文件详细信息"""
 

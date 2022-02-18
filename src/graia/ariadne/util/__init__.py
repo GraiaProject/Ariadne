@@ -14,7 +14,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     AsyncIterator,
-    Awaitable,
     Callable,
     Coroutine,
     Dict,
@@ -38,7 +37,6 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
-from typing_extensions import Concatenate
 
 from ..exception import (
     AccountMuted,
@@ -53,9 +51,6 @@ from ..exception import (
     UnVerifiedSession,
 )
 from ..typing import DictStrAny, P, R, T
-
-if TYPE_CHECKING:
-    from ..app import Ariadne
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
     1: InvalidVerifyKey,
@@ -169,9 +164,7 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
-def app_ctx_manager(
-    func: Callable[Concatenate["Ariadne", P], Awaitable[R]]
-) -> Callable[Concatenate["Ariadne", P], Awaitable[R]]:
+def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
     """包装声明需要在 Ariadne Context 中执行的函数
 
     Args:
@@ -182,13 +175,13 @@ def app_ctx_manager(
     """
 
     @functools.wraps(func)
-    async def wrapper(self, *args: P.args, **kwargs: P.kwargs):
+    async def wrapper(*args: P.args, **kwargs: P.kwargs):
         from ..context import enter_context
 
         sys.audit("CallAriadneAPI", func.__name__, args, kwargs)
 
-        with enter_context(app=self):
-            return await func(self, *args, **kwargs)
+        with enter_context(app=args[0]):
+            return await func(*args, **kwargs)
 
     return wrapper
 

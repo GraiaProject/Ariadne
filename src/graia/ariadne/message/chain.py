@@ -674,6 +674,7 @@ class MessageChain(AriadneBaseModel):
         for elem in self.__root__:
             if isinstance(elem, MultimediaElement):
                 await elem.get_bytes()
+        return self
 
     @classmethod
     def fromPersistentString(cls, string: str) -> "MessageChain":

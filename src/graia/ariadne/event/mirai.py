@@ -8,7 +8,6 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
 from typing_extensions import Literal
 
-from .. import get_running
 from ..dispatcher import ContextDispatcher
 from ..exception import InvalidSession
 from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
@@ -835,6 +834,7 @@ class RequestEvent(MiraiEvent):
         """
         内部接口, 用于内部便捷发送相应操作.
         """
+        from .. import get_running
         from ..adapter import Adapter
 
         adapter = get_running(Adapter)

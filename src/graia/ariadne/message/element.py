@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 from pydantic import validator
 from pydantic.fields import Field
 
-from .. import get_running
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod
@@ -684,6 +683,7 @@ class MultimediaElement(Element):
         Returns:
             bytes: 元素原始数据
         """
+        from .. import get_running
 
         if self.base64:
             return b64decode(self.base64)

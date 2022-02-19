@@ -6,7 +6,6 @@ from ..message.chain import MessageChain as MessageChain
 from ..message.commander import Arg as Arg
 from ..message.commander import Commander as Commander
 from ..message.commander import Slot as Slot
-from ..message.component import Component as Component
 from ..message.element import App as App
 from ..message.element import At as At
 from ..message.element import AtAll as AtAll
@@ -29,12 +28,13 @@ from ..message.element import Quote as Quote
 from ..message.element import Source as Source
 from ..message.element import Voice as Voice
 from ..message.formatter import Formatter as Formatter
+from ..message.parser.base import ContainKeyword as ContainKeyword
 from ..message.parser.base import DetectPrefix as DetectPrefix
 from ..message.parser.base import DetectSuffix as DetectSuffix
-from ..message.parser.literature import BoxParameter as BoxParameter
-from ..message.parser.literature import Literature as Literature
-from ..message.parser.literature import ParamPattern as ParamPattern
-from ..message.parser.literature import SwitchParameter as SwitchParameter
+from ..message.parser.base import MatchContent as MatchContent
+from ..message.parser.base import MatchRegex as MatchRegex
+from ..message.parser.base import Mention as Mention
+from ..message.parser.base import MentionMe as MentionMe
 from ..message.parser.twilight import FORCE as FORCE
 from ..message.parser.twilight import NOSPACE as NOSPACE
 from ..message.parser.twilight import PRESERVE as PRESERVE

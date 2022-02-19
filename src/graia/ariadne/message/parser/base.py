@@ -6,7 +6,7 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 
-from ...app import Ariadne
+from ... import get_running
 from ...event.message import GroupMessage
 from ..chain import MessageChain
 from ..element import At, Element, Plain, Quote, Source
@@ -76,7 +76,7 @@ class MentionMe(Decorator):
     @staticmethod
     async def target(interface: DecoratorInterface):
 
-        ariadne = Ariadne.get_running(Ariadne)
+        ariadne = get_running()
         chain: MessageChain = await interface.dispatcher_interface.lookup_param(
             "message_chain", MessageChain, None
         )

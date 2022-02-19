@@ -67,7 +67,7 @@ from graia.broadcast.interrupt.waiter import Waiter
             return message
     ```
 
-== "直接继承 Waiter"
+=== "直接继承 Waiter"
 
     ```py
     class DirectWaiter(Waiter):

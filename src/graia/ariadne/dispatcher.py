@@ -4,6 +4,7 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from . import get_running
 from .message.chain import MessageChain
 from .message.element import Source
 
@@ -25,14 +26,13 @@ class ContextDispatcher(BaseDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        from .app import Ariadne
 
         if not isinstance(interface.annotation, type):
             return
         if issubclass(interface.annotation, Dispatchable):
             return interface.event
 
-        return Ariadne.get_running(interface.annotation)
+        return get_running(interface.annotation)
 
 
 class SourceDispatcher(BaseDispatcher):

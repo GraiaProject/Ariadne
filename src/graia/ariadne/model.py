@@ -16,6 +16,8 @@ from yarl import URL
 
 from graia.ariadne.util import gen_subclass
 
+from . import get_running
+
 if TYPE_CHECKING:
     from .app import Ariadne
     from .message.chain import MessageChain
@@ -307,9 +309,8 @@ class Group(AriadneBaseModel):
         Returns:
             Config: 该群组的设置对象.
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).getGroupConfig(self)
+        return await get_running().getGroupConfig(self)
 
     async def modifyConfig(self, config: "GroupConfig") -> None:
         """修改该群组的 Config
@@ -317,9 +318,8 @@ class Group(AriadneBaseModel):
         Args:
             config (GroupConfig): 经过修改后的群设置对象.
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).modifyGroupConfig(self, config)
+        return await get_running().modifyGroupConfig(self, config)
 
     async def getAvatar(self) -> bytes:
         """获取该群组的头像
@@ -327,12 +327,9 @@ class Group(AriadneBaseModel):
         Returns:
             bytes: 群头像的二进制内容.
         """
-        from .app import Ariadne
 
         return await (
-            await Ariadne.get_running(Ariadne).adapter.session.get(
-                f"https://p.qlogo.cn/gh/{self.id}/{self.id}/"
-            )
+            await get_running().adapter.session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}/")
         ).content.read()
 
 
@@ -375,9 +372,8 @@ class Member(AriadneBaseModel):
         Returns:
             Profile: 该群成员的 Profile 对象
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).getMemberProfile(self)
+        return await get_running().getMemberProfile(self)
 
     async def getInfo(self) -> "MemberInfo":
         """获取该成员的可修改状态
@@ -385,9 +381,8 @@ class Member(AriadneBaseModel):
         Returns:
             MemberInfo: 群组成员的可修改状态
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).getMemberInfo(self)
+        return await get_running().getMemberInfo(self)
 
     async def modifyInfo(self, info: "MemberInfo") -> None:
         """
@@ -399,9 +394,8 @@ class Member(AriadneBaseModel):
         Returns:
             None: 没有返回.
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).modifyMemberInfo(self, info)
+        return await get_running().modifyMemberInfo(self, info)
 
     async def modifyAdmin(self, assign: bool) -> None:
         """
@@ -413,9 +407,8 @@ class Member(AriadneBaseModel):
         Returns:
             None: 没有返回.
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).modifyMemberAdmin(assign, self)
+        return await get_running().modifyMemberAdmin(assign, self)
 
     async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该群成员的头像
@@ -426,12 +419,9 @@ class Member(AriadneBaseModel):
         Returns:
             bytes: 群成员头像的二进制内容.
         """
-        from .app import Ariadne
 
         return await (
-            await Ariadne.get_running(Ariadne).adapter.session.get(
-                f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
-            )
+            await get_running().adapter.session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")
         ).content.read()
 
 
@@ -459,9 +449,8 @@ class Friend(AriadneBaseModel):
         Returns:
             Profile: 该好友的 Profile 对象
         """
-        from .app import Ariadne
 
-        return await Ariadne.get_running(Ariadne).getFriendProfile(self)
+        return await get_running().getFriendProfile(self)
 
     async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该好友的头像
@@ -472,12 +461,9 @@ class Friend(AriadneBaseModel):
         Returns:
             bytes: 好友头像的二进制内容.
         """
-        from .app import Ariadne
 
         return await (
-            await Ariadne.get_running(Ariadne).adapter.session.get(
-                f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
-            )
+            await get_running().adapter.session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")
         ).content.read()
 
 
@@ -508,12 +494,9 @@ class Stranger(AriadneBaseModel):
         Returns:
             bytes: 陌生人头像的二进制内容.
         """
-        from .app import Ariadne
 
         return await (
-            await Ariadne.get_running(Ariadne).adapter.session.get(
-                f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
-            )
+            await get_running().adapter.session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")
         ).content.read()
 
 

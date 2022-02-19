@@ -1,5 +1,55 @@
 # 更改日志
 
+## 0.6.0
+
+!!! warning "警告"
+
+    `0.6.0` Twilight API 有重大变动, 为不兼容更新
+
+### 破坏性变动
+
+重命名 `Image` 的二进制参数为 `data`
+
+重构 `Twilight` ([#106](https://github.com/GraiaProject/Ariadne/issues/106))
+
+将 `Ariadne.get_running` 移至 `graia.ariadne` 命名空间.
+
+### 添加
+
+完成新版 `Mirai API HTTP` 支持: ([#102](https://github.com/GraiaProject/Ariadne/issues/102))
+
+支持[群公告接口](https://github.com/project-mirai/mirai-api-http/blob/master/docs/api/API.md#%E7%BE%A4%E5%85%AC%E5%91%8A)
+
+支持 `getFileIterator` 与 `getAnnouncementIterator` 用于遍历文件信息与群公告.
+
+添加 `Template` 工具用于消息链模板匹配. (WIP)
+
+### 改进
+
+`MessageChain.download_binary` 会返回自身以支持链式调用.
+
+`MessageChain` 与 `Element` 都完整支持相加操作.
+
+`Twilight` 性能大幅度提升.
+
+提高消息日志记录的优先级. ([#107](https://github.com/GraiaProject/Ariadne/issues/107))
+
+### 修复
+
+`AlconnaDispatcher` 无法运作.
+
+`Mention` 无法运作.
+
+未将 `MiddlewareDispatcher` 注入导致无法处理 `ExceptionThrowed`.
+
+文件上传时文件名会被编码 ([#108](https://github.com/GraiaProject/Ariadne/issues/108))
+
+### 删除
+
+`Literature` 消息链解析器.
+
+`Component` 消息链工具.
+
 ## 0.5.3
 
 ### 添加

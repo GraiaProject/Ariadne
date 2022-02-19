@@ -1491,6 +1491,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         if use_loguru_traceback:
             inject_loguru_traceback(self.loop)
 
+        if ContextDispatcher not in self.broadcast.finale_dispatchers:
+            self.broadcast.finale_dispatchers.append(ContextDispatcher)
+
     def create(self, cls: Type["T"], reuse: bool = True) -> "T":
         """利用 Ariadne 已有的信息协助创建实例.
 

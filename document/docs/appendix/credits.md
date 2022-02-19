@@ -34,3 +34,18 @@
     -   [`ZhaoZuohong`](https://github.com/ZhaoZuohong)
     -   [`I-love-study`](https://github.com/I-love-study)
     -   [`社会易姐QwQ`](https://github.com/SocialSisterYi)
+
+赞助者:
+
+- 一只快乐的小指针 <https://github.com/zzzzz167>
+
+- One More Light <https://github.com/LyqMrq>
+
+- 霖念 <https://github.com/Little-LinNian>
+
+感谢所有 Ariadne 仓库的贡献者们:
+
+<a href="https://github.com/GraiaProject/Ariadne/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=GraiaProject/Ariadne" />
+</a>
+

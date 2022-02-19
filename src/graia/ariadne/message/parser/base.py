@@ -1,6 +1,7 @@
 """Ariadne 基础的 parser, 包括 DetectPrefix 与 DetectSuffix"""
+import fnmatch
 import re
-from typing import Union
+from typing import List, Type, Union
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
@@ -176,4 +177,44 @@ class MatchRegex(Decorator):
             "message_chain", MessageChain, None
         )
         if not re.match(self.regex, chain.asDisplay(), self.flags):
+            raise ExecutionStop
+
+
+class MatchTemplate(Decorator):
+    """模板匹配"""
+
+    def __init__(self, template: List[Union[Type[Element], Element]]) -> None:
+        self.template: List[Union[Type[Element], Element, str]] = []
+        for element in template:
+            if isinstance(element, type) and element is not Plain:
+                self.template.append(element)
+            elif isinstance(element, Element) and not isinstance(element, Plain):
+                self.template.append(element)
+            else:
+                element = element.text if isinstance(element, Plain) else "*"
+                if self.template and isinstance(self.template[-1], str):
+                    self.template[-1] = self.template[-1] + element
+                else:
+                    self.template.append(element)
+
+    def match(self, chain: MessageChain):
+        """匹配消息链"""
+        chain = chain.asSendable()
+        if len(self.template) != len(chain):
+            return False
+        for element, template in zip(chain, self.template):
+            if isinstance(template, type) and not isinstance(element, template):
+                return False
+            elif isinstance(template, Element) and element != template:
+                return False
+            elif isinstance(template, str):
+                if not isinstance(element, Plain) or not fnmatch.fnmatch(element.text, template):
+                    return False
+        return True
+
+    async def target(self, interface: DecoratorInterface):
+        chain: MessageChain = await interface.dispatcher_interface.lookup_param(
+            "message_chain", MessageChain, None
+        )
+        if not self.match(chain):
             raise ExecutionStop

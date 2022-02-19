@@ -22,7 +22,7 @@
 
 支持 `getFileIterator` 与 `getAnnouncementIterator` 用于遍历文件信息与群公告.
 
-添加 `Template` 工具用于消息链模板匹配. (WIP)
+添加 `MatchTemplate` 用于消息链模板匹配.
 
 ### 改进
 

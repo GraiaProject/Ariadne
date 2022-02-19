@@ -128,7 +128,6 @@ async def on_match_content(chain: MessageChain): # 不会改动消息链
 
 ## MatchRegex
 
-
 检测消息链是否匹配指定正则表达式.
 
 !!! warning "注意 [] 等特殊字符, 因为是使用 `MessageChain.asDisplay` 结果作为匹配源的."
@@ -142,5 +141,22 @@ async def on_match_content(chain: MessageChain): # 不会改动消息链
 async def on_match_regex(chain: MessageChain): # 不会改动消息链
     ...
 ```
+
+## matchTemplate
+
+检测消息链是否匹配指定模板.
+
+遇到元素实例则检测是否相等，遇到元素类型则检测类型是否匹配.
+
+`Plain` 实例与类型会被自动拼接起来.
+
+### 使用
+
+`Decorator`: 放入 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
+
+```py
+@broadcast.receiver(..., decorators=[MatchTemplate([Plain, Plain("搜图"), Image])]) # 需要 "*搜图 [图片]" 才能匹配 (*为任意多字符)
+async def on_match_regex(chain: MessageChain): # 不会改动消息链
+    ...
 
 !!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_1_base_parser.html)"

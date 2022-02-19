@@ -8,8 +8,6 @@
 
 ### 破坏性变动
 
-重命名 `Image` 的二进制参数为 `data`
-
 重构 `Twilight` ([#106](https://github.com/GraiaProject/Ariadne/issues/106))
 
 将 `Ariadne.get_running` 移至 `graia.ariadne` 命名空间.

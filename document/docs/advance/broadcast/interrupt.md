@@ -57,34 +57,34 @@ from graia.broadcast.interrupt.waiter import Waiter
     ```py
     class DirectWaiter(Waiter.create([GroupMessage])):
 
-    def __init__(self, group: Union[Group, int], member: Union[Member, int]):
-        self.group = group if isinstance(group, int) else group.id
-        self.member = member if isinstance(member, int) else member.id
+        def __init__(self, group: Union[Group, int], member: Union[Member, int]):
+            self.group = group if isinstance(group, int) else group.id
+            self.member = member if isinstance(member, int) else member.id
 
-    # detected_event 方法是必须的
-    async def detected_event(self, group: Group, member: Member, message: MessageChain): 
-        if self.group == group.id and self.member == member.id:
-            return message
+        # detected_event 方法是必须的
+        async def detected_event(self, group: Group, member: Member, message: MessageChain): 
+            if self.group == group.id and self.member == member.id:
+                return message
     ```
 
 === "直接继承 Waiter"
 
     ```py
     class DirectWaiter(Waiter):
-    listening_events = [GroupMessage]
-    using_dispatchers = None
-    using_decorators = None
-    priority = 15
-    block_propagation = False
+        listening_events = [GroupMessage]
+        using_dispatchers = None
+        using_decorators = None
+        priority = 15
+        block_propagation = False
 
-    def __init__(self, group: Union[Group, int], member: Union[Member, int]):
-        self.group = group if isinstance(group, int) else group.id
-        self.member = member if isinstance(member, int) else member.id
+        def __init__(self, group: Union[Group, int], member: Union[Member, int]):
+            self.group = group if isinstance(group, int) else group.id
+            self.member = member if isinstance(member, int) else member.id
 
-    # detected_event 方法是必须的
-    async def detected_event(self, group: Group, member: Member, message: MessageChain): 
-        if self.group == group.id and self.member == member.id:
-            return message
+        # detected_event 方法是必须的
+        async def detected_event(self, group: Group, member: Member, message: MessageChain): 
+            if self.group == group.id and self.member == member.id:
+                return message
     ```
 
 !!! warning "注意"

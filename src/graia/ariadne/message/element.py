@@ -80,6 +80,28 @@ class Element(AriadneBaseModel, abc.ABC):
     def __str__(self) -> str:
         return self.asDisplay()
 
+    def __add__(self, content: Union["MessageChain", List["Element"], "Element", str]) -> "MessageChain":
+        from .chain import MessageChain
+
+        if isinstance(content, str):
+            content = Plain(content)
+        if isinstance(content, Element):
+            content = [content]
+        if isinstance(content, MessageChain):
+            content: List[Element] = content.__root__
+        return MessageChain(content + [self], inline=True)
+
+    def __radd__(self, content: Union["MessageChain", List["Element"], "Element", str]) -> "MessageChain":
+        from .chain import MessageChain
+
+        if isinstance(content, str):
+            content = Plain(content)
+        if isinstance(content, Element):
+            content = [content]
+        if isinstance(content, MessageChain):
+            content: List[Element] = content.__root__
+        return MessageChain([self] + content, inline=True)
+
 
 class Plain(Element):
     """代表消息中的文本元素"""

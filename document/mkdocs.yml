@@ -69,12 +69,16 @@ markdown_extensions:
   - pymdownx.details # 提示块可折叠
   - pymdownx.inlinehilite # 行内代码高亮
   - pymdownx.highlight
-  - pymdownx.superfences
   - pymdownx.snippets
   - pymdownx.mark # 文本高亮
   - pymdownx.smartsymbols # 符号转换
   - pymdownx.superfences # 代码嵌套在列表里
   - pymdownx.keys
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - codehilite: # 代码高亮, 显示行号
       guess_lang: false
       linenums: true

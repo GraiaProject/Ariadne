@@ -108,6 +108,7 @@ nav:
           - "advance/msg-chain.md"
           - "advance/commander.md"
           - "advance/twilight.md"
+          - "advance/twilight_old.md"
           - "Alconna - 来自 Cesloi 的命令解析工具":
               - "advance/alconna/quickstart.md"
               - Alconna 官方文档: https://arcletproject.github.io/docs/alconna/tutorial

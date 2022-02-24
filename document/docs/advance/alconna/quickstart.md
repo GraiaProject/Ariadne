@@ -20,7 +20,7 @@ music = Alconna.from_string(
 @app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, reply_help=True)])
 async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, singer_name: str):
     await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", song_name))
-    if singer_name):
+    if singer_name:
         await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", singer_name))
 ```
 

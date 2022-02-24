@@ -100,6 +100,9 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          setup_commands:
+            - import sys
+            - sys.path.insert(0, "src")
           import:
             - https://docs.python.org/3/objects.inv
             - https://docs.aiohttp.org/en/stable/objects.inv

@@ -46,7 +46,7 @@
 
 其他的信息你应该可以从 `doc string` 里得到.
 
-!!! warning "API 文档指路: <https://graiaproject.github.io/Ariadne/ariadne/app.html>"
+!!! warning "API 文档指路: [graia.ariadne][]"
 
 ## 获取实例所管账号
 

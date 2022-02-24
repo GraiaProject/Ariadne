@@ -1,5 +1,7 @@
 """Alconna 的简单封装"""
 from arclet.alconna import *
+from graia.broadcast.entities.signatures import Force
+from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -40,6 +42,8 @@ class AlconnaDispatcher(BaseDispatcher):
         local_storage = interface.local_storage
         chain: GraiaMessageChain = await interface.lookup_param("message_chain", GraiaMessageChain, None)
         result = self.alconna.analyse_message(chain)
+        if not result.matched:
+            raise ExecutionStop
         local_storage["arpamar"] = result
 
     async def catch(self, interface: DispatcherInterface[MessageEvent]):
@@ -56,3 +60,5 @@ class AlconnaDispatcher(BaseDispatcher):
                 return arpamar.all_matched_args[interface.name]
         if issubclass(interface.annotation, ArpamarProperty):
             return arpamar.get(interface.name)
+        return Force()
+

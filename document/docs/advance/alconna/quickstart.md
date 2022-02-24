@@ -9,34 +9,30 @@
 from arclet.alconna import Args, Option
 from graia.ariadne.message.parser.alconna import (
     AlconnaDispatcher,
-    Alconna,
-    Arpamar
+    Alconna
 )
-# example: !点歌 <歌名> --歌手 <歌手名>
-#
-#                                  主参数: <歌名>      选项名: --歌手  选项别名: -s  选项参数: <歌手名>     
-music = Alconna.from_string("!点歌 <song_name:str>", "--歌手|-s <singer_name:str>")
+# example: !点歌 <歌名> --歌手 <歌手名>                       
+music = Alconna.from_string(
+    "!点歌 <song_name:str>  #在XXX中搜索歌名", # 主参数: <歌名>
+    "--歌手|-s <singer_name:str> #指定歌手"  # 选项名: --歌手  选项别名: -s  选项参数: <歌手名>   
+)
 
-@app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music)])
-async def friend_message_listener(app: Ariadne, friend: Friend, arpamar: Arpamar):
-    if arpamar.matched:
-        if arpamar.has("song_name"):
-            await app.sendFriendMessage(
-                friend, MessageChain.create("歌名是 ", arpamar.song_name) # or use arpamar.get("song_name")
-            )
-        if arpamar.has("singer_name"):
-            await app.sendFriendMessage(
-                friend, MessageChain.create("歌手是 ", arpamar.singer_name) # or use arpamar.get("singer_name")
-            )
+@app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, reply_help=True)])
+async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, singer_name: str):
+    await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", song_name))
+    if singer_name):
+        await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", singer_name))
 ```
 
 执行这段代码后，向你的 bot 发送 `!点歌 歌名 大地 歌手 Beyond` 试试.
 
 <div>
 <ul>
- <li class="chat right">!点歌 歌名 大地 歌手 Beyond</li>
+ <li class="chat right">!点歌 大地 -s Beyond</li>
  <li class="chat left">歌名是 大地</li>
  <li class="chat left">歌手是 Beyond</li>
+ <li class="chat right">!点歌 --help</li>
+ <li class="chat left">!点歌 <song_name>\n在XXX中搜索歌名\n可用的选项有:\n# 指定歌手\n  -s, --歌手 <singer_name></li>
 </ul>
 </div>
 
@@ -87,6 +83,8 @@ Alconna(
 -   `Alconna`: 使用的 `Alconna` 对象.
 -   `Arpamar`: `Alconna` 生成的数据容器.
 -   `AlconnaProperty`: 在 `name` 上进行此标注等价于进行 `arpamar.get(name)`.
+-   `dict`: 当`name`代表`Alconna`内的选项, 并且确实解析到数据时返回对应的字典对象; 未解析时为None
+-   其他类型: 在 `name` 上进行此标注等价于`arpamar.all_matched_args.get(name)`; 未解析时为None
 
 ## 与 Twilight 对比
 
@@ -100,7 +98,7 @@ Alconna(
 
 同时, `Twilight` 是基于对象的参数处理器, 在类型补全上更完备.
 
-但是 `Alconna` 有子命令的支持, 且性能占优.
+但是 `Alconna` 有子命令的支持, 且性能占优, 魔法较多(迫真).
 
 总之, 根据自己的需要, 选择合适的工具.
 

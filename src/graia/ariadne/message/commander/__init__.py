@@ -501,7 +501,7 @@ class Commander:
             chain (MessageChain): 触发的消息链
         """
 
-        mapping_str, elem_m = chain.asMappingString()
+        mapping_str, elem_m = chain._to_mapping_str()
 
         for handler in reversed(self.command_handlers):  # starting from latest added
             pattern = handler.pattern
@@ -521,7 +521,7 @@ class Commander:
                             raise MismatchError("Duplicated argument")
                         nargs: int = pattern.arg_map[text].nargs
                         arg_data[text] = [
-                            MessageChain.fromMappingString(t, elem_m)
+                            MessageChain._from_mapping_string(t, elem_m)
                             for t in text_list[text_index : text_index + nargs]
                         ]
                         text_index += nargs
@@ -535,10 +535,10 @@ class Commander:
                             if pattern.last_type is CommandPattern.ELast.WILDCARD and token_index == len(
                                 pattern.token_list
                             ):
-                                wildcard_list.append(MessageChain.fromMappingString(text, elem_m))
+                                wildcard_list.append(MessageChain._from_mapping_string(text, elem_m))
                                 token_index -= 1
                             for slot in tokens:
-                                slot_data[slot] = MessageChain.fromMappingString(text, elem_m)
+                                slot_data[slot] = MessageChain._from_mapping_string(text, elem_m)
 
                 if text_index < len(pattern.token_list) - (
                     pattern.last_type is not CommandPattern.ELast.REQUIRED

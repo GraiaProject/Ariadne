@@ -39,9 +39,8 @@ twilight = Twilight(FooSparkle([RegexMatch(r"[./!]header")]))
 
     ??? example "效果"
 
-        ```py
+        ```pycon
         >>> twilight.generate(MessageChain(["!header _bar_ 123 --help pwq external"]))
-
         FooSparkle(
             [RegexMatch(matched=True, result=MessageChain([Plain(text='!header')]), pattern=...)], # 注意这个.
             help=ArgumentMatch(matched=True, result=True, pattern=...),

@@ -12,6 +12,8 @@
 
 将 `Ariadne.get_running` 移至 `graia.ariadne` 命名空间.
 
+`asMappingString` 与 `fromMappingString` 现在仅供内部使用.
+
 ### 添加
 
 完成新版 `Mirai API HTTP` 支持: ([#102](https://github.com/GraiaProject/Ariadne/issues/102))

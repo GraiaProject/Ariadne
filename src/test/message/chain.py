@@ -115,43 +115,6 @@ def test_prefix_suffix():
     assert not MessageChain([At(12345), "hello"]).startswith("hello")
 
 
-def test_mapping_string():
-    msg_chain = MessageChain.create("Hello world!", At(target=12345))
-    assert msg_chain.asMappingString() == ("Hello world!\x021_At\x03", {"1": At(target=12345)})
-    string, mapping = msg_chain.asMappingString()
-    new_string = string.removeprefix("Hello world")  # new_string = "!\x021_At\x03"
-    assert MessageChain.fromMappingString(new_string, mapping) == MessageChain(
-        [Plain(text="!"), At(target=12345)]
-    )
-    with pytest.raises(ValueError):
-        MessageChain.fromMappingString("\x020_At\x03", {"0": AtAll()})
-
-    assert MessageChain.create(At(12345), "  hello!").asMappingString()[0] == "\x020_At\x03  hello!"
-
-    assert (
-        MessageChain.create(At(12345), "  hello!").asMappingString(remove_extra_space=True)[0]
-        == "\x020_At\x03 hello!"
-    )
-
-    assert (
-        MessageChain.create(
-            Source(id=1, time=12433531),
-            Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
-            "  hello!",
-        ).asMappingString()[0]
-        == "  hello!"
-    )
-
-    assert (
-        MessageChain.create(
-            Source(id=1, time=12433531),
-            Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
-            "  hello!",
-        ).asMappingString(remove_extra_space=True)[0]
-        == " hello!"
-    )
-
-
 def test_has():
     msg_chain = MessageChain.create("Hello", At(target=12345))
     assert msg_chain.has(MessageChain([Plain(text="Hello")]))

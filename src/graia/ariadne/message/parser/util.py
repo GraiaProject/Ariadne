@@ -235,7 +235,7 @@ class MessageChainType:
 
     @staticmethod
     def __call__(string: str) -> MessageChain:
-        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())
+        return MessageChain._from_mapping_string(string, elem_mapping_ctx.get())
 
 
 class ElementType:
@@ -247,7 +247,7 @@ class ElementType:
     def __call__(self, string: str) -> MessageChain:
         if not self.regex.fullmatch(string):
             raise ValueError(f"{string} not matching {self.regex.pattern}")
-        return MessageChain.fromMappingString(string, elem_mapping_ctx.get())[0]
+        return MessageChain._from_mapping_string(string, elem_mapping_ctx.get())[0]
 
 
 class TwilightParser(argparse.ArgumentParser):

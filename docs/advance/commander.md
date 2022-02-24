@@ -119,7 +119,7 @@ async def func(param: str): ...
 
 显而易见的, `default` 在 `wildcard` 下不可被设置.
 
-通过 `#!{...content: raw}` 这种特殊格式可以启用 [`raw`](./#raw) 解析模式.
+通过 `#!py {...content: raw}` 这种特殊格式可以启用 [`raw`](./#raw) 解析模式.
 
 #### 参数的自动解析
 
@@ -165,7 +165,7 @@ class ExampleModel(BaseModel):
 
 在 `Slot` 上指定 `default` / `default_factory` 即默认认为是可选项, 且要求其对应的参数在最后.
 
-指定 `Slot` 的 `type` 为字面值 `#!py"raw"` <span class="curtain">或者 commander._raw</span> 时,
+指定 `Slot` 的 `type` 为字面值 `#!py "raw"` <span class="curtain">或者 commander._raw</span> 时,
 会认为 `Slot` 为 `raw`.
 
 `raw` 模式下, 末尾 `wildcard` 的消息链元组会被转化为原来的单个消息链.

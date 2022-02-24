@@ -707,7 +707,7 @@ class MessageChain(AriadneBaseModel):
                 result.append(Plain(match.replace("[_", "[")))
         return MessageChain.create(result)
 
-    def asMappingString(
+    def _to_mapping_str(
         self,
         *,
         remove_source: bool = True,
@@ -749,7 +749,7 @@ class MessageChain(AriadneBaseModel):
         return "".join(elem_str_list), elem_mapping
 
     @classmethod
-    def fromMappingString(cls, string: str, mapping: Dict[str, Element]) -> "MessageChain":
+    def _from_mapping_string(cls, string: str, mapping: Dict[str, Element]) -> "MessageChain":
         """从映射字符串与映射字典的元组还原消息链.
 
         Args:

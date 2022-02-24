@@ -75,8 +75,8 @@ reference = "tuna-tsinghua"
 name = "astunparse"
 version = "1.6.3"
 description = "An AST unparser for Python"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -192,7 +192,7 @@ reference = "tuna-tsinghua"
 name = "click"
 version = "8.0.4"
 description = "Composable command line interface toolkit"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -347,8 +347,8 @@ reference = "tuna-tsinghua"
 name = "ghp-import"
 version = "2.0.2"
 description = "Copy your docs directly to the gh-pages branch."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = "*"
 
 [package.dependencies]
@@ -431,8 +431,8 @@ reference = "tuna-tsinghua"
 name = "griffe"
 version = "0.13.0"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.extras]
@@ -476,8 +476,8 @@ reference = "tuna-tsinghua"
 name = "importlib-metadata"
 version = "4.11.1"
 description = "Read metadata from Python packages"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -529,8 +529,8 @@ reference = "tuna-tsinghua"
 name = "jinja2"
 version = "3.0.3"
 description = "A very fast and expressive template engine."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -568,8 +568,8 @@ reference = "tuna-tsinghua"
 name = "markdown"
 version = "3.3.6"
 description = "Python implementation of Markdown."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -587,8 +587,8 @@ reference = "tuna-tsinghua"
 name = "markupsafe"
 version = "2.1.0"
 description = "Safely add untrusted strings to HTML/XML markup."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.source]
@@ -613,8 +613,8 @@ reference = "tuna-tsinghua"
 name = "mergedeep"
 version = "1.3.4"
 description = "A deep merge function for 🐍."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.source]
@@ -626,8 +626,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs"
 version = "1.2.3"
 description = "Project documentation with Markdown."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -654,8 +654,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-autorefs"
 version = "0.3.1"
 description = "Automatically link across pages in MkDocs."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6.2,<4.0.0"
 
 [package.dependencies]
@@ -671,8 +671,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-gen-files"
 version = "0.3.4"
 description = "MkDocs plugin to programmatically generate documentation pages during the build"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
@@ -687,8 +687,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-literate-nav"
 version = "0.4.1"
 description = "MkDocs plugin to specify the navigation in Markdown instead of YAML"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6,<4.0"
 
 [package.dependencies]
@@ -703,8 +703,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-material"
 version = "8.2.1"
 description = "A Material Design theme for MkDocs"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -724,8 +724,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-material-extensions"
 version = "1.0.3"
 description = "Extension pack for Python Markdown."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.source]
@@ -737,8 +737,8 @@ reference = "tuna-tsinghua"
 name = "mkdocs-section-index"
 version = "0.3.3"
 description = "MkDocs plugin to allow clickable sections that lead to an index page"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6,<4.0"
 
 [package.dependencies]
@@ -753,8 +753,8 @@ reference = "tuna-tsinghua"
 name = "mkdocstrings"
 version = "0.18.0"
 description = "Automatic documentation from sources, for MkDocs."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -781,8 +781,8 @@ reference = "tuna-tsinghua"
 name = "mkdocstrings-python"
 version = "0.6.4"
 description = "A Python handler for mkdocstrings."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -798,8 +798,8 @@ reference = "tuna-tsinghua"
 name = "mkdocstrings-python-legacy"
 version = "0.2.2"
 description = "A legacy Python handler for mkdocstrings."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -870,7 +870,7 @@ reference = "tuna-tsinghua"
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -889,28 +889,6 @@ description = "Utility library for gitignore style pattern matching of file path
 category = "dev"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
-
-[package.source]
-type = "legacy"
-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
-reference = "tuna-tsinghua"
-
-[[package]]
-name = "pdoc"
-version = "8.3.0"
-description = "API Documentation for Python Projects"
-category = "main"
-optional = true
-python-versions = ">=3.7"
-
-[package.dependencies]
-astunparse = {version = "*", markers = "python_version < \"3.9\""}
-Jinja2 = ">=2.11.0"
-MarkupSafe = "*"
-pygments = "*"
-
-[package.extras]
-dev = ["flake8", "hypothesis", "mypy", "pytest", "pytest-cov", "pytest-timeout", "tox"]
 
 [package.source]
 type = "legacy"
@@ -1067,8 +1045,8 @@ reference = "tuna-tsinghua"
 name = "pygments"
 version = "2.11.2"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.5"
 
 [package.source]
@@ -1080,8 +1058,8 @@ reference = "tuna-tsinghua"
 name = "pymdown-extensions"
 version = "9.2"
 description = "Extension pack for Python Markdown."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -1096,7 +1074,7 @@ reference = "tuna-tsinghua"
 name = "pyparsing"
 version = "3.0.7"
 description = "Python parsing module"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -1158,7 +1136,7 @@ name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
 category = "main"
-optional = true
+optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
 [package.dependencies]
@@ -1173,8 +1151,8 @@ reference = "tuna-tsinghua"
 name = "pytkdocs"
 version = "0.16.0"
 description = "Load Python objects documentation."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -1192,7 +1170,7 @@ reference = "tuna-tsinghua"
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -1205,8 +1183,8 @@ reference = "tuna-tsinghua"
 name = "pyyaml-env-tag"
 version = "0.1"
 description = "A custom YAML tag for referencing environment variables in YAML files."
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
@@ -1312,8 +1290,8 @@ reference = "tuna-tsinghua"
 name = "watchdog"
 version = "2.1.6"
 description = "Filesystem events monitoring"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.6"
 
 [package.extras]
@@ -1390,8 +1368,8 @@ reference = "tuna-tsinghua"
 name = "zipp"
 version = "3.7.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
-category = "main"
-optional = true
+category = "dev"
+optional = false
 python-versions = ">=3.7"
 
 [package.extras]
@@ -1405,15 +1383,13 @@ reference = "tuna-tsinghua"
 
 [extras]
 alconna = ["arclet-alconna"]
-document = ["mkdocs-material", "pdoc", "mkdocstrings", "mkdocs-gen-files", "mkdocs-section-index", "mkdocs-literate-nav"]
 full = ["graia-saya", "graia-scheduler", "arclet-alconna"]
 graia = ["graia-saya", "graia-scheduler"]
-mkdocs = ["mkdocs-material", "mkdocstrings", "mkdocs-gen-files", "mkdocs-section-index", "mkdocs-literate-nav"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "72130988c73d46e2bc5e98e2bd0a1dcab9647dfd89e084e331a8e62aabb30937"
+content-hash = "67daaa82a60bf3d0882b06e526baeab9fffb887611f85decd911d9d45d4cab0e"
 
 [metadata.files]
 aiohttp = [
@@ -1912,9 +1888,6 @@ packaging = [
 pathspec = [
     {file = "pathspec-0.9.0-py2.py3-none-any.whl", hash = "sha256:7d15c4ddb0b5c802d161efc417ec1a2558ea2653c2e8ad9c19098201dc1c993a"},
     {file = "pathspec-0.9.0.tar.gz", hash = "sha256:e564499435a2673d586f6b2130bb5b95f04a3ba06f81b8f895b651a3c76aabb1"},
-]
-pdoc = [
-    {file = "pdoc-8.3.0-py3-none-any.whl", hash = "sha256:98ed96e4889a5ef79bc750cb976e40e36c59b4ae2bd42528e5824d1c2495d205"},
 ]
 platformdirs = [
     {file = "platformdirs-2.5.1-py3-none-any.whl", hash = "sha256:bcae7cab893c2d310a711b70b24efb93334febe65f8de776ee320b517471e227"},

@@ -2,6 +2,7 @@
 import abc
 import enum
 import re
+import typing
 from argparse import Action
 from typing import (
     Any,
@@ -20,8 +21,10 @@ from typing import (
     overload,
 )
 
+from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
+from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 from typing_extensions import Self
@@ -31,11 +34,13 @@ from graia.ariadne.typing import T
 from ..chain import MessageChain
 from ..element import Element
 from .util import (
+    CommandToken,
     ElementType,
     MessageChainType,
     TwilightParser,
     elem_mapping_ctx,
     split,
+    tokenize_command,
     transform_regex,
 )
 
@@ -286,6 +291,18 @@ class ArgumentMatch(Match, Generic[T]):
         return [(None, self.pattern)]
 
 
+class ArgResult(Generic[T], MatchResult[T, ArgumentMatch]):
+    """表示 ArgumentMatch 匹配结果"""
+
+    ...
+
+
+class RegexResult(MatchResult[MessageChain, RegexMatch]):
+    """表示 RegexMatch 匹配结果"""
+
+    ...
+
+
 class Sparkle(Representation):
     """Sparkle: Twilight 的匹配容器"""
 
@@ -368,7 +385,7 @@ class TwilightMatcher:
                     if isinstance(match, ElementMatch):
                         res = elem_mapping[group[1:-1].split("_")[0]]
                     else:
-                        res = MessageChain.fromMappingString(group, elem_mapping)
+                        res = MessageChain._from_mapping_string(group, elem_mapping)
                 else:
                     res = None
                 if match.dest:
@@ -453,12 +470,48 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         Returns:
             T_Sparkle: 生成的 Sparkle 对象.
         """
-        mapping_str, elem_mapping = chain.asMappingString(**self.map_param)
+        mapping_str, elem_mapping = chain._to_mapping_str(**self.map_param)
         token = elem_mapping_ctx.set(elem_mapping)
         arguments: List[str] = split(mapping_str, keep_quote=True)
         res = self.matcher.match(arguments, elem_mapping)
         elem_mapping_ctx.reset(token)
         return Sparkle(res)  # type: ignore
+
+    @classmethod
+    def from_command(  # ANCHOR: Sparkle: From command
+        cls,
+        command: str,
+        extra_args: Optional[List[Match]] = None,
+    ) -> "Twilight":
+        """从 shell 式命令生成 Twilight.
+
+        Args:
+            command (str): 命令, 使用 {param} 的形式创建参数占位符. 使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
+
+            extra_args (List[Match], optional): 可选的额外 Match 列表.
+
+        Returns:
+            Twilight: 生成的 Twilight.
+        """
+        extra_args = extra_args or {}
+        match: List[RegexMatch] = []
+
+        for t_type, token_list in tokenize_command(command):
+            if t_type is CommandToken.TEXT:
+                match.append(FullMatch(*token_list).space(SpacePolicy.FORCE))
+            elif t_type is CommandToken.CHOICE:
+                match.append(UnionMatch(*token_list).space(SpacePolicy.FORCE))
+            elif t_type is CommandToken.PARAM:
+                match.append(ParamMatch().space(SpacePolicy.FORCE).param(token_list[0]))
+            else:
+                raise ValueError(f"unexpected token type: {t_type}")
+
+        if match:
+            match[-1].space = SpacePolicy.NOSPACE
+
+        if isinstance(extra_args, dict):
+            return cls(match, extra_args)
+        return cls(match + extra_args)
 
     def get_help(self, usage: str = "", description: str = "", epilog: str = "") -> str:
         """利用 Match 中的信息生成帮助字符串.
@@ -500,5 +553,18 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             result = sparkle.get(interface.name)
             if isinstance(result.origin, interface.annotation):
                 return result.origin
-            if isinstance(result, interface.annotation):
+            if typing.get_origin(interface.annotation) in {MatchResult, RegexResult, ArgResult}:
                 return result
+            if isinstance(result.result, interface.annotation):
+                return result
+
+
+class ResultValue(Decorator):
+    """返回 Match 结果值的装饰器"""
+
+    pre = True
+
+    async def target(i: DecoratorInterface):
+        sparkle: Sparkle = i.local_storage["result"]
+        if i.name in sparkle.res:
+            return sparkle.res[i.name].result

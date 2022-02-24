@@ -79,7 +79,7 @@ assert not msg_chain.endswith("world!")
 
 在其表面下, `findSubChain` 承担了大部分工作, 找出所有符合 `old` 的部分, 之后由简单的循环完成替换.
 
-```py
+```pycon
 >>> MessageChain(["Hello World!Hello World!""How are you?", At(1), "yo"]).replace(
         MessageChain(["Hello World!"]),
         MessageChain(["No!"])
@@ -103,55 +103,18 @@ MessageChain([Plain("No!No!How are you?"), At(1), Plain("yo")])
 
 `merge` 参数决定是否自动帮你拼接消息链, 默认为是.
 
-```py
+```pycon
 >>> MessageChain([" "]).join([MessageChain(["A"]), MessageChain(["B"]), MessageChain(["C"])])
 MessageChain([Plain("A B C")])
-
 >>> MessageChain([" "]).join([MessageChain(["A"]), MessageChain(["B"]), MessageChain(["C"])], merge=False)
 MessageChain([Plain("A"), Plain(" "), Plain("B"), Plain(" "), Plain("C")])
 ```
-
-### 映射字符串
-
-映射字符串部分解决了 `MessageChain` 与 `str` 的互操作性问题. 其核心思想为 将 `Element` 看作一个特殊的字符序列.
-
-```python
-msg_chain = MessageChain.create("Hello world!", At(target=12345))
-assert msg_chain.asMappingString() == ('Hello world!\x021_At\x03', {1: At(target=12345)})
-```
-
-为了明确的分开元素与常规文本, 我们使用 `\x02(\\d+)_(\\w+)\x03` 的正则表达式标记元素.
-
-!!! info "这是一个 Python 的正常字符串, 而非原始字符串 (r-string)."
-
-`(\\d+)` 部分代表的是字典中的 `key`, 可以通过这种方式提取对应的元素.
-
-`(\\w+)` 代表的是本元素的类型, 可以利用其检查元素类型是否正确.
-
-!!! note "这个特性在 [Twilight](./twilight.md) 中被使用."
-
-在完成操作后 (当然不能破坏元素标记的结构), 可以利用 `MessageChain.fromMappingString` 方法构造原来的消息链.
-
-```py
-msg_chain = MessageChain.create("Hello world!", At(target=12345))
-string, mapping = msg_chain.asMappingString()
-new_string = string.removeprefix("Hello world") # new_string = "!\x021_At\x03"
-assert MessageChain.fromMappingString(new_string, mapping) == MessageChain([Plain(text='!'), At(target=12345)])
-```
-
-!!! example "又及"
-
-    `MessageChain.asMappingString` 有以下参数:
-
-    - remove_source (bool, optional): 是否移除消息链中的 Source 元素. 默认为 True.
-    - remove_quote (bool, optional): 处理时是否要移除消息链的 Quote 元素. 默认为 True.
-    - remove_extra_space (bool, optional): 是否移除 Quote At AtAll 的多余空格. 默认为 False.
 
 ## 元素安全性
 
 因为 `MessageChain` 是一个可变对象, 其底层的 `Element` 属性可以被修改, 所以自然可以这样做:
 
-```py
+```pycon
 >>> chain = MessageChain([Plain("hello"), At(12345)])
 >>> chain[1].target = 99999
 >>> chain
@@ -160,7 +123,7 @@ MessageChain([Plain("hello"), At(99999)])
 
 然后, 这样是 **预期行为** :
 
-```py
+```pycon
 >>> chain = MessageChain([Plain("Hello"), Plain("World"), At(12345)])
 >>> merged = chain.merge()
 >>> chain
@@ -170,7 +133,7 @@ MessageChain([Plain(text='HelloWorld'), At(target=12345)])
 MessageChain([Plain(text='test'), At(target=12345)])
 ```
 
-```py
+```pycon
 >>> chain = MessageChain([Plain("Hello"), Plain("World"), At(12345)])
 >>> merged = chain.merge(copy=True)
 >>> chain

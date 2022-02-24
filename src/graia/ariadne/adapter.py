@@ -101,13 +101,16 @@ def error_wrapper(
 class Adapter(abc.ABC):
     """
     适配器抽象基类.
-
-    Args:
-        broadcast(Broadcast): Broadcast 实例
-        session: Session 实例, 存储了连接信息
     """
 
     def __init__(self, broadcast: Broadcast, mirai_session: MiraiSession, log: bool = False) -> None:
+        """初始化 Adapter.
+
+        Args:
+            broadcast (Broadcast): 广播系统
+            mirai_session (MiraiSession): MiraiSession 实例
+            log (bool, optional): 开启网络连接日志. Defaults to False.
+        """
         self.broadcast: Broadcast = broadcast
         self.running: bool = False
         self.mirai_session: MiraiSession = mirai_session
@@ -452,16 +455,19 @@ class CombinedAdapter(Adapter):
     """
     使用正向Websocket接收事件与消息, 用HTTP发送消息/操作的适配器.
     稳定与性能的平衡, 但需要 Mirai API HTTP 同时启用 `http` 与 `ws` 适配器.
-
-    Args:
-        bcc(Broadcast): Broadcast 实例
-        session: Session 实例, 存储了连接信息
-        ping(bool): 是否启用 ping 功能.
     """
 
     def __init__(
         self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = False
     ) -> None:
+        """初始化 Adapter.
+
+        Args:
+            broadcast (Broadcast): 广播系统.
+            mirai_session (MiraiSession): Mirai 配置实例.
+            ping (bool, optional): 是否开启 ping. Defaults to True.
+            log (bool, optional): 是否使用网络连接日志. Defaults to False.
+        """
         super().__init__(broadcast, mirai_session, log)
         self.ping = ping
         self.ping_task: Optional[Task] = None

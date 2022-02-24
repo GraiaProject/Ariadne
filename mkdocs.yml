@@ -17,7 +17,7 @@ theme:
     text: Noto Sans Simplified Chinese
     code: JetBrains Mono
 
-  custom_dir: overrides
+  custom_dir: docs/overrides
 
   palette:
     - media: "(prefers-color-scheme: light)"
@@ -93,53 +93,25 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
 
-nav:
-  - "文档":
-      - "index.md"
-      - "quickstart.md"
-      - "基础":
-          - "basic/params.md"
-          - "basic/msg-chain.md"
-          - "basic/base-parser.md"
-          - "basic/configuration.md"
-          - "basic/overview.md"
-          - "basic/background.md"
-      - "进阶":
-          - "advance/msg-chain.md"
-          - "advance/commander.md"
-          - "advance/twilight.md"
-          - "advance/twilight_old.md"
-          - "Alconna - 来自 Cesloi 的命令解析工具":
-              - "advance/alconna/quickstart.md"
-              - Alconna 官方文档: https://arcletproject.github.io/docs/alconna/tutorial
-          - "Broadcast 简介":
-              - "advance/broadcast/interrupt.md"
-              - "advance/broadcast/depend.md"
-      - "额外内容":
-          - "extra/log.md"
-          - "extra/msg-chain-tool.md"
-          - "extra/console.md"
-          - "extra/async-exec.md"
-          - "extra/scheduler.md"
-          - "Saya - 插件管理器":
-              - "extra/saya/start.md"
-              - "extra/saya/channel.md"
-              - "extra/saya/cross-module.md"
-      - "迁移":
-          - "porting/guide.md"
-          - "porting/cheatsheet.md"
-      - "附录":
-          - "appendix/terms.md"
-          - "appendix/faq.md"
-          - "appendix/credits.md"
-          - "appendix/mah-install.md"
-          - "appendix/asyncio-intro.md"
-          - "appendix/CHANGELOG.md"
-  - "开发博客":
-      - "blog/intro.md"
-      - "blog/history.md"
-      - "blog/twilight.md"
-  - API 文档: https://graiaproject.github.io/Ariadne/ariadne
-  - GitHub 仓库: https://github.com/GraiaProject/Ariadne
-  - Broadcast 官方文档: https://autumn-psi.vercel.app/
-  - 社区文档: https://graiax.cn/
+plugins:
+  - gen-files:
+      scripts:
+        - docs/gen_ref.py
+  - mkdocstrings:
+      handlers:
+        python:
+          import:
+            - https://docs.python.org/3/objects.inv
+            - https://docs.aiohttp.org/en/stable/objects.inv
+          selection:
+            docstring_style: google
+            docstring_options:
+              ignore_init_summary: yes
+          rendering:
+            merge_init_into_class: yes
+            show_submodules: no
+
+  - literate-nav:
+      nav_file: NAV.md
+
+  - section-index

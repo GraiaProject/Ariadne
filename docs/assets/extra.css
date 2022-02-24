@@ -52,3 +52,10 @@ ul.clear-list {
     -webkit-mask-image: var(--md-admonition-icon--graiax);
         mask-image: var(--md-admonition-icon--graiax);
 }
+
+/* Indentation. */
+div.doc-contents:not(.first) {
+    padding-left: 25px;
+    border-left: .05rem solid var(--md-default-fg-color--lightest);
+    margin-bottom: 80px;
+  }

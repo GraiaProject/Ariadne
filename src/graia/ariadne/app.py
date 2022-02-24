@@ -932,7 +932,7 @@ class AnnouncementMixin(AriadneMixin):
         target: Union[Group, int],
         offset: Optional[int] = 0,
         size: Optional[int] = 10,
-    ):
+    ) -> List[Announcement]:
         """
         列出群组下所有的公告.
 
@@ -1439,7 +1439,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
             connect_info (Union[Adapter, MiraiSession]) 提供与 `mirai-api-http` 交互的信息.
             loop (AbstractEventLoop, optional): 事件循环.
             broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
-            chat_log_config (ChatLogConfig or Literal[False]): 聊天日志的配置, 请移步 `ChatLogConfig` 查看使用方法.
+            chat_log_config (Optional[Union[ChatLogConfig, Literal[False]]]): 聊天日志的配置. \
+            请移步 [ChatLogConfig][graia.ariadne.model.ChatLogConfig] 查看使用方法. \
             设置为 False 则会完全禁用聊天日志.
             use_loguru_traceback (bool): 是否注入 loguru 以获得对 traceback.print_exception() 与 sys.excepthook 的完全控制.
             use_bypass_listener (bool): 是否注入 BypassListener 以获得子事件监听支持.

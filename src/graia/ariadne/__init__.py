@@ -10,13 +10,12 @@ import graia.ariadne.event.mirai  # noqa: F401
 from .app import Ariadne
 from .typing import T
 
-# init event
-
 
 def get_running(type: Type[T] = Ariadne) -> T:
-    """获取正在运行的 实例
+    """获取正在运行的实例
+
     Args:
-    type (Type[T]): 实例类型
+        type (Type[T]): 实例类型
 
     Returns:
         T: 对应类型实例

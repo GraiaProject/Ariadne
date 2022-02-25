@@ -2,7 +2,6 @@
 import abc
 import enum
 import re
-import typing
 from argparse import Action
 from typing import (
     Any,
@@ -30,6 +29,7 @@ from pydantic.utils import Representation
 from typing_extensions import Self
 
 from graia.ariadne.typing import T
+from graia.ariadne.util import get_cls
 
 from ..chain import MessageChain
 from ..element import Element
@@ -175,7 +175,7 @@ class UnionMatch(RegexMatch):
         *pattern: str,
         optional: bool = False,
     ) -> None:
-        super(RegexMatch, self).__init__()
+        super().__init__("", optional)
         self.pattern: List[str] = list(pattern)
         self.optional = optional
 
@@ -553,10 +553,10 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             result = sparkle.get(interface.name)
             if isinstance(result.origin, interface.annotation):
                 return result.origin
-            if typing.get_origin(interface.annotation) in {MatchResult, RegexResult, ArgResult}:
+            if get_cls(interface.annotation) in {MatchResult, RegexResult, ArgResult}:
                 return result
             if isinstance(result.result, interface.annotation):
-                return result
+                return result.result
 
 
 class ResultValue(Decorator):

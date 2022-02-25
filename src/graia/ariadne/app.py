@@ -121,7 +121,7 @@ class MessageMixin(AriadneMixin):
             CallMethod.GET,
             {"sessionKey": self.session_key, "id": messageId},
         )
-        return await self.adapter.build_event(result)
+        return self.adapter.build_event(result)
 
     @app_ctx_manager
     async def sendFriendMessage(

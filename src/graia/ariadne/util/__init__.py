@@ -7,6 +7,7 @@ import functools
 import inspect
 import sys
 import traceback
+import typing
 import warnings
 from asyncio.events import AbstractEventLoop
 from contextvars import ContextVar
@@ -420,6 +421,14 @@ def signal_handler(callback: Callable[[], None], one_time: bool = True) -> None:
                 signal.signal(sig_num, handler)
 
         signal.signal(sig, handler_wrapper)
+
+
+def get_cls(obj) -> Optional[type]:
+    if cls := typing.get_origin(obj):
+        return cls
+    else:
+        if isinstance(obj, type):
+            return obj
 
 
 # Import layout

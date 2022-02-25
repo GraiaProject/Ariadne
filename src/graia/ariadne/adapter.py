@@ -6,20 +6,19 @@ import json
 from asyncio.futures import Future
 from asyncio.queues import Queue
 from asyncio.tasks import Task
-from typing import Any, Awaitable, Callable, Dict, Optional, Set, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Union
 
-import aiohttp.web_exceptions
 from aiohttp import ClientSession, FormData
 from aiohttp.client_ws import ClientWebSocketResponse
 from aiohttp.http_websocket import WebSocketError, WSMsgType
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.event import Dispatchable
 from loguru import logger
-from typing_extensions import Concatenate, Self
+from typing_extensions import Concatenate
 from yarl import URL
 
 from .event import MiraiEvent
-from .exception import InvalidArgument, InvalidSession, NotSupportedAction
+from .exception import InvalidArgument, InvalidSession
 from .model import CallMethod, DatetimeEncoder, MiraiSession
 from .typing import P, R
 from .util import await_predicate, validate_response, yield_with_timeout
@@ -44,58 +43,6 @@ def require_verified(
         return func(self, *args, **kwargs)
 
     return wrapper
-
-
-def error_wrapper(
-    network_action_callable: Callable[Concatenate[Self, P], Awaitable[R]],
-) -> Callable[Concatenate[Self, P], Awaitable[R]]:
-    """包装一个需要处理网络错误的 Adapter 方法.
-
-    Returns:
-        Callable[Concatenate["Adapter", P], R]: 包装后的方法.
-    """
-
-    @functools.wraps(network_action_callable)
-    async def wrapped_network_action_callable(self: "Adapter", *args: "P.args", **kwargs: "P.kwargs") -> "R":
-        running_count = 0
-
-        while running_count < 5:
-            running_count += 1
-            try:
-                result = await network_action_callable(self, *args, **kwargs)
-            except InvalidSession as invalid_session_exc:
-                logger.error("Invalid session detected, asking daemon to restart adapter...")
-                logger.exception(invalid_session_exc)
-                await self.stop()
-            except aiohttp.web_exceptions.HTTPNotFound:
-                raise NotSupportedAction(
-                    f"{network_action_callable.__name__}: this action not supported"
-                ) from None
-            except aiohttp.web_exceptions.HTTPInternalServerError:
-                logger.error("An exception has thrown by remote, please check the console!")
-                raise
-            except (
-                aiohttp.web_exceptions.HTTPMethodNotAllowed,
-                aiohttp.web_exceptions.HTTPRequestURITooLong,
-                aiohttp.web_exceptions.HTTPTooManyRequests,
-            ):
-
-                logger.error(
-                    "It seems that we post in a wrong way "
-                    f"for the action '{network_action_callable.__name__}', please open a issue."
-                )
-                raise
-            except aiohttp.web_exceptions.HTTPRequestTimeout:
-                logger.error(
-                    f"timeout on {network_action_callable.__name__}, retry after 5 seconds...".format()
-                )
-                await asyncio.sleep(5)
-                raise
-            else:
-                return result
-        raise TimeoutError(f"Failed after 5 try on {network_action_callable.__name__}.")
-
-    return wrapped_network_action_callable
 
 
 class Adapter(abc.ABC):
@@ -135,7 +82,6 @@ class Adapter(abc.ABC):
 
     @abc.abstractmethod
     @require_verified
-    @error_wrapper
     async def call_api(
         self,
         action: str,
@@ -154,7 +100,7 @@ class Adapter(abc.ABC):
             dict: 响应字典.
         """
 
-    async def build_event(self, data: dict) -> MiraiEvent:
+    def build_event(self, data: dict) -> MiraiEvent:
         """
         从尚未明确指定事件类型的对象中获取事件的定义, 并进行解析
 
@@ -211,7 +157,6 @@ class HttpAdapter(Adapter):
     """
     仅使用正向 HTTP 的适配器, 采用短轮询接收事件/消息.
     不推荐.
-    Note: Working In Progress
     """
 
     def __init__(
@@ -219,9 +164,11 @@ class HttpAdapter(Adapter):
         broadcast: Broadcast,
         mirai_session: MiraiSession,
         fetch_interval: float = 0.5,
+        count: int = 10,
     ) -> None:
         super().__init__(broadcast, mirai_session)
         self.fetch_interval = fetch_interval
+        self.count = count
         raise NotImplementedError("HTTP Adapter is not supported yet!")
 
     async def fetch_cycle(self) -> None:
@@ -231,11 +178,21 @@ class HttpAdapter(Adapter):
             self.queue = Queue()
         while self.running:
             await asyncio.sleep(self.fetch_interval)
+            async with self.session.get(
+                URL(self.mirai_session.url_gen("fetchMessage")).with_query(
+                    {"sessionKey": self.mirai_session.session_key, "count": self.count}
+                )
+            ) as response:
+                response.raise_for_status()
+                resp_json: dict = await response.json()
+                resp: List[dict] = resp_json.get("data")
+            for data in resp:
+                event = self.build_event(data)
+                await self.queue.put(event)
         self.mirai_session.session_key = None
         await self.session.close()
 
     @require_verified
-    @error_wrapper
     async def call_api(
         self,
         action: str,
@@ -351,7 +308,6 @@ class WebsocketAdapter(Adapter):
                 break
 
     @require_verified
-    @error_wrapper
     async def call_api(
         self, action: str, method: CallMethod, data: Optional[Union[dict, str]] = None
     ) -> Union[dict, list]:
@@ -403,7 +359,7 @@ class WebsocketAdapter(Adapter):
             return
         sync_id = int(sync_id)
         if sync_id not in self.SyncIdManager.allocated:
-            event = await self.build_event(received_data)
+            event = self.build_event(received_data)
             return event
         if sync_id in self.pending_calls:
             response = self.pending_calls[sync_id]
@@ -495,7 +451,7 @@ class CombinedAdapter(Adapter):
         if session_key:
             self.mirai_session.session_key = session_key
             return
-        event = await self.build_event(received_data)
+        event = self.build_event(received_data)
         return event
 
     fetch_cycle = WebsocketAdapter.fetch_cycle
@@ -509,7 +465,7 @@ class DebugAdapter(DefaultAdapter):
     Debugging adapter
     """
 
-    async def build_event(self, data: dict) -> MiraiEvent:
+    def build_event(self, data: dict) -> MiraiEvent:
         """
         从尚未明确指定事件类型的对象中获取事件的定义, 并进行解析
 
@@ -524,7 +480,7 @@ class DebugAdapter(DefaultAdapter):
             MiraiEvent: 已经被序列化的事件
         """
         try:
-            event = await super().build_event(data)
+            event = super().build_event(data)
         except ValueError as e:
             logger.error(f"{e.args[0]}\n{json.dumps(data, indent=4)}")
             raise

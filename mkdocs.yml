@@ -114,6 +114,7 @@ plugins:
           rendering:
             merge_init_into_class: yes
             show_submodules: no
+            show_signature_annotations: yes
 
   - literate-nav:
       nav_file: NAV.md

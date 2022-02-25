@@ -6,7 +6,6 @@
     `BlueGlassBlock` 仅进行了针对 `Ariadne` 的封装, 本模块余下部分从 `Alconna wiki` 复制并修改而来.
 
 ```python
-from arclet.alconna import Args, Option
 from graia.ariadne.message.parser.alconna import (
     AlconnaDispatcher,
     Alconna
@@ -24,7 +23,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, 
         await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", singer_name))
 ```
 
-执行这段代码后，向你的 bot 发送 `!点歌 歌名 大地 歌手 Beyond` 试试.
+执行这段代码后，向你的 bot 发送 `!点歌 大地 -s Beyond` 试试.
 
 <div>
 <ul>
@@ -32,7 +31,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, 
  <li class="chat left">歌名是 大地</li>
  <li class="chat left">歌手是 Beyond</li>
  <li class="chat right">!点歌 --help</li>
- <li class="chat left">!点歌 <song_name>\n在XXX中搜索歌名\n可用的选项有:\n# 指定歌手\n  -s, --歌手 <singer_name></li>
+ <li class="chat left">!点歌 &lt;song_name&gt;&#13;在XXX中搜索歌名&#13;可用的选项有:&#13;# 指定歌手\n  -s, --歌手 &lt;singer_name&gt;</li>
 </ul>
 </div>
 

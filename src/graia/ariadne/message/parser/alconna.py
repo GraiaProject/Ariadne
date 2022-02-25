@@ -5,6 +5,7 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from ... import get_running
 from ...app import Ariadne
 from ...event.message import MessageEvent
 from ..chain import MessageChain as GraiaMessageChain
@@ -31,7 +32,7 @@ class AlconnaDispatcher(BaseDispatcher):
         """预处理消息链并存入 local_storage"""
         if self.reply_help:
             event: MessageEvent = await interface.lookup_param("event", MessageEvent, None)
-            app: Ariadne = Ariadne.get_running()
+            app: Ariadne = get_running()
 
             def _send_help_string(help_string: str):
                 app.loop.create_task(

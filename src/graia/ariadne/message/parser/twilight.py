@@ -598,7 +598,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
                 raise ValueError(f"unexpected token type: {t_type}")
 
         if match:
-            match[-1].space = SpacePolicy.NOSPACE
+            match[-1].space_policy = SpacePolicy.NOSPACE
 
         if isinstance(extra_args, dict):
             return cls(match, extra_args)

@@ -83,7 +83,7 @@ markdown_extensions:
       guess_lang: false
       linenums: true
   - toc: # 锚点
-      permalink: true
+      permalink: 🔗
   - pymdownx.arithmatex # 数学公式
   - pymdownx.betterem: # 对加粗和斜体更好的检测
       smart_enable: all
@@ -99,6 +99,8 @@ plugins:
       scripts:
         - docs/gen_ref.py
   - mkdocstrings:
+      watch:
+        - src/graia
       handlers:
         python:
           setup_commands:
@@ -115,6 +117,7 @@ plugins:
             merge_init_into_class: yes
             show_submodules: no
             show_signature_annotations: yes
+            members_order: source
 
   - literate-nav:
       nav_file: NAV.md

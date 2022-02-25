@@ -25,7 +25,7 @@ ESCAPE = {
 R_ESCAPE = {v: k for k, v in ESCAPE.items()}
 
 
-def escape(string: str):
+def escape(string: str) -> str:
     """转义字符串
 
     Args:
@@ -40,7 +40,7 @@ def escape(string: str):
     return string
 
 
-def unescape(string: str):
+def unescape(string: str) -> str:
     """逆转义字符串, 自动去除空白符
 
     Args:

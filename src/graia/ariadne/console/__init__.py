@@ -43,7 +43,7 @@ class Console:
 
         Args:
             broadcast (Broadcast): 事件系统.
-            prompt (AnyFormattedText, optional): 输入提示, 可使用 f-string 形式的格式化字符串.
+            prompt (AnyFormattedText, optional): 输入提示, 可使用 f-string 形式的格式化字符串. \
             默认为 "{library_name} {graia_ariadne_version}>".
             r_prompt (AnyFormattedText, optional): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
             style (Style, optional): 输入提示的格式, 详见 prompt_toolkit 的介绍.
@@ -112,7 +112,7 @@ class Console:
         """向控制台发送一个输入请求, 异步
 
         Args:
-            l_prompt (AnyFormattedText, optional): 左输入提示, 可使用 f-string 形式的格式化字符串.
+            l_prompt (AnyFormattedText, optional): 左输入提示, 可使用 f-string 形式的格式化字符串. \
             默认为 "{library_name} {graia_ariadne_version}>". 注意为 l_prompt .
             r_prompt (AnyFormattedText, optional): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
             style (Style, optional): 输入提示的格式, 详见 prompt_toolkit 的介绍.

@@ -6,7 +6,7 @@ import importlib
 import multiprocessing
 from asyncio.events import AbstractEventLoop
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import Awaitable, Callable, ClassVar, Dict, Tuple
+from typing import Any, Awaitable, Callable, ClassVar, Dict, Tuple
 
 from ..typing import P, R
 
@@ -58,7 +58,7 @@ class ParallelExecutor:
         self.bind_loop(loop or asyncio.get_running_loop())
 
     @classmethod
-    def get(cls, loop: AbstractEventLoop = None):
+    def get(cls, loop: AbstractEventLoop = None) -> "ParallelExecutor":
         """获取 ParallelExecutor 实例
 
         Args:
@@ -92,7 +92,7 @@ class ParallelExecutor:
         self.proc_exec.shutdown()
 
     @classmethod
-    def run_func(cls, name: str, module: str, args: tuple, kwargs: dict):
+    def run_func(cls, name: str, module: str, args: tuple, kwargs: dict) -> Any:
         """运行函数的实现
 
         Args:
@@ -102,7 +102,7 @@ class ParallelExecutor:
             kwargs (dict): 关键字参数
 
         Returns:
-            R: 底层函数的返回值
+            Any: 底层函数的返回值
         """
         importlib.import_module(module)
         return cls.func_mapping[module, name](*args, **kwargs)

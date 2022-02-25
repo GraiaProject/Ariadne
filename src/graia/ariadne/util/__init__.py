@@ -224,7 +224,7 @@ def assert_on_(pre_condition: bool, condition: bool, *message: Any) -> Union[Non
     """检查条件是否成立, 如果不成立则抛出 ValueError
 
     Args:
-        pre_condition(bool): 前置条件
+        pre_condition (bool): 前置条件
         condition (bool): 条件语句
         message (Any, optional): 附带的消息.
 

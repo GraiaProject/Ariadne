@@ -273,7 +273,7 @@ class CommandHandler(ExecTarget):
         slot_data: Dict[Union[int, str], MessageChain],
         arg_data: Dict[str, List[MessageChain]],
         wildcard_list: List[MessageChain],
-    ):
+    ) -> Dict[str, Any]:
         """基于 CommandRecord 与解析数据设置 ConstantDispatcher 参数
 
         Args:

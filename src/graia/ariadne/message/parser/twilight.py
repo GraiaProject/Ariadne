@@ -103,11 +103,24 @@ class MatchResult(Generic[T, T_Match], Representation):
     """匹配结果"""
 
     __slots__ = ("matched", "result", "origin")
+
     matched: bool
+    """是否匹配成功"""
+
     result: Optional[T]
+    """匹配结果"""
+
     origin: T_Match
+    """原来的 Match 对象"""
 
     def __init__(self, matched: bool, origin: T_Match, result: T = None) -> None:
+        """初始化 MatchResult 对象.
+
+        Args:
+            matched (bool): 是否匹配成功
+            origin (T_Match): 原来的 Match 对象
+            result (T, optional): 匹配结果. Defaults to None.
+        """
         self.matched = matched
         self.origin = origin
         self.result = result
@@ -119,7 +132,18 @@ T_Result = TypeVar("T_Result", bound=MatchResult)
 class RegexMatch(Match):
     """正则表达式匹配"""
 
+    pattern: str
+    """正则表达式字符串"""
+
     def __init__(self, pattern: str = "", optional: bool = False) -> None:
+        """初始化 RegexMatch 对象.
+
+        Args:
+            pattern (str, optional): 正则表达式字符串. Defaults to "".
+            optional (bool, optional): 是否可选. Defaults to False.
+        Returns:
+            None: 无返回.
+        """
         super().__init__()
         self.pattern: str = pattern
         self._flags: re.RegexFlag = re.RegexFlag(0)
@@ -127,12 +151,26 @@ class RegexMatch(Match):
         self.space_policy: SpacePolicy = SpacePolicy.PRESERVE
 
     def flags(self, flags: re.RegexFlag) -> Self:
-        """设置正则表达式的标志."""
+        """设置正则表达式的标志.
+
+        Args:
+            flags (re.RegexFlag): 正则表达式旗标.
+
+        Returns:
+            Self: RegexMatch 自身.
+        """
         self._flags = flags
         return self
 
     def space(self, space: SpacePolicy) -> Self:
-        """设置正则表达式的尾随空格策略."""
+        """设置正则表达式的尾随空格策略.
+
+        Args:
+            space (SpacePolicy): 尾随空格策略.
+
+        Returns:
+            Self: RegexMatch 自身.
+        """
         self.space_policy = space
         return self
 
@@ -169,12 +207,19 @@ class UnionMatch(RegexMatch):
     """多重匹配"""
 
     pattern: List[str]
+    """匹配的选择项"""
 
     def __init__(
         self,
         *pattern: str,
         optional: bool = False,
     ) -> None:
+        """初始化 UnionMatch 对象.
+
+        Args:
+            *pattern (str): 匹配的选择项.
+            optional (bool, optional): 匹配是否可选. Defaults to False.
+        """
         super().__init__("", optional)
         self.pattern: List[str] = list(pattern)
         self.optional = optional
@@ -188,13 +233,19 @@ class ElementMatch(RegexMatch):
     """元素类型匹配"""
 
     type: Type[Element]
-    result: Element
+    """要匹配的元素类型"""
 
     def __init__(
         self,
         type: Type[Element] = ...,
         optional: bool = False,
     ) -> None:
+        """初始化 ElementMatch 对象.
+
+        Args:
+            type (Type[Element]): 元素类型.
+            optional (bool, optional): 匹配是否可选. Defaults to False.
+        """
         super(RegexMatch, self).__init__()
         self.type = type
         self.optional = optional
@@ -226,6 +277,12 @@ class WildcardMatch(RegexMatch):
     """泛匹配"""
 
     def __init__(self, greed: bool = True, optional: bool = False) -> None:
+        """初始化 WildcardMatch 对象.
+
+        Args:
+            greed (bool, optional): 是否贪婪匹配. Defaults to True.
+            optional (bool, optional): 匹配是否可选. Defaults to False.
+        """
         super().__init__(f".*{'' if greed else'?'}", optional)
 
 
@@ -258,9 +315,37 @@ class ArgumentMatch(Match, Generic[T]):
         choices: Iterable[T] = ...,
         optional: bool = True,
     ):
+        """初始化 ArgumentMatch 对象.
+
+        Args:
+            *pattern (str): 匹配的参数名.
+            action (Union[str, Type[Action]], optional): 参数的动作. Defaults to "store".
+            nargs (Union[int, str], optional): 参数的个数.
+            const (T, optional): 参数的常量值.
+            default (T, optional): 参数的默认值.
+            type (Callable[[str], T], optional): 参数的类型.
+            choices (Iterable[T], optional): 参数的可选值.
+            optional (bool, optional): 参数是否可选. Defaults to True.
+        Returns:
+            None: 无返回
+        """
         ...
 
     def __init__(self, *pattern, **kwargs) -> None:
+        """初始化 ArgumentMatch 对象.
+
+        Args:
+            *pattern (str): 匹配的参数名.
+            action (Union[str, Type[Action]], optional): 参数的动作. Defaults to "store".
+            nargs (Union[int, str], optional): 参数的个数.
+            const (T, optional): 参数的常量值.
+            default (T, optional): 参数的默认值.
+            type (Callable[[str], T], optional): 参数的类型.
+            choices (Iterable[T], optional): 参数的可选值.
+            optional (bool, optional): 参数是否可选. Defaults to True.
+        Returns:
+            None: 无返回
+        """
         super().__init__()
         if not pattern:
             raise ValueError("pattern must not be empty")
@@ -299,6 +384,12 @@ class ArgResult(Generic[T], MatchResult[T, ArgumentMatch]):
 
 class RegexResult(MatchResult[MessageChain, RegexMatch]):
     """表示 RegexMatch 匹配结果"""
+
+    ...
+
+
+class ElementResult(MatchResult[Element, ElementMatch]):
+    """表示 ElementMatch 匹配结果"""
 
     ...
 

@@ -271,13 +271,14 @@ class MessageMixin(AriadneMixin):
         Args:
             target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
             message (MessageChain): 要发送的消息链.
-            quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息,
+            quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息, \
             否则会视为 `messageId` 处理.
-            action (SendMessageCaller[T], optional): 消息发送的处理 action, 可以在 graia.ariadne.util.send 查看自带的 action,
+            action (SendMessageCaller[T], optional): 消息发送的处理 action, \
+            可以在 graia.ariadne.util.send 查看自带的 action, \
             未传入使用默认 action
 
         Returns:
-            T, R: 默认实现为 BotMessage
+            Union[T, R]: 默认实现为 BotMessage
         """
         action = action if action is not ... else self.default_send_action
         data = {"message": message}
@@ -350,7 +351,7 @@ class MessageMixin(AriadneMixin):
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`,
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, \
             可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
 
         Returns:
@@ -557,7 +558,7 @@ class OperationMixin(AriadneMixin):
     """在各种关系模型中进行操作的 Mixin 类."""
 
     @app_ctx_manager
-    async def deleteFriend(self, target: Union[Friend, int]):
+    async def deleteFriend(self, target: Union[Friend, int]) -> None:
         """
         删除指定好友.
 
@@ -580,7 +581,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int):
+    async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int) -> None:
         """
         在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
         当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -611,7 +612,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int]):
+    async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int]) -> None:
         """
         在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
 
@@ -636,7 +637,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def muteAll(self, group: Union[Group, int]):
+    async def muteAll(self, group: Union[Group, int]) -> None:
         """在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
 
         Args:
@@ -655,7 +656,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def unmuteAll(self, group: Union[Group, int]):
+    async def unmuteAll(self, group: Union[Group, int]) -> None:
         """在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
 
         Args:
@@ -674,7 +675,9 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def kickMember(self, group: Union[Group, int], member: Union[Member, int], message: str = ""):
+    async def kickMember(
+        self, group: Union[Group, int], member: Union[Member, int], message: str = ""
+    ) -> None:
         """
         将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
 
@@ -698,7 +701,7 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def quitGroup(self, group: Union[Group, int]):
+    async def quitGroup(self, group: Union[Group, int]) -> None:
         """
         主动从指定群组退出
 
@@ -718,13 +721,13 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def setEssence(self, target: Union[Source, BotMessage, int]):
+    async def setEssence(self, target: Union[Source, BotMessage, int]) -> None:
         """
         添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
         请自行判断消息来源是否为群组.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`,
+            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, \
             可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
 
         Returns:
@@ -764,7 +767,7 @@ class OperationMixin(AriadneMixin):
         return GroupConfig.parse_obj(result)
 
     @app_ctx_manager
-    async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig):
+    async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig) -> None:
         """修改指定群组的群设置; 需要具有相应权限(管理员/群主).
 
         Args:
@@ -823,7 +826,7 @@ class OperationMixin(AriadneMixin):
         member: Union[Member, int],
         info: MemberInfo,
         group: Optional[Union[Group, int]] = None,
-    ):
+    ) -> None:
         """
         修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).
 
@@ -859,7 +862,7 @@ class OperationMixin(AriadneMixin):
         assign: bool,
         member: Union[Member, int],
         group: Optional[Union[Group, int]] = None,
-    ):
+    ) -> None:
         """
         修改一位群组成员管理员权限; 需要有相应权限(群主)
 
@@ -982,8 +985,8 @@ class AnnouncementMixin(AriadneMixin):
             show_edit_card (bool, optional): 是否自动删除. 默认为 False.
             show_popup (bool, optional): 是否在阅读后自动删除. 默认为 False.
             require_confirmation (bool, optional): 是否需要确认. 默认为 False.
-            image (Union[str, bytes, os.PathLike, io.IOBase, Image], optional): 图片. 默认为 None.
-            为 str 代表 url, 为 bytes / os.PathLike / io.IOBase 代表原始数据
+            image (Union[str, bytes, os.PathLike, io.IOBase, Image], optional): 图片. 默认为 None. \
+            为 str 时代表 url, 为 bytes / os.PathLike / io.IOBase 代表原始数据
 
         Raises:
             TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
@@ -1041,8 +1044,8 @@ class FileMixin(AriadneMixin):
         以生成器形式列出指定文件夹下的所有文件.
 
         Args:
-            target (Union[Group, int]): 要列出文件的根位置,
-            为群组或群号（当前仅支持群组）
+            target (Union[Group, int]): 要列出文件的根位置, \
+            为群组或群号 (当前仅支持群组)
             id (str): 文件夹ID, 空串为根目录
             offset (int): 起始分页偏移
             size (int): 单次分页大小
@@ -1076,8 +1079,8 @@ class FileMixin(AriadneMixin):
         列出指定文件夹下的所有文件.
 
         Args:
-            target (Union[Group, int]): 要列出文件的根位置,
-            为群组或群号（当前仅支持群组）
+            target (Union[Group, int]): 要列出文件的根位置, \
+            为群组或群号 (当前仅支持群组)
             id (str): 文件夹ID, 空串为根目录
             offset (int): 分页偏移
             size (int): 分页大小
@@ -1113,8 +1116,8 @@ class FileMixin(AriadneMixin):
         获取指定文件的信息.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置,
-            为群组或好友或QQ号（当前仅支持群组）
+            target (Union[Friend, Group, int]): 要列出文件的根位置, \
+            为群组或好友或QQ号 (当前仅支持群组)
             id (str): 文件ID, 空串为根目录
             with_download_info (bool): 是否携带下载信息, 无必要不要携带
 
@@ -1151,8 +1154,8 @@ class FileMixin(AriadneMixin):
         在指定位置创建新文件夹.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置,
-            为群组或好友或QQ号（当前仅支持群组）
+            target (Union[Friend, Group, int]): 要列出文件的根位置, \
+            为群组或好友或QQ号 (当前仅支持群组)
             name (str): 要创建的文件夹名称.
             id (str): 上级文件夹ID, 空串为根目录
 
@@ -1183,13 +1186,13 @@ class FileMixin(AriadneMixin):
         self,
         target: Union[Friend, Group, int],
         id: str = "",
-    ):
+    ) -> None:
         """
         删除指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置,
-            为群组或好友或QQ号（当前仅支持群组）
+            target (Union[Friend, Group, int]): 要列出文件的根位置, \
+            为群组或好友或QQ号 (当前仅支持群组)
             id (str): 文件ID
 
         Returns:
@@ -1217,13 +1220,13 @@ class FileMixin(AriadneMixin):
         target: Union[Friend, Group, int],
         id: str = "",
         dest_id: str = "",
-    ):
+    ) -> None:
         """
         移动指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置,
-            为群组或好友或QQ号（当前仅支持群组）
+            target (Union[Friend, Group, int]): 要列出文件的根位置, \
+            为群组或好友或QQ号 (当前仅支持群组)
             id (str): 源文件ID
             dest_id (str): 目标文件夹ID
 
@@ -1253,13 +1256,13 @@ class FileMixin(AriadneMixin):
         target: Union[Friend, Group, int],
         id: str = "",
         dest_name: str = "",
-    ):
+    ) -> None:
         """
         重命名指定文件.
 
         Args:
-            target (Union[Friend, Group, int]): 要列出文件的根位置,
-            为群组或好友或QQ号（当前仅支持群组）
+            target (Union[Friend, Group, int]): 要列出文件的根位置, \
+            为群组或好友或QQ号 (当前仅支持群组)
             id (str): 源文件ID
             dest_name (str): 目标文件新名称.
 
@@ -1436,7 +1439,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         初始化 Ariadne.
 
         Args:
-            connect_info (Union[Adapter, MiraiSession]) 提供与 `mirai-api-http` 交互的信息.
+            connect_info (Union[Adapter, MiraiSession]): 提供与 `mirai-api-http` 交互的信息.
             loop (AbstractEventLoop, optional): 事件循环.
             broadcast (Broadcast, optional): 被指定的, 外置的事件系统, 即 `Broadcast Control` 实例.
             chat_log_config (Optional[Union[ChatLogConfig, Literal[False]]]): 聊天日志的配置. \

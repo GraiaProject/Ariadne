@@ -102,7 +102,8 @@ class MessageChain(AriadneBaseModel):
         比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
         Args:
-            *elements(Union[Iterable[Element], Element, str]): 元素的容器, 为承载元素的可迭代对象/单元素实例,
+            *elements(Union[Iterable[Element], Element, str]): 元素的容器, \
+            为承载元素的可迭代对象/单元素实例, \
             字符串会被自动不可逆的转换为 `Plain`
 
         Returns:
@@ -431,7 +432,7 @@ class MessageChain(AriadneBaseModel):
 
         Args:
             string (str): 需要判断的字符串
-            ignore_header(bool): 是否忽略元数据
+            ignore_header (bool, optional): 是否忽略元数据, 默认为 True
 
         Returns:
             bool: 是否以此字符串开头

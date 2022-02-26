@@ -319,7 +319,7 @@ class WebsocketAdapter(Adapter):
         self.pending_calls[sync_id] = fut
         content = {
             "syncId": sync_id,
-            "command": action,
+            "command": action.replace("/", "_"),
             "content": data,
         }
         if method == CallMethod.RESTGET:

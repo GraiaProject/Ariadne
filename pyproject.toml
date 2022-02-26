@@ -48,6 +48,7 @@ prompt-toolkit = "^3.0.24"
 arclet-alconna = { version = "^0.6", optional = true }
 graia-scheduler = { version = "^0.0.6", optional = true }
 graia-saya = { version = "^0.0.14", optional = true }
+ujson = "^5.1.0"
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna"]

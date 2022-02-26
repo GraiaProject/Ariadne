@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, Optional, Union
 
+import ujson
 from graia.broadcast.entities.listener import Listener
 from loguru import logger
 from pydantic import BaseModel, Field, validator
@@ -77,6 +78,8 @@ class AriadneBaseModel(BaseModel):
         json_encoders = {
             datetime: datetime_encoder,
         }
+        json_loads = ujson.loads
+        json_dumps = ujson.dumps
 
 
 @dataclass

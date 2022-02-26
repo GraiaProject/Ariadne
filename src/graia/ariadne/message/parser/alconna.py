@@ -1,8 +1,18 @@
-"""Alconna 的简单封装"""
-from arclet.alconna import *
+"""Alconna 的简单封装
+
+Important: 建议手动从 `arclet.alconna` 导入其他部分"""
+from typing import TYPE_CHECKING
+
+from arclet.alconna import (
+    Alconna,
+    Arpamar,
+    MessageChain,
+    NonTextElement,
+    change_help_send_action,
+)
+from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ... import get_running
@@ -35,9 +45,8 @@ class AlconnaDispatcher(BaseDispatcher):
             app: Ariadne = get_running()
 
             def _send_help_string(help_string: str):
-                app.loop.create_task(
-                    app.sendMessage(event.sender, GraiaMessageChain.create(help_string))
-                )
+                app.loop.create_task(app.sendMessage(event.sender, GraiaMessageChain.create(help_string)))
+
             change_help_send_action(_send_help_string)
 
         local_storage = interface.local_storage
@@ -62,4 +71,3 @@ class AlconnaDispatcher(BaseDispatcher):
         if issubclass(interface.annotation, ArpamarProperty):
             return arpamar.get(interface.name)
         return Force()
-

@@ -33,11 +33,19 @@ class AlconnaDispatcher(BaseDispatcher):
     Alconna的调度器形式
     """
 
-    def __init__(self, *, alconna: Alconna, reply_help: bool = False, block_catch: bool = True):
+    def __init__(self, *, alconna: Alconna, reply_help: bool = False, skip_for_unmatch: bool = True):
+        """
+        构造 Alconna调度器
+
+        Args:
+            alconna (Alconna): Alconna实例
+            reply_help (bool): 是否自助回复帮助信息给指令的发起者, 默认为 False
+            skip_for_unmatch (bool): 当指令匹配失败时是否跳过对应的事件监听器, 默认为 True
+        """
         super().__init__()
         self.alconna = alconna
         self.reply_help = reply_help
-        self.block_catch = block_catch
+        self.skip_for_unmatch = skip_for_unmatch
         if not reply_help:
             change_help_send_action(lambda x: x)
 
@@ -60,7 +68,7 @@ class AlconnaDispatcher(BaseDispatcher):
         except ParamsUnmatched:
             traceback.print_exc()
             raise ExecutionStop
-        if not result.matched and self.block_catch:
+        if not result.matched and self.skip_for_unmatch:
             raise ExecutionStop
         local_storage["arpamar"] = result
 

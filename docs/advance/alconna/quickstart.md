@@ -31,7 +31,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, 
  <li class="chat left">歌名是 大地</li>
  <li class="chat left">歌手是 Beyond</li>
  <li class="chat right">!点歌 --help</li>
- <li class="chat left">!点歌 &lt;song_name&gt;&#13;在XXX中搜索歌名&#13;可用的选项有:&#13;# 指定歌手\n  -s, --歌手 &lt;singer_name&gt;</li>
+ <li class="chat left">!点歌 &lt;song_name&gt;<br>在XXX中搜索歌名<br>可用的选项有:<br>&#35; 指定歌手<br>  -s, --歌手 &lt;singer_name&gt;</li>
 </ul>
 </div>
 

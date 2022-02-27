@@ -2,7 +2,7 @@
 
 # no error
 
-from ..adapter import CombinedAdapter as CombinedAdapter
+from ..adapter import Combine as Combine
 from ..adapter import DefaultAdapter as DefaultAdapter
 from ..adapter import HttpAdapter as HttpAdapter
 from ..adapter import WebsocketAdapter as WebsocketAdapter

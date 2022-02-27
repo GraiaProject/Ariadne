@@ -31,6 +31,8 @@ from typing import (
 from graia.broadcast import Broadcast
 from loguru import logger
 
+from graia.ariadne.adapter import ReverseAdapter
+
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
 from .dispatcher import ContextDispatcher
@@ -1550,7 +1552,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 logger.info("daemon: adapter started")
                 self.broadcast.postEvent(AdapterLaunched(self))
                 async for event in yield_with_timeout(
-                    self.adapter.queue.get,
+                    self.adapter.event_queue.get,
                     lambda: (
                         self.adapter.running and self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}
                     ),
@@ -1578,7 +1580,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 logger.warning("Press Ctrl-C to confirm exit.")
                 break
             if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
-                if not self.adapter.session_activated:
+                if not self.adapter.mirai_session.session_key or self.adapter.mirai_session.single_mode:
                     retry_cnt += 1
                 else:
                     retry_cnt = 0
@@ -1657,15 +1659,21 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 self.broadcast.finale_dispatchers.append(ContextDispatcher)
 
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
-            await await_predicate(lambda: self.adapter.session_activated, 0.0001)
+            if not isinstance(self.adapter, ReverseAdapter):
+                await await_predicate(
+                    lambda: self.adapter.mirai_session.session_key or self.adapter.mirai_session.single_mode,
+                    0.0001,
+                )
+            await await_predicate(lambda: self.adapter.running, 0.0001)
+
             self.status = AriadneStatus.RUNNING
+            self.running.add(self)
+
             self.remote_version = await self.getVersion()
             logger.info(f"Remote version: {self.remote_version}")
             if not self.remote_version.startswith("2"):
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
             logger.info(f"Application launched with {time.time() - start_time:.2}s")
-
-            self.running.add(self)
 
             await self.broadcast.layered_scheduler(
                 listener_generator=self.broadcast.default_listener_generator(ApplicationLaunched),
@@ -1717,7 +1725,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         """
         if self.mirai_session.version:
             return self.mirai_session.version
-        result = await self.adapter.call_api.__wrapped__(self.adapter, "about", CallMethod.GET)
+        result = await self.adapter.call_api("about", CallMethod.GET, meta=True)
         version = result["version"]
         if auto_set:
             self.mirai_session.version = version

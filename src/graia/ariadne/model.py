@@ -222,8 +222,8 @@ class MiraiSession(AriadneBaseModel):
         session_key (str, optional): 会话标识, 即会话中用于进行操作的唯一认证凭证.
     """
 
-    host: AnyHttpUrl
-    """链接地址, 以 http 开头"""
+    host: Optional[AnyHttpUrl]
+    """链接地址, 以 http 开头, 作为服务器连接时应为 None"""
 
     single_mode: bool = False
     """mirai-console 是否开启 single_mode (单例模式)"""
@@ -242,7 +242,7 @@ class MiraiSession(AriadneBaseModel):
 
     def __init__(
         self,
-        host: Union[AnyHttpUrl, str],
+        host: Optional[Union[AnyHttpUrl, str]] = None,
         account: Optional[Union[int, str]] = None,
         verify_key: Optional[str] = None,
         *,

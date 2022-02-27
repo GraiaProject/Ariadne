@@ -5,6 +5,7 @@
 import asyncio
 import functools
 import inspect
+import logging
 import sys
 import traceback
 import typing
@@ -39,54 +40,7 @@ from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
 
-from ..exception import (
-    AccountMuted,
-    AccountNotFound,
-    InvalidArgument,
-    InvalidSession,
-    InvalidVerifyKey,
-    MessageTooLong,
-    RemoteException,
-    UnknownError,
-    UnknownTarget,
-    UnVerifiedSession,
-)
 from ..typing import DictStrAny, P, R, T
-
-code_exceptions_mapping: Dict[int, Type[Exception]] = {
-    1: InvalidVerifyKey,
-    2: AccountNotFound,
-    3: InvalidSession,
-    4: UnVerifiedSession,
-    5: UnknownTarget,
-    6: FileNotFoundError,
-    10: PermissionError,
-    20: AccountMuted,
-    30: MessageTooLong,
-    400: InvalidArgument,
-    500: RemoteException,
-}
-
-
-def validate_response(code: Union[Dict[str, Union[int, Any]], int]):
-    """验证远程服务器的返回值
-
-    Args:
-        code (Union[dict, int]): 返回的对象
-
-    Raises:
-        Exception: 请参照 code_exceptions_mapping
-    """
-    if isinstance(code, dict):
-        int_code = code.get("code")
-    else:
-        int_code = code
-    if not isinstance(int_code, int) or int_code == 200 or int_code == 0:
-        return
-    exc_cls = code_exceptions_mapping.get(int_code)
-    if exc_cls:
-        raise exc_cls(exc_cls.__doc__, code)
-    raise UnknownError(code)
 
 
 def loguru_excepthook(cls, val, tb, *_, **__):
@@ -113,8 +67,26 @@ def loguru_async_handler(_, ctx: dict):
         logger.error(f"Exception: {ctx}")
 
 
+class LoguruHandler(logging.Handler):
+    def emit(self, record):
+        # Get corresponding Loguru level if it exists
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+
+        # Find caller from where originated the logged message
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+
 def inject_loguru_traceback(loop: AbstractEventLoop = None):
     """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
+    logging.basicConfig(handlers=[LoguruHandler()], level=0)
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
     if loop:

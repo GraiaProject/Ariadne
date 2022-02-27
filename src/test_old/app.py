@@ -3,11 +3,13 @@ import os
 import re
 
 from graia.broadcast import Broadcast
+from graia.broadcast.builtin.event import ExceptionThrowed
 from graia.scheduler import GraiaScheduler
 from graia.scheduler.timers import every_custom_seconds
 from loguru import logger
 
-from graia.ariadne.adapter import DebugAdapter, WebsocketAdapter
+from graia.ariadne.adapter import Combine, DebugAdapter, WebsocketAdapter
+from graia.ariadne.adapter.reverse import ReverseWebsocketAdapter, WebhookAdapter
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import (
@@ -17,10 +19,13 @@ from graia.ariadne.event.mirai import (
 )
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, MultimediaElement, Plain, Source
+from graia.ariadne.message.parser.base import MatchContent
 from graia.ariadne.message.parser.twilight import (
+    ArgResult,
     ArgumentMatch,
     FullMatch,
     RegexMatch,
+    RegexResult,
     Sparkle,
     Twilight,
     WildcardMatch,
@@ -39,7 +44,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        DebugAdapter(bcc, MiraiSession(url, account, verify_key)),
+        Combine[ReverseWebsocketAdapter](bcc, MiraiSession(url, account, verify_key), "/ws", port=23333),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
@@ -47,7 +52,7 @@ if __name__ == "__main__":
 
     sched = app.create(GraiaScheduler)
 
-    @sched.schedule(every_custom_seconds(10))
+    @sched.schedule(every_custom_seconds(30))
     async def print_ver(app: Ariadne):
         logger.debug(await app.getVersion())
 
@@ -68,6 +73,15 @@ if __name__ == "__main__":
     async def log(group: Group):
         logger.info(repr(group))
 
+    @bcc.receiver(ExceptionThrowed)
+    async def e(app: Ariadne, e: ExceptionThrowed):
+        await app.sendMessage(e.event, MessageChain.create(f"{e.exception}"))
+
+    @bcc.receiver(MessageEvent, decorators=[MatchContent("!raise")])
+    async def raise_(app: Ariadne, ev: MessageEvent):
+        await app.sendMessage(ev, MessageChain.create("Raise!"))
+        raise ValueError("Raised!")
+
     @bcc.receiver(
         MessageEvent,
         dispatchers=[
@@ -84,14 +98,14 @@ if __name__ == "__main__":
     async def reply1(
         app: Ariadne,
         event: MessageEvent,
-        arg: WildcardMatch,
-        help: ArgumentMatch,
-        sparkle: Sparkle,
-        verbose: ArgumentMatch,
+        arg: RegexResult,
+        help: ArgResult,
+        twilight: Twilight,
+        verbose: ArgResult,
     ):
         if help.matched:
             return await app.sendMessage(
-                event, MessageChain.create(sparkle.get_help(description="Foo help!"))
+                event, MessageChain.create(twilight.get_help(description="Foo help!"))
             )
         if verbose.matched:
             await app.sendMessage(event, MessageChain.create("Auto reply to \n") + arg.result)
@@ -133,7 +147,6 @@ if __name__ == "__main__":
         if ALL_FLAG:
             group_list = await app.getGroupList()
             logger.debug(group_list)
-            logger.debug(await group_list[0].getConfig())
             friend_list = await app.getFriendList()
             logger.debug(friend_list)
             member_list = await app.getMemberList(group_list[0])

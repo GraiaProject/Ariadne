@@ -1547,7 +1547,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         while self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
             try:
                 await asyncio.wait_for(self.adapter.start(), timeout=retry_interval)
-                logger.info("daemon: adapter started")
+                logger.success("daemon: adapter started")
                 self.broadcast.postEvent(AdapterLaunched(self))
                 async for event in yield_with_timeout(
                     self.adapter.event_queue.get,
@@ -1615,8 +1615,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
 
         logger.info("Stopping adapter...")
         await self.adapter.stop()
+        logger.success(f"Adapter {self.adapter.__class__.__name__} stopped.")
         self.status = AriadneStatus.STOP
-        logger.info("Stopped Ariadne.")
+        logger.success("Stopped Ariadne.")
         return exceptions
 
     async def launch(self):
@@ -1668,10 +1669,10 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
             self.running.add(self)
 
             self.remote_version = await self.getVersion()
-            logger.info(f"Remote version: {self.remote_version}")
+            logger.success(f"Remote version: {self.remote_version}")
             if not self.remote_version.startswith("2"):
                 raise RuntimeError(f"You are using an unsupported version: {self.remote_version}!")
-            logger.info(f"Application launched with {time.time() - start_time:.2}s")
+            logger.success(f"Application launched with {time.time() - start_time:.2}s")
 
             await self.broadcast.layered_scheduler(
                 listener_generator=self.broadcast.default_listener_generator(ApplicationLaunched),

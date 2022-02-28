@@ -1,5 +1,23 @@
 # 更改日志
 
+## 0.6.1
+
+### 改动
+
+重命名原来的 `CombinedAdapter` 为 `ComposeForwardAdapter`
+
+### 添加
+
+增加了 `ReverseAdapter`, 基于服务器的适配器. ([#114](https://github.com/GraiaProject/Ariadne/issues/114))
+
+### 修复
+
+`WebsocketAdapter.call_api` 无法正常运作
+
+`Twilight.from_command` ([#112](https://github.com/GraiaProject/Ariadne/pull/112))
+
+`Alconna` 相关 ([#111](https://github.com/GraiaProject/Ariadne/pull/111))
+
 ## 0.6.0
 
 !!! warning "警告"

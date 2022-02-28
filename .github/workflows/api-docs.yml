@@ -22,11 +22,7 @@ jobs:
       - name: Build with MKDocs
         run: |
           mkdocs build
-      - name: Upload Site
-        uses: actions/upload-artifact@v2
-        with:
-          name: artifacts
-          path: site/
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
         with:

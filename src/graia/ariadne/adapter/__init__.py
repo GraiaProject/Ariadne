@@ -108,6 +108,16 @@ from .forward import WebsocketAdapter as WebsocketAdapter  # noqa: F401, E402
 
 DefaultAdapter = ComposeForwardAdapter
 
+
+class DebugAdapter(DefaultAdapter):
+    """调试 Adapter"""
+
+    def build_event(self, data: dict) -> MiraiEvent:
+        event = super().build_event(data)
+        logger.debug(event)
+        return event
+
+
 try:
     from .reverse import (  # noqa: F401, E402
         ComposeReverseWebsocketAdapter as ComposeReverseWebsocketAdapter,

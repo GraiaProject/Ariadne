@@ -7,23 +7,23 @@ from typing import TYPE_CHECKING
 from arclet.alconna import (
     Alconna,
     Arpamar,
-    change_help_send_action,
     MessageChain,
     NonTextElement,
     ParamsUnmatched,
-    compile
+    change_help_send_action,
+    compile,
 )
+from graia.broadcast.entities.dispatcher import BaseDispatcher
+from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
-from graia.broadcast.entities.event import Dispatchable
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ... import get_running
 from ...app import Ariadne
+from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
 from ..chain import MessageChain as GraiaMessageChain
-from ...dispatcher import ContextDispatcher
 
 if TYPE_CHECKING:
     ArpamarProperty = type("ArpamarProperty", (str, MessageChain, NonTextElement), {})
@@ -37,6 +37,7 @@ class AlconnaHelpMessage(Dispatchable):
 
     如果触发的某个命令的帮助选项, 当AlconnaDisptcher的reply_help为False时, 会发送该事件
     """
+
     command: Alconna
     """命令"""
 
@@ -85,17 +86,16 @@ class AlconnaDispatcher(BaseDispatcher):
             app: Ariadne = get_running()
 
             def _send_help_string(help_string: str):
-                app.loop.create_task(
-                    app.sendMessage(event.sender, GraiaMessageChain.create(help_string))
-                )
+                app.loop.create_task(app.sendMessage(event.sender, GraiaMessageChain.create(help_string)))
 
             change_help_send_action(_send_help_string)
         else:
+
             def _post_help(help_string: str):
                 interface.broadcast.postEvent(
-                    AlconnaHelpMessage(self.analyser.alconna, help_string),
-                    upper_event=event
+                    AlconnaHelpMessage(self.analyser.alconna, help_string), upper_event=event
                 )
+
             change_help_send_action(_post_help)
 
         local_storage = interface.local_storage
@@ -124,4 +124,3 @@ class AlconnaDispatcher(BaseDispatcher):
         if issubclass(interface.annotation, ArpamarProperty):
             return arpamar.get(interface.name)
         return Force()
-

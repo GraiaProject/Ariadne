@@ -2,15 +2,18 @@
 
 import asyncio
 import json
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, FrozenSet, Optional, Type, Union
 
-from aiohttp import ClientSession
+from aiohttp import ClientSession, FormData
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from graia.broadcast import Broadcast
+from loguru import logger
 from uvicorn import Config, Server
 
+from graia.ariadne.adapter.forward import HttpAdapter
+
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
-from ..util import yield_with_timeout
+from ..util import await_predicate
 from . import Adapter
 from .util import SyncIDManager, validate_response
 
@@ -25,6 +28,8 @@ class NoSigServer(Server):
 class ReverseAdapter(Adapter):
     """反向 Adapter 基类"""
 
+    tags: FrozenSet[str] = frozenset(["reverse"])
+
     server: NoSigServer
     asgi: FastAPI
     mirai_session: MiraiSession
@@ -36,7 +41,7 @@ class ReverseAdapter(Adapter):
         broadcast: Broadcast,
         mirai_session: MiraiSession,
         route: str = "/",
-        log: bool = False,
+        log: bool = True,
         *,
         app: Optional[FastAPI] = None,
         port: int = 8000,
@@ -56,14 +61,7 @@ class ReverseAdapter(Adapter):
             },
             "loggers": {
                 "uvicorn.error": {"handlers": ["default"] if log else [], "level": "INFO"},
-                "uvicorn.access": {
-                    "handlers": ["default"] if log else [],
-                    "level": "INFO",
-                },
-            },
-            "formatters": {
-                "default": {"use_colors": True},
-                "access": {"use_colors": True},
+                "uvicorn.access": {"handlers": ["default"] if log else [], "level": "INFO"},
             },
         }
         self.server = server_cls(Config(self.asgi, port=port, log_config=LOG_CONFIG, **config_kwargs))
@@ -74,13 +72,16 @@ class ReverseAdapter(Adapter):
         await super().stop()
 
     async def fetch_cycle(self):
-        self.session = ClientSession()
-        await self.server.serve()
-        await self.session.close()
+        async with ClientSession() as session:
+            self.session = session
+            await self.server.serve()
+        self.session = None
 
 
-class WebhookAdapter(ReverseAdapter):
-    """Webhook (反向 HTTP) Adapter"""
+class ComposeWebhookAdapter(ReverseAdapter):
+    """Webhook (反向 HTTP) Adapter, 同时使用了正向 HTTP 以进行 API 调用支持"""
+
+    tags: FrozenSet[str] = frozenset(["reverse", "http"])
 
     def __init__(
         self,
@@ -88,7 +89,7 @@ class WebhookAdapter(ReverseAdapter):
         mirai_session: MiraiSession,
         route: str = "/",
         extra_headers: Optional[Dict[str, str]] = None,
-        log: bool = False,
+        log: bool = True,
         *,
         app: Optional[FastAPI] = None,
         port: int = 8000,
@@ -107,6 +108,7 @@ class WebhookAdapter(ReverseAdapter):
         )
         self.asgi.add_api_route(self.route, self.http_endpoint, methods=["POST"])
         self.extra_headers: Dict[str, str] = extra_headers or {}
+        self.connected: bool = False
 
     async def http_endpoint(self, request: Request):
         header: Dict[str, str] = dict(request.headers.items())
@@ -115,12 +117,26 @@ class WebhookAdapter(ReverseAdapter):
                 key = key.lower()
                 if val != header.get(key, ""):
                     raise HTTPException(status_code=401, detail="Authorization Failed")
+            self.connected = True
             await self.event_queue.put(self.build_event(await request.json()))
         return {"command": "", "data": {}}
+
+    authenticate = HttpAdapter.authenticate
+
+    async def call_api(
+        self,
+        action: str,
+        method: CallMethod,
+        data: Optional[Union[Dict[str, Any], str, FormData]] = None,
+    ) -> Union[dict, list]:
+        await await_predicate(lambda: self.connected)
+        return await HttpAdapter.call_api(self, action, method, data)
 
 
 class ReverseWebsocketAdapter(ReverseAdapter):
     """反向 WebSocket Adapter"""
+
+    tags: FrozenSet[str] = frozenset(["reverse", "websocket"])
 
     def __init__(
         self,
@@ -129,7 +145,7 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         route: str = "/",
         extra_headers: Optional[Dict[str, str]] = None,
         query_params: Optional[Dict[str, str]] = None,
-        log: bool = False,
+        log: bool = True,
         *,
         app: Optional[FastAPI] = None,
         port: int = 8000,
@@ -151,6 +167,7 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         self.websocket: Optional[WebSocket] = None
         self.extra_headers: Dict[str, str] = extra_headers or {}
         self.query_params: Dict[str, str] = query_params or {}
+        self.connected: bool = False
 
     async def websocket_endpoint(self, websocket: WebSocket):
         header: Dict[str, str] = dict(websocket.headers.items())
@@ -172,45 +189,63 @@ class ReverseWebsocketAdapter(ReverseAdapter):
                 data: dict = raw_data["data"]
                 if not self.id_manager.free(sync_id, validate_response(data)):
                     await self.event_queue.put(self.build_event(data))
+                    self.connected = True
         except WebSocketDisconnect:
             self.websocket = None
             self.mirai_session.session_key = None
+            self.connected = False
 
     async def get_session_key(self):
-        if not self.mirai_session.single_mode:
-            data = await self.call_api(
-                "verify",
-                CallMethod.POST,
-                {
+        if not self.mirai_session.single_mode and not self.mirai_session.session_key:
+            future = self.broadcast.loop.create_future()
+            sync_id: int = self.id_manager.allocate(future)
+            content = {
+                "syncId": str(sync_id),
+                "command": "verify",
+                "content": {
                     "verifyKey": self.mirai_session.verify_key,
                     "qq": self.mirai_session.account,
                     "sessionKey": None,
                 },
-                meta=True,
-            )
-            self.mirai_session.session_key = data["session"]
-
-    async def call_cycle(self):
-        async for call in yield_with_timeout(self.call_queue.get, lambda: self.running):
-            if (
-                not any([self.mirai_session.session_key, self.mirai_session.single_mode, call.meta])
-                or not self.websocket
-            ):
-                await self.call_queue.put(call)
-                continue
-            sync_id: int = self.id_manager.allocate(call.future)
-            content = {
-                "syncId": str(sync_id),
-                "command": call.action.replace("/", "_"),
-                "content": call.data,
             }
-            if call.method == CallMethod.RESTGET:
-                content["subCommand"] = "get"
-            elif call.method == CallMethod.RESTPOST:
-                content["subCommand"] = "update"
-            elif call.method == CallMethod.MULTIPART:
-                self.id_manager.free(
-                    sync_id,
-                    NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {call.method}"),
-                )
-            await self.websocket.send_text(json.dumps(content, cls=DatetimeEncoder))
+            await self.websocket.send_text(json.dumps(content))
+            self.mirai_session.session_key = (await future)["session"]
+            logger.success("Successfully got session key")
+
+    async def call_api(
+        self,
+        action: str,
+        method: CallMethod,
+        data: Optional[Union[Dict[str, Any], str, FormData]] = None,
+    ) -> Union[dict, list]:
+        await await_predicate(lambda: self.connected)
+        await await_predicate(lambda: self.websocket is not None and self.mirai_session.session_key)
+        future = self.broadcast.loop.create_future()
+        sync_id: int = self.id_manager.allocate(future)
+        content = {
+            "syncId": str(sync_id),
+            "command": action.replace("/", "_"),
+            "content": data,
+        }
+        if method == CallMethod.RESTGET:
+            content["subCommand"] = "get"
+        elif method == CallMethod.RESTPOST:
+            content["subCommand"] = "update"
+        elif method == CallMethod.MULTIPART:
+            self.id_manager.free(
+                sync_id,
+                NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {method}"),
+            )
+        await self.websocket.send_text(json.dumps(content, cls=DatetimeEncoder))
+
+
+class ComposeReverseWebsocketAdapter(ReverseWebsocketAdapter):
+    """反向 WebSocket 与正向 HTTP 的组合 Adapter"""
+
+    tags: FrozenSet[str] = frozenset(["reverse", "websocket", "http"])
+
+    async def call_api(
+        self, action: str, method: CallMethod, data: Optional[Union[Dict[str, Any], str, FormData]] = None
+    ) -> Union[dict, list]:
+        await await_predicate(lambda: self.connected)
+        return await HttpAdapter.call_api(self, action, method, data)

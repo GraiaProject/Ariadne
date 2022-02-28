@@ -8,8 +8,13 @@ from graia.scheduler import GraiaScheduler
 from graia.scheduler.timers import every_custom_seconds
 from loguru import logger
 
-from graia.ariadne.adapter import Combine, DebugAdapter, WebsocketAdapter
-from graia.ariadne.adapter.reverse import ReverseWebsocketAdapter, WebhookAdapter
+from graia.ariadne.adapter import WebsocketAdapter
+from graia.ariadne.adapter.forward import ComposeForwardAdapter
+from graia.ariadne.adapter.reverse import (
+    ComposeReverseWebsocketAdapter,
+    ComposeWebhookAdapter,
+    ReverseWebsocketAdapter,
+)
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import (
@@ -31,7 +36,6 @@ from graia.ariadne.message.parser.twilight import (
     WildcardMatch,
 )
 from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
-from graia.ariadne.util import gen_subclass
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
@@ -44,7 +48,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        Combine[ReverseWebsocketAdapter](bcc, MiraiSession(url, account, verify_key), "/ws", port=23333),
+        ComposeReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,

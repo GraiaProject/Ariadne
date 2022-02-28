@@ -2,12 +2,11 @@
 
 import asyncio
 import json
-from asyncio import CancelledError, Future, Task
-from typing import Any, List, Optional, Tuple, Union
+from asyncio import CancelledError, Task
+from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union
 
 import ujson
 from aiohttp import (
-    ClientConnectionError,
     ClientSession,
     ClientWebSocketResponse,
     FormData,
@@ -20,7 +19,7 @@ from yarl import URL
 
 from ..exception import InvalidSession
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
-from ..util import yield_with_timeout
+from ..util import await_predicate, yield_with_timeout
 from . import Adapter
 from .util import SyncIDManager, validate_response
 
@@ -28,8 +27,9 @@ from .util import SyncIDManager, validate_response
 class HttpAdapter(Adapter):
     """
     仅使用正向 HTTP 的适配器, 采用短轮询接收事件/消息.
-    不推荐.
     """
+
+    tags: FrozenSet[str] = frozenset(["http", "forward"])
 
     def __init__(
         self,
@@ -38,11 +38,20 @@ class HttpAdapter(Adapter):
         fetch_interval: float = 0.5,
         count: int = 10,
     ) -> None:
+        """初始化 HttpAdapter
+
+        Args:
+            broadcast (Broadcast): 广播系统
+            mirai_session (MiraiSession): MiraiSession 实例
+            fetch_interval (float, optional): 抓取事件间隔(s). Defaults to 0.5.
+            count (int, optional): 单次抓取事件数目. Defaults to 10.
+        """
         super().__init__(broadcast, mirai_session)
         self.fetch_interval = fetch_interval
         self.count = count
 
     async def authenticate(self) -> None:
+        """在 mira-api-http 进行认证并存入 MiraiSession"""
         if not self.mirai_session.single_mode and not self.mirai_session.session_key:
             async with self.session.post(
                 self.mirai_session.url_gen("verify"),
@@ -57,6 +66,7 @@ class HttpAdapter(Adapter):
                 response.raise_for_status()
                 validate_response(await response.json())
             self.mirai_session.session_key = session_key
+            logger.success("Successfully got session key")
 
     async def fetch_cycle(self) -> None:
         await self.authenticate()
@@ -77,63 +87,49 @@ class HttpAdapter(Adapter):
                     await self.event_queue.put(event)
             self.mirai_session.session_key = None
 
-    async def call_cycle(self) -> None:
-        async for call in yield_with_timeout(self.call_queue.get, lambda: self.running):
-            if not any(
-                [
-                    self.mirai_session.session_key,
-                    self.mirai_session.single_mode,
-                    call.meta and not getattr(self, "route", None),
-                ]
-            ):
-                await self.call_queue.put(call)
-                try:
-                    await self.authenticate()
-                except ClientConnectionError as e:
-                    logger.error(e.__class__.__name__)
-                    await asyncio.sleep(3)
-                continue
-            data = call.data
-            action = call.action
-            method = call.method
-            if method in (CallMethod.GET, CallMethod.RESTGET):
-                if isinstance(data, str):
-                    data = json.loads(data)
-                async with self.session.get(
-                    URL(self.mirai_session.url_gen(action)).with_query(data)
-                ) as response:
-                    response.raise_for_status()
-                    resp_json: dict = await response.json()
+    async def call_api(
+        self,
+        action: str,
+        method: CallMethod,
+        data: Optional[Union[Dict[str, Any], str, FormData]] = None,
+    ) -> Union[dict, list]:
+        await await_predicate(lambda: self.mirai_session.session_key or self.mirai_session.single_mode)
+        if method in (CallMethod.GET, CallMethod.RESTGET):
+            if isinstance(data, str):
+                data = json.loads(data)
+            async with self.session.get(URL(self.mirai_session.url_gen(action)).with_query(data)) as response:
+                response.raise_for_status()
+                resp_json: dict = await response.json()
 
-            elif method in (CallMethod.POST, CallMethod.RESTPOST):
-                if not isinstance(data, str):
-                    data = json.dumps(data, cls=DatetimeEncoder)
-                async with self.session.post(self.mirai_session.url_gen(action), data=data) as response:
-                    response.raise_for_status()
-                    resp_json: dict = await response.json()
+        elif method in (CallMethod.POST, CallMethod.RESTPOST):
+            if not isinstance(data, str):
+                data = json.dumps(data, cls=DatetimeEncoder)
+            async with self.session.post(self.mirai_session.url_gen(action), data=data) as response:
+                response.raise_for_status()
+                resp_json: dict = await response.json()
 
-            else:  # MULTIPART
-                if isinstance(data, FormData):
-                    form = data
-                elif isinstance(data, dict):
-                    form = FormData(quote_fields=False)
-                    for k, v in data.items():
-                        v: Union[str, bytes, Tuple[Any, dict]]
-                        if isinstance(v, tuple):
-                            form.add_field(k, v[0], **v[1])
-                        else:
-                            form.add_field(k, v)
-                async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
-                    response.raise_for_status()
-                    resp_json: dict = await response.json()
+        else:  # MULTIPART
+            if isinstance(data, FormData):
+                form = data
+            elif isinstance(data, dict):
+                form = FormData(quote_fields=False)
+                for k, v in data.items():
+                    v: Union[str, bytes, Tuple[Any, dict]]
+                    if isinstance(v, tuple):
+                        form.add_field(k, v[0], **v[1])
+                    else:
+                        form.add_field(k, v)
+            async with self.session.post(self.mirai_session.url_gen(action), data=form) as response:
+                response.raise_for_status()
+                resp_json: dict = await response.json()
 
-            val = validate_response(resp_json)
-            if isinstance(val, Exception):
-                if isinstance(val, InvalidSession):
-                    self.mirai_session.session_key = None
-                call.future.set_exception(val)
-            else:
-                call.future.set_result(val)
+        val = validate_response(resp_json)
+        if isinstance(val, Exception):
+            if isinstance(val, InvalidSession):
+                self.mirai_session.session_key = None
+            raise val
+        else:
+            return val
 
 
 class WebsocketAdapter(Adapter):
@@ -141,9 +137,19 @@ class WebsocketAdapter(Adapter):
     正向 Websocket 适配器.
     """
 
+    tags: FrozenSet[str] = frozenset(["websocket", "forward"])
+
     def __init__(
         self, broadcast: Broadcast, mirai_session: MiraiSession, ping: bool = True, log: bool = False
     ) -> None:
+        """初始化 WebsocketAdapter
+
+        Args:
+            broadcast (Broadcast): 广播系统
+            mirai_session (MiraiSession): MiraiSession 实例
+            ping (bool, optional): 是否发送 ping 消息. Defaults to True.
+            log (bool, optional): 是否记录网络日志. Defaults to False.
+        """
         super().__init__(broadcast, mirai_session)
         self.ping = ping
         self.ping_task: Optional[Task] = None
@@ -177,33 +183,6 @@ class WebsocketAdapter(Adapter):
                     logger.debug("websocket: pinger exit")
                 break
 
-    async def call_cycle(self):
-        async for call in yield_with_timeout(self.call_queue.get, lambda: self.running):
-            if (
-                not any([self.mirai_session.session_key, self.mirai_session.single_mode, call.meta])
-                or not self.websocket
-            ):
-                await self.call_queue.put(call)
-                continue
-
-            sync_id: int = self.id_manager.allocate(call.future)
-            content = {
-                "syncId": str(sync_id),
-                "command": call.action.replace("/", "_"),
-                "content": call.data,
-            }
-            if call.method == CallMethod.RESTGET:
-                content["subCommand"] = "get"
-            elif call.method == CallMethod.RESTPOST:
-                content["subCommand"] = "update"
-            elif call.method == CallMethod.MULTIPART:
-                self.id_manager.free(
-                    sync_id,
-                    NotImplementedError(f"Unsupported operation for WebsocketAdapter: {call.method}"),
-                    Future.set_exception,
-                )
-            await self.websocket.send_str(json.dumps(content, cls=DatetimeEncoder))
-
     async def fetch_cycle(self) -> None:
         self.running = True
         async with ClientSession() as session:
@@ -229,6 +208,7 @@ class WebsocketAdapter(Adapter):
                             data: dict = raw_data["data"]
                             if "session" in data:
                                 self.mirai_session.session_key = data["session"]
+                                logger.success("Successfully got session key")
                                 continue
                             if not self.id_manager.free(sync_id, validate_response(data)):
                                 await self.event_queue.put(self.build_event(data))
@@ -252,3 +232,13 @@ class WebsocketAdapter(Adapter):
                             logger.debug("websocket: ping task complete")
                     logger.info("websocket: disconnected")
                     self.running = False
+            self.websocket = None
+        self.session = None
+
+
+class ComposeForwardAdapter(WebsocketAdapter):
+    """正向 HTTP 与 Websocket 的组合适配器."""
+
+    tags: FrozenSet[str] = frozenset(["websocket", "http", "forward"])
+
+    call_api = HttpAdapter.call_api

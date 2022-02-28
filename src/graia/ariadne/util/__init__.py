@@ -86,7 +86,6 @@ class LoguruHandler(logging.Handler):
 
 def inject_loguru_traceback(loop: AbstractEventLoop = None):
     """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
-    logging.basicConfig(handlers=[LoguruHandler()], level=0)
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
     if loop:

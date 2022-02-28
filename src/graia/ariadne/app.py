@@ -31,8 +31,6 @@ from typing import (
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.adapter import ReverseAdapter
-
 from .adapter import Adapter, DefaultAdapter
 from .context import enter_context, enter_message_send_context
 from .dispatcher import ContextDispatcher
@@ -1659,7 +1657,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 self.broadcast.finale_dispatchers.append(ContextDispatcher)
 
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
-            if not isinstance(self.adapter, ReverseAdapter):
+            if "reverse" not in self.adapter.tags:
                 await await_predicate(
                     lambda: self.adapter.mirai_session.session_key or self.adapter.mirai_session.single_mode,
                     0.0001,
@@ -1711,7 +1709,8 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         try:
             self.loop.run_until_complete(self.lifecycle())
         except KeyboardInterrupt:
-            self.loop.run_until_complete(self.join())
+            pass
+        self.loop.run_until_complete(self.join())
 
     @app_ctx_manager
     async def getVersion(self, auto_set: bool = True) -> str:
@@ -1725,7 +1724,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         """
         if self.mirai_session.version:
             return self.mirai_session.version
-        result = await self.adapter.call_api("about", CallMethod.GET, meta=True)
+        result = await self.adapter.call_api("about", CallMethod.GET)
         version = result["version"]
         if auto_set:
             self.mirai_session.version = version

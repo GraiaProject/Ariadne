@@ -2,7 +2,7 @@
 
 # no error
 
-from ..adapter import Combine as Combine
+from ..adapter import ComposeForwardAdapter as ComposeForwardAdapter
 from ..adapter import DefaultAdapter as DefaultAdapter
 from ..adapter import HttpAdapter as HttpAdapter
 from ..adapter import WebsocketAdapter as WebsocketAdapter
@@ -46,3 +46,12 @@ from ..util import cpu_bound as cpu_bound
 from ..util import io_bound as io_bound
 from . import event as event
 from . import message as message
+
+try:
+    from ..adapter.reverse import (
+        ComposeReverseWebsocketAdapter as ComposeReverseWebsocketAdapter,
+    )
+    from ..adapter.reverse import ComposeWebhookAdapter as ComposeWebhookAdapter
+    from ..adapter.reverse import ReverseWebsocketAdapter as ReverseWebsocketAdapter
+except ImportError:
+    pass

@@ -2,7 +2,6 @@
 import abc
 import enum
 import inspect
-import itertools
 from contextlib import suppress
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -131,7 +130,7 @@ class Slot(ParamDesc):
             "SlotModel",
             __validators__={
                 f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
-                for i, v in zip(itertools.count(), validators)
+                for i, v in enumerate(validators)
             },
             val=(self.type, ...),  # default is handled at exec
         )
@@ -176,7 +175,7 @@ class Arg(ParamDesc):
 
         self.nargs = len(self.tags)
         self.type = type
-        self.model: Optional[BaseModel] = None
+        self.model: Optional[Type[BaseModel]] = None
 
     def gen_model(self, validators: Iterable[Callable]) -> None:
         if self.model:
@@ -203,7 +202,7 @@ class Arg(ParamDesc):
                 "ArgModel",
                 __validators__={
                     f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
-                    for i, v in zip(itertools.count(), validators)
+                    for i, v in enumerate(validators)
                 },
                 val=(self.type, ...),
             )
@@ -212,7 +211,7 @@ class Arg(ParamDesc):
                 "ArgModel",
                 __validators__={
                     f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
-                    for i, v in zip(itertools.count(), validators)
+                    for i, v in enumerate(validators)
                 },
                 **{self.tags[0]: (self.type, ...)},
             )

@@ -6,12 +6,11 @@
     `BlueGlassBlock` 仅进行了针对 `Ariadne` 的封装, 本模块余下部分从 `Alconna wiki` 复制并修改而来.
 
 ```python
-from graia.ariadne.message.parser.alconna import (
-    AlconnaDispatcher,
-    Alconna
-)
+from arclet.alconna import AlconnaString
+from graia.ariadne.message.parser.alconna import AlconnaDispatcher
+
 # example: !点歌 <歌名> --歌手 <歌手名>                       
-music = Alconna.from_string(
+music = AlconnaString(
     "!点歌 <song_name:str>  #在XXX中搜索歌名", # 主参数: <歌名>
     "--歌手|-s <singer_name:str> #指定歌手"  # 选项名: --歌手  选项别名: -s  选项参数: <歌手名>   
 )
@@ -84,6 +83,15 @@ Alconna(
 -   `AlconnaProperty`: 在 `name` 上进行此标注等价于进行 `arpamar.get(name)`.
 -   `dict`: 当`name`代表`Alconna`内的选项, 并且确实解析到数据时返回对应的字典对象; 未解析时为None
 -   其他类型: 在 `name` 上进行此标注等价于`arpamar.all_matched_args.get(name)`; 未解析时为None
+
+## 特殊事件
+
+当`AlconnaDispatcher`的`reply_help`为`False`时, 其会向bcc广播一个`AlconnaHelpMessage`事件
+
+该事件可获取的参数如下:
+- `help_string`(str): 可能的帮助信息
+- `alconna` (Alconna): 该帮助信息对应的命令
+- `sender`, `messageChain`, `app`, ...: 从源消息事件中可获取的所有参数
 
 ## 与 Twilight 对比
 

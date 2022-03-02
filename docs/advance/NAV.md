@@ -5,5 +5,6 @@
 - [Commander](./commander.md)
 - [Twilight](./twilight.md)
 - [Twilight 旧版文档](./twilight-old.md)
+- [Adapter](./adapter.md)
 - [Alconna](./alconna/quickstart.md)
     - [官方文档](https://arcletproject.github.io/docs/alconna/tutorial)

@@ -1,5 +1,15 @@
 # 更改日志
 
+## 0.6.2
+
+### 添加
+
+增加 `graia.ariadne.util.helper.CoolDown` 工具类.
+
+### 改进
+
+`ReverseAdapter` 现在会在 5s 内退出失败后强制退出.
+
 ## 0.6.1
 
 ### 改动

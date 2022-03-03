@@ -13,7 +13,7 @@ from graia.broadcast.utilles import argument_signature
 from ..event.message import MessageEvent
 
 
-class Cooldown(BaseDispatcher):
+class CoolDown(BaseDispatcher):
     """指示需要冷却时间才能执行操作"""
 
     global_source: Dict[str, Dict[int, datetime]] = {}

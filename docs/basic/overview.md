@@ -16,6 +16,8 @@
 
 `MemberPerm` 支持富比较操作, 也就是说你可以通过 `Member.permission >= MemberPerm.Administrator` 判断成员是否有管理权限.
 
+!!! error "你 **永远不应该** 自行实例化 `Group` `Friend` `Member` `Stranger` 类型."
+
 ## 某些事件的额外方法
 
 [`RequestEvent`](https://github.com/GraiaProject/Ariadne/blob/master/src/graia/ariadne/event/mirai.py#L773)

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import re
+from typing import Optional
 
 from graia.broadcast import Broadcast
 from graia.broadcast.builtin.event import ExceptionThrowed
@@ -24,7 +25,7 @@ from graia.ariadne.event.mirai import (
 )
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, MultimediaElement, Plain, Source
-from graia.ariadne.message.parser.base import MatchContent
+from graia.ariadne.message.parser.base import DetectPrefix, MatchContent
 from graia.ariadne.message.parser.twilight import (
     ArgResult,
     ArgumentMatch,
@@ -36,6 +37,7 @@ from graia.ariadne.message.parser.twilight import (
     WildcardMatch,
 )
 from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
+from graia.ariadne.util.helper import Cooldown
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
@@ -60,8 +62,20 @@ if __name__ == "__main__":
     async def print_ver(app: Ariadne):
         logger.debug(await app.getVersion())
 
+    async def chk(msg: MessageChain):
+        return msg.asDisplay().endswith("override")
+
+    @bcc.receiver(
+        FriendMessage,
+        dispatchers=[Cooldown(5, override_condition=chk, stop_on_cooldown=True)],
+        decorators=[DetectPrefix("trigger_wait")],
+    )
+    async def hdlr(ev: FriendMessage, res_time: Optional[float], force_time: float, app: Ariadne):
+        await app.sendMessage(ev, MessageChain([f"rest: {res_time} {force_time}"]))
+
     @bcc.receiver(FriendMessage)
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):
+        logger.debug(repr(chain))
         if chain.asDisplay().startswith(".wait"):
             await app.sendFriendMessage(friend, MessageChain.create("Wait for 5s!"))
             await asyncio.sleep(5.0)

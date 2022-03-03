@@ -3,12 +3,12 @@ import abc
 from base64 import b64decode, b64encode
 from datetime import datetime
 from enum import Enum
+from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
 from pydantic import validator
 from pydantic.fields import Field
-from ujson import dumps as j_dump
 
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument

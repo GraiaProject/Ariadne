@@ -5,7 +5,6 @@ import json
 from asyncio import CancelledError, Task
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union
 
-import ujson
 from aiohttp import (
     ClientSession,
     ClientWebSocketResponse,
@@ -55,13 +54,13 @@ class HttpAdapter(Adapter):
         if not self.mirai_session.single_mode and not self.mirai_session.session_key:
             async with self.session.post(
                 self.mirai_session.url_gen("verify"),
-                data=ujson.dumps({"verifyKey": self.mirai_session.verify_key}),
+                data=json.dumps({"verifyKey": self.mirai_session.verify_key}),
             ) as response:
                 response.raise_for_status()
                 session_key: dict = (await response.json())["session"]
             async with self.session.post(
                 self.mirai_session.url_gen("bind"),
-                data=ujson.dumps({"sessionKey": session_key, "qq": self.mirai_session.account}),
+                data=json.dumps({"sessionKey": session_key, "qq": self.mirai_session.account}),
             ) as response:
                 response.raise_for_status()
                 validate_response(await response.json())
@@ -203,7 +202,7 @@ class WebsocketAdapter(Adapter):
                 try:
                     async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                         if ws_message.type is WSMsgType.TEXT:
-                            raw_data: dict = ujson.loads(ws_message.data)
+                            raw_data: dict = json.loads(ws_message.data)
                             sync_id: int = int(raw_data["syncId"] or -1)
                             data: dict = raw_data["data"]
                             if "session" in data:

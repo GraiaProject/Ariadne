@@ -48,6 +48,18 @@ class ReverseAdapter(Adapter):
         server_cls: Type[NoSigServer] = NoSigServer,
         **config_kwargs: Any,
     ):
+        """初始化 ReverseAdapter
+
+        Args:
+            broadcast (Broadcast): 事件系统
+            mirai_session (MiraiSession): MiraiSession 实例
+            route (str, optional): 服务路径. Defaults to "/".
+            log (bool, optional): 是否启用连接日志. Defaults to True.
+            app (Optional[FastAPI], optional): ASGI 应用. Defaults to None.
+            port (int, optional): 服务端口. Defaults to 8000.
+            server_cls (Type[NoSigServer], optional): Server 类. Defaults to NoSigServer.
+            **config_kwargs (Any, optional): 额外配置参数. Defaults to {}.
+        """
         super().__init__(broadcast, mirai_session)
         self.asgi = app or FastAPI()
         self.route = route
@@ -68,8 +80,14 @@ class ReverseAdapter(Adapter):
 
     async def stop(self) -> None:
         """停止服务器"""
+        self.running = False
         self.server.should_exit = True
-        await super().stop()
+        try:
+            await asyncio.wait_for(self.fetch_task, timeout=5.0)
+        except asyncio.TimeoutError:
+            self.server.force_exit = True
+        await self.fetch_task
+        self.fetch_task = None
 
     async def fetch_cycle(self):
         async with ClientSession() as session:
@@ -96,6 +114,19 @@ class ComposeWebhookAdapter(ReverseAdapter):
         server_cls: Type[NoSigServer] = NoSigServer,
         **config_kwargs: Any,
     ):
+        """初始化 ComposeWebhookAdapter
+
+        Args:
+            broadcast (Broadcast): 事件系统
+            mirai_session (MiraiSession): MiraiSession 实例
+            route (str, optional): 服务路径. Defaults to "/".
+            extra_headers (Optional[Dict[str, str]], optional): 额外的请求头. Defaults to None.
+            log (bool, optional): 是否启用连接日志. Defaults to True.
+            app (Optional[FastAPI], optional): ASGI 应用. Defaults to None.
+            port (int, optional): 服务端口. Defaults to 8000.
+            server_cls (Type[NoSigServer], optional): Server 类. Defaults to NoSigServer.
+            **config_kwargs (Any, optional): 额外配置参数. Defaults to {}.
+        """
         super().__init__(
             broadcast,
             mirai_session,
@@ -152,6 +183,20 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         server_cls: Type[NoSigServer] = NoSigServer,
         **config_kwargs: Any,
     ):
+        """初始化 ReverseWebsocketAdapter
+
+        Args:
+            broadcast (Broadcast): 事件系统
+            mirai_session (MiraiSession): MiraiSession 实例
+            route (str, optional): 服务路径. Defaults to "/".
+            extra_headers (Optional[Dict[str, str]], optional): 额外的请求头. Defaults to None.
+            query_params (Optional[Dict[str, str]], optional): 额外的请求参数 (在 url 中). Defaults to None.
+            log (bool, optional): 是否启用连接日志. Defaults to True.
+            app (Optional[FastAPI], optional): ASGI 应用. Defaults to None.
+            port (int, optional): 服务端口. Defaults to 8000.
+            server_cls (Type[NoSigServer], optional): Server 类. Defaults to NoSigServer.
+            **config_kwargs (Any, optional): 额外配置参数. Defaults to {}.
+        """
         super().__init__(
             broadcast,
             mirai_session,

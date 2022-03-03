@@ -25,6 +25,14 @@ class Cooldown(BaseDispatcher):
         override_condition: Callable[..., Union[bool, Awaitable[bool]]] = lambda: False,
         stop_on_cooldown: bool = True,
     ) -> None:
+        """初始化一个冷却时间
+
+        Args:
+            interval (Union[int, float, timedelta]): 冷却时间, 单位为秒
+            source (Union[MutableMapping[int, datetime], str, None], optional): 冷却映射来源, 为字符串时从 ClassVar 查找.
+            override_condition ((...) -> Union[bool, Awaitable[bool]], optional): 超越冷却限制的条件.
+            stop_on_cooldown (bool, optional): 是否在未到冷却时间时直接停止执行. Defaults to True.
+        """
         self.interval = interval if isinstance(interval, timedelta) else timedelta(seconds=interval)
         self.stop_on_cooldown: bool = stop_on_cooldown
         self.override_condition: Callable[..., Union[bool, Awaitable[bool]]] = override_condition

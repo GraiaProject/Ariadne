@@ -85,8 +85,8 @@ class AlconnaDispatcher(BaseDispatcher):
         if self.reply_help:
             app: Ariadne = get_running()
 
-            def _send_help_string(help_string: str):
-                app.loop.create_task(app.sendMessage(event.sender, GraiaMessageChain.create(help_string)))
+            async def _send_help_string(help_string: str):
+                await app.sendMessage(event.sender, GraiaMessageChain.create(help_string))
 
             change_help_send_action(_send_help_string)
         else:

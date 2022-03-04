@@ -321,16 +321,18 @@ class Group(AriadneBaseModel):
 
         return await get_running().modifyGroupConfig(self, config)
 
-    async def getAvatar(self) -> bytes:
+    async def getAvatar(self, avatarId: int=1) -> bytes:
         """获取该群组的头像
-
+        Args:
+            avatarId: 群头像标号 (avatarId=1 为当前群头像 avatarId>1 为群封面)
+        
         Returns:
             bytes: 群头像的二进制内容.
         """
         from . import get_running
 
         return await (
-            await get_running().adapter.session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}/")
+            await get_running().adapter.session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{avatarId}/")
         ).content.read()
 
 

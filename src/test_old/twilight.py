@@ -11,8 +11,8 @@ if __name__ == "__main__":
     twilight_args_kwargs = Twilight(
         [
             FullMatch(".command"),
-            "param" @ ArgumentMatch("--option"),
-            ElementMatch(type=At).param("at"),
+            1 @ ArgumentMatch("--option"),
+            ElementMatch(type=At).param(2),
         ]
     )
 

@@ -6,6 +6,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
 from .message.element import Source
+from .typing import generic_isinstance
 
 
 class MessageChainDispatcher(BaseDispatcher):
@@ -60,7 +61,7 @@ class SenderDispatcher(BaseDispatcher):
 
         if isinstance(interface.event, MessageEvent):
             try:
-                if isinstance(interface.event.sender, interface.annotation):
+                if generic_isinstance(interface.event.sender, interface.annotation):
                     return interface.event.sender
             except TypeError:
                 pass

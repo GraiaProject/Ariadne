@@ -1,7 +1,7 @@
 import asyncio
 import os
 import re
-from typing import Optional
+from typing import Optional, Union
 
 from graia.broadcast import Broadcast
 from graia.broadcast.builtin.event import ExceptionThrowed
@@ -37,7 +37,7 @@ from graia.ariadne.message.parser.twilight import (
     WildcardMatch,
 )
 from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
-from graia.ariadne.util.helper import Cooldown
+from graia.ariadne.util.helper import CoolDown
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
@@ -66,12 +66,22 @@ if __name__ == "__main__":
         return msg.asDisplay().endswith("override")
 
     @bcc.receiver(
-        FriendMessage,
-        dispatchers=[Cooldown(5, override_condition=chk, stop_on_cooldown=True)],
+        MessageEvent,
+        dispatchers=[CoolDown(5, override_condition=chk, stop_on_cooldown=True)],
         decorators=[DetectPrefix("trigger_wait")],
     )
-    async def hdlr(ev: FriendMessage, res_time: Optional[float], force_time: float, app: Ariadne):
-        await app.sendMessage(ev, MessageChain([f"rest: {res_time} {force_time}"]))
+    async def hdlr(
+        ev: MessageEvent,
+        res_time: Optional[float],
+        app: Ariadne,
+        sender: Union[Friend, Member],
+    ):
+        await app.sendMessage(
+            ev,
+            MessageChain(
+                [f"""rest: {res_time}s, from {getattr(sender, "name", getattr(sender, "nickname", None))}"""]
+            ),
+        )
 
     @bcc.receiver(FriendMessage)
     async def send(app: Ariadne, chain: MessageChain, friend: Friend):

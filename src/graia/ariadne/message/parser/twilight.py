@@ -4,6 +4,7 @@ import enum
 import re
 from argparse import Action
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     DefaultDict,
@@ -71,7 +72,7 @@ FORCE = SpacePolicy.FORCE
 class Match(abc.ABC, Representation):
     """匹配项抽象基类"""
 
-    dest: str
+    dest: Union[int, str]
 
     def __init__(self) -> None:
         self._help = ""
@@ -87,11 +88,19 @@ class Match(abc.ABC, Representation):
         self.dest = target
         return self
 
-    def __matmul__(self, other: str) -> Self:
+    def __matmul__(self, other: Union[int, str]) -> Self:
         self.dest = other
         return self
 
-    def __rmatmul__(self, other: str) -> Self:
+    def __rmatmul__(self, other: Union[int, str]) -> Self:
+        self.dest = other
+        return self
+
+    def __rshift__(self, other: Union[int, str]) -> Self:
+        self.dest = other
+        return self
+
+    def __rlshift__(self, other: Union[int, str]) -> Self:
         self.dest = other
         return self
 
@@ -211,17 +220,22 @@ class UnionMatch(RegexMatch):
 
     def __init__(
         self,
-        *pattern: str,
+        *pattern: Union[str, Iterable[str]],
         optional: bool = False,
     ) -> None:
         """初始化 UnionMatch 对象.
 
         Args:
-            *pattern (str): 匹配的选择项.
+            *pattern (Union[str, Iterable[str]]): 匹配的选择项.
             optional (bool, optional): 匹配是否可选. Defaults to False.
         """
         super().__init__("", optional)
-        self.pattern: List[str] = list(pattern)
+        self.pattern: List[str] = []
+        for p in pattern:
+            if isinstance(p, str):
+                self.pattern.append(p)
+            else:
+                self.pattern.extend(p)
         self.optional = optional
 
     @property
@@ -289,49 +303,37 @@ class WildcardMatch(RegexMatch):
 class ArgumentMatch(Match, Generic[T]):
     """参数匹配"""
 
-    @overload
-    def __init__(
-        self,
-        *pattern: str,
-        action: Union[str, Type[Action]] = ...,
-        nargs: Union[int, str] = ...,
-        const: Any = ...,
-        default: Any = ...,
-        type: Callable[[str], T] = ...,
-        choices: Iterable[T] = ...,
-        optional: bool = True,
-    ):
-        ...
+    if TYPE_CHECKING:
 
-    @overload
-    def __init__(
-        self,
-        *pattern: str,
-        action: Union[str, Type[Action]] = ...,
-        nargs: Union[int, str] = ...,
-        const: T = ...,
-        default: T = ...,
-        type: Callable[[str], T] = ...,
-        choices: Iterable[T] = ...,
-        optional: bool = True,
-    ):
-        """初始化 ArgumentMatch 对象.
+        @overload
+        def __init__(
+            self,
+            *pattern: str,
+            action: Union[str, Type[Action]] = ...,
+            nargs: Union[int, str] = ...,
+            const: T = ...,
+            default: T = ...,
+            type: Callable[[str], T] = ...,
+            choices: Iterable[T] = ...,
+            optional: bool = True,
+        ):
+            """初始化 ArgumentMatch 对象.
 
-        Args:
-            *pattern (str): 匹配的参数名.
-            action (Union[str, Type[Action]], optional): 参数的动作. Defaults to "store".
-            nargs (Union[int, str], optional): 参数的个数.
-            const (T, optional): 参数的常量值.
-            default (T, optional): 参数的默认值.
-            type (Callable[[str], T], optional): 参数的类型.
-            choices (Iterable[T], optional): 参数的可选值.
-            optional (bool, optional): 参数是否可选. Defaults to True.
-        Returns:
-            None: 无返回
-        """
-        ...
+            Args:
+                *pattern (str): 匹配的参数名.
+                action (Union[str, Type[Action]], optional): 参数的动作. Defaults to "store".
+                nargs (Union[int, str], optional): 参数的个数.
+                const (T, optional): 参数的常量值.
+                default (T, optional): 参数的默认值.
+                type (Callable[[str], T], optional): 参数的类型.
+                choices (Iterable[T], optional): 参数的可选值.
+                optional (bool, optional): 参数是否可选. Defaults to True.
+            Returns:
+                None: 无返回
+            """
+            ...
 
-    def __init__(self, *pattern, **kwargs) -> None:
+    def __init__(self, *pattern: str, **kwargs) -> None:
         """初始化 ArgumentMatch 对象.
 
         Args:
@@ -368,8 +370,8 @@ class ArgumentMatch(Match, Generic[T]):
         if "type" not in self.arg_data:
             self.arg_data["type"] = MessageChainType()
 
-    def param(self, target: str) -> Self:
-        self.arg_data["dest"] = target
+    def param(self, target: Union[int, str]) -> Self:
+        self.arg_data["dest"] = target if isinstance(target, str) else f"_#!{target}!#_"
         return super().param(target)
 
     def __repr_args__(self):
@@ -399,17 +401,17 @@ class Sparkle(Representation):
 
     __slots__ = ("res",)
 
-    def __init__(self, match_result: Dict[str, MatchResult]):
+    def __init__(self, match_result: Dict[Union[int, str], MatchResult]):
         self.res = match_result
 
-    def __getitem__(self, item: str) -> MatchResult:
+    def __getitem__(self, item: Union[int, str]) -> MatchResult:
         return self.get(item)
 
-    def get(self, item: str) -> MatchResult:
+    def get(self, item: Union[int, str]) -> MatchResult:
         return self.res[item]
 
     def __repr_args__(self):
-        return [(k, v) for k, v in self.res.items()]
+        return [(repr(k), v) for k, v in self.res.items()]
 
 
 T_Sparkle = TypeVar("T_Sparkle", bound=Sparkle)
@@ -577,7 +579,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         """从 shell 式命令生成 Twilight.
 
         Args:
-            command (str): 命令, 使用 {param} 的形式创建参数占位符. 使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
+            command (str): 命令, 使用 {param} 或 {0} 的形式创建参数占位符. 使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
 
             extra_args (List[Match], optional): 可选的额外 Match 列表.
 

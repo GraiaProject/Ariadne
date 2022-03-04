@@ -1,4 +1,5 @@
 """Ariadne 的类型标注"""
+import typing
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -104,3 +105,61 @@ class SendMessageAction(Generic[T, R]):
             T: 将作为 sendMessage 的返回值
         """
         raise item
+
+
+def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bool:
+    """检查 cls 是否是 args 中的一个子类, 支持泛型, Any, Union
+
+    Args:
+        cls (type): 要检查的类
+        par (Union[type, Any, Tuple[type, ...]]): 要检查的类的父类
+
+    Returns:
+        bool: 是否是父类
+    """
+    if par is Any:
+        return True
+    try:
+        if isinstance(par, type):
+            return issubclass(cls, par)
+        if isinstance(par, tuple):
+            return any(issubclass(cls, p) for p in par)
+        if typing.get_origin(par) is Union:
+            return any(generic_issubclass(cls, p) for p in typing.get_args(par))
+        if isinstance(par, TypeVar):
+            if par.__constraints__:
+                return any(generic_issubclass(cls, p) for p in par.__constraints__)
+            if par.__bound__:
+                return generic_issubclass(cls, par.__bound__)
+    except TypeError:
+        pass
+    return False
+
+
+def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> bool:
+    """检查 obj 是否是 args 中的一个类型, 支持泛型, Any, Union
+
+    Args:
+        obj (Any): 要检查的对象
+        par (Union[type, Any, Tuple[type, ...]]): 要检查的对象的类型
+
+    Returns:
+        bool: 是否是类型
+    """
+    if par is Any:
+        return True
+    try:
+        if isinstance(par, type):
+            return isinstance(obj, par)
+        if isinstance(par, tuple):
+            return any(isinstance(obj, p) for p in par)
+        if typing.get_origin(par) is Union:
+            return any(generic_isinstance(obj, p) for p in typing.get_args(par))
+        if isinstance(par, TypeVar):
+            if par.__constraints__:
+                return any(generic_isinstance(obj, p) for p in par.__constraints__)
+            if par.__bound__:
+                return generic_isinstance(obj, par.__bound__)
+    except TypeError:
+        pass
+    return False

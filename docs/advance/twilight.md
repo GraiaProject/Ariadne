@@ -40,6 +40,7 @@ twilight = Twilight([FullMatch("指令"), ParamMatch() @ "param"])
     [`Sparkle`][graia.ariadne.message.parser.twilight.Sparkle] 而无需配合 `Broadcast`.
 
     这对于本地调试很有用.
+
 ### 分配参数
 
 ```python
@@ -50,7 +51,27 @@ ParamMatch() @ "param"
 
 也就是 `param: RegexResult` 这里.
 
-与此同时, `#!py ParamMatch().param("param")` 与这个用法等效.
+与此同时, 以下用法等效.
+
+```pycon
+>>> ParamMatch().param("param")
+>>> "param" @ ParamMatch()
+>>> "param" << ParamMatch()
+>>> ParamMatch() >> "param"
+```
+
+!!! warning "注意位移运算符 `>>` 与 `<<` 始终朝向字符串.
+
+???+ info "为什么支持这些运算符? "
+
+    `>>` 与 `<<` 支持的灵感源于其他语言中对于文件流的操作:
+
+    ```C++
+    cin >> var;
+    cout << "value";
+    ```
+
+    我们借鉴了这些语言的设计, 将 `>>` 与 `<<` 的运算符设计为支持 `str` / `int` 类型以进行参数分派.
 
 ## Match
 
@@ -144,3 +165,33 @@ async def reply(..., arg: RegexResult):
 - `MatchResult.matched`: 对应的 `Match` 对象是否匹配.
 - `MatchResult.origin`: 原始 `Match` 对象.
 - `MatchResult.result`: 匹配结果.
+
+### ResultValue 装饰器
+
+`ResultValue` 作为装饰器使用, 可以直接获取匹配结果而不需要从 `Match.result` 提取.
+
+```py hl_lines="10"
+@broadcast.receiver(MessageEvent, dispatchers=[
+        Twilight(
+            [
+                FullMatch(".command"),
+                "arg" @ RegexMatch(r"\d+", optional=True)
+            ]
+        )
+    ]
+)
+async def reply(..., arg: MessageChain = ResultValue()): # 保证不会被正常的流程覆盖
+    ...
+```
+
+## int 类型的参数名
+
+你可以这样: `#!py ParamMatch() @ 1`
+
+之后获取 [`Sparkle`][graia.ariadne.message.parser.twilight.Sparkle] 对象, 并对其进行索引操作.
+
+```py
+p: RegexResult = Sparkle[1]
+```
+
+这里只是顺嘴一提，因为有些时候这个不如 `str` 来的方便.

@@ -9,7 +9,7 @@
 并允许 `poetry` 等打包工具将该静态文件放入包中并发布到 `pypi`.
 
 !!! info "关于 `Saya` 模块的发布方式"
-我在很多的, 像是 A60, Redinn 等人的 Graia 应用中看到他们使用了 `modules`, `plugins` 这种类似 `Bukkit` 的目录模式.
+我在很多的, 像是 A60, Redlnn 等人的 Graia 应用中看到他们使用了 `modules`, `plugins` 这种类似 `Bukkit` 的目录模式.
 事实上, 由于我并没有对关于 `Saya` 模块和使用到 `Saya` 的应用写文档指导,
 这种情况反而是在我意料之中... 就算我强行推进我想象的理想架构, Python 现在也没有类似 lerna 这样的用于 monorepo 模式开发的包管理工具...
  那么我就先做个示范吧.

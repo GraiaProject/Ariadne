@@ -29,19 +29,19 @@
 -   [`Bryan不可思议 (ProgramRipper)`](https://github.com/ProgramRipper): `Graia Project` 的 协作者.
 -   [`BlueGlassBlock`](https://github.com/BlueGlassBlock): `Ariadne` 的 主要维护者.
 -   早期测试者 (依参与时间排序):
-    -   [`Redlnn`](https://github.com/Redlnn)
-    -   [`A60 (djkcyl)`](https://github.com/djkcyl)
-    -   [`ZhaoZuohong`](https://github.com/ZhaoZuohong)
-    -   [`I-love-study`](https://github.com/I-love-study)
-    -   [`社会易姐QwQ`](https://github.com/SocialSisterYi)
+    -   @Redlnn
+    -   @djkcyl (A60)
+    -   @ZhaoZuohong
+    -   @I-love-study
+    -   @SocialSisterYi
 
 赞助者:
 
-- 一只快乐的小指针 <https://github.com/zzzzz167>
+- 一只快乐的小指针 @zzzzz167
 
-- One More Light <https://github.com/LyqMrq>
+- One More Light @LyqMrq
 
-- 霖念 <https://github.com/Little-LinNian>
+- 霖念 @Little-LinNian
 
 感谢所有 Ariadne 仓库的贡献者们:
 

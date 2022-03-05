@@ -1,5 +1,25 @@
 # 更改日志
 
+## 0.6.3
+
+### 修复
+
+`Mention` 与 `MentionMe` 实现.
+
+`Twilight` 对 `ArgumentMatch` 是否匹配判断错误.
+
+### 改进
+
+允许 `Group.getAvatar` 使用 `cover` 参数名获取其他封面. (@SocialSisterYi)
+
+支持 `twilight.Match` 使用位移符号.
+
+允许 `Ariadne.create` 尝试递归创建对象.
+
+`Twilight` 更好的帮助生成.
+
+更新 `Alconna` 至 `0.7+` 并添加 `skip_for_unmatch` 参数. (#115)
+
 ## 0.6.2
 
 ### 添加

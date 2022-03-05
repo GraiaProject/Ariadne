@@ -70,13 +70,13 @@ class CoolDown(BaseDispatcher):
             return Force(None)
         anno = typing.get_args(interface.annotation) or (interface.annotation,)
         if timedelta in anno:
-            return next_exec_time - current_time
+            return timedelta() if next_exec_time < current_time else next_exec_time - current_time
         elif datetime in anno:
             return next_exec_time
         elif float in anno:
-            return next_exec_time.timestamp() - current_time.timestamp()
+            return 0.0 if next_exec_time < current_time else next_exec_time.timestamp() - current_time.timestamp()
         elif int in anno:
-            return int(next_exec_time.timestamp() - current_time.timestamp())
+            return 0 if next_exec_time < current_time else int(next_exec_time.timestamp() - current_time.timestamp())
 
     async def afterDispatch(
         self,

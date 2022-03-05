@@ -48,4 +48,3 @@
 <a href="https://github.com/GraiaProject/Ariadne/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=GraiaProject/Ariadne" />
 </a>
-

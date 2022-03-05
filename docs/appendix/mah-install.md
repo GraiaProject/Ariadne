@@ -97,7 +97,7 @@ xxxx-xx-xx xx:xx:xx I/main: mirai-console started successfully.
 
 === "通过 MCL 管理"
 
-    只需运行 
+    只需运行
     ```bash
     ./mcl --update-package net.mamoe:mirai-api-http --channel stable-v2 --type plugin
     ./mcl -u

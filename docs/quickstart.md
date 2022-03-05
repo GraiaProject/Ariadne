@@ -10,7 +10,7 @@
 !!! error "注意"
 
     什么? 你还不会安装 `mirai-console`? 请移步:
-    
+
     - [`Mirai API HTTP 安装`](appendix/mah-install.md)
     - [社区文档: `Mirai` 的配置](https://graiax.cn/make_ero_bot/before/1_mirai.html)
 

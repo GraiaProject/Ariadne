@@ -44,7 +44,7 @@
     @app.broadcast.receiver("FriendMessage")
     async def friend_message_listener(app: Ariadne, friend: Friend):
         await app.sendMessage(friend, MessageChain(["Hello, World!"]))
-    
+
 
     app.launch_blocking()
     ```

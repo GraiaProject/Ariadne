@@ -9,10 +9,10 @@
 from arclet.alconna import AlconnaString
 from graia.ariadne.message.parser.alconna import AlconnaDispatcher
 
-# example: !点歌 <歌名> --歌手 <歌手名>                       
+# example: !点歌 <歌名> --歌手 <歌手名>
 music = AlconnaString(
     "!点歌 <song_name:str>  #在XXX中搜索歌名", # 主参数: <歌名>
-    "--歌手|-s <singer_name:str> #指定歌手"  # 选项名: --歌手  选项别名: -s  选项参数: <歌手名>   
+    "--歌手|-s <singer_name:str> #指定歌手"  # 选项名: --歌手  选项别名: -s  选项参数: <歌手名>
 )
 
 @app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, reply_help=True)])
@@ -54,7 +54,7 @@ Alconna(
     options=[
         Subcommand(
             "sub_name",
-            Option("sub_opt", sub_opt_arg="sub_arg"), 
+            Option("sub_opt", sub_opt_arg="sub_arg"),
             sub_main_arg="sub_main_arg"
         ),
         Option("opt", opt_arg="opt_arg")

@@ -153,7 +153,7 @@ except KeyboardInterrupt:
 ```
 
 !!! note "提示"
-    
+
     实际上 `with saya.module_context():` 是给 `require` 导入的模块提供 `Saya` 实例的上下文,
     从而可以使用 `Saya.current()` 获取当前 `Saya` 实例.
 

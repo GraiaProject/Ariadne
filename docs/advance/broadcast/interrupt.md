@@ -62,7 +62,7 @@ from graia.broadcast.interrupt.waiter import Waiter
             self.member = member if isinstance(member, int) else member.id
 
         # detected_event 方法是必须的
-        async def detected_event(self, group: Group, member: Member, message: MessageChain): 
+        async def detected_event(self, group: Group, member: Member, message: MessageChain):
             if self.group == group.id and self.member == member.id:
                 return message
     ```
@@ -82,7 +82,7 @@ from graia.broadcast.interrupt.waiter import Waiter
             self.member = member if isinstance(member, int) else member.id
 
         # detected_event 方法是必须的
-        async def detected_event(self, group: Group, member: Member, message: MessageChain): 
+        async def detected_event(self, group: Group, member: Member, message: MessageChain):
             if self.group == group.id and self.member == member.id:
                 return message
     ```

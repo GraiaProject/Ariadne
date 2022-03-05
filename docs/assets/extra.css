@@ -17,7 +17,7 @@ body {
     /* Font with fallback for code */
     --md-code-font-family: var(--md-code-font, _), SFMono-Regular, Consolas,
         Menlo, var(--md-text-font, _);
-    
+
 }
 
 ul.clear-list {

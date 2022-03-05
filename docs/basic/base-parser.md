@@ -86,7 +86,7 @@ async def on_mention_me(chain: MessageChain): # 不会改动消息链
 同时你需要为其提供 target 参数.
 
 ```py
-@broadcast.receiver(..., decorators=[Mention(target=...)]) # target: int | str  
+@broadcast.receiver(..., decorators=[Mention(target=...)]) # target: int | str
 # int: 用户 QQ 号, str: 用户的名字
 async def on_mention(chain: MessageChain): # 不会改动消息链
     ...
@@ -119,8 +119,8 @@ async def on_contain_keyword(chain: MessageChain): # 不会改动消息链
 `Decorator`: 放入 `broadcast.receiver` / `ListenerSchema` 的 `decorators` .
 
 ```py
-@broadcast.receiver(..., decorators=[MatchContent(content=...)]) 
-# content: str | MessageChain 
+@broadcast.receiver(..., decorators=[MatchContent(content=...)])
+# content: str | MessageChain
 # 当 content 为 str 时, 将会与MessageChain.asDisplay()进行比较, 当 content 为 MessageChain 时, 将会与 MessageChain 进行比较
 async def on_match_content(chain: MessageChain): # 不会改动消息链
     ...

@@ -149,4 +149,3 @@ MessageChain([Plain(text='test'), At(target=12345)])
 
 自 `0.5.1` 起, 所有消息链的修改操作都支持布尔参数 `copy` (可能为仅关键字参数), `copy = True` 时会返回消息链的 **副本** (相当于在 `chain.copy()` 上操作),
 否则会返回自身的引用.
-

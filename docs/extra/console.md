@@ -103,7 +103,7 @@ Ariadne A.A.A>
 
     ```py title="some_module.py"
     from graia.ariadne.console.saya import ConsoleSchema
-    
+
     channel = ...
 
     @channel.use(ConsoleSchema([Dispatcher_1, ...], [Decorator_1, ...]))

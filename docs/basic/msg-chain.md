@@ -208,7 +208,7 @@ assert message_chain.count(Plain) == 1
 !!! graiax "社区文档相关章节"
 
     [总览](https://graiax.cn/make_ero_bot/tutorials/3_1_ero_comes.html)
-    
+
     [多媒体元素](https://graiax.cn/make_ero_bot/tutorials/3_2_kugimiya.html)
 
     [文件发送](https://graiax.cn/make_ero_bot/tutorials/13_encrypt_compressed_file.html)

@@ -1,7 +1,7 @@
 # asyncio 教程
 
 > 本章摘自 YiriMirai 的文档。
-> 
+>
 > YiriMirai 是一个轻量, 低耦合的 Python QQ Bot 框架.
 
 Python 从 3.4 开始引入了 asyncio 库，提供异步协程支持，从 Python 3.4 到 3.7，对异步的支持一直在不断地进步。可以说，异步就是 Python 未来的趋势之一。

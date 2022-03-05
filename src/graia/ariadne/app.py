@@ -1521,11 +1521,14 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 param.VAR_KEYWORD,
                 param.VAR_POSITIONAL,
             ):
-                if param.annotation in self.info:
-                    if param.kind is param.POSITIONAL_ONLY:
-                        call_args.append(self.info[param.annotation])
-                    else:
-                        call_kwargs[name] = self.info[param.annotation]
+                param_obj = self.info.get(param.annotation, param.default)
+                if param_obj is param.empty:
+                    param_obj = self.create(param.annotation, reuse=True)
+                if param.kind is param.POSITIONAL_ONLY:
+                    call_args.append(param_obj)
+                else:
+                    call_kwargs[name] = param_obj
+
         obj: "T" = cls(*call_args, **call_kwargs)
         if reuse:
             self.info[cls] = obj

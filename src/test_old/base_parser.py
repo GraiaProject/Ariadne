@@ -7,7 +7,7 @@ from loguru import logger
 from graia.ariadne.event.message import MessageEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import *
-from graia.ariadne.message.parser.base import DetectPrefix, DetectSuffix
+from graia.ariadne.message.parser.base import *
 from graia.ariadne.model import Friend
 
 if __name__ == "__main__":
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         devtools.debug(result)
 
     @bcc.receiver(MessageEvent)
-    async def pap(result: MessageChain = DetectSuffix("end")):
+    async def pap(result: MessageChain = Mention(".test")):
         devtools.debug(result)
 
     @bcc.receiver(MessageEvent, decorators=[DetectPrefix(".system")])

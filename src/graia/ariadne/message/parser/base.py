@@ -93,7 +93,7 @@ class MentionMe(Decorator):
                 return header + rest.removeprefix(name).removeprefix(" ")
         if rest and isinstance(first, At):
             if first.target == ariadne.account:
-                return header + rest[1:].removeprefix(" ")
+                return header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
 
         raise ExecutionStop
 
@@ -118,7 +118,7 @@ class Mention(Decorator):
                 return header + rest.removeprefix(self.person).removeprefix(" ")
         if rest and isinstance(first, At):
             if isinstance(self.person, int) and first.target == self.person:
-                return header + rest[1:].removeprefix(" ")
+                return header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
 
         raise ExecutionStop
 

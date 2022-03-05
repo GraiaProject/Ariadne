@@ -790,9 +790,9 @@ class OperationMixin(AriadneMixin):
     @app_ctx_manager
     async def getMemberInfo(
         self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
-    ) -> MemberInfo:
+    ) -> Member:
         """
-        获取指定群组成员的可修改状态.
+        获取指定群组成员 (等价于 getMember, 但是更高效).
 
         Args:
             member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
@@ -802,7 +802,7 @@ class OperationMixin(AriadneMixin):
             TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
 
         Returns:
-            MemberInfo: 指定群组成员的可修改状态
+            Member: 指定群组成员
         """
         if not group and not isinstance(member, Member):
             raise TypeError("you should give a Member instance if you cannot give a Group instance to me.")
@@ -818,7 +818,7 @@ class OperationMixin(AriadneMixin):
             },
         )
 
-        return MemberInfo.parse_obj(result)
+        return Member.parse_obj(result)
 
     @app_ctx_manager
     async def modifyMemberInfo(

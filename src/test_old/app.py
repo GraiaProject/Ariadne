@@ -25,7 +25,7 @@ from graia.ariadne.event.mirai import (
 )
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, MultimediaElement, Plain, Source
-from graia.ariadne.message.parser.base import DetectPrefix, MatchContent
+from graia.ariadne.message.parser.base import DetectPrefix, MatchContent, MentionMe
 from graia.ariadne.message.parser.twilight import (
     ArgResult,
     ArgumentMatch,
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        ComposeReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
+        ComposeForwardAdapter(bcc, MiraiSession(url, account, verify_key)),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
@@ -83,13 +83,13 @@ if __name__ == "__main__":
             ),
         )
 
-    @bcc.receiver(FriendMessage)
-    async def send(app: Ariadne, chain: MessageChain, friend: Friend):
+    @bcc.receiver(MessageEvent)
+    async def send(app: Ariadne, ev: MessageEvent, chain: MessageChain = MentionMe()):
         logger.debug(repr(chain))
         if chain.asDisplay().startswith(".wait"):
-            await app.sendFriendMessage(friend, MessageChain.create("Wait for 5s!"))
+            await app.sendMessage(ev, MessageChain.create("Wait for 5s!"))
             await asyncio.sleep(5.0)
-            await app.sendFriendMessage(friend, MessageChain.create("Complete!"))
+            await app.sendMessage(ev, MessageChain.create("Complete!"))
 
     @bcc.receiver(MessageEvent)
     async def check_multi(chain: MessageChain):

@@ -9,4 +9,6 @@
 * [API 文档](./refs/)
 * 开发博客
     - blog/*
+* 魔女的碎碎念
+    - elaina/talk/*
 * [社区文档](https://graiax.cn)

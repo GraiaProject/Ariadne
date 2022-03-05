@@ -2,7 +2,6 @@ name: Build and deploy API Docs
 on:
   push:
     branches:
-      - master
       - dev
 jobs:
   deploy-docs:

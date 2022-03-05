@@ -82,7 +82,7 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 [![Documentation Status](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.rtfd.io/)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/GraiaProject/Ariadne/master.svg)](https://results.pre-commit.ci/latest/github/GraiaProject/Ariadne/master)
 
-[![Build and deploy API Docs](https://github.com/GraiaProject/Ariadne/actions/workflows/api_docs.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/api_docs.yml)
+[![Build and deploy API Docs](https://github.com/GraiaProject/Ariadne/actions/workflows/api_docs.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/api-docs.yml)
 [![Publish to PyPI](https://github.com/GraiaProject/Ariadne/actions/workflows/release-to-pypi.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/release-to-pypi.yml)
 ## 开发版资源 / 参与开发
 

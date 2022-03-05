@@ -53,7 +53,7 @@ class CoolDown(BaseDispatcher):
                 for name, anno, _ in self.override_signature:
                     param_dict[name] = await interface.lookup_param(name, anno, None)
                 res = self.override_condition(**param_dict)
-                if not (await res) if inspect.isawaitable(res) else res:
+                if not ((await res) if inspect.isawaitable(res) else res):
                     raise ExecutionStop
 
         interface.local_storage["current_time"] = current_time

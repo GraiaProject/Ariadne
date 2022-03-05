@@ -63,7 +63,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "arclet-alconna"
-version = "0.6.5"
+version = "0.7.1"
 description = "A Fast Command Analyser based on Dict"
 category = "main"
 optional = true
@@ -441,7 +441,7 @@ name = "graia-saya"
 version = "0.0.15"
 description = ""
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
@@ -1600,7 +1600,7 @@ server = ["uvicorn", "fastapi"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "4cc9609ca3f5ecc9f83175aedf27a431a89558b89b6b7edd596e1f3f190d796d"
+content-hash = "993c063e106480633e06e8ae3813501f9f04345f59d386efbf171a1c7197a3ef"
 
 [metadata.files]
 aiohttp = [
@@ -1686,7 +1686,7 @@ anyio = [
     {file = "anyio-3.5.0.tar.gz", hash = "sha256:a0aeffe2fb1fdf374a8e4b471444f0f3ac4fb9f5a5b542b48824475e0042a5a6"},
 ]
 arclet-alconna = [
-    {file = "arclet-alconna-0.6.5.tar.gz", hash = "sha256:33b6ba6c91afa28747a13f862b9111c7f72a5da0bfbfb0bd8b5059848f63663f"},
+    {file = "arclet-alconna-0.7.1.tar.gz", hash = "sha256:115222f8e841767fa342da2e395d4ced894d082622c09f91d84a92506c285cdb"},
 ]
 asgiref = [
     {file = "asgiref-3.5.0-py3-none-any.whl", hash = "sha256:88d59c13d634dcffe0510be048210188edd79aeccb6a6c9028cdad6f31d730a9"},

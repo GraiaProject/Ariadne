@@ -74,9 +74,17 @@ class CoolDown(BaseDispatcher):
         elif datetime in anno:
             return next_exec_time
         elif float in anno:
-            return 0.0 if next_exec_time < current_time else next_exec_time.timestamp() - current_time.timestamp()
+            return (
+                0.0
+                if next_exec_time < current_time
+                else next_exec_time.timestamp() - current_time.timestamp()
+            )
         elif int in anno:
-            return 0 if next_exec_time < current_time else int(next_exec_time.timestamp() - current_time.timestamp())
+            return (
+                0
+                if next_exec_time < current_time
+                else int(next_exec_time.timestamp() - current_time.timestamp())
+            )
 
     async def afterDispatch(
         self,

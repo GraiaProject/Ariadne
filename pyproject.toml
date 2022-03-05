@@ -47,7 +47,7 @@ typing-extensions = "^4.0.0"
 prompt-toolkit = "^3.0.24"
 arclet-alconna = { version = "^0.6", optional = true }
 graia-scheduler = { version = "^0.0.6", optional = true }
-graia-saya = { version = "^0.0.14", optional = true }
+graia-saya = "^0.0"
 fastapi = { version = "^0.74.1", optional = true }
 uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
 

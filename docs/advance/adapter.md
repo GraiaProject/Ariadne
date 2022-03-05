@@ -2,7 +2,7 @@
 
 `Ariadne` 的适配器用于建立与 `mirai-api-http` 的连接.
 
-!!! info "请参阅 [API 文档](graia.ariadne.adapter)"
+!!! info "请参阅 [API 文档][graia.ariadne.adapter]"
 
 ## 正向适配器
 

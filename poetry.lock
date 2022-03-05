@@ -63,7 +63,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "arclet-alconna"
-version = "0.6.4"
+version = "0.6.5"
 description = "A Fast Command Analyser based on Dict"
 category = "main"
 optional = true
@@ -322,7 +322,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "executing"
-version = "0.8.2"
+version = "0.8.3"
 description = "Get the currently executing AST node of a frame, and other information"
 category = "dev"
 optional = false
@@ -438,10 +438,10 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "graia-saya"
-version = "0.0.14"
+version = "0.0.15"
 description = ""
 category = "main"
-optional = true
+optional = false
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
@@ -490,7 +490,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "griffe"
-version = "0.13.1"
+version = "0.13.2"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 category = "dev"
 optional = false
@@ -564,7 +564,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "importlib-metadata"
-version = "4.11.1"
+version = "4.11.2"
 description = "Read metadata from Python packages"
 category = "dev"
 optional = false
@@ -574,7 +574,7 @@ python-versions = ">=3.7"
 zipp = ">=0.5"
 
 [package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
+docs = ["sphinx", "jaraco.packaging (>=9)", "rst.linker (>=1.9)"]
 perf = ["ipython"]
 testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "packaging", "pyfakefs", "flufl.flake8", "pytest-perf (>=0.9.2)", "pytest-black (>=0.3.7)", "pytest-mypy (>=0.9.1)", "importlib-resources (>=1.3)"]
 
@@ -791,7 +791,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.2.1"
+version = "8.2.4"
 description = "A Material Design theme for MkDocs"
 category = "dev"
 optional = false
@@ -1600,7 +1600,7 @@ server = ["uvicorn", "fastapi"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "95117c81cf07b60e93303ef7f1afb7b57eb5694da9f45603cac188005ff71114"
+content-hash = "4cc9609ca3f5ecc9f83175aedf27a431a89558b89b6b7edd596e1f3f190d796d"
 
 [metadata.files]
 aiohttp = [
@@ -1686,7 +1686,7 @@ anyio = [
     {file = "anyio-3.5.0.tar.gz", hash = "sha256:a0aeffe2fb1fdf374a8e4b471444f0f3ac4fb9f5a5b542b48824475e0042a5a6"},
 ]
 arclet-alconna = [
-    {file = "arclet-alconna-0.6.4.tar.gz", hash = "sha256:d9e5616ccb4c132d5c68de5817e8a05b3ac1163f74480ed5cf22491f93babe11"},
+    {file = "arclet-alconna-0.6.5.tar.gz", hash = "sha256:33b6ba6c91afa28747a13f862b9111c7f72a5da0bfbfb0bd8b5059848f63663f"},
 ]
 asgiref = [
     {file = "asgiref-3.5.0-py3-none-any.whl", hash = "sha256:88d59c13d634dcffe0510be048210188edd79aeccb6a6c9028cdad6f31d730a9"},
@@ -1809,8 +1809,8 @@ distlib = [
     {file = "distlib-0.3.4.zip", hash = "sha256:e4b58818180336dc9c529bfb9a0b58728ffc09ad92027a3f30b7cd91e3458579"},
 ]
 executing = [
-    {file = "executing-0.8.2-py2.py3-none-any.whl", hash = "sha256:32fc6077b103bd19e6494a72682d66d5763cf20a106d5aa7c5ccbea4e47b0df7"},
-    {file = "executing-0.8.2.tar.gz", hash = "sha256:c23bf42e9a7b9b212f185b1b2c3c91feb895963378887bb10e64a2e612ec0023"},
+    {file = "executing-0.8.3-py2.py3-none-any.whl", hash = "sha256:d1eef132db1b83649a3905ca6dd8897f71ac6f8cac79a7e58a1a09cf137546c9"},
+    {file = "executing-0.8.3.tar.gz", hash = "sha256:c6554e21c6b060590a6d3be4b82fb78f8f0194d809de5ea7df1c093763311501"},
 ]
 fastapi = [
     {file = "fastapi-0.74.1-py3-none-any.whl", hash = "sha256:b8ec8400623ef0b2ff558ebe06753b349f8e3a5dd38afea650800f2644ddba34"},
@@ -1894,8 +1894,8 @@ graia-broadcast = [
     {file = "graia_broadcast-0.16.1-py3-none-any.whl", hash = "sha256:89f519b95f3701229674e0f78e31b5497ff30d017e8b949e153c7247adcfe0e3"},
 ]
 graia-saya = [
-    {file = "graia-saya-0.0.14.tar.gz", hash = "sha256:ffeb3e7cf39442c219481e0713e868a15c42e522f32b35685915dd3b7bab7f08"},
-    {file = "graia_saya-0.0.14-py3-none-any.whl", hash = "sha256:060399df3c6984c9d1a3b84551058f78123f072dbfabe0901fc25ba4fc4da060"},
+    {file = "graia-saya-0.0.15.tar.gz", hash = "sha256:5042d43c38ce8ed6e313bbadd94cfe21551f4bc1045d4d3aa0013d169febe5a5"},
+    {file = "graia_saya-0.0.15-py3-none-any.whl", hash = "sha256:b1932309d76efb148f55ea2b7b72fea8adf377dafc8fe5ad306876b44ebad4c8"},
 ]
 graia-scheduler = [
     {file = "graia-scheduler-0.0.6.tar.gz", hash = "sha256:aa4a40a7841709638cc98fe7a093ae0582858ba1326d67961de73e91bc5617b5"},
@@ -1906,8 +1906,8 @@ graphviz = [
     {file = "graphviz-0.19.1.zip", hash = "sha256:09ed0cde452d015fe77c4845a210eb642f28d245f5bc250d4b97808cb8f49078"},
 ]
 griffe = [
-    {file = "griffe-0.13.1-py3-none-any.whl", hash = "sha256:780308bdf7059a8a69fac74de0b3be6451e1412951775d3a77ec2fcd3f4d218f"},
-    {file = "griffe-0.13.1.tar.gz", hash = "sha256:9c86d14b0235c7806e980ed1f82bec3743aff1c901c0be6f57fb7102157a83fa"},
+    {file = "griffe-0.13.2-py3-none-any.whl", hash = "sha256:eca9a59126b43c78c3fd4f82e4bece61e3bc75d6416d010780eadc14a354ec14"},
+    {file = "griffe-0.13.2.tar.gz", hash = "sha256:d2689fe5d4711d2a7fc1fa8ba1c4fbd2ef382cba1b6e58611c01972adf358e0e"},
 ]
 h11 = [
     {file = "h11-0.13.0-py3-none-any.whl", hash = "sha256:8ddd78563b633ca55346c8cd41ec0af27d3c79931828beffb46ce70a379e7442"},
@@ -1948,8 +1948,8 @@ idna = [
     {file = "idna-3.3.tar.gz", hash = "sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d"},
 ]
 importlib-metadata = [
-    {file = "importlib_metadata-4.11.1-py3-none-any.whl", hash = "sha256:e0bc84ff355328a4adfc5240c4f211e0ab386f80aa640d1b11f0618a1d282094"},
-    {file = "importlib_metadata-4.11.1.tar.gz", hash = "sha256:175f4ee440a0317f6e8d81b7f8d4869f93316170a65ad2b007d2929186c8052c"},
+    {file = "importlib_metadata-4.11.2-py3-none-any.whl", hash = "sha256:d16e8c1deb60de41b8e8ed21c1a7b947b0bc62fab7e1d470bcdf331cea2e6735"},
+    {file = "importlib_metadata-4.11.2.tar.gz", hash = "sha256:b36ffa925fe3139b2f6ff11d6925ffd4fa7bc47870165e3ac260ac7b4f91e6ac"},
 ]
 iniconfig = [
     {file = "iniconfig-1.1.1-py2.py3-none-any.whl", hash = "sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3"},
@@ -2038,8 +2038,8 @@ mkdocs-literate-nav = [
     {file = "mkdocs_literate_nav-0.4.1-py3-none-any.whl", hash = "sha256:a4b761792ba21defbe2dfd5e0de6ba451639e1ca0f0661c37eda83cc6261e4f9"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.2.1.tar.gz", hash = "sha256:efcb3a24e1ef374268306cb8b4d3ba0db5d2c4ee4aa1fc4bcbd2087571b1d975"},
-    {file = "mkdocs_material-8.2.1-py2.py3-none-any.whl", hash = "sha256:9496b26593c8a0f9bb18bda7f1b919c0bc16838217f38212dca47cc9006d7fe0"},
+    {file = "mkdocs-material-8.2.4.tar.gz", hash = "sha256:3c350a03e2f7288874f0a9cf5aacfbbb8721cc7d4e389b53169180ee2187223e"},
+    {file = "mkdocs_material-8.2.4-py2.py3-none-any.whl", hash = "sha256:7aa9ed562f68c8592dad3f568378c98a2350398445dbf46de373585b3cd9080e"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},

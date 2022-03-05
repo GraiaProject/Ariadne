@@ -81,9 +81,9 @@ assert not msg_chain.endswith("world!")
 
 ```pycon
 >>> MessageChain(["Hello World!Hello World!""How are you?", At(1), "yo"]).replace(
-        MessageChain(["Hello World!"]),
-        MessageChain(["No!"])
-    )
+...     MessageChain(["Hello World!"]),
+...     MessageChain(["No!"])
+... )
 MessageChain([Plain("No!No!How are you?"), At(1), Plain("yo")])
 ```
 

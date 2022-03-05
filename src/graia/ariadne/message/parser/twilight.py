@@ -39,6 +39,7 @@ from .util import (
     ElementType,
     MessageChainType,
     TwilightParser,
+    Unmatched,
     elem_mapping_ctx,
     split,
     tokenize_command,
@@ -89,20 +90,16 @@ class Match(abc.ABC, Representation):
         return self
 
     def __matmul__(self, other: Union[int, str]) -> Self:
-        self.dest = other
-        return self
+        return self.param(other)
 
     def __rmatmul__(self, other: Union[int, str]) -> Self:
-        self.dest = other
-        return self
+        return self.param(other)
 
     def __rshift__(self, other: Union[int, str]) -> Self:
-        self.dest = other
-        return self
+        return self.param(other)
 
     def __rlshift__(self, other: Union[int, str]) -> Self:
-        self.dest = other
-        return self
+        return self.param(other)
 
 
 T_Match = TypeVar("T_Match", bound=Match)
@@ -237,6 +234,7 @@ class UnionMatch(RegexMatch):
             else:
                 self.pattern.extend(p)
         self.optional = optional
+        self.help(f"在 {self.pattern} 中选择一项")
 
     @property
     def _src(self) -> str:
@@ -265,6 +263,7 @@ class ElementMatch(RegexMatch):
         self.optional = optional
         self._flags: re.RegexFlag = re.RegexFlag(0)
         self.space_policy: SpacePolicy = SpacePolicy.PRESERVE
+        self.help(f"{self.type.__name__} 元素")
 
     @property
     def _src(self) -> str:
@@ -282,6 +281,7 @@ class ParamMatch(RegexMatch):
             r"""(?:").+?(?:")|(?:').+?(?:')|[^ "']+""",
             optional,
         )
+        self._help = "参数"
 
     def __repr_args__(self):
         return [(None, "PARAM"), ("space", self.space_policy.name), ("flags", self._flags)]
@@ -354,7 +354,7 @@ class ArgumentMatch(Match, Generic[T]):
         if not all(i.startswith("-") for i in pattern):
             raise ValueError("pattern must start with '-'")
         self.pattern: List[str] = list(pattern)
-        self.arg_data: Dict[str, Any] = {}
+        self.arg_data: Dict[str, Any] = {"default": Unmatched}
         for k, v in kwargs.items():
             if k == "optional":
                 self.arg_data["required"] = not v
@@ -373,6 +373,10 @@ class ArgumentMatch(Match, Generic[T]):
     def param(self, target: Union[int, str]) -> Self:
         self.arg_data["dest"] = target if isinstance(target, str) else f"_#!{target}!#_"
         return super().param(target)
+
+    def help(self, value: str) -> Self:
+        self.arg_data["help"] = value
+        return super().help(value)
 
     def __repr_args__(self):
         return [(None, self.pattern)]
@@ -434,14 +438,15 @@ class TwilightMatcher:
             if isinstance(i, Match):
                 i = [i]
             for m in i:
-                self.match_ref[type(m)].append(m)
                 if isinstance(m, RegexMatch):
+                    self.match_ref[RegexMatch].append(m)
                     if m.dest:
                         self._group_map[regex_group_cnt + 1] = m
                     regex_str_list.append(m._regex_str)
                     regex_group_cnt += re.compile(m._regex_str).groups
 
                 elif isinstance(m, ArgumentMatch):
+                    self.match_ref[ArgumentMatch].append(m)
                     if "action" in m.arg_data and "type" in m.arg_data:
                         if not self._parser.accept_type(m.arg_data["action"]):
                             del m.arg_data["type"]
@@ -470,7 +475,8 @@ class TwilightMatcher:
             namespace, arguments = self._parser.parse_known_args(arguments)
             nbsp_dict: Dict[str, Any] = namespace.__dict__
             for k, v in self._dest_map.items():
-                result[v.dest] = MatchResult(k in nbsp_dict, v, nbsp_dict[k])
+                res = nbsp_dict.get(k, Unmatched)
+                result[v.dest] = MatchResult(res is not Unmatched, v, res)
         if total_match := self._regex_pattern.fullmatch(" ".join(arguments)):
             for index, match in self._group_map.items():
                 group: Optional[str] = total_match.group(index)
@@ -492,6 +498,8 @@ class TwilightMatcher:
         usage: str = "",
         description: str = "",
         epilog: str = "",
+        dest: bool = True,
+        sep: str = " -> ",
     ) -> str:
         """利用 Match 中的信息生成帮助字符串.
 
@@ -499,6 +507,8 @@ class TwilightMatcher:
             usage (str, optional): 使用方法 (命令格式).
             description (str, optional): 前导描述. Defaults to "".
             epilog (str, optional): 后置总结. Defaults to "".
+            dest (bool, optional): 是否显示分派位置. Defaults to True.
+            sep (str, optional): 分派位置分隔符. Defaults to " -> ".
 
         Returns:
             str: 生成的帮助字符串, 被格式化与缩进过了
@@ -506,14 +516,23 @@ class TwilightMatcher:
 
         formatter = self._parser._get_formatter()
 
-        formatter.add_text(description)
-
         if usage:
             formatter.add_usage(None, self._parser._actions, [], prefix=usage + " ")
 
+        formatter.add_text(description)
+
         _, optional, *_ = self._parser._action_groups
 
-        if self._dest_map:
+        if self.match_ref[RegexMatch]:
+            formatter.start_section("匹配项")
+            for match in self.match_ref[RegexMatch]:
+                if match._help:
+                    formatter.add_text(
+                        f"""{ f"{match.dest}{sep}" if dest and match.dest else ""}{match._help}"""
+                    )
+            formatter.end_section()
+
+        if self.match_ref[ArgumentMatch]:
             formatter.start_section("可选参数")
             formatter.add_arguments(optional._group_actions)
             formatter.end_section()
@@ -606,18 +625,27 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             return cls(match, extra_args)
         return cls(match + extra_args)
 
-    def get_help(self, usage: str = "", description: str = "", epilog: str = "") -> str:
+    def get_help(
+        self,
+        usage: str = "",
+        description: str = "",
+        epilog: str = "",
+        dest: bool = True,
+        sep: str = " -> ",
+    ) -> str:
         """利用 Match 中的信息生成帮助字符串.
 
         Args:
             usage (str, optional): 使用方法 (命令格式).
             description (str, optional): 前导描述. Defaults to "".
             epilog (str, optional): 后置总结. Defaults to "".
+            dest (bool, optional): 是否显示分派位置. Defaults to True.
+            sep (str, optional): 分派位置之间的分隔符. Defaults to " -> ".
 
         Returns:
             str: 生成的帮助字符串, 被格式化与缩进过了
         """
-        return self.matcher.get_help(usage, description, epilog)
+        return self.matcher.get_help(usage, description, epilog, dest, sep)
 
     async def beforeExecution(self, interface: DispatcherInterface):
         """检验 MessageChain 并将 Sparkle 存入本地存储

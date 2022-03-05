@@ -195,3 +195,61 @@ p: RegexResult = Sparkle[1]
 ```
 
 这里只是顺嘴一提，因为有些时候这个不如 `str` 来的方便.
+
+## 生成帮助
+
+使用 [`Twilight.get_help`][graia.ariadne.message.parser.twilight.Twilight.get_help] 可以获得帮助文本(已进行缩进处理).
+
+对于 `ArgumentMatch`, 结果与 [`argparse.ArgumentParser.format_help`][argparse.ArgumentParser.format_help] 相近.
+
+`RegexMatch` 会在有参数分发位置时显示其分发目标. ( `name -> help` 形式)
+
+`sep` 控制了 `name -> help` 格式中 使用的分割形式 (默认为 `#!py " -> "`)
+
+如果没有通过 `help` 方法传入帮助字符串, 则 `UnionMatch` 与 `ParamMatch` 会尝试生成一个 (`ParamMatch` 为 `#!py "参数"`, `UnionMatch` 会从 `pattern` 推断).
+
+否则, 该 `RegexMatch` 会被忽略.
+
+传入的 `usage` 后会添加上来自 `argparse` 自动生成的参数选项, 所以 `usage` 中只应描述 `RegexMatch` 提供的匹配.
+
+`description` 与 `epilog` 参数含义与 [`argparse.ArgumentParser`][argparse.ArgumentParser] 中语义相同.
+
+你可以通过下面的实例看看它的效果:
+
+```pycon
+>>> print(
+...     Twilight(
+...         [
+...             FullMatch(".test").help("匹配 .test"),
+...             "union" @ UnionMatch("A", "B", "C"),
+...             "at" @ ElementMatch(At),
+...             "op1" @ ParamMatch(),
+...             "op2" @ ParamMatch().help("操作符"),
+...             "help" @ ArgumentMatch("--help", "-h", action="store_true").help("显示该帮助"),
+...             "arg" @ WildcardMatch().flags(re.DOTALL),
+...             "v" @ ArgumentMatch("--verbose", "-v", action="store_true").help("显示详细信息"),
+...         ]
+...     ).get_help("用法字符串", "描述", "总结")
+... )
+用法字符串 [--help] [--verbose]
+
+描述
+
+匹配项:
+  匹配 .test
+
+  union -> 在 ['A', 'B', 'C'] 中选择一项
+
+  at -> At 元素
+
+  op1 -> 参数
+
+  op2 -> 操作符
+
+可选参数:
+  --help, -h     显示该帮助
+  --verbose, -v  显示详细信息
+
+总结
+
+```

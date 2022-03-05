@@ -250,6 +250,19 @@ class ElementType:
         return MessageChain._from_mapping_string(string, elem_mapping_ctx.get())[0]
 
 
+class UnmatchedClass:
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "<Unmatched>"
+
+    def __bool__(self) -> bool:
+        return False
+
+
+Unmatched = UnmatchedClass()
+
+
 class TwilightParser(argparse.ArgumentParser):
     """适于 Twilight 使用的 argparse.ArgumentParser 子类
     移除了报错时自动退出解释器的行为

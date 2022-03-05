@@ -12,7 +12,11 @@
 
 当时主代码只有 217 行.
 之后在 [a3c17fd](https://github.com/GraiaProject/Ariadne/commit/a3c17fdfd02933b36dfd66dd61ff72b40b1e25b9) 的重写中, 代码量飙升至 424 行.
-现在代码量在 360 行左右. (除去 `Match`, 可以看 [#53](https://github.com/GraiaProject/Ariadne/issues/53) 了解缘由)
+
+之后因为整合了 `Match` 类, 代码量再次飙升至 1K+ 行.
+
+`0.6.0` 后, 加上所有杂七杂八的东西, 只剩 664 行.
+
 
 ## 关于性能
 
@@ -26,5 +30,7 @@
 其实我本来不想暴露 `check` 参数的匹配出来, 但是 `A60` 已经在代码里用上 `_check_0` 等 `private` 变量了, 所以最后我提供了一个折中方案: 通过 `__getitem__` 访问.
 
 现在我通过 `__getattribute__` 的重载, 而非手动在新实例上 `setattr`, 让代码逻辑清晰了不少.
+
+`0.6.0` 后把上面那些都扬了, 现在裸判断有 `150k+ msg/s`, 请求的参数名越多, 性能越低.
 
 > BlueGlassBlock 2021/12/10

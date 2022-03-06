@@ -82,7 +82,7 @@ Alconna(
 alconna = Alconna(command="指令", options=[Option("选项")], main_args=Args.foo[str])
 ```
 
-这里说明我们需要匹配内容为 "指令 something:str"的消息, 并把 "something" 赋予参数名 "foo"; 该指令可以使用 "选项" 这个命令选项 
+这里说明我们需要匹配内容为 "指令 something:str"的消息, 并把 "something" 赋予参数名 "foo"; 该指令可以使用 "选项" 这个命令选项
 
 而后另有4种构造方式, 可以满足不同使用者的需求:
 - koishi-like: 以类似`koishi`中指令创建的方式创建`Alconna`

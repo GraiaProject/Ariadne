@@ -8,8 +8,8 @@ from arclet.alconna import (
     MessageChain,
     NonTextElement,
     ParamsUnmatched,
+    compile,
     require_help_send_action,
-    compile
 )
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
@@ -20,7 +20,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ... import get_running
 from ...app import Ariadne
 from ...dispatcher import ContextDispatcher
-from ...event.message import MessageEvent, GroupMessage
+from ...event.message import GroupMessage, MessageEvent
 from ...util import resolve_dispatchers_mixin
 from ..chain import MessageChain as GraiaMessageChain
 
@@ -53,6 +53,7 @@ class AlconnaHelpMessage(Dispatchable):
 
     如果触发的某个命令的帮助选项, 当AlconnaDisptcher的reply_help为False时, 会发送该事件
     """
+
     command: Alconna
     """命令"""
 
@@ -110,11 +111,12 @@ class AlconnaDispatcher(BaseDispatcher):
 
             require_help_send_action(_send_help_string, self.analyser.alconna.name)
         else:
+
             async def _post_help(help_string: str):
                 dispatchers = resolve_dispatchers_mixin(
                     [
                         AlconnaHelpMessageDispatcher(self.analyser.alconna, help_string, event),
-                        event.Dispatcher
+                        event.Dispatcher,
                     ]
                 )
                 for listener in interface.broadcast.default_listener_generator(AlconnaHelpMessage):

@@ -1,5 +1,13 @@
 # 更改日志
 
+## 0.6.4
+
+### 修复
+
+为所有事件启用泛型参数分发支持.
+
+修复 `CoolDown` (#117) (@SocialSisterYi)
+
 ## 0.6.3
 
 ### 修复
@@ -10,7 +18,7 @@
 
 ### 改进
 
-允许 `Group.getAvatar` 使用 `cover` 参数名获取其他封面. (@SocialSisterYi)
+允许 `Group.getAvatar` 使用 `cover` 参数名获取其他封面. (#116) (@SocialSisterYi)
 
 支持 `twilight.Match` 使用位移符号.
 

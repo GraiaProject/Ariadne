@@ -69,26 +69,43 @@ poetry add graia-ariadne
 
 ```yaml
 # file: "MCL/config/net.mamoe.mirai-api-http/setting.yml"
+## 配置文件中的值，全为默认值
+
+## 启用的 adapter, 内置有 http, ws, reverse-ws, webhook
 adapters:
   - http
   - ws
-debug: false
+
+## 是否开启认证流程, 若为 true 则建立连接时需要验证 verifyKey
 enableVerify: true
-verifyKey: ServiceVerifyKey # 你可以自己设定, 这里作为示范
+verifyKey: ServiceVerifyKey
+
+## 开启一些调试信息
+debug: false
+
+## 是否开启单 session 模式, 若为 true，则自动创建 session 绑定 console 中登录的 bot
+## 开启后，接口中任何 sessionKey 不需要传递参数
+## 若 console 中有多个 bot 登录，则行为未定义
+## 确保 console 中只有一个 bot 登陆时启用
 singleMode: false
-cacheSize: 4096 # 可选, 缓存大小, 默认4096. 缓存过小会导致引用回复与撤回消息失败
+
+## 历史消息的缓存大小
+## 同时，也是 http adapter 的消息队列容量
+cacheSize: 4096
+
+## adapter 的单独配置，键名与 adapters 项配置相同
 adapterSettings:
   ## 详情看 http adapter 使用说明 配置
   http:
     host: localhost
-    port: 8080 # 端口
-    cors: [*]
+    port: 8080
+    cors: ["*"]
 
   ## 详情看 websocket adapter 使用说明 配置
   ws:
     host: localhost
-    port: 8080 # 端口
-    reservedSyncId: -1 # 确保为 -1, 否则 WebsocketAdapter(Experimental) 没法正常工作.
+    port: 8080
+    reservedSyncId: -1
 ```
 
 将以下代码保存到文件 `bot.py` 内, 确保该文件位于你的工作区内:

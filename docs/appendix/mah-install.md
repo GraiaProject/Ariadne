@@ -171,13 +171,13 @@ adapterSettings:
   ## 详情看 http adapter 使用说明 配置
   http:
     host: localhost
-    port: 8080 # 端口
-    cors: [*]
+    port: 8080
+    cors: ["*"]
 
   ## 详情看 websocket adapter 使用说明 配置
   ws:
     host: localhost
-    port: 8080 # 端口
+    port: 8080
     reservedSyncId: -1 # 确保为 -1
 ```
 

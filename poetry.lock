@@ -490,7 +490,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "griffe"
-version = "0.13.2"
+version = "0.14.0"
 description = "Signatures for entire Python programs. Extract the structure, the frame, the skeleton of your project, to generate API documentation or find breaking changes in your API."
 category = "dev"
 optional = false
@@ -869,7 +869,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocstrings-python"
-version = "0.6.5"
+version = "0.6.6"
 description = "A Python handler for mkdocstrings."
 category = "dev"
 optional = false
@@ -1906,8 +1906,8 @@ graphviz = [
     {file = "graphviz-0.19.1.zip", hash = "sha256:09ed0cde452d015fe77c4845a210eb642f28d245f5bc250d4b97808cb8f49078"},
 ]
 griffe = [
-    {file = "griffe-0.13.2-py3-none-any.whl", hash = "sha256:eca9a59126b43c78c3fd4f82e4bece61e3bc75d6416d010780eadc14a354ec14"},
-    {file = "griffe-0.13.2.tar.gz", hash = "sha256:d2689fe5d4711d2a7fc1fa8ba1c4fbd2ef382cba1b6e58611c01972adf358e0e"},
+    {file = "griffe-0.14.0-py3-none-any.whl", hash = "sha256:6335499954fd83d364e898f8845548d04f4fb1174f1c6a787ad868ca48c353fe"},
+    {file = "griffe-0.14.0.tar.gz", hash = "sha256:6da7274ee20f98102a5836113211cf4a4a5aeb08573c15b682c052bbc08c647e"},
 ]
 h11 = [
     {file = "h11-0.13.0-py3-none-any.whl", hash = "sha256:8ddd78563b633ca55346c8cd41ec0af27d3c79931828beffb46ce70a379e7442"},
@@ -2054,8 +2054,8 @@ mkdocstrings = [
     {file = "mkdocstrings-0.18.1.tar.gz", hash = "sha256:fb7c91ce7e3ab70488d3fa6c073a4f827cdc319042f682ef8ea95459790d64fc"},
 ]
 mkdocstrings-python = [
-    {file = "mkdocstrings-python-0.6.5.tar.gz", hash = "sha256:39444bab5a58dbc458acb81bf886ade2a619f44e02b4c080901fc63b3fe907a8"},
-    {file = "mkdocstrings_python-0.6.5-py3-none-any.whl", hash = "sha256:977365b476cd5df53145373d8716fe094435b5badf01dd86c74562cc42b4cac1"},
+    {file = "mkdocstrings-python-0.6.6.tar.gz", hash = "sha256:37281696b9f199624ae420e0625b6659b7fdfbea736618bce7fd978682dea3b1"},
+    {file = "mkdocstrings_python-0.6.6-py3-none-any.whl", hash = "sha256:c118438d3cb4b14c492a51d109f4e5b27ab06ba19b099d624430dfd904926152"},
 ]
 mkdocstrings-python-legacy = [
     {file = "mkdocstrings-python-legacy-0.2.2.tar.gz", hash = "sha256:f0e7ec6a19750581b752acb38f6b32fcd1efe006f14f6703125d2c2c9a5c6f02"},

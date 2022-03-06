@@ -1,12 +1,11 @@
 """Ariadne 内置的 Dispatcher"""
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
-from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
 from .message.element import Source
-from .typing import generic_isinstance
+from .typing import generic_isinstance, generic_issubclass
 
 
 class MessageChainDispatcher(BaseDispatcher):
@@ -17,7 +16,7 @@ class MessageChainDispatcher(BaseDispatcher):
         from .event.message import MessageEvent
 
         if isinstance(interface.event, MessageEvent):
-            if interface.annotation is MessageChain:
+            if generic_issubclass(MessageChain, interface.annotation):
                 return interface.event.messageChain
 
 
@@ -28,9 +27,7 @@ class ContextDispatcher(BaseDispatcher):
     async def catch(interface: DispatcherInterface):
         from . import get_running
 
-        if not isinstance(interface.annotation, type):
-            return
-        if issubclass(interface.annotation, Dispatchable):
+        if generic_isinstance(interface.event, interface.annotation):
             return interface.event
 
         return get_running(interface.annotation)
@@ -44,7 +41,7 @@ class SourceDispatcher(BaseDispatcher):
         from .event.message import MessageEvent
 
         if isinstance(interface.event, MessageEvent):
-            if interface.annotation is Source:
+            if generic_issubclass(Source, interface.annotation):
                 return interface.event.messageChain.getFirst(Source)
 
 

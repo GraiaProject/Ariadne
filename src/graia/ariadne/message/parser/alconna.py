@@ -8,8 +8,8 @@ from arclet.alconna import (
     MessageChain,
     NonTextElement,
     ParamsUnmatched,
+    compile,
     require_help_send_action,
-    compile
 )
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
@@ -17,11 +17,14 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ... import get_running
-from ... import Ariadne
-from ... import ContextDispatcher
-from ... import resolve_dispatchers_mixin
-from ... import MessageEvent, GroupMessage
+from ... import (
+    Ariadne,
+    ContextDispatcher,
+    GroupMessage,
+    MessageEvent,
+    get_running,
+    resolve_dispatchers_mixin,
+)
 from ..chain import MessageChain as GraiaMessageChain
 
 if TYPE_CHECKING:
@@ -53,6 +56,7 @@ class AlconnaHelpMessage(Dispatchable):
 
     如果触发的某个命令的帮助选项, 当AlconnaDisptcher的reply_help为False时, 会发送该事件
     """
+
     command: Alconna
     """命令"""
 
@@ -69,12 +73,12 @@ class AlconnaDispatcher(BaseDispatcher):
     """
 
     def __init__(
-            self,
-            *,
-            alconna: Alconna,
-            reply_help: bool = False,
-            skip_for_unmatch: bool = True,
-            help_handler: Optional[Callable[[str], GraiaMessageChain]] = None,
+        self,
+        *,
+        alconna: Alconna,
+        reply_help: bool = False,
+        skip_for_unmatch: bool = True,
+        help_handler: Optional[Callable[[str], GraiaMessageChain]] = None,
     ):
         """
         构造 Alconna调度器
@@ -110,11 +114,12 @@ class AlconnaDispatcher(BaseDispatcher):
 
             require_help_send_action(_send_help_string, self.analyser.alconna.name)
         else:
+
             async def _post_help(help_string: str):
                 dispatchers = resolve_dispatchers_mixin(
                     [
                         AlconnaHelpMessageDispatcher(self.analyser.alconna, help_string, event),
-                        event.Dispatcher
+                        event.Dispatcher,
                     ]
                 )
                 for listener in interface.broadcast.default_listener_generator(AlconnaHelpMessage):

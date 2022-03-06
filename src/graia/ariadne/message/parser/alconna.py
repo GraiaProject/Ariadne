@@ -17,14 +17,11 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ... import (
-    Ariadne,
-    ContextDispatcher,
-    GroupMessage,
-    MessageEvent,
-    get_running,
-    resolve_dispatchers_mixin,
-)
+from ... import get_running
+from ...app import Ariadne
+from ...dispatcher import ContextDispatcher
+from ...util import resolve_dispatchers_mixin
+from ...event.message import MessageEvent, GroupMessage
 from ..chain import MessageChain as GraiaMessageChain
 
 if TYPE_CHECKING:

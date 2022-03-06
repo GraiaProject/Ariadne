@@ -20,8 +20,8 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ... import get_running
 from ...app import Ariadne
 from ...dispatcher import ContextDispatcher
+from ...event.message import GroupMessage, MessageEvent
 from ...util import resolve_dispatchers_mixin
-from ...event.message import MessageEvent, GroupMessage
 from ..chain import MessageChain as GraiaMessageChain
 
 if TYPE_CHECKING:

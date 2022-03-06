@@ -1,17 +1,18 @@
 """Ariadne 消息事件"""
 from typing import Union
 
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ..dispatcher import (
-    ContextDispatcher,
+    BaseDispatcher,
     MessageChainDispatcher,
     SenderDispatcher,
     SourceDispatcher,
+    SubjectDispatcher,
 )
 from ..message.chain import MessageChain
 from ..model import Client, Friend, Group, Member, Stranger
+from ..typing import generic_issubclass
 from . import MiraiEvent
 from .mirai import FriendEvent, GroupEvent
 
@@ -27,11 +28,7 @@ class MessageEvent(MiraiEvent):
     """发送者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(*_):
-            pass
+        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
 
 class FriendMessage(MessageEvent, FriendEvent):
@@ -46,13 +43,7 @@ class FriendMessage(MessageEvent, FriendEvent):
     """发送者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, FriendMessage):
-                if interface.annotation is Friend:
-                    return interface.event.sender
+        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
 
 class GroupMessage(MessageEvent, GroupEvent):
@@ -67,15 +58,13 @@ class GroupMessage(MessageEvent, GroupEvent):
     """发送者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
+        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupMessage):
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.sender.group
-                if interface.annotation is Member:
-                    return interface.event.sender
 
 
 class TempMessage(MessageEvent):
@@ -90,15 +79,13 @@ class TempMessage(MessageEvent):
     """发送者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
+        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, TempMessage):
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.sender.group
-                if interface.annotation is Member:
-                    return interface.event.sender
 
 
 class OtherClientMessage(MessageEvent):
@@ -113,13 +100,7 @@ class OtherClientMessage(MessageEvent):
     """发送者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, OtherClientMessage):
-                if interface.annotation is Client:
-                    return interface.event.sender
+        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
 
 class StrangerMessage(MessageEvent):
@@ -134,13 +115,7 @@ class StrangerMessage(MessageEvent):
     """发送者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, StrangerMessage):
-                if interface.annotation is Friend:
-                    return interface.event.sender
+        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
 
 class ActiveMessage(MiraiEvent):
@@ -170,13 +145,7 @@ class ActiveFriendMessage(ActiveMessage):
     """消息接收者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, ActiveFriendMessage):
-                if interface.annotation is Friend:
-                    return interface.event.subject
+        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
 class ActiveGroupMessage(ActiveMessage):
@@ -191,13 +160,7 @@ class ActiveGroupMessage(ActiveMessage):
     """消息接收者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, ActiveGroupMessage):
-                if interface.annotation is Group:
-                    return interface.event.subject
+        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
 class ActiveTempMessage(ActiveMessage):
@@ -212,15 +175,13 @@ class ActiveTempMessage(ActiveMessage):
     """消息接收者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
+        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, ActiveTempMessage):
                 if interface.annotation is Group:
                     return interface.event.subject.group
-                if interface.annotation is Member:
-                    return interface.event.subject
 
 
 class ActiveStrangerMessage(ActiveMessage):
@@ -235,13 +196,7 @@ class ActiveStrangerMessage(ActiveMessage):
     """消息接收者"""
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, ContextDispatcher, SourceDispatcher, SenderDispatcher]
-
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, ActiveStrangerMessage):
-                if interface.annotation is Stranger:
-                    return interface.event.subject
+        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
 class FriendSyncMessage(ActiveFriendMessage):

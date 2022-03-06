@@ -1,8 +1,21 @@
+import contextlib
 import inspect
+import types
 import typing
 from datetime import datetime, timedelta
 from types import TracebackType
-from typing import Any, Awaitable, Callable, Dict, MutableMapping, Optional, Union
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.signatures import Force
@@ -10,7 +23,11 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.utilles import argument_signature
 
+from graia.ariadne.typing import generic_issubclass
+
 from ..event.message import MessageEvent
+
+T_Time = TypeVar("T_Time", timedelta, datetime, float, int)
 
 
 class CoolDown(BaseDispatcher):
@@ -42,12 +59,30 @@ class CoolDown(BaseDispatcher):
         else:
             self.source: MutableMapping[int, datetime] = source or {}
 
+    async def get(self, target: int, type: Type[T_Time]) -> Tuple[Optional[T_Time], bool]:
+        current_time: datetime = datetime.now()
+        next_exec_time: datetime = self.source.get(target, current_time)
+        delta: timedelta = next_exec_time - current_time
+        satisfied: bool = delta < timedelta(seconds=0)
+        if types.NoneType in typing.get_args(type) and delta.total_seconds() <= 0:
+            return None, satisfied
+        if generic_issubclass(datetime, type):
+            return next_exec_time, satisfied
+        if generic_issubclass(timedelta, type):
+            return delta, satisfied
+        if generic_issubclass(float, type):
+            return delta.total_seconds(), satisfied
+        if generic_issubclass(int, type):
+            return int(delta.total_seconds()), satisfied
+
+    async def set(self, target: int) -> None:
+        self.source[target] = datetime.now() + self.interval
+
     async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
         event = interface.event
         sender_id = event.sender.id
-        next_exec_time = self.source.get(sender_id, datetime.now())
-        current_time = datetime.now()
-        if current_time < next_exec_time:
+        value, satisfied = await self.get(sender_id, interface.annotation)
+        if not satisfied:
             if self.stop_on_cooldown:
                 param_dict: Dict[str, Any] = {}
                 for name, anno, _ in self.override_signature:
@@ -55,36 +90,10 @@ class CoolDown(BaseDispatcher):
                 res = self.override_condition(**param_dict)
                 if not ((await res) if inspect.isawaitable(res) else res):
                     raise ExecutionStop
-
-        interface.local_storage["current_time"] = current_time
-        interface.local_storage["next_exec_time"] = next_exec_time
+        interface.local_storage["result"] = value
 
     async def catch(self, interface: DispatcherInterface[MessageEvent]):
-        current_time: datetime = interface.local_storage.get("current_time")
-        next_exec_time: datetime = interface.local_storage.get("next_exec_time")
-        if (
-            current_time >= next_exec_time
-            and typing.get_origin(interface.annotation) is Union
-            and type(None) in typing.get_args(interface.annotation)
-        ):
-            return Force(None)
-        anno = typing.get_args(interface.annotation) or (interface.annotation,)
-        if timedelta in anno:
-            return timedelta() if next_exec_time < current_time else next_exec_time - current_time
-        elif datetime in anno:
-            return next_exec_time
-        elif float in anno:
-            return (
-                0.0
-                if next_exec_time < current_time
-                else next_exec_time.timestamp() - current_time.timestamp()
-            )
-        elif int in anno:
-            return (
-                0
-                if next_exec_time < current_time
-                else int(next_exec_time.timestamp() - current_time.timestamp())
-            )
+        return Force(interface.local_storage["result"])
 
     async def afterDispatch(
         self,
@@ -95,4 +104,14 @@ class CoolDown(BaseDispatcher):
         event = interface.event
         sender_id = event.sender.id
         if not exception:
-            self.source[sender_id] = datetime.now() + self.interval
+            await self.set(sender_id)
+
+    @contextlib.asynccontextmanager
+    async def trigger(self, target: int, type: Type[T_Time] = datetime) -> Tuple[Optional[T_Time], bool]:
+        value, satisfied = await self.get(target, type)
+        try:
+            yield value, satisfied
+        except:  # noqa
+            raise
+        else:
+            await self.set(target)

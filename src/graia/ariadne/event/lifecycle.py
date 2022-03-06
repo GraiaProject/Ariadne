@@ -1,11 +1,11 @@
 """Ariadne, Adapter 生命周期相关事件"""
 import typing
 
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from ..dispatcher import ContextDispatcher
+from ..dispatcher import BaseDispatcher
+from ..typing import generic_issubclass
 
 if typing.TYPE_CHECKING:
     from ..app import Ariadne
@@ -22,15 +22,12 @@ class ApplicationLifecycleEvent(Dispatchable):
         self.app = app
 
     class Dispatcher(BaseDispatcher):
-
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: "DispatcherInterface"):
             from ..app import Ariadne
 
             if isinstance(interface.event, ApplicationLifecycleEvent):
-                if interface.annotation is Ariadne:
+                if generic_issubclass(Ariadne, interface.annotation):
                     return interface.event.app
 
 

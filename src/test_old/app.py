@@ -19,6 +19,7 @@ from graia.ariadne.adapter.reverse import (
 from graia.ariadne.app import Ariadne
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import (
+    CommandExecutedEvent,
     GroupEvent,
     GroupRecallEvent,
     NewFriendRequestEvent,
@@ -50,7 +51,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        ComposeForwardAdapter(bcc, MiraiSession(url, account, verify_key)),
+        ComposeReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
@@ -64,6 +65,10 @@ if __name__ == "__main__":
 
     async def chk(msg: MessageChain):
         return msg.asDisplay().endswith("override")
+
+    @bcc.receiver(CommandExecutedEvent)
+    async def print_remote_cmd(event: CommandExecutedEvent):
+        logger.debug(event)
 
     @bcc.receiver(
         MessageEvent,

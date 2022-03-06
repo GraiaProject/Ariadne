@@ -8,9 +8,9 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
 from typing_extensions import Literal
 
-from ..dispatcher import ContextDispatcher
 from ..exception import InvalidSession
 from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
+from ..typing import generic_issubclass
 from . import MiraiEvent
 
 
@@ -111,12 +111,10 @@ class FriendInputStatusChangedEvent(FriendEvent):
     inputting: bool
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, FriendInputStatusChangedEvent):
-                if interface.annotation is Friend:
+                if generic_issubclass(Friend, interface.annotation):
                     return interface.event.friend
 
 
@@ -136,12 +134,10 @@ class FriendNickChangedEvent(FriendEvent):
     to_name: str = Field(..., alias="to")
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, FriendNickChangedEvent):
-                if interface.annotation is Friend:
+                if generic_issubclass(Friend, interface.annotation):
                     return interface.event.friend
 
 
@@ -161,12 +157,10 @@ class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
     group: Group
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, BotGroupPermissionChangeEvent):
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.group
 
 
@@ -186,14 +180,12 @@ class BotMuteEvent(GroupEvent, BotEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, BotMuteEvent):
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.operator.group
 
 
@@ -212,14 +204,12 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, BotUnmuteEvent):
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.operator.group
 
 
@@ -239,15 +229,13 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
     inviter: Optional[Member] = Field(..., alias="invitor")
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, BotJoinGroupEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.inviter
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class BotLeaveEventActive(GroupEvent, BotEvent):
@@ -264,12 +252,10 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
     group: Group
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, BotLeaveEventActive):
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.group
 
 
@@ -287,12 +273,10 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
     group: Group
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, BotLeaveEventKick):
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.group
 
 
@@ -315,15 +299,13 @@ class GroupRecallEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupRecallEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class FriendRecallEvent(FriendEvent):
@@ -391,15 +373,13 @@ class GroupNameChangeEvent(GroupEvent):
     operator: Optional[Member] = None
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupNameChangeEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class GroupEntranceAnnouncementChangeEvent(GroupEvent):
@@ -420,15 +400,13 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupEntranceAnnouncementChangeEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class GroupMuteAllEvent(GroupEvent):
@@ -449,15 +427,13 @@ class GroupMuteAllEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupMuteAllEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class GroupAllowAnonymousChatEvent(GroupEvent):
@@ -478,15 +454,13 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupAllowAnonymousChatEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class GroupAllowConfessTalkEvent(GroupEvent):
@@ -507,15 +481,13 @@ class GroupAllowConfessTalkEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupAllowConfessTalkEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class GroupAllowMemberInviteEvent(GroupEvent):
@@ -536,15 +508,13 @@ class GroupAllowMemberInviteEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, GroupAllowMemberInviteEvent):
-                if interface.annotation is Group:
-                    return interface.event.group
-                if interface.annotation in {Member, Optional[Member]}:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
 
 
 class MemberJoinEvent(GroupEvent):
@@ -563,16 +533,14 @@ class MemberJoinEvent(GroupEvent):
     inviter: Optional[Member] = Field(..., alias="invitor")
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberJoinEvent):
-                if interface.name == "inviter" and interface.annotation in {Member, Optional[Member]}:
+                if interface.name == "inviter" and generic_issubclass(Member, interface.annotation):
                     return interface.event.inviter
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -594,16 +562,14 @@ class MemberLeaveEventKick(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberLeaveEventKick):
-                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
+                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -622,14 +588,12 @@ class MemberLeaveEventQuit(GroupEvent):
     member: Member
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberLeaveEventQuit):
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -654,16 +618,14 @@ class MemberCardChangeEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberCardChangeEvent):
-                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
+                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -684,14 +646,12 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
     member: Member
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberSpecialTitleChangeEvent):
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -712,14 +672,12 @@ class MemberPermissionChangeEvent(GroupEvent):
     member: Member
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberPermissionChangeEvent):
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -744,16 +702,14 @@ class MemberMuteEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberMuteEvent):
-                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
+                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -777,16 +733,14 @@ class MemberUnmuteEvent(GroupEvent):
     operator: Optional[Member]
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberUnmuteEvent):
-                if interface.name == "operator" and interface.annotation in {Member, Optional[Member]}:
+                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
                     return interface.event.operator
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 
@@ -807,14 +761,12 @@ class MemberHonorChangeEvent(GroupEvent):
     honor: str
 
     class Dispatcher(BaseDispatcher):
-        mixin = [ContextDispatcher]
-
         @staticmethod
         async def catch(interface: DispatcherInterface):
             if isinstance(interface.event, MemberHonorChangeEvent):
-                if interface.annotation is Member:
+                if generic_issubclass(Member, interface.annotation):
                     return interface.event.member
-                if interface.annotation is Group:
+                if generic_issubclass(Group, interface.annotation):
                     return interface.event.member.group
 
 

@@ -3,6 +3,7 @@ import typing
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
+    Annotated,
     Any,
     Dict,
     Generic,
@@ -15,7 +16,7 @@ from typing import (
     Union,
 )
 
-from typing_extensions import ParamSpec
+from typing_extensions import ParamSpec, TypeGuard
 
 if TYPE_CHECKING:
     from .message.chain import MessageChain
@@ -107,7 +108,7 @@ class SendMessageAction(Generic[T, R]):
         raise item
 
 
-def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bool:
+def generic_issubclass(cls: type, par: Annotated[T, Union[type, Any, Tuple[type, ...]]]) -> TypeGuard[T]:
     """检查 cls 是否是 args 中的一个子类, 支持泛型, Any, Union
 
     Args:

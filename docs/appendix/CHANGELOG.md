@@ -6,7 +6,7 @@
 
 为所有事件启用泛型参数分发支持.
 
-修复 `CoolDown` (#117) (@SocialSisterYi)
+修复 `CoolDown` (#117) (@Redlnn)
 
 ## 0.6.3
 

@@ -53,7 +53,7 @@ class CoolDown(BaseDispatcher):
                 for name, anno, _ in self.override_signature:
                     param_dict[name] = await interface.lookup_param(name, anno, None)
                 res = self.override_condition(**param_dict)
-                if not (await res) if inspect.isawaitable(res) else res:
+                if not ((await res) if inspect.isawaitable(res) else res):
                     raise ExecutionStop
 
         interface.local_storage["current_time"] = current_time
@@ -70,13 +70,21 @@ class CoolDown(BaseDispatcher):
             return Force(None)
         anno = typing.get_args(interface.annotation) or (interface.annotation,)
         if timedelta in anno:
-            return next_exec_time - current_time
+            return timedelta() if next_exec_time < current_time else next_exec_time - current_time
         elif datetime in anno:
             return next_exec_time
         elif float in anno:
-            return next_exec_time.timestamp() - current_time.timestamp()
+            return (
+                0.0
+                if next_exec_time < current_time
+                else next_exec_time.timestamp() - current_time.timestamp()
+            )
         elif int in anno:
-            return int(next_exec_time.timestamp() - current_time.timestamp())
+            return (
+                0
+                if next_exec_time < current_time
+                else int(next_exec_time.timestamp() - current_time.timestamp())
+            )
 
     async def afterDispatch(
         self,

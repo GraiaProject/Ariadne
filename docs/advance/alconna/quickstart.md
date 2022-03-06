@@ -1,20 +1,22 @@
-# 快速开始
+# Alconna - 功能强大的命令解析器
 
 !!! warning "关于本模块"
 
     本模块由 `RF-Tar-Railt` 维护,
     `BlueGlassBlock` 仅进行了针对 `Ariadne` 的封装, 本模块余下部分从 `Alconna wiki` 复制并修改而来.
 
+## 快速开始
+
+以下将直观展示`Alconna`的使用方法:
+
 ```python
 from arclet.alconna import AlconnaString
 from graia.ariadne.message.parser.alconna import AlconnaDispatcher
-
 # example: !点歌 <歌名> --歌手 <歌手名>
 music = AlconnaString(
     "!点歌 <song_name:str>  #在XXX中搜索歌名", # 主参数: <歌名>
     "--歌手|-s <singer_name:str> #指定歌手"  # 选项名: --歌手  选项别名: -s  选项参数: <歌手名>
 )
-
 @app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, reply_help=True)])
 async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, singer_name: str):
     await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", song_name))
@@ -34,7 +36,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, 
 </ul>
 </div>
 
-## 用法
+## 结构
 
 通过阅读 Alconna 的签名可以得知，Alconna 支持四大类参数：
 
@@ -74,7 +76,25 @@ Alconna(
 
 解析成功的命令的参数会保存在 analysis_message 方法返回的 `Arpamar` 实例中
 
-## 参数标注
+## 创建 Alconna
+
+```python
+alconna = Alconna(command="指令", options=[Option("选项")], main_args=Args.foo[str])
+```
+
+这里说明我们需要匹配内容为 "指令 something:str"的消息, 并把 "something" 赋予参数名 "foo"; 该指令可以使用 "选项" 这个命令选项 
+
+而后另有4种构造方式, 可以满足不同使用者的需求:
+- koishi-like: 以类似`koishi`中指令创建的方式创建`Alconna`
+- format: 以类似f-string的格式创建`Alconna`
+- click-like: 以类似`click`中指令创建的方式创建`Alconna`
+- fire-like: 以类型`python-fire`中指令创建的方式创建`Alconna`
+
+## 使用 `AlconnaDispatcher`
+
+您可以在 `Ariadne` 中使用 `AlconnaDispatcher` 来帮助解析命令.
+
+### 参数标注
 
 `AlconnaDispatcher` 可以分配以下几种参数:
 
@@ -84,7 +104,7 @@ Alconna(
 -   `dict`: 当`name`代表`Alconna`内的选项, 并且确实解析到数据时返回对应的字典对象; 未解析时为None
 -   其他类型: 在 `name` 上进行此标注等价于`arpamar.all_matched_args.get(name)`; 未解析时为None
 
-## 特殊事件
+### 特殊事件
 
 当`AlconnaDispatcher`的`reply_help`为`False`时, 其会向bcc广播一个`AlconnaHelpMessage`事件
 
@@ -105,7 +125,7 @@ Alconna(
 
 同时, `Twilight` 是基于对象的参数处理器, 在类型补全上更完备.
 
-但是 `Alconna` 有子命令的支持, 且性能占优, 魔法较多(迫真).
+但是 `Alconna` 有更好更强大的参数类型解析与子命令的支持, 且性能占优, 魔法较多(迫真).
 
 总之, 根据自己的需要, 选择合适的工具.
 

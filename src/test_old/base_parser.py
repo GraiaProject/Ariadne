@@ -15,7 +15,9 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     @bcc.receiver(MessageEvent)
-    async def pup(result: MessageChain = DetectPrefix(".test")):
+    async def pup(
+        result: MessageChain = DetectPrefix(".test") > DetectPrefix("option") > DetectPrefix("end"),
+    ):
         devtools.debug(result)
 
     @bcc.receiver(MessageEvent)

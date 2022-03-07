@@ -1008,11 +1008,11 @@ class AnnouncementMixin(AriadneMixin):
 
         if image:
             if isinstance(image, bytes):
-                data["imageBase64"] = base64.b64encode(image)
+                data["imageBase64"] = base64.b64encode(image).decode("ascii")
             elif isinstance(image, os.PathLike):
-                data["imageBase64"] = base64.b64encode(open(image, "rb").read())
+                data["imageBase64"] = base64.b64encode(open(image, "rb").read()).decode("ascii")
             elif isinstance(image, io.IOBase):
-                data["imageBase64"] = base64.b64encode(image.read())
+                data["imageBase64"] = base64.b64encode(image.read()).decode("ascii")
             elif isinstance(image, str):
                 data["imageUrl"] = image
 

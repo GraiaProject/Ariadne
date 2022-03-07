@@ -695,7 +695,7 @@ class MultimediaElement(Element):
         async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
-            self.base64 = b64encode(data).decode()
+            self.base64 = b64encode(data).decode("ascii")
             return data
 
     def asNoBinaryPersistentString(self) -> str:

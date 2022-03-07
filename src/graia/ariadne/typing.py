@@ -3,7 +3,6 @@ import typing
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
-    Annotated,
     Any,
     Dict,
     Generic,
@@ -16,7 +15,7 @@ from typing import (
     Union,
 )
 
-from typing_extensions import ParamSpec, TypeGuard
+from typing_extensions import Annotated, ParamSpec, TypeGuard
 
 if TYPE_CHECKING:
     from .message.chain import MessageChain

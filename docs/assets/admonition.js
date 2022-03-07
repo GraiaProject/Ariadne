@@ -15,6 +15,10 @@ function reload_color() {
     if (p) {
         document.body.setAttribute('data-md-color-primary', p);
     }
+    var a = localStorage.getItem("data-md-color-accent");
+    if (a) {
+        document.body.setAttribute('data-md-color-accent', a);
+    }
 }
 
 window.addEventListener('change', reload_color, false);

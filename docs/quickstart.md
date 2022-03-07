@@ -22,13 +22,24 @@
 
 !!! error "注意"
 
-    本 快速开始 文档假设你已有 [`Python 3.7+`](https://docs.python.org/zh-cn/3/) 与 [`asyncio`](https://docs.python.org/zh-cn/3/library/asyncio.html) 基础.
+    本 快速开始 文档假设你已有 [`Python 3`](https://docs.python.org/zh-cn/3/) 与 [`asyncio`](https://docs.python.org/zh-cn/3/library/asyncio.html) 基础.
 
-    若没有 `Python 3.7+` 基础, 请移步 [`Python 教程`](https://www.runoob.com/python3/python3-tutorial.html)
+    若没有 `Python 3` 基础, 请移步 [`Python 教程`](https://www.runoob.com/python3/python3-tutorial.html) [`Python 官方教程`](https://docs.python.org/zh-cn/3/tutorial/index.html)
 
     若没有 `asyncio` 基础, 请移步 [`asyncio 入门`](appendix/asyncio-intro.md)
 
     开发者不会负责 `Python` 基础教学.
+
+!!! warning "提示"
+
+    本框架支持的版本:
+
+    <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne" /></a>
+    <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne" /></a>
+
+    如果你的 `Python` 版本不满足, 请下载对应版本的 `Python`.
+
+    !!! quote "[`华为云 Python 镜像`](https://mirrors.huaweicloud.com/python/) [`清华 PyPI 源帮助`](https://mirrors.tuna.tsinghua.edu.cn/help/pypi/)"
 
 !!! graiax "社区教程提示"
 

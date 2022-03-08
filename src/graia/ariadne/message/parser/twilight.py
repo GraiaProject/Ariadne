@@ -29,9 +29,8 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 from typing_extensions import Self
 
-from graia.ariadne.typing import T
-from graia.ariadne.util import get_cls
-
+from ...typing import T, generic_isinstance, generic_issubclass
+from ...util import gen_subclass
 from ..chain import MessageChain
 from ..element import Element
 from .util import (
@@ -666,17 +665,19 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
     async def catch(self, interface: DispatcherInterface):
         local_storage: _TwilightLocalStorage = interface.local_storage  # type: ignore
         sparkle = local_storage["result"]
-        if issubclass(interface.annotation, Sparkle):
+        if generic_issubclass(Sparkle, interface.annotation):
             return sparkle
-        if issubclass(interface.annotation, Twilight):
+        if generic_issubclass(Twilight, interface.annotation):
             return self
         if interface.name in sparkle.res:
             result = sparkle.get(interface.name)
-            if isinstance(result.origin, interface.annotation):
+            if generic_isinstance(result.origin, interface.annotation):
                 return result.origin
-            if get_cls(interface.annotation) in {MatchResult, RegexResult, ArgResult}:
+            if any(
+                generic_issubclass(res_cls, interface.annotation) for res_cls in gen_subclass(MatchResult)
+            ):
                 return result
-            if isinstance(result.result, interface.annotation):
+            if generic_isinstance(result.result, interface.annotation):
                 return result.result
 
 

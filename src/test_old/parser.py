@@ -2,12 +2,12 @@ import asyncio
 
 import devtools
 from graia.broadcast import Broadcast
-from loguru import logger
 
 from graia.ariadne.event.message import MessageEvent
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import *
 from graia.ariadne.message.parser.base import *
+from graia.ariadne.message.parser.twilight import *
 from graia.ariadne.model import Friend
 
 if __name__ == "__main__":
@@ -29,6 +29,10 @@ if __name__ == "__main__":
         print("Triggered:")
         devtools.debug(result)
 
+    @bcc.receiver(MessageEvent, dispatchers=[Twilight(FullMatch(".twilight"), ElementMatch(At) @ "elem")])
+    async def print_elem(elem: ElementResult):
+        print("Element: ", elem)
+
     async def main():
         bcc.postEvent(
             MessageEvent(
@@ -39,6 +43,12 @@ if __name__ == "__main__":
         bcc.postEvent(
             MessageEvent(
                 messageChain=MessageChain.create(".system abstract"),
+                sender=Friend(id=123, nickname="opq", remark="test"),
+            )
+        )
+        bcc.postEvent(
+            MessageEvent(
+                messageChain=MessageChain.create(".twilight ", At(123)),
                 sender=Friend(id=123, nickname="opq", remark="test"),
             )
         )

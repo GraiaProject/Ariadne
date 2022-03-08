@@ -1,11 +1,26 @@
 # 更改日志
 
+## 0.6.6
+
+为 `Twilight` 使用泛型参数分发.
+
+支持使用 `Compose` 来组合基本的 `Decorator`.
+
+修复直接从 `typing` 导入 `Annotated` 导致的 `Python 3.8` 无法使用.
+
+修复一些地方错误的 `get_running` 导入.
+
+修复 `publishAnnouncement` 中未对 `base64` 进行解码的问题.
+
+移除 `Commander` 的 `assert` 辅助函数使用.
+
+将 `graia.ariadne.util.helper.CoolDown` 改为 `graia.ariadne.util.cooldown.CoolDown`.
+
 ## 0.6.5
 
 更改 `Alconna` 适应 `0.7.2` 改变 (#118) (@RF-Tar-Railt)
 
 ## 0.6.4
-
 
 为所有事件启用泛型参数分发支持.
 

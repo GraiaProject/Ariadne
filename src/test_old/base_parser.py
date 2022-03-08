@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     @bcc.receiver(MessageEvent)
     async def pup(
-        result: MessageChain = DetectPrefix(".test") > DetectPrefix("option") > DetectPrefix("end"),
+        result: MessageChain = Compose(DetectPrefix(".test"), DetectPrefix("option"), DetectPrefix("end")),
     ):
         devtools.debug(result)
 

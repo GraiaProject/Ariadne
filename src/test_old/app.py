@@ -38,7 +38,7 @@ from graia.ariadne.message.parser.twilight import (
     WildcardMatch,
 )
 from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
-from graia.ariadne.util.helper import CoolDown
+from graia.ariadne.util.cooldown import CoolDown
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (

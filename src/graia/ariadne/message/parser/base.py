@@ -14,17 +14,25 @@ from ..chain import MessageChain
 from ..element import At, Element, Plain, Quote, Source
 
 
+class Compose(Decorator):
+    """将多个基础 Decorator 串联起来"""
+
+    def __init__(self, *deco: "ChainDecorator") -> None:
+        self.deco: List[ChainDecorator] = list(deco)
+
+    async def target(self, interface: DecoratorInterface):
+        chain = await interface.dispatcher_interface.lookup_param("message_chain", MessageChain, None)
+        for deco in self.deco:
+            chain = await deco.decorate(chain, interface)
+            if chain is None:
+                break
+        if interface.annotation is MessageChain:
+            if chain is None:
+                raise ExecutionStop
+            return chain
+
+
 class ChainDecorator(abc.ABC, Decorator):
-    next: Optional["ChainDecorator"] = None
-
-    def __init__(self) -> None:
-        self.next: Optional["ChainDecorator"] = None
-
-    def __gt__(self, other: "ChainDecorator") -> "ChainDecorator":
-        self.next = other
-        other.target = self.target
-        return other
-
     @abc.abstractmethod
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         ...
@@ -47,7 +55,6 @@ class DetectPrefix(ChainDecorator):
             prefix (str): 要匹配的前缀
         """
         self.prefix = prefix
-        self.next: Optional[ChainDecorator] = None
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
@@ -55,8 +62,6 @@ class DetectPrefix(ChainDecorator):
         if not rest.startswith(self.prefix):
             raise ExecutionStop
         result = rest.removeprefix(self.prefix).removeprefix(" ")
-        if self.next is not None:
-            return await self.next.decorate(header + result, interface)
         if interface.annotation is MessageChain:
             return header + result
 
@@ -73,7 +78,6 @@ class DetectSuffix(ChainDecorator):
             suffix (str): 要匹配的后缀
         """
         self.suffix = suffix
-        self.next: Optional[ChainDecorator] = None
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
@@ -81,8 +85,6 @@ class DetectSuffix(ChainDecorator):
         if not rest.endswith(self.suffix):
             raise ExecutionStop
         result = rest.removesuffix(self.suffix).removesuffix(" ")
-        if self.next is not None:
-            return await self.next.decorate(header + result, interface)
         if interface.annotation is MessageChain:
             return header + result
 
@@ -111,8 +113,6 @@ class MentionMe(ChainDecorator):
 
         if result is None:
             raise ExecutionStop
-        if self.next is not None:
-            return await self.next.decorate(result, interface)
         if interface.annotation is MessageChain:
             return result
 
@@ -124,7 +124,6 @@ class Mention(ChainDecorator):
 
     def __init__(self, target: Union[int, str]) -> None:
         self.person: Union[int, str] = target
-        self.next: Optional[ChainDecorator] = None
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
@@ -140,8 +139,6 @@ class Mention(ChainDecorator):
 
         if result is None:
             raise ExecutionStop
-        if self.next is not None:
-            return await self.next.decorate(result, interface)
         if interface.annotation is MessageChain:
             return result
 
@@ -153,13 +150,10 @@ class ContainKeyword(ChainDecorator):
 
     def __init__(self, keyword: str) -> None:
         self.keyword: str = keyword
-        self.next: Optional[ChainDecorator] = None
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         if self.keyword not in chain:
             raise ExecutionStop
-        if self.next is not None:
-            return await self.next.decorate(chain, interface)
         if interface.annotation is MessageChain:
             return chain
 
@@ -178,8 +172,6 @@ class MatchContent(ChainDecorator):
             raise ExecutionStop
         if isinstance(self.content, MessageChain) and chain != self.content:
             raise ExecutionStop
-        if self.next is not None:
-            return await self.next.decorate(chain, interface)
         if interface.annotation is MessageChain:
             return chain
 
@@ -198,13 +190,10 @@ class MatchRegex(ChainDecorator):
         """
         self.regex: str = regex
         self.flags: re.RegexFlag = flags
-        self.next: Optional[ChainDecorator] = None
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         if not re.match(self.regex, chain.asDisplay(), self.flags):
             raise ExecutionStop
-        if self.next is not None:
-            return await self.next.decorate(chain, interface)
         if interface.annotation is MessageChain:
             return chain
 
@@ -214,7 +203,6 @@ class MatchTemplate(ChainDecorator):
 
     def __init__(self, template: List[Union[Type[Element], Element]]) -> None:
         self.template: List[Union[Type[Element], Element, str]] = []
-        self.next: Optional[ChainDecorator] = None
         for element in template:
             if isinstance(element, type) and element is not Plain:
                 self.template.append(element)
@@ -245,7 +233,5 @@ class MatchTemplate(ChainDecorator):
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         if not self.match(chain):
             raise ExecutionStop
-        if self.next is not None:
-            return await self.next.decorate(chain, interface)
         if interface.annotation is MessageChain:
             return chain

@@ -376,7 +376,7 @@ class Member(AriadneBaseModel):
         Returns:
             Profile: 该群成员的 Profile 对象
         """
-        from .. import get_running
+        from . import get_running
 
         return await get_running().getMemberProfile(self)
 

@@ -21,12 +21,10 @@ from typing import (
     Dict,
     Generator,
     List,
-    NoReturn,
     Optional,
     Tuple,
     Type,
     TypeVar,
-    Union,
 )
 
 from graia.broadcast import Broadcast
@@ -189,50 +187,6 @@ def const_call(val: T) -> Callable[[], T]:
         Callable[[], T]: 返回的函数
     """
     return lambda: val
-
-
-def assert_on_(pre_condition: bool, condition: bool, *message: Any) -> Union[None, NoReturn]:
-    """检查条件是否成立, 如果不成立则抛出 ValueError
-
-    Args:
-        pre_condition (bool): 前置条件
-        condition (bool): 条件语句
-        message (Any, optional): 附带的消息.
-
-    Returns:
-        Union[None, NoReturn]: 无返回值
-    """
-    if pre_condition:
-        if not condition:
-            raise ValueError(*message)
-
-
-def assert_(condition: bool, *message: Any) -> Union[None, NoReturn]:
-    """引发 ValueError 的断言
-
-    Args:
-        condition (bool): 条件语句
-        *message (Any): 附带的消息.
-
-    Returns:
-        Union[None, NoReturn]: 无返回值
-    """
-    if not condition:
-        raise ValueError(*message)
-
-
-def assert_not_(condition: bool, *message: Any) -> Union[None, NoReturn]:
-    """检查条件是否成立, 如果不成立则抛出 ValueError
-
-    Args:
-        condition (bool): 条件语句
-        *message (Any): 附带的消息.
-
-    Returns:
-        Union[None, NoReturn]: 无返回值
-    """
-    if condition:
-        raise ValueError(*message)
 
 
 def eval_ctx(

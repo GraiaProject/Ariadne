@@ -34,9 +34,6 @@ from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
 from ...util import (
     ConstantDispatcher,
-    assert_,
-    assert_not_,
-    assert_on_,
     const_call,
     eval_ctx,
     gen_subclass,
@@ -156,7 +153,7 @@ class Arg(ParamDesc):
 
         tokens = tokenize_command(pattern)
 
-        assert_(tokens[0][0] in {CommandToken.TEXT, CommandToken.CHOICE}, "Required argument pattern!")
+        assert tokens[0][0] in {CommandToken.TEXT, CommandToken.CHOICE}, "Required argument pattern!"
 
         self.match_patterns = list(map(str, tokens[0][1]))
 
@@ -404,24 +401,23 @@ class Commander:
 
         for (t_type, tokens) in command_tokens:
             if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
-                assert_not_(
-                    any(token in pattern_arg_map for token in tokens),
-                    f"{tokens} conflicts with a Arg object!",
-                )
+                assert not any(
+                    token in pattern_arg_map for token in tokens
+                ), f"{tokens} conflicts with a Arg object!"
+
                 token_list.append(set(cast(List[str], tokens)))
 
             elif t_type is CommandToken.ANNOTATED:
                 wildcard, name, annotation, default = cast(List[str], tokens)
-                assert_on_(
-                    wildcard or default,
-                    tokens is command_tokens[-1][1],
-                    "Not setting wildcard / optional on the last slot!",
-                )
+                if wildcard or default:
+                    assert (
+                        tokens is command_tokens[-1][1]
+                    ), "Not setting wildcard / optional on the last slot!"
                 if wildcard:
                     last = CommandPattern.ELast.WILDCARD
                 if default:
                     last = CommandPattern.ELast.OPTIONAL
-                assert_not_(name in placeholder_set, "Duplicated parameter slot!")
+                assert name not in placeholder_set, "Duplicated parameter slot!"
                 placeholder_set.add(name)
                 parsed_slot = Slot(
                     name,
@@ -435,7 +431,7 @@ class Commander:
                 token_list.append([name])
             elif t_type is CommandToken.PARAM:
                 for param_name in tokens:
-                    assert_not_(param_name in placeholder_set, "Duplicated parameter slot!")
+                    assert param_name not in placeholder_set, "Duplicated parameter slot!"
                     placeholder_set.add(param_name)
                 token_list.append(tokens)
 
@@ -460,11 +456,17 @@ class Commander:
                     parsed_slot.param_name = name  # assuming that param_name is consistent
                     slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
                     if default is not ...:
-                        assert_(
-                            slot_map[name].placeholder in command_tokens[-1][1]
-                            and command_tokens[-1][0] in {CommandToken.ANNOTATED, CommandToken.PARAM},
-                            "Not setting wildcard / optional on the last slot!",
-                        )
+                        assert all(
+                            [
+                                slot_map[name].placeholder in command_tokens[-1][1],
+                                command_tokens[-1][0]
+                                in {
+                                    CommandToken.ANNOTATED,
+                                    CommandToken.PARAM,
+                                },
+                            ]
+                        ), "Not setting wildcard / optional on the last slot!"
+
                         nonlocal last
                         if last is CommandPattern.ELast.REQUIRED:
                             last = CommandPattern.ELast.OPTIONAL

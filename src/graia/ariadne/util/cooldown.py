@@ -1,6 +1,6 @@
+import builtins
 import contextlib
 import inspect
-import types
 import typing
 from datetime import datetime, timedelta
 from types import TracebackType
@@ -64,7 +64,7 @@ class CoolDown(BaseDispatcher):
         next_exec_time: datetime = self.source.get(target, current_time)
         delta: timedelta = next_exec_time - current_time
         satisfied: bool = delta < timedelta(seconds=0)
-        if types.NoneType in typing.get_args(type) and delta.total_seconds() <= 0:
+        if builtins.type(None) in typing.get_args(type) and delta.total_seconds() <= 0:
             return None, satisfied
         if generic_issubclass(datetime, type):
             return next_exec_time, satisfied
@@ -81,7 +81,10 @@ class CoolDown(BaseDispatcher):
     async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
         event = interface.event
         sender_id = event.sender.id
-        value, satisfied = await self.get(sender_id, interface.annotation)
+        current_time: datetime = datetime.now()
+        next_exec_time: datetime = self.source.get(sender_id, current_time)
+        delta: timedelta = next_exec_time - current_time
+        satisfied: bool = delta <= timedelta(seconds=0)
         if not satisfied:
             if self.stop_on_cooldown:
                 param_dict: Dict[str, Any] = {}
@@ -90,10 +93,23 @@ class CoolDown(BaseDispatcher):
                 res = self.override_condition(**param_dict)
                 if not ((await res) if inspect.isawaitable(res) else res):
                     raise ExecutionStop
-        interface.local_storage["result"] = value
+        interface.local_storage["next_exec_time"] = next_exec_time
+        interface.local_storage["delta"] = delta
 
     async def catch(self, interface: DispatcherInterface[MessageEvent]):
-        return Force(interface.local_storage["result"])
+        annotation = interface.annotation
+        next_exec_time: datetime = interface.local_storage["next_exec_time"]
+        delta: timedelta = interface.local_storage["delta"]
+        if builtins.type(None) in typing.get_args(annotation) and delta.total_seconds() <= 0:
+            return Force(None)
+        if generic_issubclass(datetime, annotation):
+            return next_exec_time
+        if generic_issubclass(timedelta, annotation):
+            return delta
+        if generic_issubclass(float, annotation):
+            return delta.total_seconds()
+        if generic_issubclass(int, annotation):
+            return int(delta.total_seconds())
 
     async def afterDispatch(
         self,

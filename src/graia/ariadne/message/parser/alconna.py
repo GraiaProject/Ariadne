@@ -95,7 +95,7 @@ class AlconnaDispatcher(BaseDispatcher):
 
     async def beforeExecution(self, interface: "DispatcherInterface[MessageEvent]"):
         """预处理消息链并存入 local_storage"""
-        event: MessageEvent = await interface.lookup_param("event", MessageEvent, None)
+        event: MessageEvent = interface.event
 
         if self.reply_help:
             app: Ariadne = get_running()

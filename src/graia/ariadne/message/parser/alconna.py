@@ -13,7 +13,6 @@ from arclet.alconna import (
 )
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
-from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -149,4 +148,3 @@ class AlconnaDispatcher(BaseDispatcher):
                 return arpamar.all_matched_args[interface.name]
         if issubclass(interface.annotation, ArpamarProperty):
             return arpamar.get(interface.name)
-        return Force()

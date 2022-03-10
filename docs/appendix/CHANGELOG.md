@@ -1,5 +1,11 @@
 # 更改日志
 
+## 0.6.7
+
+修复 `Alconna`.
+
+修复 `getFileIterator` 与 `getAnnouncementIterator`.
+
 ## 0.6.6
 
 为 `Twilight` 使用泛型参数分发.

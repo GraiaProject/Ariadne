@@ -63,7 +63,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "arclet-alconna"
-version = "0.7.1"
+version = "0.7.4.3"
 description = "A Fast Command Analyser based on Dict"
 category = "main"
 optional = true
@@ -742,15 +742,15 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocs-autorefs"
-version = "0.3.1"
+version = "0.4.1"
 description = "Automatically link across pages in MkDocs."
 category = "dev"
 optional = false
-python-versions = ">=3.6.2,<4.0.0"
+python-versions = ">=3.7"
 
 [package.dependencies]
-Markdown = ">=3.3,<4.0"
-mkdocs = ">=1.1,<2.0"
+Markdown = ">=3.3"
+mkdocs = ">=1.1"
 
 [package.source]
 type = "legacy"
@@ -791,7 +791,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.2.4"
+version = "8.2.5"
 description = "A Material Design theme for MkDocs"
 category = "dev"
 optional = false
@@ -1255,7 +1255,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "pytkdocs"
-version = "0.16.0"
+version = "0.16.1"
 description = "Load Python objects documentation."
 category = "dev"
 optional = false
@@ -1449,7 +1449,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "virtualenv"
-version = "20.13.2"
+version = "20.13.3"
 description = "Virtual Python Environment builder"
 category = "dev"
 optional = false
@@ -1596,11 +1596,12 @@ alconna = ["arclet-alconna"]
 full = ["graia-saya", "graia-scheduler", "arclet-alconna", "uvicorn", "fastapi"]
 graia = ["graia-saya", "graia-scheduler"]
 server = ["uvicorn", "fastapi"]
+standard = ["graia-saya", "graia-scheduler", "arclet-alconna"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "993c063e106480633e06e8ae3813501f9f04345f59d386efbf171a1c7197a3ef"
+content-hash = "6679b08f47741975dce287a8fa3b4d587e58b55a4ccab30cd6f85d727ff54119"
 
 [metadata.files]
 aiohttp = [
@@ -1686,7 +1687,7 @@ anyio = [
     {file = "anyio-3.5.0.tar.gz", hash = "sha256:a0aeffe2fb1fdf374a8e4b471444f0f3ac4fb9f5a5b542b48824475e0042a5a6"},
 ]
 arclet-alconna = [
-    {file = "arclet-alconna-0.7.1.tar.gz", hash = "sha256:115222f8e841767fa342da2e395d4ced894d082622c09f91d84a92506c285cdb"},
+    {file = "arclet-alconna-0.7.4.3.tar.gz", hash = "sha256:861876a4547a9a5731e57b756a1f9109b74f4fac8f50d93d98159096d743cfef"},
 ]
 asgiref = [
     {file = "asgiref-3.5.0-py3-none-any.whl", hash = "sha256:88d59c13d634dcffe0510be048210188edd79aeccb6a6c9028cdad6f31d730a9"},
@@ -2026,8 +2027,8 @@ mkdocs = [
     {file = "mkdocs-1.2.3.tar.gz", hash = "sha256:89f5a094764381cda656af4298727c9f53dc3e602983087e1fe96ea1df24f4c1"},
 ]
 mkdocs-autorefs = [
-    {file = "mkdocs-autorefs-0.3.1.tar.gz", hash = "sha256:12baad29359f468b44d980ed35b713715409097a1d8e3d0ef90962db95205eda"},
-    {file = "mkdocs_autorefs-0.3.1-py3-none-any.whl", hash = "sha256:f0fd7c115eaafda7fb16bf5ff5d70eda55d7c0599eac64f8b25eacf864312a85"},
+    {file = "mkdocs-autorefs-0.4.1.tar.gz", hash = "sha256:70748a7bd025f9ecd6d6feeba8ba63f8e891a1af55f48e366d6d6e78493aba84"},
+    {file = "mkdocs_autorefs-0.4.1-py3-none-any.whl", hash = "sha256:a2248a9501b29dc0cc8ba4c09f4f47ff121945f6ce33d760f145d6f89d313f5b"},
 ]
 mkdocs-gen-files = [
     {file = "mkdocs-gen-files-0.3.4.tar.gz", hash = "sha256:c69188486bdc1e74bd2b9b7ebbde9f9eb21052ae7762f1b35420cfbfc6d7122e"},
@@ -2038,8 +2039,8 @@ mkdocs-literate-nav = [
     {file = "mkdocs_literate_nav-0.4.1-py3-none-any.whl", hash = "sha256:a4b761792ba21defbe2dfd5e0de6ba451639e1ca0f0661c37eda83cc6261e4f9"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.2.4.tar.gz", hash = "sha256:3c350a03e2f7288874f0a9cf5aacfbbb8721cc7d4e389b53169180ee2187223e"},
-    {file = "mkdocs_material-8.2.4-py2.py3-none-any.whl", hash = "sha256:7aa9ed562f68c8592dad3f568378c98a2350398445dbf46de373585b3cd9080e"},
+    {file = "mkdocs-material-8.2.5.tar.gz", hash = "sha256:cdfb39edc77f5c2bbfca02b4fc3764de38b2093eff121aed37674204439901ce"},
+    {file = "mkdocs_material-8.2.5-py2.py3-none-any.whl", hash = "sha256:95283c6af633809f32ba688fcf9bce4604af320e188d3e26fcb40d0e5ab9b823"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
@@ -2240,8 +2241,8 @@ python-dotenv = [
     {file = "python_dotenv-0.19.2-py2.py3-none-any.whl", hash = "sha256:32b2bdc1873fd3a3c346da1c6db83d0053c3c62f28f1f38516070c4c8971b1d3"},
 ]
 pytkdocs = [
-    {file = "pytkdocs-0.16.0-py3-none-any.whl", hash = "sha256:098405ff347797cfb887a4d78f161372109bfbfffa0f8ee8daa5e2b8a8caba4b"},
-    {file = "pytkdocs-0.16.0.tar.gz", hash = "sha256:274407bcefec58d7e411adb03b84da49120107912b1697d17d4a3aea0583f388"},
+    {file = "pytkdocs-0.16.1-py3-none-any.whl", hash = "sha256:a8c3f46ecef0b92864cc598e9101e9c4cf832ebbf228f50c84aa5dd850aac379"},
+    {file = "pytkdocs-0.16.1.tar.gz", hash = "sha256:e2ccf6dfe9dbbceb09818673f040f1a7c32ed0bffb2d709b06be6453c4026045"},
 ]
 pyyaml = [
     {file = "PyYAML-6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d4db7c7aef085872ef65a8fd7d6d09a14ae91f691dec3e87ee5ee0539d516f53"},
@@ -2333,8 +2334,8 @@ uvloop = [
     {file = "uvloop-0.16.0.tar.gz", hash = "sha256:f74bc20c7b67d1c27c72601c78cf95be99d5c2cdd4514502b4f3eb0933ff1228"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.13.2-py2.py3-none-any.whl", hash = "sha256:e7b34c9474e6476ee208c43a4d9ac1510b041c68347eabfe9a9ea0c86aa0a46b"},
-    {file = "virtualenv-20.13.2.tar.gz", hash = "sha256:01f5f80744d24a3743ce61858123488e91cb2dd1d3bdf92adaf1bba39ffdedf0"},
+    {file = "virtualenv-20.13.3-py2.py3-none-any.whl", hash = "sha256:dd448d1ded9f14d1a4bfa6bfc0c5b96ae3be3f2d6c6c159b23ddcfd701baa021"},
+    {file = "virtualenv-20.13.3.tar.gz", hash = "sha256:e9dd1a1359d70137559034c0f5433b34caf504af2dc756367be86a5a32967134"},
 ]
 watchdog = [
     {file = "watchdog-2.1.6-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:9693f35162dc6208d10b10ddf0458cc09ad70c30ba689d9206e02cd836ce28a3"},

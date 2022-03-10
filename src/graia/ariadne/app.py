@@ -898,7 +898,6 @@ class OperationMixin(AriadneMixin):
 class AnnouncementMixin(AriadneMixin):
     """对群公告进行操作的 Mixin 类."""
 
-    @app_ctx_manager
     async def getAnnouncementIterator(
         self,
         target: Union[Group, int],
@@ -916,7 +915,6 @@ class AnnouncementMixin(AriadneMixin):
         Returns:
             Generator[Announcement, None, None]: 列出群组下所有的公告.
         """
-
         target = int(target)
         current_offset = offset
         cache: List[FileInfo] = []
@@ -1031,7 +1029,6 @@ class AnnouncementMixin(AriadneMixin):
 class FileMixin(AriadneMixin):
     """用于对文件进行各种操作的 Mixin 类."""
 
-    @app_ctx_manager
     async def getFileIterator(
         self,
         target: Union[Group, int],

@@ -9,6 +9,8 @@ from pydantic import Field
 from typing_extensions import Literal
 
 from ..exception import InvalidSession
+from ..message.chain import MessageChain
+from ..message.element import Element
 from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
 from ..typing import generic_issubclass
 from . import MiraiEvent
@@ -1118,18 +1120,22 @@ class CommandExecutedEvent(MiraiEvent):
 
     ** 注意: 当监听该事件时, 请使用原始事件类作为类型注解, 以此获得事件类实例, 并执行相关操作. **
 
-    - eventId (int): 事件标识，响应该事件时的标识
     - name (str): 命令名称
     - friend (Optional[Friend]): 发送命令的好友, 从控制台发送为 None
     - member (Optional[Member]): 发送命令的群成员, 从控制台发送为 None
-    - args (List[str]): 指令的参数, 以消息类型传递
+    - args (List[Element]): 指令的参数, 以消息类型传递
 
     提供的额外注解支持:
         Ariadne (annotation): 发布事件的应用实例
     """
 
-    eventId: int
+    type = "CommandExecutedEvent"
     name: str
     friend: Optional[Friend]
     member: Optional[Member]
-    args: List[str]
+    args: List[Element]
+
+    def __init__(self, *args, **kwargs):
+        if "args" in kwargs:
+            kwargs["args"] = MessageChain.build_chain(kwargs["args"])
+        super().__init__(*args, **kwargs)

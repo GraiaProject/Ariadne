@@ -18,6 +18,7 @@ from typing import (
     Coroutine,
     Dict,
     Generator,
+    Iterable,
     List,
     Literal,
     MutableSet,
@@ -892,6 +893,45 @@ class OperationMixin(AriadneMixin):
                 "memberId": member.id if isinstance(member, Member) else member,
                 "assign": assign,
             },
+        )
+
+    @app_ctx_manager
+    async def registerCommand(
+        self, name: str, alias: Iterable[str] = (), usage: str = "", description: str = ""
+    ) -> None:
+        """注册一个指令
+
+        Args:
+            name (str): 指令名
+            alias (Iterable[str], optional): 指令别名. Defaults to ().
+            usage (str, optional): 使用方法字符串. Defaults to "".
+            description (str, optional): 描述字符串. Defaults to "".
+
+        """
+        await self.adapter.call_api(
+            "cmd/register",
+            CallMethod.POST,
+            {
+                "sessionKey": self.session_key,
+                "name": name,
+                "alias": alias,
+                "usage": usage,
+                "description": description,
+            },
+        )
+
+    @app_ctx_manager
+    async def executeCommand(self, command: Union[str, Iterable[str]]) -> None:
+        """执行一条指令
+
+        Args:
+            command (Union[str, Iterable[str]]): 指令字符串.
+
+        """
+        if isinstance(command, str):
+            command = command.split(" ")
+        await self.adapter.call_api(
+            "cmd/execute", CallMethod.POST, {"sessionKey": self.session_key, "command": command}
         )
 
 

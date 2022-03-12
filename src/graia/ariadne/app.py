@@ -501,7 +501,7 @@ class RelationshipMixin(AriadneMixin):
             CallMethod.GET,
             {
                 "sessionKey": self.session_key,
-                "userId": int(target),
+                "target": int(target),
             },
         )
         return Profile.parse_obj(result)

@@ -20,7 +20,7 @@ from ..exception import InvalidSession
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
 from ..util import await_predicate, yield_with_timeout
 from . import Adapter
-from .util import SyncIDManager, validate_response
+from .util import validate_response
 
 
 class HttpAdapter(Adapter):
@@ -154,7 +154,7 @@ class WebsocketAdapter(Adapter):
         self.ping_task: Optional[Task] = None
         self.websocket: Optional[ClientWebSocketResponse] = None
         self.query_dict = {"verifyKey": mirai_session.verify_key}
-        self.id_manager = SyncIDManager()
+        self.future_map: Dict[str, asyncio.Future] = {}
         self.log = log
         if not mirai_session.single_mode:
             self.query_dict["qq"] = mirai_session.account
@@ -181,6 +181,28 @@ class WebsocketAdapter(Adapter):
                 if self.log:
                     logger.debug("websocket: pinger exit")
                 break
+
+    async def call_api(
+        self, action: str, method: CallMethod, data: Optional[Union[Dict[str, Any], str, FormData]] = None
+    ) -> Union[dict, list]:
+        await await_predicate(lambda: self.websocket is not None and self.mirai_session.session_key)
+        future = self.broadcast.loop.create_future()
+        self.future_map[str(id(future))] = future
+        content = {
+            "syncId": str(id(future)),
+            "command": action.replace("/", "_"),
+            "content": data,
+        }
+        if method == CallMethod.RESTGET:
+            content["subCommand"] = "get"
+        elif method == CallMethod.RESTPOST:
+            content["subCommand"] = "update"
+        elif method == CallMethod.MULTIPART:
+            future.set_exception(
+                NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {method}")
+            ),
+        await self.websocket.send_text(json.dumps(content, cls=DatetimeEncoder))
+        return await future
 
     async def fetch_cycle(self) -> None:
         self.running = True
@@ -209,8 +231,15 @@ class WebsocketAdapter(Adapter):
                                 self.mirai_session.session_key = data["session"]
                                 logger.success("Successfully got session key")
                                 continue
-                            if not self.id_manager.free(sync_id, validate_response(data)):
-                                await self.event_queue.put(self.build_event(data))
+                            if sync_id in self.future_map:
+                                fut = self.future_map.pop(str(sync_id))
+                                res = validate_response(data)
+                                if isinstance(res, Exception):
+                                    fut.set_exception(res)
+                                else:
+                                    fut.set_result(res)
+                            else:
+                                self.event_queue.put(self.build_event(data))
                         elif ws_message.type is WSMsgType.CLOSED:
                             logger.warning("websocket: connection has been closed.")
                             raise WebSocketError(1, "connection closed")

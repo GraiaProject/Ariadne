@@ -52,7 +52,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        ComposeReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
+        ReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,

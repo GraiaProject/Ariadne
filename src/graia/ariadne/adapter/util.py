@@ -1,4 +1,3 @@
-from asyncio import Future
 from typing import Any, Dict, Type, Union
 
 from ..exception import (
@@ -13,40 +12,6 @@ from ..exception import (
     UnknownTarget,
     UnVerifiedSession,
 )
-
-
-class SyncIDManager:
-    def __init__(self) -> None:
-        self.id_map: Dict[int, Future] = {0: ...}
-
-    def allocate(self, fut: Future) -> int:
-        """分配一个新的 Sync ID, 并将其与指定的 Future 关联.
-
-        Returns:
-            int: 生成的 Sync ID. 注意完成后使用 free() 方法标记本 Sync ID.
-        """
-        new_id = max(self.id_map) + 1
-        self.id_map[new_id] = fut
-        return new_id
-
-    def free(self, sync_id: int, result: Any) -> bool:
-        """标记一个 Sync ID 的任务完成. 本 Sync ID 随后可被复用.
-
-        Args:
-            sync_id (int): 标记的 Sync ID.
-            result (Any): 任务结果
-        Returns:
-            bool: 是否成功标记.
-        """
-        if sync_id in self.id_map:
-            fut = self.id_map.pop(sync_id)
-            if isinstance(result, Exception):
-                fut.set_exception(result)
-            else:
-                fut.set_result(result)
-            return True
-        return False
-
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
     1: InvalidVerifyKey,

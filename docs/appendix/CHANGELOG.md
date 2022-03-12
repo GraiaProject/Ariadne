@@ -1,5 +1,17 @@
 # 更改日志
 
+## 0.6.8
+
+支持了 `registerCommand` `executeCommand` `CommandExecuted` 相关的 API 与事件.
+
+修复了 `getUserProfile`.
+
+修复了仅使用 Websocket 的适配器的错误行为.
+
+!!! warning "弃用"
+
+    `getMemberInfo` 已被弃用，请使用 `getMember` 替代, 将在 `0.6.10` 或更高版本中移除。
+
 ## 0.6.7
 
 修复 `Alconna`.

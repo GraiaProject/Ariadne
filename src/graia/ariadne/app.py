@@ -65,6 +65,7 @@ from .typing import SendMessageAction, SendMessageDict, SendMessageException
 from .util import (
     app_ctx_manager,
     await_predicate,
+    deprecated,
     inject_bypass_listener,
     inject_loguru_traceback,
     signal_handler,
@@ -456,21 +457,27 @@ class RelationshipMixin(AriadneMixin):
         return [Member.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getMember(self, group: Union[Group, int], member_id: int) -> Optional[Member]:
-        """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
+    async def getMember(self, group: Union[Group, int], member_id: int) -> Member:
+        """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息.
 
         Args:
             group_id (Union[Group, int]): 已知的群组唯一 ID
             member_id (int): 已知的群组成员的 ID
 
         Returns:
-            Member: 操作成功, 你得到了你应得的.
-            None: 未能获取到.
+            Member: 对应群成员对象
         """
-        data = await self.getMemberList(group)
-        for i in data:
-            if i.id == member_id:
-                return i
+        result = await self.adapter.call_api(
+            "memberInfo",
+            CallMethod.RESTGET,
+            {
+                "sessionKey": self.session_key,
+                "target": group.id if isinstance(group, Group) else group,
+                "memberId": member_id,
+            },
+        )
+
+        return Member.parse_obj(result)
 
     @app_ctx_manager
     async def getBotProfile(self) -> Profile:
@@ -788,6 +795,7 @@ class OperationMixin(AriadneMixin):
             },
         )
 
+    @deprecated("0.6.10")
     @app_ctx_manager
     async def getMemberInfo(
         self, member: Union[Member, int], group: Optional[Union[Group, int]] = None

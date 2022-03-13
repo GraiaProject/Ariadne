@@ -1,5 +1,11 @@
 # 更改日志
 
+## 0.6.10
+
+移除弃用的 `getMemberInfo`: 请改用 `getMember`.
+
+修复了自动重连.
+
 ## 0.6.9
 
 修复 [#122](https://github.com/GraiaProject/Ariadne/issues/122)

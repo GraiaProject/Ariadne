@@ -82,8 +82,7 @@ class HttpAdapter(Adapter):
                     resp_json: dict = await response.json()
                     resp: List[dict] = validate_response(resp_json)
                 for data in resp:
-                    event = self.build_event(data)
-                    await self.event_queue.put(event)
+                    await self.event_queue.put(self.build_event(data))
             self.mirai_session.session_key = None
 
     async def call_api(
@@ -239,7 +238,7 @@ class WebsocketAdapter(Adapter):
                                 else:
                                     fut.set_result(res)
                             else:
-                                self.event_queue.put(self.build_event(data))
+                                await self.event_queue.put(self.build_event(data))
                         elif ws_message.type is WSMsgType.CLOSED:
                             logger.warning("websocket: connection has been closed.")
                             raise WebSocketError(1, "connection closed")

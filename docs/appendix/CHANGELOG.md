@@ -1,5 +1,9 @@
 # 更改日志
 
+## 0.6.9
+
+修复 [#122](https://github.com/GraiaProject/Ariadne/issues/122)
+
 ## 0.6.8
 
 支持了 `registerCommand` `executeCommand` `CommandExecuted` 相关的 API 与事件.

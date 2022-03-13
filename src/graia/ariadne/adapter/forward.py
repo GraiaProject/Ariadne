@@ -239,7 +239,7 @@ class WebsocketAdapter(Adapter):
                                 else:
                                     fut.set_result(res)
                             else:
-                                self.event_queue.put(self.build_event(data))
+                                await self.event_queue.put(self.build_event(data))
                         elif ws_message.type is WSMsgType.CLOSED:
                             logger.warning("websocket: connection has been closed.")
                             raise WebSocketError(1, "connection closed")

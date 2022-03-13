@@ -200,27 +200,27 @@ class WebsocketAdapter(Adapter):
             future.set_exception(
                 NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {method}")
             ),
-        await self.websocket.send_text(json.dumps(content, cls=DatetimeEncoder))
+        await self.websocket.send_str(json.dumps(content, cls=DatetimeEncoder))
         return await future
 
     async def fetch_cycle(self) -> None:
         self.running = True
         async with ClientSession() as session:
             self.session = session
-            async with self.session.ws_connect(
-                str(URL(self.mirai_session.url_gen("all")).with_query(self.query_dict)),
-                autoping=False,
-            ) as connection:
-                logger.info("websocket: connected")
-                self.websocket = connection
+            try:
+                async with self.session.ws_connect(
+                    str(URL(self.mirai_session.url_gen("all")).with_query(self.query_dict)),
+                    autoping=False,
+                ) as connection:
+                    logger.info("websocket: connected")
+                    self.websocket = connection
 
-                if self.ping:
-                    self.ping_task = self.broadcast.loop.create_task(
-                        self.ws_ping(), name="ariadne_adapter_ws_ping"
-                    )
-                    logger.info("websocket: ping task created")
+                    if self.ping:
+                        self.ping_task = self.broadcast.loop.create_task(
+                            self.ws_ping(), name="ariadne_adapter_ws_ping"
+                        )
+                        logger.info("websocket: ping task created")
 
-                try:
                     async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                         if ws_message.type is WSMsgType.TEXT:
                             raw_data: dict = json.loads(ws_message.data)
@@ -247,20 +247,20 @@ class WebsocketAdapter(Adapter):
                                 logger.debug("websocket: received pong")
                         else:
                             logger.warning(f"websocket: unknown message type - {ws_message.type}")
-                except CancelledError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                finally:
-                    if self.ping_task:
-                        self.ping_task.cancel()
-                        self.ping_task = None
-                        if self.log:
-                            logger.debug("websocket: ping task complete")
-                    logger.info("websocket: disconnected")
-                    self.running = False
-            self.websocket = None
-        self.session = None
+            except CancelledError:
+                pass
+            except Exception as e:
+                logger.exception(e)
+            finally:
+                if self.ping_task:
+                    self.ping_task.cancel()
+                    self.ping_task = None
+                    if self.log:
+                        logger.debug("websocket: ping task complete")
+                logger.info("websocket: disconnected")
+                self.running = False
+                self.websocket = None
+                self.session = None
 
 
 class ComposeForwardAdapter(WebsocketAdapter):

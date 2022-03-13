@@ -82,8 +82,7 @@ class HttpAdapter(Adapter):
                     resp_json: dict = await response.json()
                     resp: List[dict] = validate_response(resp_json)
                 for data in resp:
-                    event = self.build_event(data)
-                    await self.event_queue.put(event)
+                    await self.event_queue.put(self.build_event(data))
             self.mirai_session.session_key = None
 
     async def call_api(

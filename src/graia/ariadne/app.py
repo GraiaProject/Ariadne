@@ -65,7 +65,6 @@ from .typing import SendMessageAction, SendMessageDict, SendMessageException
 from .util import (
     app_ctx_manager,
     await_predicate,
-    deprecated,
     inject_bypass_listener,
     inject_loguru_traceback,
     signal_handler,
@@ -794,40 +793,6 @@ class OperationMixin(AriadneMixin):
                 "config": config.dict(exclude_unset=True, exclude_none=True),
             },
         )
-
-    @deprecated("0.6.10")
-    @app_ctx_manager
-    async def getMemberInfo(
-        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
-    ) -> Member:
-        """
-        获取指定群组成员 (等价于 getMember, 但是更高效).
-
-        Args:
-            member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
-            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
-
-        Raises:
-            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
-
-        Returns:
-            Member: 指定群组成员
-        """
-        if not group and not isinstance(member, Member):
-            raise TypeError("you should give a Member instance if you cannot give a Group instance to me.")
-        if isinstance(member, Member) and not group:
-            group: Group = member.group
-        result = await self.adapter.call_api(
-            "memberInfo",
-            CallMethod.RESTGET,
-            {
-                "sessionKey": self.session_key,
-                "target": group.id if isinstance(group, Group) else group,
-                "memberId": member.id if isinstance(member, Member) else member,
-            },
-        )
-
-        return Member.parse_obj(result)
 
     @app_ctx_manager
     async def modifyMemberInfo(

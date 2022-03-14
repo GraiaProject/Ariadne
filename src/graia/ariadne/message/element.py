@@ -3,7 +3,9 @@ import abc
 from base64 import b64decode, b64encode
 from datetime import datetime
 from enum import Enum
+from io import BytesIO
 from json import dumps as j_dump
+from os import PathLike
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
@@ -645,9 +647,9 @@ class MultimediaElement(Element):
         id: Optional[str] = None,
         url: Optional[str] = None,
         *,
-        path: Optional[Union[Path, str]] = None,
+        path: Optional[Union[PathLike, str]] = None,
         base64: Optional[str] = None,
-        data_bytes: Optional[bytes] = None,
+        data_bytes: Union[None, bytes, BytesIO] = None,
         **kwargs,
     ) -> None:
         data = {}
@@ -671,7 +673,10 @@ class MultimediaElement(Element):
         elif base64:
             data["base64"] = base64
         elif data_bytes:
-            data["base64"] = b64encode(data_bytes)
+            if isinstance(data_bytes, bytes):
+                data["base64"] = b64encode(data_bytes)
+            if isinstance(data_bytes, BytesIO):
+                data["base64"] = b64encode(data_bytes.read())
         super().__init__(**data, **kwargs)
 
     async def get_bytes(self) -> bytes:

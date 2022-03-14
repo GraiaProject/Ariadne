@@ -1671,15 +1671,17 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 self.broadcast.finale_dispatchers.append(ContextDispatcher)
 
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
+            await await_predicate(lambda: self.adapter.running, 0.0001)
+
+            self.running.add(self)
+
             if "reverse" not in self.adapter.tags:
                 await await_predicate(
                     lambda: self.adapter.mirai_session.session_key or self.adapter.mirai_session.single_mode,
                     0.0001,
                 )
-            await await_predicate(lambda: self.adapter.running, 0.0001)
 
             self.status = AriadneStatus.RUNNING
-            self.running.add(self)
 
             self.remote_version = await self.getVersion()
             logger.success(f"Remote version: {self.remote_version}")

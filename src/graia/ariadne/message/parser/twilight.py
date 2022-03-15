@@ -407,7 +407,23 @@ class Sparkle(Representation):
     def __init__(self, match_result: Dict[Union[int, str], MatchResult]):
         self.res = match_result
 
-    def __getitem__(self, item: Union[int, str]) -> MatchResult:
+    @overload
+    def __getitem__(self, key: Union[int, str]) -> MatchResult:
+        ...
+
+    @overload
+    def __getitem__(self, key: Type[int]) -> List[MatchResult]:
+        ...
+
+    @overload
+    def __getitem__(self, key: Type[str]) -> Dict[str, MatchResult]:
+        ...
+
+    def __getitem__(self, item: Union[int, str, Type[int], Type[str]]):
+        if item is int:
+            return [v for k, v in self.res.items() if isinstance(k, int)]
+        elif item is str:
+            return {k: v for k, v in self.res.items() if isinstance(k, str)}
         return self.get(item)
 
     def get(self, item: Union[int, str]) -> MatchResult:
@@ -659,6 +675,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
         try:
             local_storage["result"] = self.generate(chain)
+            local_storage["twilight"] = self
         except Exception as e:
             raise ExecutionStop from e
 
@@ -688,5 +705,35 @@ class ResultValue(Decorator):
 
     async def target(i: DecoratorInterface):
         sparkle: Sparkle = i.local_storage["result"]
-        if i.name in sparkle.res:
-            return sparkle.res[i.name].result
+        res = sparkle.res.get(i.name, None)
+        if generic_isinstance(res, i.annotation):
+            return res
+        raise ExecutionStop
+
+
+class Help(Decorator):
+    """返回帮助信息的装饰器"""
+
+    pre = True
+
+    if TYPE_CHECKING:
+
+        @overload
+        def __init__(
+            self,
+            usage: str = "",
+            description: str = "",
+            epilog: str = "",
+            dest: bool = True,
+            sep: str = " -> ",
+        ) -> str:
+            ...
+
+    def __init__(self, *args, **kwargs) -> None:
+        self.args = args
+        self.kwargs = kwargs
+
+    async def target(self, i: DecoratorInterface):
+        twilight: Twilight = i.local_storage["twilight"]
+        # TODO: a better impl, support managing with other commands
+        return twilight.get_help(*self.args, **self.kwargs)

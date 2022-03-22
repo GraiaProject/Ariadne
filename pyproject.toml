@@ -52,10 +52,10 @@ fastapi = { version = "^0.74.1", optional = true }
 uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
 
 [tool.poetry.extras]
-alconna = ["arclet-alconna"]
+alconna = ["arclet-alconna-graia"]
 graia = ["graia-saya", "graia-scheduler"]
 server = ["uvicorn", "fastapi"]
-standard = ["graia-saya", "graia-scheduler", "arclet-alconna"]
+standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia"]
 full = ["graia-saya", "graia-scheduler", "arclet-alconna", "uvicorn", "fastapi"]
 
 [tool.poetry.dev-dependencies]

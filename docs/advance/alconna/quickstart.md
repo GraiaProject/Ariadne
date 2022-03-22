@@ -10,18 +10,18 @@
 以下将直观展示`Alconna`的使用方法:
 
 ```python
-from arclet.alconna import AlconnaString
+from arclet.alconna import AlconnaString, Arpamar
 from graia.ariadne.message.parser.alconna import AlconnaDispatcher
 # example: !点歌 <歌名> --歌手 <歌手名>
 music = AlconnaString(
     "!点歌 <song_name:str>  #在XXX中搜索歌名", # 主参数: <歌名>
     "--歌手|-s <singer_name:str> #指定歌手"  # 选项名: --歌手  选项别名: -s  选项参数: <歌手名>
 )
-@app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, reply_help=True)])
-async def friend_message_listener(app: Ariadne, friend: Friend, song_name: str, singer_name: str):
-    await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", song_name))
+@app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, help_flag='reply')])
+async def friend_message_listener(app: Ariadne, friend: Friend, result: Arpamar):
+    await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", Arpamar.song_name))
     if singer_name:
-        await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", singer_name))
+        await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", Arpamar.singer_name))
 ```
 
 执行这段代码后，向你的 bot 发送 `!点歌 大地 -s Beyond` 试试.
@@ -100,9 +100,11 @@ alconna = Alconna(command="指令", options=[Option("选项")], main_args=Args.f
 
 -   `Alconna`: 使用的 `Alconna` 对象.
 -   `Arpamar`: `Alconna` 生成的数据容器.
--   `AlconnaProperty`: 在 `name` 上进行此标注等价于进行 `arpamar.get(name)`.
--   `dict`: 当`name`代表`Alconna`内的选项, 并且确实解析到数据时返回对应的字典对象; 未解析时为None
--   其他类型: 在 `name` 上进行此标注等价于`arpamar.all_matched_args.get(name)`; 未解析时为None
+-   `GraiaAlconnaProperty`: `AlconnaDispatcher` 返回的特殊对象, 可以获取:
+    - `origin`: 原始消息链
+    - `help_text`: 可能的帮助信息
+    - `result`: `Arpamar`
+    - `source`: 原始事件
 
 ### 特殊事件
 

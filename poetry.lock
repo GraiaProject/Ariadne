@@ -63,7 +63,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "arclet-alconna-graia"
-version = "0.0.1"
+version = "0.0.2"
 description = "Support Alconna to GraiaProject"
 category = "main"
 optional = true

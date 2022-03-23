@@ -19,9 +19,9 @@ music = AlconnaString(
 )
 @app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, help_flag='reply')])
 async def friend_message_listener(app: Ariadne, friend: Friend, result: Arpamar):
-    await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", Arpamar.song_name))
+    await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", result.song_name))
     if singer_name:
-        await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", Arpamar.singer_name))
+        await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", result.singer_name))
 ```
 
 执行这段代码后，向你的 bot 发送 `!点歌 大地 -s Beyond` 试试.

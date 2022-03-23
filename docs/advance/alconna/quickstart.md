@@ -97,14 +97,14 @@ alconna = Alconna(command="指令", options=[Option("选项")], main_args=Args.f
 ### 参数标注
 
 `AlconnaDispatcher` 可以分配以下几种参数:
-
--   `Alconna`: 使用的 `Alconna` 对象.
--   `Arpamar`: `Alconna` 生成的数据容器.
--   `GraiaAlconnaProperty`: `AlconnaDispatcher` 返回的特殊对象, 可以获取:
+- `Alconna`: 使用的 `Alconna` 对象.
+- `Arpamar`: `Alconna` 生成的数据容器.
+- `AlconnaProperty`: `AlconnaDispatcher` 返回的特殊对象, 可以获取:
     - `origin`: 原始消息链
     - `help_text`: 可能的帮助信息
     - `result`: `Arpamar`
     - `source`: 原始事件
+- 其他类型: 在 `name` 上进行此标注等价于`arpamar.all_matched_args.get(name)`
 
 ### 特殊事件
 

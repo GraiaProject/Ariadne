@@ -95,7 +95,7 @@ class GithubConfig(HoconConfig):
     # 比如你其实也可以把 access_token 也换成 optional, 只不过没有 access_token, github 会疯狂给你返回 429 就是了.
 ```
 
-!!! warn "这里的命名方式为 `snake_case` 的字段会被转换为 `camelCase`.
+!!! warn "这里的命名方式为 `snake_case` 的字段会被转换为 `camelCase`."
 
 其对应的配置文件格式是这样的:
 

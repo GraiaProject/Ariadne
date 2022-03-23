@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block site_meta %}
+      <meta name="google-site-verification" content="-xH2nTQsLl-pHFLNevU4iQ3il9yhUjMwnlO7RxQJEaw" />
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+      <!-- Page description -->
+      {% if page and page.meta and page.meta.description %}
+        <meta name="description" content="{{ page.meta.description }}" />
+      {% elif config.site_description %}
+        <meta name="description" content="{{ config.site_description }}" />
+      {% endif %}
+
+      <!-- Page author -->
+      {% if page and page.meta and page.meta.author %}
+        <meta name="author" content="{{ page.meta.author }}" />
+      {% elif config.site_author %}
+        <meta name="author" content="{{ config.site_author }}" />
+      {% endif %}
+
+      <!-- Canonical -->
+      {% if page.canonical_url %}
+        <link rel="canonical" href="{{ page.canonical_url }}" />
+      {% endif %}
+
+      <!-- Favicon -->
+      <link rel="icon" href="{{ config.theme.favicon | url }}" />
+
+      <!-- Generator banner -->
+      <meta
+        name="generator"
+        content="mkdocs-{{ mkdocs_version }}, $md-name$-$md-version$"
+      />
+    {% endblock %}

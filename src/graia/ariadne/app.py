@@ -18,6 +18,7 @@ from typing import (
     Coroutine,
     Dict,
     Generator,
+    Iterable,
     List,
     Literal,
     MutableSet,
@@ -455,21 +456,27 @@ class RelationshipMixin(AriadneMixin):
         return [Member.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getMember(self, group: Union[Group, int], member_id: int) -> Optional[Member]:
-        """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息; 可能返回 None.
+    async def getMember(self, group: Union[Group, int], member_id: int) -> Member:
+        """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息.
 
         Args:
             group_id (Union[Group, int]): 已知的群组唯一 ID
             member_id (int): 已知的群组成员的 ID
 
         Returns:
-            Member: 操作成功, 你得到了你应得的.
-            None: 未能获取到.
+            Member: 对应群成员对象
         """
-        data = await self.getMemberList(group)
-        for i in data:
-            if i.id == member_id:
-                return i
+        result = await self.adapter.call_api(
+            "memberInfo",
+            CallMethod.RESTGET,
+            {
+                "sessionKey": self.session_key,
+                "target": group.id if isinstance(group, Group) else group,
+                "memberId": member_id,
+            },
+        )
+
+        return Member.parse_obj(result)
 
     @app_ctx_manager
     async def getBotProfile(self) -> Profile:
@@ -500,7 +507,7 @@ class RelationshipMixin(AriadneMixin):
             CallMethod.GET,
             {
                 "sessionKey": self.session_key,
-                "userId": int(target),
+                "target": int(target),
             },
         )
         return Profile.parse_obj(result)
@@ -788,39 +795,6 @@ class OperationMixin(AriadneMixin):
         )
 
     @app_ctx_manager
-    async def getMemberInfo(
-        self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
-    ) -> Member:
-        """
-        获取指定群组成员 (等价于 getMember, 但是更高效).
-
-        Args:
-            member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
-            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
-
-        Raises:
-            TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
-
-        Returns:
-            Member: 指定群组成员
-        """
-        if not group and not isinstance(member, Member):
-            raise TypeError("you should give a Member instance if you cannot give a Group instance to me.")
-        if isinstance(member, Member) and not group:
-            group: Group = member.group
-        result = await self.adapter.call_api(
-            "memberInfo",
-            CallMethod.RESTGET,
-            {
-                "sessionKey": self.session_key,
-                "target": group.id if isinstance(group, Group) else group,
-                "memberId": member.id if isinstance(member, Member) else member,
-            },
-        )
-
-        return Member.parse_obj(result)
-
-    @app_ctx_manager
     async def modifyMemberInfo(
         self,
         member: Union[Member, int],
@@ -894,11 +868,49 @@ class OperationMixin(AriadneMixin):
             },
         )
 
+    @app_ctx_manager
+    async def registerCommand(
+        self, name: str, alias: Iterable[str] = (), usage: str = "", description: str = ""
+    ) -> None:
+        """注册一个指令
+
+        Args:
+            name (str): 指令名
+            alias (Iterable[str], optional): 指令别名. Defaults to ().
+            usage (str, optional): 使用方法字符串. Defaults to "".
+            description (str, optional): 描述字符串. Defaults to "".
+
+        """
+        await self.adapter.call_api(
+            "cmd/register",
+            CallMethod.POST,
+            {
+                "sessionKey": self.session_key,
+                "name": name,
+                "alias": alias,
+                "usage": usage,
+                "description": description,
+            },
+        )
+
+    @app_ctx_manager
+    async def executeCommand(self, command: Union[str, Iterable[str]]) -> None:
+        """执行一条指令
+
+        Args:
+            command (Union[str, Iterable[str]]): 指令字符串.
+
+        """
+        if isinstance(command, str):
+            command = command.split(" ")
+        await self.adapter.call_api(
+            "cmd/execute", CallMethod.POST, {"sessionKey": self.session_key, "command": command}
+        )
+
 
 class AnnouncementMixin(AriadneMixin):
     """对群公告进行操作的 Mixin 类."""
 
-    @app_ctx_manager
     async def getAnnouncementIterator(
         self,
         target: Union[Group, int],
@@ -916,7 +928,6 @@ class AnnouncementMixin(AriadneMixin):
         Returns:
             Generator[Announcement, None, None]: 列出群组下所有的公告.
         """
-
         target = int(target)
         current_offset = offset
         cache: List[FileInfo] = []
@@ -1031,7 +1042,6 @@ class AnnouncementMixin(AriadneMixin):
 class FileMixin(AriadneMixin):
     """用于对文件进行各种操作的 Mixin 类."""
 
-    @app_ctx_manager
     async def getFileIterator(
         self,
         target: Union[Group, int],
@@ -1661,15 +1671,17 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                 self.broadcast.finale_dispatchers.append(ContextDispatcher)
 
             self.daemon_task = self.loop.create_task(self.daemon(), name="ariadne_daemon")
+            await await_predicate(lambda: self.adapter.running, 0.0001)
+
+            self.running.add(self)
+
             if "reverse" not in self.adapter.tags:
                 await await_predicate(
                     lambda: self.adapter.mirai_session.session_key or self.adapter.mirai_session.single_mode,
                     0.0001,
                 )
-            await await_predicate(lambda: self.adapter.running, 0.0001)
 
             self.status = AriadneStatus.RUNNING
-            self.running.add(self)
 
             self.remote_version = await self.getVersion()
             logger.success(f"Remote version: {self.remote_version}")

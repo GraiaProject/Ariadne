@@ -15,7 +15,7 @@ from graia.ariadne.adapter.forward import HttpAdapter
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
 from ..util import await_predicate
 from . import Adapter
-from .util import SyncIDManager, validate_response
+from .util import validate_response
 
 
 class NoSigServer(Server):
@@ -208,7 +208,7 @@ class ReverseWebsocketAdapter(ReverseAdapter):
             **config_kwargs,
         )
         self.asgi.add_api_websocket_route(self.route, self.websocket_endpoint)
-        self.id_manager = SyncIDManager()
+        self.future_map: Dict[str, asyncio.Future] = {}
         self.websocket: Optional[WebSocket] = None
         self.extra_headers: Dict[str, str] = extra_headers or {}
         self.query_params: Dict[str, str] = query_params or {}
@@ -230,9 +230,16 @@ class ReverseWebsocketAdapter(ReverseAdapter):
             asyncio.create_task(self.get_session_key())
             while True:
                 raw_data = await websocket.receive_json()
-                sync_id: int = int(raw_data["syncId"] or -1)
+                sync_id: str = raw_data["syncId"] or ""
                 data: dict = raw_data["data"]
-                if not self.id_manager.free(sync_id, validate_response(data)):
+                if sync_id in self.future_map:
+                    fut = self.future_map.pop(sync_id)
+                    res = validate_response(data)
+                    if isinstance(res, Exception):
+                        fut.set_exception(res)
+                    else:
+                        fut.set_result(res)
+                else:
                     await self.event_queue.put(self.build_event(data))
                     self.connected = True
         except WebSocketDisconnect:
@@ -243,9 +250,9 @@ class ReverseWebsocketAdapter(ReverseAdapter):
     async def get_session_key(self):
         if not self.mirai_session.single_mode and not self.mirai_session.session_key:
             future = self.broadcast.loop.create_future()
-            sync_id: int = self.id_manager.allocate(future)
+            self.future_map[str(id(future))] = future
             content = {
-                "syncId": str(sync_id),
+                "syncId": str(id(future)),
                 "command": "verify",
                 "content": {
                     "verifyKey": self.mirai_session.verify_key,
@@ -266,9 +273,9 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         await await_predicate(lambda: self.connected)
         await await_predicate(lambda: self.websocket is not None and self.mirai_session.session_key)
         future = self.broadcast.loop.create_future()
-        sync_id: int = self.id_manager.allocate(future)
+        self.future_map[str(id(future))] = future
         content = {
-            "syncId": str(sync_id),
+            "syncId": str(id(future)),
             "command": action.replace("/", "_"),
             "content": data,
         }
@@ -277,11 +284,11 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         elif method == CallMethod.RESTPOST:
             content["subCommand"] = "update"
         elif method == CallMethod.MULTIPART:
-            self.id_manager.free(
-                sync_id,
-                NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {method}"),
-            )
+            future.set_exception(
+                NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {method}")
+            ),
         await self.websocket.send_text(json.dumps(content, cls=DatetimeEncoder))
+        return await future
 
 
 class ComposeReverseWebsocketAdapter(ReverseWebsocketAdapter):

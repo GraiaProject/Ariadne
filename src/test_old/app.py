@@ -3,6 +3,7 @@ import os
 import re
 from typing import Optional, Union
 
+import devtools
 from graia.broadcast import Broadcast
 from graia.broadcast.builtin.event import ExceptionThrowed
 from graia.scheduler import GraiaScheduler
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     bcc = Broadcast(loop=loop)
 
     app = Ariadne(
-        ComposeReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
+        ReverseWebsocketAdapter(bcc, MiraiSession(url, account, verify_key), route="/ws", port=23333),
         loop=loop,
         use_bypass_listener=True,
         max_retry=5,
@@ -173,12 +174,17 @@ if __name__ == "__main__":
     async def stop(app: Ariadne):
         await app.stop()
 
+    @bcc.receiver(CommandExecutedEvent)
+    async def cmd_log(event: CommandExecutedEvent):
+        devtools.debug(event)
+
     async def main():
         await app.launch()
         logger.debug(await app.getVersion())
         logger.debug(await app.getBotProfile())
         if ALL_FLAG:
             group_list = await app.getGroupList()
+            await app.registerCommand("graia_cmd", ["graiax", "gx"], "graia_cmd <a> <b> <c>", "Test graia")
             logger.debug(group_list)
             friend_list = await app.getFriendList()
             logger.debug(friend_list)

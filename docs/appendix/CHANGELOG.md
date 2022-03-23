@@ -1,5 +1,33 @@
 # 更改日志
 
+## 0.6.10
+
+移除弃用的 `getMemberInfo`: 请改用 `getMember`.
+
+修复了自动重连.
+
+## 0.6.9
+
+修复 [#122](https://github.com/GraiaProject/Ariadne/issues/122)
+
+## 0.6.8
+
+支持了 `registerCommand` `executeCommand` `CommandExecuted` 相关的 API 与事件.
+
+修复了 `getUserProfile`.
+
+修复了仅使用 Websocket 的适配器的错误行为.
+
+!!! warning "弃用"
+
+    `getMemberInfo` 已被弃用，请使用 `getMember` 替代, 将在 `0.6.10` 或更高版本中移除。
+
+## 0.6.7
+
+修复 `Alconna`.
+
+修复 `getFileIterator` 与 `getAnnouncementIterator`.
+
 ## 0.6.6
 
 为 `Twilight` 使用泛型参数分发.

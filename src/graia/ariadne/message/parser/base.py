@@ -97,7 +97,7 @@ class MentionMe(ChainDecorator):
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         ariadne = get_running()
         if isinstance(interface.event, GroupMessage):
-            name = (await ariadne.getMemberInfo(ariadne.account, interface.event.sender.group)).name
+            name = (await ariadne.getMember(ariadne.account, interface.event.sender.group)).name
         else:
             name = (await ariadne.getBotProfile()).nickname
         header = chain.include(Quote, Source)

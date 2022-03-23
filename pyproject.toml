@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graia-ariadne"
-version = "0.6.6"
+version = "0.6.10"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
 authors = [
     "BlueGlassBlock <blueglassblock@outlook.com>",
@@ -55,6 +55,7 @@ uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
 alconna = ["arclet-alconna"]
 graia = ["graia-saya", "graia-scheduler"]
 server = ["uvicorn", "fastapi"]
+standard = ["graia-saya", "graia-scheduler", "arclet-alconna"]
 full = ["graia-saya", "graia-scheduler", "arclet-alconna", "uvicorn", "fastapi"]
 
 [tool.poetry.dev-dependencies]

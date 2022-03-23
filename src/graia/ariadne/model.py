@@ -386,9 +386,7 @@ class Member(AriadneBaseModel):
         Returns:
             MemberInfo: 群组成员的可修改状态
         """
-        from . import get_running
-
-        return await get_running().getMemberInfo(self)
+        return MemberInfo(name=self.name, specialTitle=self.specialTitle)
 
     async def modifyInfo(self, info: "MemberInfo") -> None:
         """

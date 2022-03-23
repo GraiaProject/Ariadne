@@ -20,7 +20,7 @@ from ..exception import InvalidSession
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
 from ..util import await_predicate, yield_with_timeout
 from . import Adapter
-from .util import SyncIDManager, validate_response
+from .util import validate_response
 
 
 class HttpAdapter(Adapter):
@@ -82,8 +82,7 @@ class HttpAdapter(Adapter):
                     resp_json: dict = await response.json()
                     resp: List[dict] = validate_response(resp_json)
                 for data in resp:
-                    event = self.build_event(data)
-                    await self.event_queue.put(event)
+                    await self.event_queue.put(self.build_event(data))
             self.mirai_session.session_key = None
 
     async def call_api(
@@ -154,7 +153,7 @@ class WebsocketAdapter(Adapter):
         self.ping_task: Optional[Task] = None
         self.websocket: Optional[ClientWebSocketResponse] = None
         self.query_dict = {"verifyKey": mirai_session.verify_key}
-        self.id_manager = SyncIDManager()
+        self.future_map: Dict[str, asyncio.Future] = {}
         self.log = log
         if not mirai_session.single_mode:
             self.query_dict["qq"] = mirai_session.account
@@ -182,24 +181,46 @@ class WebsocketAdapter(Adapter):
                     logger.debug("websocket: pinger exit")
                 break
 
+    async def call_api(
+        self, action: str, method: CallMethod, data: Optional[Union[Dict[str, Any], str, FormData]] = None
+    ) -> Union[dict, list]:
+        await await_predicate(lambda: self.websocket is not None and self.mirai_session.session_key)
+        future = self.broadcast.loop.create_future()
+        self.future_map[str(id(future))] = future
+        content = {
+            "syncId": str(id(future)),
+            "command": action.replace("/", "_"),
+            "content": data,
+        }
+        if method == CallMethod.RESTGET:
+            content["subCommand"] = "get"
+        elif method == CallMethod.RESTPOST:
+            content["subCommand"] = "update"
+        elif method == CallMethod.MULTIPART:
+            future.set_exception(
+                NotImplementedError(f"Unsupported operation for ReverseWebsocketAdapter: {method}")
+            ),
+        await self.websocket.send_str(json.dumps(content, cls=DatetimeEncoder))
+        return await future
+
     async def fetch_cycle(self) -> None:
         self.running = True
         async with ClientSession() as session:
             self.session = session
-            async with self.session.ws_connect(
-                str(URL(self.mirai_session.url_gen("all")).with_query(self.query_dict)),
-                autoping=False,
-            ) as connection:
-                logger.info("websocket: connected")
-                self.websocket = connection
+            try:
+                async with self.session.ws_connect(
+                    str(URL(self.mirai_session.url_gen("all")).with_query(self.query_dict)),
+                    autoping=False,
+                ) as connection:
+                    logger.info("websocket: connected")
+                    self.websocket = connection
 
-                if self.ping:
-                    self.ping_task = self.broadcast.loop.create_task(
-                        self.ws_ping(), name="ariadne_adapter_ws_ping"
-                    )
-                    logger.info("websocket: ping task created")
+                    if self.ping:
+                        self.ping_task = self.broadcast.loop.create_task(
+                            self.ws_ping(), name="ariadne_adapter_ws_ping"
+                        )
+                        logger.info("websocket: ping task created")
 
-                try:
                     async for ws_message in yield_with_timeout(connection.receive, lambda: self.running):
                         if ws_message.type is WSMsgType.TEXT:
                             raw_data: dict = json.loads(ws_message.data)
@@ -209,7 +230,14 @@ class WebsocketAdapter(Adapter):
                                 self.mirai_session.session_key = data["session"]
                                 logger.success("Successfully got session key")
                                 continue
-                            if not self.id_manager.free(sync_id, validate_response(data)):
+                            if sync_id in self.future_map:
+                                fut = self.future_map.pop(str(sync_id))
+                                res = validate_response(data)
+                                if isinstance(res, Exception):
+                                    fut.set_exception(res)
+                                else:
+                                    fut.set_result(res)
+                            else:
                                 await self.event_queue.put(self.build_event(data))
                         elif ws_message.type is WSMsgType.CLOSED:
                             logger.warning("websocket: connection has been closed.")
@@ -219,20 +247,20 @@ class WebsocketAdapter(Adapter):
                                 logger.debug("websocket: received pong")
                         else:
                             logger.warning(f"websocket: unknown message type - {ws_message.type}")
-                except CancelledError:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                finally:
-                    if self.ping_task:
-                        self.ping_task.cancel()
-                        self.ping_task = None
-                        if self.log:
-                            logger.debug("websocket: ping task complete")
-                    logger.info("websocket: disconnected")
-                    self.running = False
-            self.websocket = None
-        self.session = None
+            except CancelledError:
+                pass
+            except Exception as e:
+                logger.exception(e)
+            finally:
+                if self.ping_task:
+                    self.ping_task.cancel()
+                    self.ping_task = None
+                    if self.log:
+                        logger.debug("websocket: ping task complete")
+                logger.info("websocket: disconnected")
+                self.running = False
+                self.websocket = None
+                self.session = None
 
 
 class ComposeForwardAdapter(WebsocketAdapter):

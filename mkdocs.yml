@@ -56,6 +56,9 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/GraiaProject
       name: GitHub 组织
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
 
 markdown_extensions:
   - attr_list

@@ -11,7 +11,7 @@
 
 ```python
 from arclet.alconna import AlconnaString, Arpamar
-from graia.ariadne.message.parser.alconna import AlconnaDispatcher
+from arclet.alconna.graia import AlconnaDispatcher
 # example: !点歌 <歌名> --歌手 <歌手名>
 music = AlconnaString(
     "!点歌 <song_name:str>  #在XXX中搜索歌名", # 主参数: <歌名>
@@ -51,8 +51,9 @@ async def friend_message_listener(app: Ariadne, friend: Friend, result: Arpamar)
 
 ```python
 Alconna(
-    headers=["/"],
     command="name",
+    main_args="main_args",
+    headers=["/"],
     options=[
         Subcommand(
             "sub_name",
@@ -60,8 +61,7 @@ Alconna(
             sub_main_arg="sub_main_arg"
         ),
         Option("opt", opt_arg="opt_arg")
-    ]
-    main_args="main_args"
+    ],
 )
 ```
 
@@ -79,7 +79,7 @@ Alconna(
 ## 创建 Alconna
 
 ```python
-alconna = Alconna(command="指令", options=[Option("选项")], main_args=Args.foo[str])
+alconna = Alconna(command="指令", main_args=Args.foo[str], options=[Option("选项")])
 ```
 
 这里说明我们需要匹配内容为 "指令 something:str"的消息, 并把 "something" 赋予参数名 "foo"; 该指令可以使用 "选项" 这个命令选项
@@ -97,6 +97,7 @@ alconna = Alconna(command="指令", options=[Option("选项")], main_args=Args.f
 ### 参数标注
 
 `AlconnaDispatcher` 可以分配以下几种参数:
+
 - `Alconna`: 使用的 `Alconna` 对象.
 - `Arpamar`: `Alconna` 生成的数据容器.
 - `AlconnaProperty`: `AlconnaDispatcher` 返回的特殊对象, 可以获取:

@@ -21,7 +21,7 @@ _Another elegant framework for mirai and mirai-api-http v2._
 
 **本项目适用于 mirai-api-http 2.0 以上版本**.
 
-Ariadne 是 `Graia Project` 继承了 [`Application`](https://github.com/GraiaProject/Applicaiton) 并进行了许多改进后产生的作品,
+Ariadne 是 `Graia Project` 继承了 [`Application`](https://github.com/GraiaProject/Application) 并进行了许多改进后产生的作品,
 相信它可以给你带来良好的 `Python QQ Bot` 开发体验.
 
 **注意, 本框架需要 [`mirai-api-http v2`](https://github.com/project-mirai/mirai-api-http).**

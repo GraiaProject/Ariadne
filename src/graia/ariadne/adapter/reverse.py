@@ -13,7 +13,7 @@ from uvicorn import Config, Server
 from graia.ariadne.adapter.forward import HttpAdapter
 
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
-from ..util import await_predicate
+from ..util import AsyncSignal
 from . import Adapter
 from .util import validate_response
 
@@ -139,7 +139,7 @@ class ComposeWebhookAdapter(ReverseAdapter):
         )
         self.asgi.add_api_route(self.route, self.http_endpoint, methods=["POST"])
         self.extra_headers: Dict[str, str] = extra_headers or {}
-        self.connected: bool = False
+        self.endpoint_connected: AsyncSignal[bool] = AsyncSignal(False)
 
     async def http_endpoint(self, request: Request):
         header: Dict[str, str] = dict(request.headers.items())
@@ -148,7 +148,8 @@ class ComposeWebhookAdapter(ReverseAdapter):
                 key = key.lower()
                 if val != header.get(key, ""):
                     raise HTTPException(status_code=401, detail="Authorization Failed")
-            self.connected = True
+            self.endpoint_connected.set(True)
+            await self.authenticate()
             await self.event_queue.put(self.build_event(await request.json()))
         return {"command": "", "data": {}}
 
@@ -160,7 +161,7 @@ class ComposeWebhookAdapter(ReverseAdapter):
         method: CallMethod,
         data: Optional[Union[Dict[str, Any], str, FormData]] = None,
     ) -> Union[dict, list]:
-        await await_predicate(lambda: self.connected)
+        await self.endpoint_connected.wait(True)
         return await HttpAdapter.call_api(self, action, method, data)
 
 
@@ -212,7 +213,6 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         self.websocket: Optional[WebSocket] = None
         self.extra_headers: Dict[str, str] = extra_headers or {}
         self.query_params: Dict[str, str] = query_params or {}
-        self.connected: bool = False
 
     async def websocket_endpoint(self, websocket: WebSocket):
         header: Dict[str, str] = dict(websocket.headers.items())
@@ -241,11 +241,11 @@ class ReverseWebsocketAdapter(ReverseAdapter):
                         fut.set_result(res)
                 else:
                     await self.event_queue.put(self.build_event(data))
-                    self.connected = True
+                    self.connected.set(True)
         except WebSocketDisconnect:
+            self.connected.set(False)
             self.websocket = None
             self.mirai_session.session_key = None
-            self.connected = False
 
     async def get_session_key(self):
         if not self.mirai_session.single_mode and not self.mirai_session.session_key:
@@ -270,8 +270,7 @@ class ReverseWebsocketAdapter(ReverseAdapter):
         method: CallMethod,
         data: Optional[Union[Dict[str, Any], str, FormData]] = None,
     ) -> Union[dict, list]:
-        await await_predicate(lambda: self.connected)
-        await await_predicate(lambda: self.websocket is not None and self.mirai_session.session_key)
+        await self.connected.wait(True)
         future = self.broadcast.loop.create_future()
         self.future_map[str(id(future))] = future
         content = {
@@ -299,5 +298,5 @@ class ComposeReverseWebsocketAdapter(ReverseWebsocketAdapter):
     async def call_api(
         self, action: str, method: CallMethod, data: Optional[Union[Dict[str, Any], str, FormData]] = None
     ) -> Union[dict, list]:
-        await await_predicate(lambda: self.connected)
+        await self.connected.wait(True)
         return await HttpAdapter.call_api(self, action, method, data)

@@ -29,8 +29,10 @@ def get_running(type: Type[T] = Ariadne) -> T:
     from .context import context_map
 
     if type in {Adapter, Ariadne, Broadcast, AbstractEventLoop}:
-        if val := context_map.get(type.__name__).get(None):
-            return val
+        if ctx := context_map.get(type.__name__):
+            if val := ctx.get(None):
+                return val
     for ariadne_inst in Ariadne.running:
         if type in ariadne_inst.info:
-            return ariadne_inst.info[type]
+            return ariadne_inst.info[type]  # type: ignore
+    raise ValueError(f"{type.__name__} is not running")

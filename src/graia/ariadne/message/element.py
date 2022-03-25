@@ -1,11 +1,9 @@
 """Ariadne 中的消息元素"""
-import abc
 from base64 import b64decode, b64encode
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
 from json import dumps as j_dump
-from os import PathLike
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
@@ -28,14 +26,17 @@ class NotSendableElement(Exception):
     """
 
 
-class Element(AriadneBaseModel, abc.ABC):
+class Element(AriadneBaseModel):
     """
     指示一个消息中的元素.
     type (str): 元素类型
     """
 
-    type: str
+    type: str = "Unknown"
     """元素类型"""
+
+    def __init__(self, **data):
+        return super().__init__(**data)
 
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
@@ -90,7 +91,7 @@ class Element(AriadneBaseModel, abc.ABC):
         if isinstance(content, Element):
             content = [content]
         if isinstance(content, MessageChain):
-            content: List[Element] = content.__root__
+            content = content.__root__
         return MessageChain(content + [self], inline=True)
 
     def __radd__(self, content: Union["MessageChain", List["Element"], "Element", str]) -> "MessageChain":
@@ -101,7 +102,7 @@ class Element(AriadneBaseModel, abc.ABC):
         if isinstance(content, Element):
             content = [content]
         if isinstance(content, MessageChain):
-            content: List[Element] = content.__root__
+            content = content.__root__
         return MessageChain([self] + content, inline=True)
 
 
@@ -119,7 +120,7 @@ class Plain(Element):
         Args:
             text (str): 元素所包含的文字
         """
-        super().__init__(text=text, **kwargs)
+        super().__init__(text=text, **kwargs)  # type: ignore
 
     def asDisplay(self) -> str:
         return self.text
@@ -151,9 +152,10 @@ class Source(Element):
         Returns:
             MessageChain: 原来的消息链.
         """
-        from ..context import ariadne_ctx
+        from .. import get_running
+        from ..app import Ariadne
 
-        ariadne = ariadne_ctx.get()
+        ariadne = get_running(Ariadne)
 
         return (await ariadne.getMessageFromId(self.id)).messageChain
 
@@ -219,13 +221,10 @@ class At(Element):
         return isinstance(other, At) and self.target == other.target
 
     def prepare(self) -> None:
-        try:
-            if upload_method_ctx.get() != UploadMethod.Group:
-                raise InvalidArgument(
-                    f"you cannot use this element in this method: {upload_method_ctx.get().value}"
-                )
-        except LookupError:
-            pass
+        if upload_method_ctx.get(None) != UploadMethod.Group:
+            raise InvalidArgument(
+                f"you cannot use this element in this method: {upload_method_ctx.get().value}"
+            )
 
     def asDisplay(self) -> str:
         return f"@{self.display}" if self.display else f"@{self.target}"
@@ -243,13 +242,10 @@ class AtAll(Element):
         return "@全体成员"
 
     def prepare(self) -> None:
-        try:
-            if upload_method_ctx.get() != UploadMethod.Group:
-                raise InvalidArgument(
-                    f"you cannot use this element in this method: {upload_method_ctx.get().value}"
-                )
-        except LookupError:
-            pass
+        if upload_method_ctx.get(None) != UploadMethod.Group:
+            raise InvalidArgument(
+                f"you cannot use this element in this method: {upload_method_ctx.get().value}"
+            )
 
 
 class Face(Element):
@@ -271,7 +267,7 @@ class Face(Element):
         super().__init__(**data)
 
     def asDisplay(self) -> str:
-        return f"[表情: {self.name if self.name else self.faceId}]"
+        return f"[表情: {self.name or self.faceId}]"
 
     def __eq__(self, other) -> bool:
         return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
@@ -292,7 +288,7 @@ class MarketFace(Element):
     """QQ 表情名称"""
 
     def asDisplay(self) -> str:
-        return f"[商城表情: {self.name if self.name else self.faceId}]"
+        return f"[商城表情: {self.name or self.faceId}]"
 
     def __eq__(self, other) -> bool:
         return isinstance(other, MarketFace) and (self.faceId == other.faceId or self.name == other.name)
@@ -647,21 +643,17 @@ class MultimediaElement(Element):
         id: Optional[str] = None,
         url: Optional[str] = None,
         *,
-        path: Optional[Union[PathLike, str]] = None,
+        path: Optional[Union[Path, str]] = None,
         base64: Optional[str] = None,
         data_bytes: Union[None, bytes, BytesIO] = None,
         **kwargs,
     ) -> None:
-        data = {}
-
-        for key, value in kwargs.items():
-            if key.lower().endswith("id"):
-                data["id"] = value
+        data = {"id": value for key, value in kwargs.items() if key.lower().endswith("id")}
 
         if sum([bool(url), bool(path), bool(base64)]) > 1:
             raise ValueError("Too many binary initializers!")
         # Web initializer
-        data["id"] = data["id"] if "id" in data else id
+        data["id"] = data.get("id", id)
         data["url"] = url
         # Binary initializer
         if path:
@@ -723,9 +715,7 @@ class MultimediaElement(Element):
     @property
     def uuid(self):
         """多媒体元素的 uuid, 即元素在 mirai 内部的标识"""
-        if self.id:
-            return self.id.split(".")[0].strip("/{}").lower()
-        return ""
+        return self.id.split(".")[0].strip("/{}").lower() if self.id else ""
 
     def __eq__(self, other: "MultimediaElement"):
         if self.__class__ is not other.__class__:
@@ -745,6 +735,18 @@ class Image(MultimediaElement):
     type = "Image"
 
     id: Optional[str] = Field(None, alias="imageId")
+
+    def __init__(
+        self,
+        id: Optional[str] = None,
+        url: Optional[str] = None,
+        *,
+        path: Optional[Union[Path, str]] = None,
+        base64: Optional[str] = None,
+        data_bytes: Union[None, bytes, BytesIO] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
 
     def toFlashImage(self) -> "FlashImage":
         """将 Image 转换为 FlashImage
@@ -771,6 +773,18 @@ class FlashImage(Image):
     """指示消息中的闪照元素"""
 
     type = "FlashImage"
+
+    def __init__(
+        self,
+        id: Optional[str] = None,
+        url: Optional[str] = None,
+        *,
+        path: Optional[Union[Path, str]] = None,
+        base64: Optional[str] = None,
+        data_bytes: Union[None, bytes, BytesIO] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
 
     def toImage(self) -> "Image":
         """将 FlashImage 转换为 Image
@@ -800,6 +814,18 @@ class Voice(MultimediaElement):
 
     id: Optional[str] = Field(None, alias="voiceId")
 
+    def __init__(
+        self,
+        id: Optional[str] = None,
+        url: Optional[str] = None,
+        *,
+        path: Optional[Union[Path, str]] = None,
+        base64: Optional[str] = None,
+        data_bytes: Union[None, bytes, BytesIO] = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
+
     length: Optional[int]
     """语音长度"""
 
@@ -809,7 +835,7 @@ class Voice(MultimediaElement):
 
 def _update_forward_refs():
     """
-    Inner function.
+    Internal function.
     Update the forward references.
     """
     from ..model import BotMessage

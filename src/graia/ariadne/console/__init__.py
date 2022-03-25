@@ -1,5 +1,7 @@
 """Ariadne 控制台
 注意, 本实现并不 robust, 但是可以使用"""
+
+import contextlib
 import importlib.metadata
 import sys
 from asyncio.events import AbstractEventLoop
@@ -197,11 +199,8 @@ class Console:
             self.running = True
 
             if self.replace_logger:
-                try:
+                with contextlib.suppress(ValueError):
                     logger.remove(0)
-                except ValueError:
-                    pass
-
                 self.handler_id = logger.add(StdoutProxy(raw=True))  # type: ignore
 
             self.task = self.broadcast.loop.create_task(self.loop())
@@ -224,7 +223,11 @@ class Console:
             await self.task
             self.task = None
 
-    def register(self, dispatchers: List[BaseDispatcher] = None, decorators: List[Decorator] = None):
+    def register(
+        self,
+        dispatchers: Optional[List[BaseDispatcher]] = None,
+        decorators: Optional[List[Decorator]] = None,
+    ):
         """注册命令处理函数
 
         Args:

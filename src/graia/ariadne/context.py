@@ -1,7 +1,8 @@
 """本模块创建了 Ariadne 中的上下文变量"""
-from contextlib import contextmanager
+
+from contextlib import contextmanager, suppress
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Optional
 
 if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
@@ -10,10 +11,10 @@ if TYPE_CHECKING:
     from graia.broadcast.entities.event import Dispatchable
 
     from .adapter import Adapter
-    from .app import Ariadne
+    from .app import AriadneMixin
     from .model import UploadMethod
 
-    ariadne_ctx: ContextVar[Ariadne] = ContextVar("ariadne")
+    ariadne_ctx: ContextVar[AriadneMixin] = ContextVar("ariadne")
     adapter_ctx: ContextVar[Adapter] = ContextVar("adapter")
     event_ctx: ContextVar[Dispatchable] = ContextVar("event")
     event_loop_ctx: ContextVar[AbstractEventLoop] = ContextVar("event_loop")
@@ -50,30 +51,27 @@ def enter_message_send_context(method: "UploadMethod"):
 
 
 @contextmanager
-def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
+def enter_context(app: Optional["AriadneMixin"] = None, event: Optional["Dispatchable"] = None):
     """进入事件上下文
 
     Args:
         app (Ariadne, optional): Ariadne 实例.
         event (Dispatchable, optional): 当前事件
     """
-    token_app = None
-    token_event = None
     token_loop = None
     token_bcc = None
     token_adapter = None
 
+    token_app = None
     if app:
         token_app = ariadne_ctx.set(app)
         token_loop = event_loop_ctx.set(app.broadcast.loop)
         token_bcc = broadcast_ctx.set(app.broadcast)
         token_adapter = adapter_ctx.set(app.adapter)
-    if event:
-        token_event = event_ctx.set(event)
-
+    token_event = event_ctx.set(event) if event else None
     yield
 
-    try:
+    with suppress(ValueError):
         if token_app:
             ariadne_ctx.reset(token_app)
         if token_adapter:
@@ -84,5 +82,3 @@ def enter_context(app: "Ariadne" = None, event: "Dispatchable" = None):
             event_loop_ctx.reset(token_loop)
         if token_bcc:
             broadcast_ctx.reset(token_bcc)
-    except ValueError:
-        pass

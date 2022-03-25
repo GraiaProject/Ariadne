@@ -1,4 +1,6 @@
 """Ariadne 的类型标注"""
+
+import contextlib
 import typing
 from typing import (
     TYPE_CHECKING,
@@ -15,7 +17,7 @@ from typing import (
     Union,
 )
 
-from typing_extensions import Annotated, ParamSpec, TypeGuard
+from typing_extensions import ParamSpec, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from .message.chain import MessageChain
@@ -24,6 +26,7 @@ if TYPE_CHECKING:
 P = ParamSpec("P")
 R = TypeVar("R")
 T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
 
 T_start = TypeVar("T_start")
 T_stop = TypeVar("T_stop")
@@ -71,7 +74,7 @@ class SendMessageAction(Generic[T, R]):
     """表示 SendMessage 的 action"""
 
     @staticmethod
-    async def param(item: SendMessageDict, /) -> SendMessageDict:
+    async def param(item: SendMessageDict) -> SendMessageDict:
         """传入 SendMessageDict 作为参数, 传出 SendMessageDict 作为结果
 
         Args:
@@ -83,7 +86,7 @@ class SendMessageAction(Generic[T, R]):
         return item
 
     @staticmethod
-    async def result(item: "BotMessage", /) -> R:
+    async def result(item: "BotMessage") -> R:
         """处理返回结果
 
         Args:
@@ -92,10 +95,10 @@ class SendMessageAction(Generic[T, R]):
         Returns:
             R: 要实际由 SendMessage 返回的数据
         """
-        return item
+        return item  # type: ignore
 
     @staticmethod
-    async def exception(item: SendMessageException, /) -> T:
+    async def exception(item: SendMessageException) -> Optional[T]:
         """发生异常时进行处理，可以选择不返回而是直接引发异常
 
         Args:
@@ -107,7 +110,19 @@ class SendMessageAction(Generic[T, R]):
         raise item
 
 
-def generic_issubclass(cls: type, par: Annotated[T, Union[type, Any, Tuple[type, ...]]]) -> TypeGuard[T]:
+@runtime_checkable
+class SendMessageActionProtocol(Protocol, Generic[T_co]):
+    async def param(self, item: SendMessageDict) -> SendMessageDict:
+        ...
+
+    async def result(self, item: "BotMessage") -> T_co:
+        ...
+
+    async def exception(self, item: SendMessageException) -> Any:
+        ...
+
+
+def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bool:
     """检查 cls 是否是 args 中的一个子类, 支持泛型, Any, Union
 
     Args:
@@ -119,7 +134,7 @@ def generic_issubclass(cls: type, par: Annotated[T, Union[type, Any, Tuple[type,
     """
     if par is Any:
         return True
-    try:
+    with contextlib.suppress(TypeError):
         if isinstance(par, (type, tuple)):
             return issubclass(cls, par)
         if typing.get_origin(par) is Union:
@@ -129,8 +144,6 @@ def generic_issubclass(cls: type, par: Annotated[T, Union[type, Any, Tuple[type,
                 return any(generic_issubclass(cls, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_issubclass(cls, par.__bound__)
-    except TypeError:
-        pass
     return False
 
 
@@ -146,7 +159,7 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
     """
     if par is Any:
         return True
-    try:
+    with contextlib.suppress(TypeError):
         if isinstance(par, (type, tuple)):
             return isinstance(obj, par)
         if typing.get_origin(par) is Union:
@@ -156,6 +169,4 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
                 return any(generic_isinstance(obj, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_isinstance(obj, par.__bound__)
-    except TypeError:
-        pass
     return False

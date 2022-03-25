@@ -134,7 +134,3 @@ dmypy.json
 tmp/
 *.tmp
 *.temp
-
-# IDE Directories
-.vscode/
-.idea/

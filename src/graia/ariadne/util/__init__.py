@@ -3,6 +3,7 @@
 
 # Utility Layout
 import asyncio
+import collections
 import functools
 import inspect
 import logging
@@ -18,9 +19,13 @@ from typing import (
     AsyncIterator,
     Callable,
     Coroutine,
+    Deque,
     Dict,
     Generator,
+    Generic,
+    Iterable,
     List,
+    Literal,
     Optional,
     Tuple,
     Type,
@@ -75,14 +80,14 @@ class LoguruHandler(logging.Handler):
 
         # Find caller from where originated the logged message
         frame, depth = logging.currentframe(), 2
-        while frame.f_code.co_filename == logging.__file__:
+        while frame and frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
 
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
 
-def inject_loguru_traceback(loop: AbstractEventLoop = None):
+def inject_loguru_traceback(loop: Optional[AbstractEventLoop] = None):
     """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
     traceback.print_exception = loguru_excepthook
     sys.excepthook = loguru_excepthook
@@ -105,8 +110,8 @@ def inject_bypass_listener(broadcast: Broadcast):
             callable: Callable,
             namespace: Namespace,
             listening_events: List[Type[Dispatchable]],
-            inline_dispatchers: List[T_Dispatcher] = None,
-            decorators: List[Decorator] = None,
+            inline_dispatchers: Optional[List[T_Dispatcher]] = None,
+            decorators: Optional[List[Decorator]] = None,
             priority: int = 16,
         ) -> None:
             events = []
@@ -117,8 +122,8 @@ def inject_bypass_listener(broadcast: Broadcast):
                 callable,
                 namespace,
                 events,
-                inline_dispatchers=inline_dispatchers,
-                decorators=decorators,
+                inline_dispatchers=inline_dispatchers or [],
+                decorators=decorators or [],
                 priority=priority,
             )
 
@@ -134,6 +139,39 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
+class AsyncSignal(Generic[T]):
+    """模拟 asyncio.Event, 但是支持 sig.wait(Hashable)"""
+
+    def __init__(self, value: T = None) -> None:
+        self._waiters: Dict[T, Deque[asyncio.Future]] = {}
+        self._value: T = value
+
+    def __repr__(self) -> str:
+        waiter_str = f", waiters: {len(self._waiters)}" if self._waiters else ""
+        return f"<AsyncSignal [value: {self._value}{waiter_str}]>"
+
+    def value(self) -> T:
+        return self._value
+
+    def set(self, value: T) -> None:
+        self._value = value
+
+        waiter_deque = self._waiters.setdefault(value, collections.deque())
+
+        for fut in waiter_deque:
+            if not fut.done():
+                fut.set_result(True)
+        waiter_deque.clear()
+
+    async def wait(self, value: T) -> Literal[True]:
+        if self._value == value:
+            return True
+
+        fut = asyncio.get_running_loop().create_future()
+        self._waiters.setdefault(value, collections.deque()).append(fut)
+        return await fut
+
+
 def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
     """包装声明需要在 Ariadne Context 中执行的函数
 
@@ -145,13 +183,13 @@ def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
     """
 
     @functools.wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs):
         from ..context import enter_context
 
         sys.audit("CallAriadneAPI", func.__name__, args, kwargs)
 
-        with enter_context(app=args[0]):
-            return await func(*args, **kwargs)
+        with enter_context(app=args[0]):  # type: ignore
+            return func(*args, **kwargs)
 
     return wrapper
 
@@ -245,8 +283,7 @@ async def yield_with_timeout(
         if not done:
             continue
         for t in done:
-            res = await t
-            yield res
+            yield await t
     if last_tsk:
         for tsk in last_tsk:
             tsk.cancel()
@@ -275,11 +312,11 @@ def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
     return out_wrapper
 
 
-def resolve_dispatchers_mixin(dispatchers: List[T_Dispatcher]) -> List[T_Dispatcher]:
+def resolve_dispatchers_mixin(dispatchers: Iterable[T_Dispatcher]) -> List[T_Dispatcher]:
     """解析 dispatcher list 的 mixin
 
     Args:
-        dispatchers (List[T_Dispatcher]): dispatcher 列表
+        dispatchers (Iterable[T_Dispatcher]): dispatcher 列表
 
     Returns:
         List[T_Dispatcher]: 解析后的 dispatcher 列表
@@ -339,7 +376,7 @@ def signal_handler(callback: Callable[[], None], one_time: bool = True) -> None:
         handler = signal.getsignal(sig)
 
         def handler_wrapper(sig_num, frame):
-            if handler:
+            if callable(handler):
                 handler(sig_num, frame)
             callback()
             if one_time:
@@ -351,9 +388,8 @@ def signal_handler(callback: Callable[[], None], one_time: bool = True) -> None:
 def get_cls(obj) -> Optional[type]:
     if cls := typing.get_origin(obj):
         return cls
-    else:
-        if isinstance(obj, type):
-            return obj
+    if isinstance(obj, type):
+        return obj
 
 
 # Import layout

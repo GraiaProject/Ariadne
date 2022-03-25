@@ -8,8 +8,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Union
 
 from graia.broadcast.entities.listener import Listener
 from loguru import logger
-from pydantic import BaseModel, Field, validator
-from pydantic.main import BaseConfig, Extra
+from pydantic import BaseConfig, BaseModel, Extra, Field, validator
 from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
@@ -38,9 +37,7 @@ class DatetimeEncoder(json.JSONEncoder):
     """可以编码 datetime 的 JSONEncoder"""
 
     def default(self, o):
-        if isinstance(o, datetime):
-            return int(o.timestamp())
-        return super().default(o)
+        return int(o.timestamp()) if isinstance(o, datetime) else super().default(o)
 
 
 class AriadneBaseModel(BaseModel):
@@ -48,23 +45,23 @@ class AriadneBaseModel(BaseModel):
     Ariadne 一切数据模型的基类.
     """
 
-    def dict(
+    def dict(  # type: ignore
         self,
         *,
-        include: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
-        exclude: Union["AbstractSetIntStr", "MappingIntStrAny"] = None,
+        include: Union[None, "AbstractSetIntStr", "MappingIntStrAny"] = None,
+        exclude: Union[None, "AbstractSetIntStr", "MappingIntStrAny"] = None,
         by_alias: bool = False,
-        skip_defaults: bool = None,
+        skip_defaults: bool = False,
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
     ) -> "DictStrAny":
-        _, _ = by_alias, exclude_none
+        _, *_ = by_alias, exclude_none, skip_defaults
         return super().dict(
-            include=include,
-            exclude=exclude,
+            include=include,  # type: ignore
+            exclude=exclude,  # type: ignore
             by_alias=True,
-            skip_defaults=skip_defaults,
+            skip_defaults=False,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
             exclude_none=True,
@@ -77,6 +74,7 @@ class AriadneBaseModel(BaseModel):
         json_encoders = {
             datetime: datetime_encoder,
         }
+        arbitrary_types_allowed = True
 
 
 @dataclass
@@ -245,7 +243,12 @@ class MiraiSession(AriadneBaseModel):
         *,
         single_mode: bool = False,
     ) -> None:
-        super().__init__(host=host, account=account, verify_key=verify_key, single_mode=single_mode)
+        super().__init__(
+            host=host,  # type: ignore
+            account=account,  # type: ignore
+            verify_key=verify_key,  # type: ignore
+            single_mode=single_mode,  # type: ignore
+        )
 
     def url_gen(self, route: str) -> str:
         """生成 route 对应的 API URI
@@ -256,6 +259,8 @@ class MiraiSession(AriadneBaseModel):
         Returns:
             str: 对应的 API URI
         """
+        if self.host is None:
+            raise ValueError("Remote host is unset")
         return str(URL(self.host) / route)
 
 
@@ -332,9 +337,10 @@ class Group(AriadneBaseModel):
         from . import get_running
 
         cover = (cover or 0) + 1
-        return await (
-            await get_running().adapter.session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/")
-        ).content.read()
+        session = get_running().adapter.session
+        if not session:
+            raise RuntimeError("No running ClientSession")
+        return await (await session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/")).content.read()
 
 
 class Member(AriadneBaseModel):
@@ -427,9 +433,10 @@ class Member(AriadneBaseModel):
         """
         from . import get_running
 
-        return await (
-            await get_running().adapter.session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")
-        ).content.read()
+        session = get_running().adapter.session
+        if not session:
+            raise RuntimeError("No running ClientSession")
+        return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
 
 
 class Friend(AriadneBaseModel):
@@ -471,9 +478,10 @@ class Friend(AriadneBaseModel):
         """
         from . import get_running
 
-        return await (
-            await get_running().adapter.session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")
-        ).content.read()
+        session = get_running().adapter.session
+        if not session:
+            raise RuntimeError("No running ClientSession")
+        return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
 
 
 class Stranger(AriadneBaseModel):
@@ -505,9 +513,10 @@ class Stranger(AriadneBaseModel):
         """
         from . import get_running
 
-        return await (
-            await get_running().adapter.session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")
-        ).content.read()
+        session = get_running().adapter.session
+        if not session:
+            raise RuntimeError("No running ClientSession")
+        return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
 
 
 class GroupConfig(AriadneBaseModel):
@@ -538,7 +547,7 @@ class MemberInfo(AriadneBaseModel):
     name: str = ""
     """昵称, 与 nickname不同"""
 
-    specialTitle: str = ""
+    specialTitle: Optional[str] = ""
     """特殊头衔"""
 
 

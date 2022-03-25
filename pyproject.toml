@@ -31,32 +31,39 @@ name = "aliyun"
 default = false
 url = "https://mirrors.aliyun.com/pypi/simple/"
 
-[[tool.poetry.source]]
-name = "tencent-cloud"
-default = false
-url = "https://mirrors.cloud.tencent.com/pypi/simple"
-
 [tool.poetry.dependencies]
 python = "^3.8"
-graia-broadcast = "0.16.1"
+graia-broadcast = "^0.16.1"
 aiohttp = "^3.7.4"
 pydantic = "^1.8.2"
 yarl = "^1.7"
 loguru = "^0.6"
 typing-extensions = "^4.0.0"
-prompt-toolkit = "^3.0.24"
-arclet-alconna = { version = "^0.7", optional = true }
+arclet-alconna-graia = { version = "^0.0.4", optional = true }
 graia-scheduler = { version = "^0.0.6", optional = true }
 graia-saya = { version = "^0.0", optional = true }
 fastapi = { version = "^0.74.1", optional = true }
 uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
+prompt-toolkit = { version = "^3.0.24", optional = true }
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna-graia"]
 graia = ["graia-saya", "graia-scheduler"]
 server = ["uvicorn", "fastapi"]
-standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia"]
-full = ["graia-saya", "graia-scheduler", "arclet-alconna", "uvicorn", "fastapi"]
+standard = [
+    "graia-saya",
+    "graia-scheduler",
+    "arclet-alconna-graia",
+    "prompt-toolkit"
+]
+full = [
+    "graia-saya",
+    "graia-scheduler",
+    "arclet-alconna-graia",
+    "uvicorn",
+    "fastapi",
+    "prompt-toolkit"
+]
 
 [tool.poetry.dev-dependencies]
 black = ">=21.10b0"
@@ -106,4 +113,12 @@ exclude_lines = [
     "@(abc\\.)?abstractmethod",
     # Don't complain overload method / functions
     "@(typing\\.)?overload"
+]
+
+[tool.pyright]
+ignore = [
+    "docs/**",
+    "**/site-packages/**/*.py",
+    "**/test*/**/*.py",
+    "**/adapter/**"
 ]

@@ -18,7 +18,7 @@ from yarl import URL
 
 from ..exception import InvalidSession
 from ..model import CallMethod, DatetimeEncoder, MiraiSession
-from ..util import await_predicate, yield_with_timeout
+from ..util import yield_with_timeout
 from . import Adapter
 from .util import validate_response
 
@@ -51,7 +51,7 @@ class HttpAdapter(Adapter):
 
     async def authenticate(self) -> None:
         """在 mira-api-http 进行认证并存入 MiraiSession"""
-        if not self.mirai_session.single_mode and not self.mirai_session.session_key:
+        if not self.connected.value():
             async with self.session.post(
                 self.mirai_session.url_gen("verify"),
                 data=json.dumps({"verifyKey": self.mirai_session.verify_key}),
@@ -66,6 +66,7 @@ class HttpAdapter(Adapter):
                 validate_response(await response.json())
             self.mirai_session.session_key = session_key
             logger.success("Successfully got session key")
+            self.connected.set(True)
 
     async def fetch_cycle(self) -> None:
         await self.authenticate()
@@ -91,7 +92,7 @@ class HttpAdapter(Adapter):
         method: CallMethod,
         data: Optional[Union[Dict[str, Any], str, FormData]] = None,
     ) -> Union[dict, list]:
-        await await_predicate(lambda: self.mirai_session.session_key or self.mirai_session.single_mode)
+        await self.connected.wait(True)
         if method in (CallMethod.GET, CallMethod.RESTGET):
             if isinstance(data, str):
                 data = json.loads(data)
@@ -122,12 +123,12 @@ class HttpAdapter(Adapter):
                 resp_json: dict = await response.json()
 
         val = validate_response(resp_json)
-        if isinstance(val, Exception):
-            if isinstance(val, InvalidSession):
-                self.mirai_session.session_key = None
-            raise val
-        else:
+        if not isinstance(val, Exception):
             return val
+        if isinstance(val, InvalidSession):
+            self.mirai_session.session_key = None
+            self.connected.set(False)
+        raise val
 
 
 class WebsocketAdapter(Adapter):
@@ -184,7 +185,7 @@ class WebsocketAdapter(Adapter):
     async def call_api(
         self, action: str, method: CallMethod, data: Optional[Union[Dict[str, Any], str, FormData]] = None
     ) -> Union[dict, list]:
-        await await_predicate(lambda: self.websocket is not None and self.mirai_session.session_key)
+        await self.connected.wait(True)
         future = self.broadcast.loop.create_future()
         self.future_map[str(id(future))] = future
         content = {
@@ -213,6 +214,7 @@ class WebsocketAdapter(Adapter):
                     autoping=False,
                 ) as connection:
                     logger.info("websocket: connected")
+                    self.connected.set(True)
                     self.websocket = connection
 
                     if self.ping:
@@ -251,6 +253,7 @@ class WebsocketAdapter(Adapter):
                 pass
             except Exception as e:
                 logger.exception(e)
+                self.connected.set(False)
             finally:
                 if self.ping_task:
                     self.ping_task.cancel()
@@ -261,6 +264,7 @@ class WebsocketAdapter(Adapter):
                 self.running = False
                 self.websocket = None
                 self.session = None
+                self.connected.set(False)
 
 
 class ComposeForwardAdapter(WebsocketAdapter):

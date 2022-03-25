@@ -1,6 +1,7 @@
 """Ariadne 的适配器"""
 import abc
 import asyncio
+import contextlib
 from asyncio import Queue, Task
 from typing import Any, Dict, FrozenSet, Optional, Union
 
@@ -8,11 +9,10 @@ from aiohttp import ClientSession, FormData
 from graia.broadcast import Broadcast
 from loguru import logger
 
-from graia.ariadne.util import await_predicate
-
 from ..event import MiraiEvent
 from ..exception import InvalidArgument
 from ..model import CallMethod, MiraiSession
+from ..util import AsyncSignal
 
 
 class Adapter(abc.ABC):
@@ -33,6 +33,7 @@ class Adapter(abc.ABC):
         self.call_task: Optional[Task] = None
         self.session: Optional[ClientSession] = None
         self.event_queue: Optional[Queue[MiraiEvent]] = None
+        self.connected: AsyncSignal[bool] = AsyncSignal(False)
         if "abstract" in self.tags:
             raise TypeError("Adapter is abstract, cannot be instantiated.")
 
@@ -42,7 +43,7 @@ class Adapter(abc.ABC):
         action: str,
         method: CallMethod,
         data: Optional[Union[Dict[str, Any], str, FormData]] = None,
-    ) -> Union[dict, list]:
+    ) -> Dict[Any, Any]:
         """调用 API
 
         Args:
@@ -51,7 +52,7 @@ class Adapter(abc.ABC):
             data (Optional[Union[Dict[str, Any], str, FormData]], optional): 调用数据. Defaults to None.
 
         Returns:
-            Union[dict, list]: API 返回的数据, 为 json 兼容格式
+            dict: API 返回的数据, 为 json 兼容格式
         """
         ...
 
@@ -61,8 +62,10 @@ class Adapter(abc.ABC):
             self.running = True
             self.event_queue = Queue()
             self.fetch_task = asyncio.create_task(self.fetch_cycle())
+            if self.mirai_session.single_mode:
+                self.connected.set(True)
         if "reverse" not in self.tags:
-            await await_predicate(lambda: self.mirai_session.session_key or self.mirai_session.single_mode)
+            await self.connected.wait(True)
 
     def build_event(self, data: dict) -> MiraiEvent:
         """
@@ -86,8 +89,7 @@ class Adapter(abc.ABC):
             logger.error("An event is not recognized! Please report with your log to help us diagnose.")
             raise ValueError(f"Unable to find event: {event_type}", data)
         data = {k: v for k, v in data.items() if k != "type"}
-        event = event_class.parse_obj(data)
-        return event
+        return event_class.parse_obj(data)
 
     @abc.abstractmethod
     async def fetch_cycle(self):
@@ -118,7 +120,7 @@ class DebugAdapter(DefaultAdapter):
         return event
 
 
-try:
+with contextlib.suppress(ImportError):
     from .reverse import (  # noqa: F401, E402
         ComposeReverseWebsocketAdapter as ComposeReverseWebsocketAdapter,
     )
@@ -129,5 +131,3 @@ try:
     from .reverse import (  # noqa: F401, E402
         ReverseWebsocketAdapter as ReverseWebsocketAdapter,
     )
-except ImportError:
-    pass

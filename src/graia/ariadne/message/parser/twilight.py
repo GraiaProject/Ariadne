@@ -83,7 +83,7 @@ class Match(abc.ABC, Representation):
         self._help = value
         return self
 
-    def param(self, target: str) -> Self:
+    def param(self, target: Union[int, str]) -> Self:
         """设置匹配项的分派位置."""
         self.dest = target
         return self
@@ -305,7 +305,7 @@ class ArgumentMatch(Match, Generic[T]):
     if TYPE_CHECKING:
 
         @overload
-        def __init__(
+        def __init__(  # type: ignore
             self,
             *pattern: str,
             action: Union[str, Type[Action]] = ...,
@@ -408,23 +408,24 @@ class Sparkle(Representation):
         self.res = match_result
 
     @overload
-    def __getitem__(self, key: Union[int, str]) -> MatchResult:
+    def __getitem__(self, item: Union[int, str]) -> MatchResult:
         ...
 
     @overload
-    def __getitem__(self, key: Type[int]) -> List[MatchResult]:
+    def __getitem__(self, item: Type[int]) -> List[MatchResult]:
         ...
 
     @overload
-    def __getitem__(self, key: Type[str]) -> Dict[str, MatchResult]:
+    def __getitem__(self, item: Type[str]) -> Dict[str, MatchResult]:
         ...
 
     def __getitem__(self, item: Union[int, str, Type[int], Type[str]]):
+        if not isinstance(item, type):
+            return self.get(item)
         if item is int:
             return [v for k, v in self.res.items() if isinstance(k, int)]
         elif item is str:
             return {k: v for k, v in self.res.items() if isinstance(k, str)}
-        return self.get(item)
 
     def get(self, item: Union[int, str]) -> MatchResult:
         return self.res[item]
@@ -443,7 +444,7 @@ class TwilightMatcher:
         self._parser = TwilightParser(prog="", add_help=False)
         self._dest_map: Dict[str, ArgumentMatch] = {}
         self._group_map: Dict[int, RegexMatch] = {}
-        self.dispatch_ref: Dict[str, Match] = {}
+        self.dispatch_ref: Dict[Union[int, str], Match] = {}
         self.match_ref: DefaultDict[Type[Match], List[Match]] = DefaultDict(list)
 
         regex_str_list: List[str] = []
@@ -462,9 +463,12 @@ class TwilightMatcher:
 
                 elif isinstance(m, ArgumentMatch):
                     self.match_ref[ArgumentMatch].append(m)
-                    if "action" in m.arg_data and "type" in m.arg_data:
-                        if not self._parser.accept_type(m.arg_data["action"]):
-                            del m.arg_data["type"]
+                    if (
+                        "action" in m.arg_data
+                        and "type" in m.arg_data
+                        and not self._parser.accept_type(m.arg_data["action"])
+                    ):
+                        del m.arg_data["type"]
                     action = self._parser.add_argument(*m.pattern, **m.arg_data)
                     if m.dest:
                         self._dest_map[action.dest] = m
@@ -476,36 +480,39 @@ class TwilightMatcher:
 
         self._regex_pattern: re.Pattern = re.compile("".join(regex_str_list))
 
-    def match(self, arguments: List[str], elem_mapping: Dict[str, Element]) -> Dict[str, MatchResult]:
+    def match(
+        self, arguments: List[str], elem_mapping: Dict[str, Element]
+    ) -> Dict[Union[int, str], MatchResult]:
         """匹配参数
         Args:
             arguments (List[str]): 参数列表
             elem_mapping (Dict[str, Element]): 元素映射
 
         Returns:
-            Dict[str, MatchResult]: 匹配结果
+            Dict[Union[int, str], MatchResult]: 匹配结果
         """
-        result: Dict[str, MatchResult] = {}
+        result: Dict[Union[int, str], MatchResult] = {}
         if self._dest_map:
             namespace, arguments = self._parser.parse_known_args(arguments)
             nbsp_dict: Dict[str, Any] = namespace.__dict__
             for k, v in self._dest_map.items():
                 res = nbsp_dict.get(k, Unmatched)
                 result[v.dest] = MatchResult(res is not Unmatched, v, res)
-        if total_match := self._regex_pattern.fullmatch(" ".join(arguments)):
-            for index, match in self._group_map.items():
-                group: Optional[str] = total_match.group(index)
-                if group is not None:
-                    if isinstance(match, ElementMatch):
-                        res = elem_mapping[group[1:-1].split("_")[0]]
-                    else:
-                        res = MessageChain._from_mapping_string(group, elem_mapping)
-                else:
-                    res = None
-                if match.dest:
-                    result[match.dest] = MatchResult(group is not None, match, res)
-        else:
+        if not (total_match := self._regex_pattern.fullmatch(" ".join(arguments))):
             raise ValueError(f"{' '.join(arguments)} not matching {self._regex_pattern.pattern}")
+        for index, match in self._group_map.items():
+            group: Optional[str] = total_match.group(index)
+            if group is None:
+                res = None
+            else:
+                res = (
+                    elem_mapping[group[1:-1].split("_")[0]]
+                    if isinstance(match, ElementMatch)
+                    else MessageChain._from_mapping_string(group, elem_mapping)
+                )
+
+            if match.dest:
+                result[match.dest] = MatchResult(group is not None, match, res)
         return result
 
     def get_help(
@@ -566,6 +573,7 @@ class TwilightMatcher:
 
 class _TwilightLocalStorage(TypedDict):
     result: Sparkle
+    twilight: "Twilight"
 
 
 class Twilight(Generic[T_Sparkle], BaseDispatcher):
@@ -620,7 +628,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         Returns:
             Twilight: 生成的 Twilight.
         """
-        extra_args = extra_args or {}
+        extra_args = extra_args or []
         match: List[RegexMatch] = []
 
         for t_type, token_list in tokenize_command(command):
@@ -636,9 +644,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         if match:
             match[-1].space_policy = SpacePolicy.NOSPACE
 
-        if isinstance(extra_args, dict):
-            return cls(match, extra_args)
-        return cls(match + extra_args)
+        return cls(*match, *extra_args)
 
     def get_help(
         self,
@@ -703,6 +709,7 @@ class ResultValue(Decorator):
 
     pre = True
 
+    @staticmethod
     async def target(i: DecoratorInterface):
         sparkle: Sparkle = i.local_storage["result"]
         res = sparkle.res.get(i.name, None)
@@ -719,14 +726,14 @@ class Help(Decorator):
     if TYPE_CHECKING:
 
         @overload
-        def __init__(
+        def __init__(  # type: ignore
             self,
             usage: str = "",
             description: str = "",
             epilog: str = "",
             dest: bool = True,
             sep: str = " -> ",
-        ) -> str:
+        ) -> None:
             ...
 
     def __init__(self, *args, **kwargs) -> None:

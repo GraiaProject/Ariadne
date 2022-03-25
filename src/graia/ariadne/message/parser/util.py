@@ -4,7 +4,7 @@ import enum
 import inspect
 import re
 from contextvars import ContextVar
-from typing import Dict, List, Literal, NoReturn, Tuple, Type, Union
+from typing import Any, Dict, List, NoReturn, Tuple, Type, Union
 
 from graia.ariadne.message.element import Element
 
@@ -63,10 +63,7 @@ class CommandToken(enum.Enum):
     ANNOTATED = "ANNOTATED"
 
 
-CommandTokenTuple = Union[
-    Tuple[Literal[CommandToken.PARAM], List[Union[int, str]]],
-    Tuple[Literal[CommandToken.ANNOTATED, CommandToken.CHOICE, CommandToken.PARAM], List[str]],
-]
+CommandTokenTuple = Tuple[CommandToken, list[Any]]
 
 
 def tokenize_command(string: str) -> List[CommandTokenTuple]:
@@ -244,7 +241,7 @@ class ElementType:
     def __init__(self, pattern: Type[Element_T]):
         self.regex = re.compile(f"\x02(\\d+)_{pattern.__fields__['type'].default}\x03")
 
-    def __call__(self, string: str) -> MessageChain:
+    def __call__(self, string: str) -> Element:
         if not self.regex.fullmatch(string):
             raise ValueError(f"{string} not matching {self.regex.pattern}")
         return MessageChain._from_mapping_string(string, elem_mapping_ctx.get())[0]

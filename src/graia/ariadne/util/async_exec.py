@@ -6,7 +6,7 @@ import importlib
 import multiprocessing
 from asyncio.events import AbstractEventLoop
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import Any, Awaitable, Callable, ClassVar, Dict, Tuple
+from typing import Any, Awaitable, Callable, ClassVar, Dict, Optional, Tuple
 
 from ..typing import P, R
 
@@ -38,9 +38,9 @@ class ParallelExecutor:
 
     def __init__(
         self,
-        loop: AbstractEventLoop = None,
-        max_thread: int = None,
-        max_process: int = None,
+        loop: Optional[AbstractEventLoop] = None,
+        max_thread: Optional[int] = None,
+        max_process: Optional[int] = None,
     ):
         """初始化并行执行器.
 
@@ -58,7 +58,7 @@ class ParallelExecutor:
         self.bind_loop(loop or asyncio.get_running_loop())
 
     @classmethod
-    def get(cls, loop: AbstractEventLoop = None) -> "ParallelExecutor":
+    def get(cls, loop: Optional[AbstractEventLoop] = None) -> "ParallelExecutor":
         """获取 ParallelExecutor 实例
 
         Args:
@@ -134,7 +134,7 @@ class ParallelExecutor:
         Returns:
             Future[R]: 返回结果. 需要被异步等待.
         """
-        return asyncio.get_running_loop().run_in_executor(
+        return asyncio.get_running_loop().run_in_executor(  # type: ignore
             self.thread_exec,
             ParallelExecutor.run_func_static,
             func,
@@ -153,7 +153,7 @@ class ParallelExecutor:
         Returns:
             Future[R]: 返回结果. 需要被异步等待.
         """
-        return asyncio.get_running_loop().run_in_executor(
+        return asyncio.get_running_loop().run_in_executor(  # type: ignore
             self.proc_exec,
             ParallelExecutor.run_func_static,
             func,

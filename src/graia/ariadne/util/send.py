@@ -17,7 +17,7 @@ class Bypass(SendMessageAction):
     """
 
     @staticmethod
-    async def exception(item: Exc_T, /) -> Exc_T:
+    async def exception(item: Exc_T) -> Exc_T:
         return item
 
 
@@ -33,8 +33,8 @@ class Ignore(SendMessageAction):
     """忽略错误的 SendMessage action (发生 Exception 时 返回 None)"""
 
     @staticmethod
-    async def exception(_: Exc_T, /) -> Exc_T:
-        return None
+    async def exception(_) -> None:
+        return
 
 
 # ANCHOR: safe
@@ -55,15 +55,15 @@ class Safe(SendMessageAction):
 
     @overload
     @staticmethod
-    async def exception(item: Exc_T, /) -> BotMessage:
+    async def exception(item) -> BotMessage:
         ...
 
     @overload
-    async def exception(self, item: Exc_T, /) -> BotMessage:
+    async def exception(self, item) -> BotMessage:
         ...
 
     @staticmethod
-    async def _handle(item: Exc_T, ignore: bool):
+    async def _handle(item: SendMessageException, ignore: bool):
         from ..message.chain import MessageChain
         from ..message.element import At, AtAll, Forward, MultimediaElement, Plain, Poke
 
@@ -77,14 +77,24 @@ class Safe(SendMessageAction):
 
         for type in [AtAll, At, Poke, Forward, MultimediaElement]:
             convert(chain, type)
-            val = await ariadne.sendMessage(**item.send_data, action=Ignore)
+            val = await ariadne.sendMessage(**item.send_data, action=Ignore)  # type: ignore
             if val is not None:
                 return val
 
         if not ignore:
             raise item
 
-    async def exception(s: Union["Safe", Exc_T], i: Optional[Exc_T] = None):
-        if isinstance(s, Safe):
+    @overload
+    @staticmethod
+    async def exception(s, i):
+        ...
+
+    @overload
+    async def exception(s, i):
+        ...
+
+    async def exception(s: Union["Safe", Exc_T], i: Optional[Exc_T] = None):  # type: ignore
+        if not isinstance(s, Safe):
+            return await Safe._handle(s, True)
+        if i:
             return await Safe._handle(i, s.ignore)
-        return await Safe._handle(s, True)

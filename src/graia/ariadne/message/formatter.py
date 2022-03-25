@@ -15,7 +15,7 @@ class Formatter:
         self.format_string = format_string
 
     def format(
-        self, *args: Union[Element, MessageChain, str], **kwargs: Union[Element, MessageChain, str]
+        self, *o_args: Union[Element, MessageChain, str], **o_kwargs: Union[Element, MessageChain, str]
     ) -> MessageChain:
         """通过初始化时传入的格式字符串 格式化消息链
 
@@ -26,17 +26,17 @@ class Formatter:
         Returns:
             MessageChain: 格式化后的消息链
         """
-        args: List[MessageChain] = [MessageChain.create(e) for e in args]
-        kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in kwargs.items()}
+        args: List[MessageChain] = [MessageChain.create(e) for e in o_args]
+        kwargs: Dict[str, MessageChain] = {k: MessageChain.create(e) for k, e in o_kwargs.items()}
 
         args_mapping: Dict[str, MessageChain] = {
             f"\x02{index}\x02": chain for index, chain in enumerate(args)
         }
         kwargs_mapping: Dict[str, MessageChain] = {f"\x03{key}\x03": chain for key, chain in kwargs.items()}
 
-        result = self.format_string.format(*args_mapping, **{k: f"\x03{k}\x03" for k in kwargs.keys()})
+        result = self.format_string.format(*args_mapping, **{k: f"\x03{k}\x03" for k in kwargs})
 
-        chain_list: List[MessageChain] = []
+        chain_list: List[Union[MessageChain, Plain]] = []
 
         for i in re.split("([\x02\x03][\\d\\w]+[\x02\x03])", result):
             if match := re.fullmatch("(?P<header>[\x02\x03])(?P<content>\\w+)(?P=header)", i):

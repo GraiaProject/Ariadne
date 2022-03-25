@@ -6,6 +6,7 @@ from contextlib import suppress
 from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -112,7 +113,7 @@ class Slot(ParamDesc):
         self.default = default
         self.default_factory = default_factory
         self.param_name: str = ""
-        self.model: Optional[BaseModel] = None
+        self.model: Optional[Type[BaseModel]] = None
 
     def gen_model(self, validators: Iterable[Callable]) -> None:
         if self.model or self.type is _raw:
@@ -250,15 +251,15 @@ class CommandHandler(ExecTarget):
         self,
         record: CommandPattern,
         callable: Callable,
-        dispatchers: Sequence[BaseDispatcher] = None,
-        decorators: Sequence[Decorator] = None,
+        dispatchers: Sequence[BaseDispatcher] = (),
+        decorators: Sequence[Decorator] = (),
     ):
         super().__init__(
             callable,
             [
                 ConstantDispatcher(commander_data_ctx),
                 ContextDispatcher(),
-                *resolve_dispatchers_mixin(dispatchers or []),
+                *resolve_dispatchers_mixin(dispatchers),
             ],
             list(decorators),
         )
@@ -282,6 +283,9 @@ class CommandHandler(ExecTarget):
         param_result: Dict[str, Any] = {}
         for arg in set(self.pattern.arg_map.values()):
             value = arg.default_factory()
+            if TYPE_CHECKING:
+                assert arg.param_name
+                assert arg.model
             if arg.nargs:
                 for param in arg.match_patterns:
                     if param in arg_data:
@@ -307,6 +311,8 @@ class CommandHandler(ExecTarget):
                 param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
 
         for ind, slot in self.pattern.slot_map.items():
+            if TYPE_CHECKING:
+                assert slot.model
             if slot.param_name != self.pattern.wildcard:
                 value = slot_data.get(ind, None) or slot.default_factory()
                 param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
@@ -357,7 +363,7 @@ class Commander:
     def command(
         self,
         command: str,
-        setting: Dict[str, Union[Slot, Arg]] = None,
+        setting: Optional[Dict[str, Union[Slot, Arg]]] = None,
         dispatchers: Sequence[BaseDispatcher] = (),
         decorators: Sequence[Decorator] = (),
     ) -> Callable[[T_Callable], T_Callable]:
@@ -425,7 +431,8 @@ class Commander:
                     eval(default or "...", *eval_ctx(1)),
                 )
                 parsed_slot.param_name = name  # assuming that param_name is consistent
-                slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
+                if name in slot_map:
+                    slot_map[name] = parsed_slot | slot_map[name]  # parsed slot < provided slot
                 if wildcard:
                     wildcard_slot_name = name
                 token_list.append([name])
@@ -454,7 +461,8 @@ class Commander:
                 if name in placeholder_set:
                     parsed_slot = Slot(name, annotation, default)
                     parsed_slot.param_name = name  # assuming that param_name is consistent
-                    slot_map[name] = parsed_slot | slot_map.get(name, {})  # parsed slot < provided slot
+                    if name in slot_map:
+                        slot_map[name] = parsed_slot | slot_map[name]  # parsed slot < provided slot
                     if default is not ...:
                         assert all(
                             [

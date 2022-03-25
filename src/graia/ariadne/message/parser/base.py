@@ -7,6 +7,7 @@ from typing import List, Optional, Type, Union
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
+from loguru import logger
 
 from ... import get_running
 from ...event.message import GroupMessage
@@ -97,19 +98,20 @@ class MentionMe(ChainDecorator):
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         ariadne = get_running()
         if isinstance(interface.event, GroupMessage):
-            name = (await ariadne.getMember(ariadne.account, interface.event.sender.group)).name
+            if not ariadne.account:
+                logger.warning("Unable to detect Ariadne's name because account is not set")
+                raise ExecutionStop
+            name = (await ariadne.getMember(interface.event.sender.group, ariadne.account)).name
         else:
             name = (await ariadne.getBotProfile()).nickname
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         first: Element = rest[0]
         result: Optional[MessageChain] = None
-        if rest and isinstance(first, Plain):
-            if first.asDisplay().startswith(name):
-                result = header + rest.removeprefix(name).removeprefix(" ")
-        if rest and isinstance(first, At):
-            if first.target == ariadne.account:
-                result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
+        if rest and isinstance(first, Plain) and first.asDisplay().startswith(name):
+            result = header + rest.removeprefix(name).removeprefix(" ")
+        if rest and isinstance(first, At) and first.target == ariadne.account:
+            result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
 
         if result is None:
             raise ExecutionStop
@@ -130,12 +132,15 @@ class Mention(ChainDecorator):
         rest: MessageChain = chain.exclude(Quote, Source)
         first: Element = rest[0]
         result: Optional[MessageChain] = None
-        if rest and isinstance(first, Plain):
-            if isinstance(self.person, str) and first.asDisplay().startswith(self.person):
-                result = header + rest.removeprefix(self.person).removeprefix(" ")
-        if rest and isinstance(first, At):
-            if isinstance(self.person, int) and first.target == self.person:
-                result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
+        if (
+            rest
+            and isinstance(first, Plain)
+            and isinstance(self.person, str)
+            and first.asDisplay().startswith(self.person)
+        ):
+            result = header + rest.removeprefix(self.person).removeprefix(" ")
+        if rest and isinstance(first, At) and isinstance(self.person, int) and first.target == self.person:
+            result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
 
         if result is None:
             raise ExecutionStop

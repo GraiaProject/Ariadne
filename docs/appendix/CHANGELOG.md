@@ -1,5 +1,11 @@
 # 更改日志
 
+## 0.6.11
+
+修复 `MentionMe`, 优化了 `Adapter` 性能.
+
+更新了 `API 文档`.
+
 ## 0.6.10
 
 移除弃用的 `getMemberInfo`: 请改用 `getMember`.

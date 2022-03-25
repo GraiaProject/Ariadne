@@ -1,173 +1,107 @@
-from arclet.alconna import Alconna, Args
-from arclet.alconna.component import Arpamar, Option, Subcommand
-from arclet.alconna.types import AllParam, AnyDigit, AnyIP, AnyParam, AnyStr, AnyUrl
+from typing import Dict, Union
 
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import At, Face, Source
+from arclet.alconna import Alconna, Args, Option, command_manager
+from arclet.alconna.builtin.construct import AlconnaFormat, AlconnaString
+from arclet.alconna.types import AnyDigit, AnyStr, ArgPattern, PatternToken
+from devtools import debug
 
-ar = Args["test":bool:True]["aaa":str:"bbb"] << Args["perm":str:...] + ["month", int]
-a = "bbb"
-b = str
-c = "fff"
-ar["foo"] = ["bar", ...]
-ar.foo1 = ("bar1", "321")
-print(ar)
+from graia.ariadne.message.element import At
 
-ping = Alconna(
-    headers=["/", "!"],
-    command="ping",
-    options=[
-        Subcommand("test", Option("-u", Args["username":str]).help("输入用户名"), args=Args["test":"Test"])
-        .separate(" ")
-        .help("测试用例"),
-        Option("-n|--num", Args["count":int:123]).help("输入数字"),
-        Option("-u", Args(At=At)).help("输入需要At的用户"),
-    ],
-    main_args=Args(IP=AnyIP),
-).help("ping指令")
-print(ping.get_help())
-msg = MessageChain.create("/ping -u", At(123), "test Test -u AAA -n 222 127.0.0.1")
-print(msg)
-print(ping.analyse_message(msg))
+print(command_manager)
 
-msg1 = MessageChain.create("/ping 127.0.0.1 -u", At(123))
-print(msg1)
-print(ping.analyse_message(msg1).all_matched_args)
+ping = "Test" @ AlconnaString("ping <url:url>")
+ping1 = AlconnaString("ping <url:url>")
 
-msg2 = MessageChain.create("/ping a")
-print(msg2)
-result = ping.analyse_message(msg2)
-print(result.header)
-print(result.head_matched)
-
-pip = Alconna(
-    command="/pip",
-    options=[
-        Subcommand("install", Option("--upgrade").help("升级包"), pak=str).help("安装一个包"),
-        Subcommand("show", pak=str).help("显示一个包的信息"),
-        Subcommand("help", command=str).help("显示一个指令的帮助"),
-        Option("list").help("列出所有安装的包"),
-        Option("--retries", retries=int).help("设置尝试次数"),
-        Option("-t| --timeout", sec=int).help("设置超时时间"),
-        Option("--exists-action", ex_action=str).help("添加行为"),
-        Option("--trusted-host", hostname=AnyUrl).help("选择可信赖地址"),
-    ],
-).help("pip指令")
-print(pip.get_help())
-msg = "/pip install ces --upgrade -t 6 --trusted-host http://pypi.douban.com/simple"
-print(msg)
-print(pip.analyse_message(msg).all_matched_args)
-
-aaa = Alconna(headers=[".", "!"], command="摸一摸", main_args=Args["At":At])
-msg = MessageChain.create(".摸一摸", At(123))
-print(msg)
-print(aaa.analyse_message(msg).matched)
-
-ccc = Alconna(headers=[""], command="4help", main_argument=AnyStr)
-msg = "4help 'what he say?'"
-print(msg)
-result = ccc.analyse_message(msg)
-print(result.main_argument)
-
-eee = Alconna(headers=[""], command=f"RD{AnyDigit}?=={AnyDigit}")
-msg = "RD100==36"
-result = eee.analyse_message(msg)
-print(result.header)
-
-weather = Alconna(
-    headers=["渊白", "cmd.", "/bot "],
-    command=f"{AnyStr}天气",
-    options=[Option("时间")["days":str, "aaa":str].separate("="), Option("bbb")],
+Alconna.set_custom_types(digit=int)
+alc = AlconnaFormat(
+    "lp user {target} perm set {perm} {default}",
+    {"target": AnyStr, "perm": AnyStr, "default": Args["de":bool:True]},
 )
-msg = MessageChain.create("渊白桂林天气 时间=明天=后台 bbb")
-result = weather.analyse_message(msg)
-print(result)
-print(result["aaa"])
+alcc = AlconnaFormat("lp1 user {target}", {"target": str})
 
-msg = MessageChain.create("渊白桂林天气 aaa")
-result = weather.analyse_message(msg)
-print(result)
+alcf = AlconnaFormat("music {artist} {title:str} singer {name:str}")
+print(alcf.parse("music --help"))
+debug(alc)
+alc.exception_in_time = False
+debug(alc.parse("lp user AAA perm set admin"))
 
-msg = MessageChain.create(At(123))
-result = weather.analyse_message(msg)
-print(result)
+aaa = AlconnaFormat("a {num}", {"num": AnyDigit})
+r = aaa.parse("a 1")
+print(aaa)
+print(r)
+print("\n")
 
-ddd = Alconna(
-    command="Cal",
-    options=[
-        Subcommand(
-            "-div",
-            Option("--round| -r", args=Args(decimal=AnyDigit), actions=lambda x: x + "a").help("保留n位小数"),
-            args=Args(num_a=AnyDigit, num_b=AnyDigit),
-        ).help("除法计算")
-    ],
+
+def test(wild, text: str, num: int, boolean: bool = False):
+    print("wild:", wild)
+    print("text:", text)
+    print("num:", num)
+    print("boolean:", boolean)
+
+
+alc1 = Alconna("test5", action=test)
+
+print(alc1)
+
+test_type = ArgPattern(r"(\[.*?])", token=PatternToken.REGEX_TRANSFORM, origin_type=list)
+
+alc2 = Alconna("test", help_text="测试help直接发送") + Option(
+    "foo", Args["bar":str, "bar1":int:12345, "bar2":test_type]
 )
-msg = "Cal -div 12 23 --round 2"
-print(msg)
-print(ddd.get_help())
-result = ddd.analyse_message(msg)
-print(result.div)
+print(alc2.parse("test --help"))
 
-ddd = (
-    Alconna(command="点歌")
-    .option("歌名", sep="：", args=Args(song_name=AnyStr))
-    .option("歌手", sep="：", args=Args(singer_name=AnyStr))
-)
-msg = "点歌 歌名：Freejia"
-print(msg)
-result = ddd.analyse_message(msg)
-print(result.all_matched_args)
+dic = alc1.to_dict()
 
-give = Alconna.simple("give", ("sb", int, ...), ("sth", int, ...))
-print(give)
-print(give.analyse_message("give"))
+debug(dic)
 
+dic["command"] = "test_type_1"
 
-def test_act(content):
-    print(content)
-    return content
-
-
-wild = Alconna(headers=[At(12345)], command="丢漂流瓶", main_args=Args["wild":AnyParam], actions=test_act)
-# print(wild.analyse_message("丢漂流瓶 aaa bbb ccc").all_matched_args)
-msg = MessageChain.create(At(12345), " 丢漂流瓶 aa\t\nvv")
-print(wild.analyse_message(msg))
-
-get_ap = Alconna(command="AP", main_args=Args(type=str, text=str))
-
-test = Alconna(command="test", main_args=Args(t=Arpamar)).set_namespace("TEST")
-print(test)
-print(
-    test.analyse_message(
-        [get_ap.analyse_message("AP Plain test"), get_ap.analyse_message("AP At 123")]
-    ).all_matched_args
-)
-
-# print(command_manager.commands)
-
-double_default = Alconna(
-    command="double",
-    main_args=Args(num=int).default(num=22),
-    options=[Option("--d", Args(num1=int).default(num1=22))],
-)
-
-
-result = double_default.analyse_message("double --d")
-print(result)
-
+alc3 = Alconna.from_dict(dic)
+print(alc3)
+print(alc3.get_help())
+print(alc3.parse("test_type_1 abcd 'testing a text' 2"))
 
 alc4 = Alconna(
     command="test_multi",
     options=[
-        Option("--foo", Args["*tags":int:1, "str1":str]),
+        Option("--foo", Args["*tags":str:1, "str1":str]),
         Option("--bar", Args["num":int]),
     ],
 )
 
-print(alc4.analyse_message("test_multi --foo 1 2 3 4 ab --bar 1"))
-alc4.shortcut("st", "test_multi --foo 1 2 3 4 ab --bar 1")
-print(alc4.analyse_message("st"))
+print(alc4.parse("test_multi --foo ab --bar 1"))
+alc4.shortcut("st", "test_multi --foo ab --bar 1")
+result = alc4.parse("st")
+print(result)
+print(result.get_first_arg("foo"))
 
-choice = Alconna(command="choice", main_args=Args["part":["a", "b", "c"]])
-print(choice.analyse_message("choice d"))
-print(choice.get_help())
+alc5 = Alconna("test_anti", "!path:int")
+print(alc5.parse("test_anti a"))
+
+alc6 = Alconna("test_union", main_args=Args.path[Union[int, float, "abc"]])
+print(alc6.parse("test_union abc"))
+
+alc7 = Alconna("test_list", main_args=Args.seq[list])
+print(alc7)
+print(alc7.parse("test_list \"['1', '2', '3']\""))
+
+alc8 = Alconna("test_dict", main_args=Args.map[Dict[str, int]])
+print(alc8)
+print(alc8.parse("test_dict \"{'a':1, 'b':2}\""))
+
+alc9 = Alconna("test_str", main_args="@foo:str, bar:list, ?baz:int")
+print(alc9)
+print(alc9.parse('test_str foo=a "[1]"'))
+
+alc10 = Alconna("test_bool", main_args="?_foo:str")
+print(alc10.parse(["test_bool", 1]))
+print(alc10.get_help())
+
+alc11 = Alconna("test_header", headers=[At(1234), "abc"])
+print("alc11:", alc11.parse([At(1234), "test_header"]))
+
+alc12 = Alconna("test_str1", Args["abcd", "1234"])
+print("alc12:", alc12.parse("test_str1 abcd 1234"))
+
+alc13 = Alconna("image", Args["@?--width":int:1920, "@?--height":int:1080])
+print("alc13:", alc13.parse("image --height=720"))

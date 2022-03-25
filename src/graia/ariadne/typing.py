@@ -120,10 +120,8 @@ def generic_issubclass(cls: type, par: Annotated[T, Union[type, Any, Tuple[type,
     if par is Any:
         return True
     try:
-        if isinstance(par, type):
+        if isinstance(par, (type, tuple)):
             return issubclass(cls, par)
-        if isinstance(par, tuple):
-            return any(issubclass(cls, p) for p in par)
         if typing.get_origin(par) is Union:
             return any(generic_issubclass(cls, p) for p in typing.get_args(par))
         if isinstance(par, TypeVar):
@@ -149,10 +147,8 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
     if par is Any:
         return True
     try:
-        if isinstance(par, type):
+        if isinstance(par, (type, tuple)):
             return isinstance(obj, par)
-        if isinstance(par, tuple):
-            return any(isinstance(obj, p) for p in par)
         if typing.get_origin(par) is Union:
             return any(generic_isinstance(obj, p) for p in typing.get_args(par))
         if isinstance(par, TypeVar):

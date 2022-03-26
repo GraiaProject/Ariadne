@@ -681,12 +681,13 @@ class MultimediaElement(Element):
             bytes: 元素原始数据
         """
         from .. import get_running
+        from ..adapter import Adapter
 
         if self.base64:
             return b64decode(self.base64)
         if not self.url:
             raise ValueError("you should offer a url.")
-        session = get_running().adapter.session
+        session = get_running(Adapter).session
         if not session:
             raise RuntimeError("Unable to get session!")
         async with session.get(self.url) as response:

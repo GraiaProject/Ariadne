@@ -1,5 +1,8 @@
 """Ariadne 内置的 Dispatcher"""
 
+
+import contextlib
+
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -30,7 +33,7 @@ class ContextDispatcher(AbstractDispatcher):
         if generic_isinstance(interface.event, interface.annotation):
             return interface.event
 
-        return get_running(interface.annotation)
+        return get_running(interface.annotation, fail_err=False)
 
 
 class SourceDispatcher(AbstractDispatcher):
@@ -55,11 +58,9 @@ class SenderDispatcher(AbstractDispatcher):
         from .event.message import MessageEvent
 
         if isinstance(interface.event, MessageEvent):
-            try:
+            with contextlib.suppress(TypeError):
                 if generic_isinstance(interface.event.sender, interface.annotation):
                     return interface.event.sender
-            except TypeError:
-                pass
 
 
 class SubjectDispatcher(AbstractDispatcher):

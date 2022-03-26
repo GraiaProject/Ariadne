@@ -1,5 +1,11 @@
 # 更改日志
 
+## 0.6.12
+
+支持 `NudgeEvent` 接收 `Union[Friend, Group]` 来获取戳一戳位置.
+
+修复 `get_running`.
+
 ## 0.6.11
 
 修复 `MentionMe`, 优化了 `Adapter` 性能.

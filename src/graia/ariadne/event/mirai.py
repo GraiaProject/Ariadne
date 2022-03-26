@@ -419,6 +419,9 @@ class NudgeEvent(MiraiEvent):
 
     type: str = "NudgeEvent"
 
+    context_type: Literal["friend", "group"]
+    """戳一戳的位置"""
+
     supplicant: int = Field(..., alias="fromId")
     """动作发出者的 QQ 号"""
 
@@ -440,9 +443,6 @@ class NudgeEvent(MiraiEvent):
     group_id: Optional[int] = None
     """群组 QQ 号, 如果为群内戳一戳"""
 
-    context_type: Literal["friend", "group", "stranger", None] = None
-    """戳一戳的位置"""
-
     def __init__(self, **data: Any) -> None:
         ctx_type = data["context_type"] = str.lower(data["subject"]["kind"])
         if ctx_type == "group":
@@ -450,6 +450,18 @@ class NudgeEvent(MiraiEvent):
         else:
             data["friend_id"] = data["subject"]["id"]
         super().__init__(**data)
+
+    class Dispatcher(BaseDispatcher):
+        @staticmethod
+        async def catch(interface: DispatcherInterface):
+            from .. import get_running
+
+            ev = interface.event
+            if isinstance(ev, NudgeEvent):
+                if generic_issubclass(Group, interface.annotation) and ev.group_id is not None:
+                    return await get_running().getGroup(ev.group_id)
+                if generic_issubclass(Friend, interface.annotation) and ev.friend_id is not None:
+                    return await get_running().getFriend(ev.friend_id)
 
 
 class GroupNameChangeEvent(GroupEvent):

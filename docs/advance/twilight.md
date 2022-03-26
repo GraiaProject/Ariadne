@@ -60,7 +60,7 @@ ParamMatch() @ "param"
 >>> ParamMatch() >> "param"
 ```
 
-!!! warning "注意位移运算符 `>>` 与 `<<` 始终朝向字符串.
+!!! warning "注意位移运算符 `>>` 与 `<<` 始终朝向字符串."
 
 ???+ info "为什么支持这些运算符? "
 

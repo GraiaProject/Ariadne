@@ -13,15 +13,16 @@
  - 添加非必要的功能支持
  - 修改异常的代码行为
  - 在 Github Issue 里写关于某个文档尚未提到的特性的使用方法探索
- - 帮助撰写 [Document](https://github.com/GraiaProject/Ariadne/tree/master/document)
+ - 帮助撰写 [Document](https://github.com/GraiaProject/Ariadne/tree/master/docs)
 
 注意事项:
  - 尽量别引入新的库
  - 使用 black 与 isort 进行格式化. 尽量符合 [`PEP 8`](https://www.python.org/dev/peps/pep-0008/).
+ - 需要通过 `pre-commit` 测试 (black, isort, flake8 与空格修复)
+ - 启用 `Pyright` basic 进行 type safe 测试.
  - 如果需要测试文件, 放在 `test` 文件夹下. (涉及到的资源请以 `*.temp` 命名, 防止 git 跟踪.)
  - 最好是所有声明的变量都加上类型注解.
  - 使用 `poetry` 管理环境.
- - 别修改 `setup.py`, 使用 `poetry`.
  - 如果涉及到修改有关 `mirai-api-http` 交互的部分, 请先测试下, 并在 PR 里标出你所使用的版本.
  - 看不懂的东西请别改...
  - `docstring` 用 Google Style.

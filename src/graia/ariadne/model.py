@@ -45,7 +45,7 @@ class AriadneBaseModel(BaseModel):
     Ariadne 一切数据模型的基类.
     """
 
-    def dict(  # type: ignore
+    def dict(
         self,
         *,
         include: Union[None, "AbstractSetIntStr", "MappingIntStrAny"] = None,
@@ -61,7 +61,6 @@ class AriadneBaseModel(BaseModel):
             include=include,  # type: ignore
             exclude=exclude,  # type: ignore
             by_alias=True,
-            skip_defaults=False,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
             exclude_none=True,

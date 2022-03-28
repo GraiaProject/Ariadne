@@ -512,7 +512,10 @@ class TwilightMatcher:
                 )
 
             if match.dest:
-                result[match.dest] = MatchResult(group is not None, match, res)
+                if isinstance(match, WildcardMatch):
+                    result[match.dest] = MatchResult(bool(res), match, res)
+                else:
+                    result[match.dest] = MatchResult(group is not None, match, res)
         return result
 
     def get_help(

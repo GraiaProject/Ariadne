@@ -66,6 +66,10 @@ if __name__ == "__main__":
         ]
     )
 
+    devtools.debug(flag_twi.generate(MessageChain([".test op"])))
+
+    devtools.debug(flag_twi.generate(MessageChain([".test op gl"])))
+
     flag_sp = flag_twi.generate(MessageChain([".test op\nop\nseq -v"]))
     devtools.debug(flag_sp.res)
 

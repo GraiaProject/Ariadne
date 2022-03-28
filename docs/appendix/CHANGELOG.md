@@ -1,5 +1,11 @@
 # 更改日志
 
+# 0.6.13
+
+将 `WildcardMatch` 行为更换为以前的行为 (依照是否有内容判断 `matched` 字段).
+
+修复 `AriadneBaseModel.dict` 会引发 `Deprecated` 的错误.
+
 ## 0.6.12
 
 支持 `NudgeEvent` 接收 `Union[Friend, Group]` 来获取戳一戳位置.

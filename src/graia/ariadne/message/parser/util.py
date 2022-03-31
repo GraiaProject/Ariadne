@@ -63,7 +63,7 @@ class CommandToken(enum.Enum):
     ANNOTATED = "ANNOTATED"
 
 
-CommandTokenTuple = Tuple[CommandToken, list[Any]]
+CommandTokenTuple = Tuple[CommandToken, List[Any]]
 
 
 def tokenize_command(string: str) -> List[CommandTokenTuple]:

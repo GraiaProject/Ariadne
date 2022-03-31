@@ -52,3 +52,25 @@ assert img.base64 is not None
 -   可以保证 `asPersistentString` 完整存储了图片数据, 以防止不可靠 `url` 影响.
 
 可能后续会添加一个 `remove_url` 的仅关键字参数.
+
+## TROUBLESHOOT - 常见故障排查
+
+> 本部分用于排查常见用户错误.
+
+### TimeoutError: Unable to connect to mirai-api-http. Configuration Problem?
+
+请检查：
+
+1. mirai-console 是否成功登录账号
+
+2. mirai-api-http 是否正确配置 (启用 `HTTP` 与 `Websocket` 适配器)
+
+3. `Python` 版本 (3.8 以上)
+
+4. `Ariadne` 版本是否为最新 (![PyPI](https://img.shields.io/pypi/v/graia-ariadne?label=%20))
+
+5. `Ariadne` 配置是否与 `mirai-api-http` 相同.
+
+### 收不到消息，且控制台显示 `Failed to send message, your account may be blocked.`
+
+你的账号可能被 **风控** 了. 请等待几天后再试.

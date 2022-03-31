@@ -26,7 +26,7 @@ from graia.ariadne.event.mirai import (
     NewFriendRequestEvent,
 )
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import At, MultimediaElement, Plain, Source
+from graia.ariadne.message.element import At, Forward, MultimediaElement, Plain, Source
 from graia.ariadne.message.parser.base import DetectPrefix, MatchContent, MentionMe
 from graia.ariadne.message.parser.twilight import (
     ArgResult,
@@ -153,6 +153,18 @@ if __name__ == "__main__":
     @bcc.receiver(MessageEvent, dispatchers=[Twilight([FullMatch(".test")])])
     async def reply2(app: Ariadne, event: MessageEvent):
         await app.sendMessage(event, MessageChain.create("Auto reply to /test!"))
+
+    def unwind(fwd: Forward):
+        for node in fwd.nodeList:
+            if node.messageChain.has(Forward):
+                unwind(node.messageChain.getFirst(Forward))
+            else:
+                logger.debug(node.messageChain.asDisplay())
+
+    @bcc.receiver(MessageEvent)
+    async def unwind_fwd(chain: MessageChain):
+        if chain.has(Forward):
+            unwind(chain.getFirst(Forward))
 
     @bcc.receiver(GroupMessage)
     async def reply3(app: Ariadne, chain: MessageChain, group: Group, member: Member):

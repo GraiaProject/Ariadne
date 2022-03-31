@@ -1,5 +1,13 @@
 # 更改日志
 
+# 0.6.14
+
+修复 `Python 3.8` 兼容性 (#130)
+
+支持风控日志警告.
+
+补充 `graia.ariadne.entry` 导出.
+
 # 0.6.13
 
 将 `WildcardMatch` 行为更换为以前的行为 (依照是否有内容判断 `matched` 字段).
@@ -26,7 +34,7 @@
 
 ## 0.6.9
 
-修复 [#122](https://github.com/GraiaProject/Ariadne/issues/122)
+修复 #122
 
 ## 0.6.8
 

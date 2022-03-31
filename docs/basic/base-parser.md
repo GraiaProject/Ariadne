@@ -142,7 +142,7 @@ async def on_match_regex(chain: MessageChain): # 不会改动消息链
     ...
 ```
 
-## matchTemplate
+## MatchTemplate
 
 检测消息链是否匹配指定模板.
 
@@ -158,5 +158,6 @@ async def on_match_regex(chain: MessageChain): # 不会改动消息链
 @broadcast.receiver(..., decorators=[MatchTemplate([Plain, Plain("搜图"), Image])]) # 需要 "*搜图 [图片]" 才能匹配 (*为任意多字符)
 async def on_match_regex(chain: MessageChain): # 不会改动消息链
     ...
+```
 
 !!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_1_base_parser.html)"

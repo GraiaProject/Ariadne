@@ -165,6 +165,8 @@ class MessageMixin(AriadneMixin):
             )
             with enter_context(self, event):
                 self.broadcast.postEvent(event)
+            if result["messageId"] < 0:
+                logger.warning("Failed to send message, your account may be blocked.")
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
@@ -209,6 +211,8 @@ class MessageMixin(AriadneMixin):
             )
             with enter_context(self, event):
                 self.broadcast.postEvent(event)
+            if result["messageId"] < 0:
+                logger.warning("Failed to send message, your account may be blocked.")
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
@@ -221,6 +225,9 @@ class MessageMixin(AriadneMixin):
         quote: Optional[Union[Source, int]] = None,
     ) -> BotMessage:
         """发送临时会话给群组中的特定成员, 可指定回复的消息.
+
+        Warning:
+            本 API 大概率会导致账号风控/冻结. 请谨慎使用.
 
         Args:
             group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
@@ -256,6 +263,8 @@ class MessageMixin(AriadneMixin):
             )
             with enter_context(self, event):
                 self.broadcast.postEvent(event)
+            if result["messageId"] < 0:
+                logger.warning("Failed to send message, your account may be limited.")
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
@@ -311,7 +320,10 @@ class MessageMixin(AriadneMixin):
             elif isinstance(data["target"], Member):
                 val = await self.sendTempMessage(**data)
             else:
-                raise NotImplementedError(f"Unable to send message with {target} as target.")
+                logger.warning(
+                    f"Unable to send {data['message']} to {data['target']} of type {type(data['target'])}"
+                )
+                return await action.result(BotMessage(messageId=-1, origin=data["message"]))
         except Exception as e:
             e.send_data = send_data  # type: ignore
             return await action.exception(cast(SendMessageException, e))

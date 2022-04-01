@@ -120,5 +120,6 @@ ignore = [
     "docs/**",
     "**/site-packages/**/*.py",
     "**/test*/**/*.py",
-    "**/adapter/**"
+    "**/adapter/**",
+    "**/temp/**/*.py"
 ]

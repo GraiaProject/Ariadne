@@ -85,6 +85,7 @@ class HttpAdapter(Adapter):
                 for data in resp:
                     await self.event_queue.put(self.build_event(data))
             self.mirai_session.session_key = None
+            self.connected.set(False)
 
     async def call_api(
         self,
@@ -214,7 +215,6 @@ class WebsocketAdapter(Adapter):
                     autoping=False,
                 ) as connection:
                     logger.info("websocket: connected")
-                    self.connected.set(True)
                     self.websocket = connection
 
                     if self.ping:
@@ -231,6 +231,7 @@ class WebsocketAdapter(Adapter):
                             if "session" in data:
                                 self.mirai_session.session_key = data["session"]
                                 logger.success("Successfully got session key")
+                                self.connected.set(True)
                                 continue
                             if sync_id in self.future_map:
                                 fut = self.future_map.pop(str(sync_id))
@@ -262,6 +263,7 @@ class WebsocketAdapter(Adapter):
                         logger.debug("websocket: ping task complete")
                 logger.info("websocket: disconnected")
                 self.running = False
+                self.mirai_session.session_key = None
                 self.websocket = None
                 self.session = None
                 self.connected.set(False)

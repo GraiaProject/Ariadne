@@ -5,6 +5,7 @@ import typing
 from datetime import datetime, timedelta
 from types import TracebackType
 from typing import (
+    TYPE_CHECKING,
     Any,
     AsyncGenerator,
     Awaitable,
@@ -16,6 +17,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    overload,
 )
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -123,13 +125,26 @@ class CoolDown(BaseDispatcher):
         if not exception:
             await self.set(sender_id)
 
+    if TYPE_CHECKING:
+
+        @overload
+        @contextlib.asynccontextmanager
+        async def trigger(self, target: int) -> AsyncGenerator[Tuple[Optional[datetime], bool], None]:
+            ...
+
+        @overload
+        @contextlib.asynccontextmanager
+        async def trigger(
+            self, target: int, type: Type[T_Time]
+        ) -> AsyncGenerator[Tuple[Optional[T_Time], bool], None]:
+            ...
+
     @contextlib.asynccontextmanager
     async def trigger(
         self, target: int, type: Type[T_Time] = datetime
-    ) -> AsyncGenerator[Tuple[Optional[T_Time], bool], None]:
-        value, satisfied = await self.get(target, type)
+    ) -> AsyncGenerator[Tuple[Union[T_Time, datetime, None], bool], None]:
         try:
-            yield value, satisfied
+            yield await self.get(target, type)
         except:  # noqa
             raise
         else:

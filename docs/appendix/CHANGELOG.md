@@ -1,5 +1,11 @@
 # 更改日志
 
+# 0.6.15
+
+修复 `Ariadne` `Adapter` 过早设置 `connected` 信号的 bug. ([#131](https://github.com/GraiaProject/Ariadne/issues/131))
+
+提升了 `CoolDown` 的代码补全.
+
 # 0.6.14
 
 修复 `Python 3.8` 兼容性 (#130)

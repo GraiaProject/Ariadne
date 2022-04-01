@@ -69,7 +69,9 @@ assert img.base64 is not None
 
 4. `Ariadne` 版本是否为最新 (![PyPI](https://img.shields.io/pypi/v/graia-ariadne?label=%20))
 
-5. `Ariadne` 配置是否与 `mirai-api-http` 相同.
+5. 其他由 `GraiaProject` 维护的包版本是否为最新
+
+6. `Ariadne` 配置是否与 `mirai-api-http` 相同.
 
 ### 收不到消息，且控制台显示 `Failed to send message, your account may be blocked.`
 

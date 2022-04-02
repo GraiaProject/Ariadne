@@ -1602,6 +1602,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
             except Exception as e:
                 logger.exception(e)
             self.broadcast.postEvent(AdapterShutdowned(self))
+            self.adapter.connected.set(False)
             if retry_cnt == self.max_retry:
                 logger.critical(f"Max retry exceeded: {self.max_retry}. Stop Ariadne.")
                 logger.warning("Press Ctrl-C to confirm exit.")

@@ -51,7 +51,7 @@ class HttpAdapter(Adapter):
 
     async def authenticate(self) -> None:
         """在 mira-api-http 进行认证并存入 MiraiSession"""
-        if not self.connected.value():
+        if not self.mirai_session.session_key:
             async with self.session.post(
                 self.mirai_session.url_gen("verify"),
                 data=json.dumps({"verifyKey": self.mirai_session.verify_key}),
@@ -69,9 +69,9 @@ class HttpAdapter(Adapter):
             self.connected.set(True)
 
     async def fetch_cycle(self) -> None:
-        await self.authenticate()
         async with ClientSession() as session:
             self.session = session
+            await self.authenticate()
             while self.running:
                 await asyncio.sleep(self.fetch_interval)
                 async with self.session.get(
@@ -84,8 +84,8 @@ class HttpAdapter(Adapter):
                     resp: List[dict] = validate_response(resp_json)
                 for data in resp:
                     await self.event_queue.put(self.build_event(data))
-            self.mirai_session.session_key = None
             self.connected.set(False)
+            self.mirai_session.session_key = None
 
     async def call_api(
         self,
@@ -127,8 +127,8 @@ class HttpAdapter(Adapter):
         if not isinstance(val, Exception):
             return val
         if isinstance(val, InvalidSession):
-            self.mirai_session.session_key = None
             self.connected.set(False)
+            self.mirai_session.session_key = None
         raise val
 
 
@@ -254,7 +254,6 @@ class WebsocketAdapter(Adapter):
                 pass
             except Exception as e:
                 logger.exception(e)
-                self.connected.set(False)
             finally:
                 if self.ping_task:
                     self.ping_task.cancel()
@@ -263,10 +262,10 @@ class WebsocketAdapter(Adapter):
                         logger.debug("websocket: ping task complete")
                 logger.info("websocket: disconnected")
                 self.running = False
+                self.connected.set(False)
                 self.mirai_session.session_key = None
                 self.websocket = None
                 self.session = None
-                self.connected.set(False)
 
 
 class ComposeForwardAdapter(WebsocketAdapter):

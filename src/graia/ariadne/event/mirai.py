@@ -478,10 +478,10 @@ class GroupNameChangeEvent(GroupEvent):
 
     type = "GroupNameChangeEvent"
 
-    origin: bool
+    origin: str
     """原始设定"""
 
-    current: bool
+    current: str
     """当前设定"""
 
     group: Group
@@ -514,10 +514,10 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
 
     type = "GroupEntranceAnnouncementChangeEvent"
 
-    origin: bool
+    origin: str
     """原始设定"""
 
-    current: bool
+    current: str
     """当前设定"""
 
     group: Group

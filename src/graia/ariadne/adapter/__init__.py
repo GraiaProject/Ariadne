@@ -83,7 +83,7 @@ class Adapter(abc.ABC):
         """
         event_type: Optional[str] = data.get("type")
         if not event_type or not isinstance(event_type, str):
-            raise InvalidArgument("Unable to find 'type' field for automatic parsing")
+            raise InvalidArgument("Unable to find 'type' field for automatic parsing", data)
         event_class: Optional[MiraiEvent] = self.broadcast.findEvent(event_type)  # type: ignore
         if not event_class:
             logger.error("An event is not recognized! Please report with your log to help us diagnose.")

@@ -12,6 +12,7 @@ from typing import (
     Dict,
     Final,
     List,
+    Literal,
     NoReturn,
     Optional,
     Tuple,
@@ -237,11 +238,7 @@ def transform_regex(flag: re.RegexFlag, regex_pattern: str) -> str:
     Returns:
         str: 转换后的正则表达式字符串
     """
-    if flag:
-        regex_pattern = f"(?{gen_flags_repr(flag)}:({regex_pattern}))"
-    else:
-        regex_pattern = f"({regex_pattern})"
-    return regex_pattern
+    return f"(?{gen_flags_repr(flag)}:({regex_pattern}))" if flag else f"({regex_pattern})"
 
 
 class MessageChainType:
@@ -309,28 +306,39 @@ class TwilightParser(argparse.ArgumentParser):
 
 
 class TwilightHelpManager:
-    auto_id: Final[str] = "&auto_id" + hex(id("&auto_id"))
+    AUTO_ID: Final[str] = "&auto_id" + hex(id("&auto_id"))
     _manager_ref: ClassVar[Dict[str, "TwilightHelpManager"]] = {}
 
-    def __init__(self, name: str):
+    name: str
+    display_name: Optional[str]
+    help_map: Dict[str, "Twilight"]
+
+    def __init__(self, name: str, display_name: Optional[str] = AUTO_ID):
         self.name: str = name
         self.help_map: Dict[str, "Twilight"] = {}
-        TwilightHelpManager._manager_ref[name] = self
+        if display_name == self.AUTO_ID:
+            self.display_name = None if name.startswith(("global", "local", "_")) else name
+        else:
+            self.display_name = display_name
+        if name in TwilightHelpManager._manager_ref:
+            global_ref = TwilightHelpManager._manager_ref[name]
+            global_ref.display_name = global_ref.display_name or display_name
+            self.help_map = global_ref.help_map
+        else:
+            TwilightHelpManager._manager_ref[name] = self
 
     def register(self, twilight: "Twilight") -> None:
-        if twilight.help_id == self.auto_id:
-            from .twilight import ElementMatch, FullMatch, RegexMatch, UnionMatch
+        if twilight.help_id == self.AUTO_ID:
+            from .twilight import ElementMatch, ParamMatch, RegexMatch, UnionMatch
 
             extracted_ids: List[str] = []
             for match in twilight.matcher.origin_match_list:
-                if isinstance(match, FullMatch):
-                    extracted_ids.append(match.pattern)
-                elif isinstance(match, UnionMatch):
+                if isinstance(match, UnionMatch):
                     extracted_ids.extend(match.pattern)
-                elif isinstance(match, RegexMatch):
-                    extracted_ids.append(match.pattern)
                 elif isinstance(match, ElementMatch):
                     extracted_ids.append(match.type.__name__)
+                elif isinstance(match, RegexMatch) and not isinstance(match, ParamMatch):
+                    extracted_ids.append(match.pattern)
             if not extracted_ids:
                 raise ValueError(f"Unable to extract help_id from {twilight}")
             help_id = extracted_ids[0]
@@ -340,18 +348,19 @@ class TwilightHelpManager:
             raise ValueError(
                 f"Help Manager {self.name}'s help id {help_id} has been registered", self.help_map[help_id]
             )
-        self.help_map[twilight.help_id] = twilight
+        self.help_map[help_id] = twilight
 
     @classmethod
     def get_help_mgr(cls, mgr: Union["TwilightHelpManager", str]) -> "TwilightHelpManager":
-        if isinstance(mgr, str):
-            return TwilightHelpManager(mgr)
-        return mgr
+        return TwilightHelpManager(mgr) if isinstance(mgr, str) else mgr
 
     @overload
     def get_help(
         self,
+        description: str = "",
+        epilog: str = "",
         *,
+        prefix_src: Literal["brief", "usage", "description"] = "brief",
         fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
     ) -> str:
         ...
@@ -359,7 +368,10 @@ class TwilightHelpManager:
     @overload
     def get_help(
         self,
+        description: str = "",
+        epilog: str = "",
         *,
+        prefix_src: Literal["brief", "usage", "description"] = "brief",
         fmt_func: Callable[[str], T],
         fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
     ) -> T:
@@ -367,10 +379,13 @@ class TwilightHelpManager:
 
     def get_help(
         self,
+        description: str = "",
+        epilog: str = "",
         *,
+        prefix_src: Literal["brief", "usage", "description"] = "brief",
         fmt_func: Optional[Callable[[str], T]] = None,
         fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
-    ) -> T:
+    ) -> Union[T, str]:
         """获取本管理器总的帮助信息
 
         Args:
@@ -378,4 +393,26 @@ class TwilightHelpManager:
             fmt_cls (Type[argparse.HelpFormatter], optional): 如果指定, 则使用该类来格式化帮助信息. \
                 默认为 argparse.HelpFormatter
         """
-        ...
+        formatter = fmt_cls("")
+        formatter.add_usage(self.display_name or "", [], [], "")
+
+        formatter.add_text(description)
+
+        if self.help_map:
+            formatter.start_section(f"共有 {len(self.help_map)} 个子匹配")
+            for help_id, twilight in self.help_map.items():
+                if twilight.help_data is not None:
+                    prefixes: Dict[str, str] = {
+                        "brief": twilight.help_brief,
+                        "usage": twilight.help_data["usage"],
+                        "description": twilight.help_data["description"],
+                    }
+                    formatter.add_text(f"{help_id} - {prefixes[prefix_src]}")
+                else:
+                    formatter.add_text(f"{help_id}")
+            formatter.end_section()
+
+        formatter.add_text(epilog)
+
+        help_string: str = formatter.format_help()
+        return fmt_func(help_string) if fmt_func else help_string

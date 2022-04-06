@@ -64,7 +64,7 @@ if __name__ == "__main__":
             "arg" @ WildcardMatch().flags(re.DOTALL),
             "v" << ArgumentMatch("--verbose", "-v", action="store_true").help("显示详细信息"),
         ]
-    )
+    ).help(".test <op>", "描述", "总结", brief="测试测试!")
 
     devtools.debug(flag_twi.generate(MessageChain([".test op"])))
 
@@ -89,3 +89,5 @@ if __name__ == "__main__":
             ]
         ).get_help("用法字符串", "描述", "总结")
     )
+
+    print(TwilightHelpManager.get_help_mgr("global").get_help("全局帮助", prefix_src="description"))

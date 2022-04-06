@@ -612,7 +612,8 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         """
         self.map_param = map_param or {}
         self.help_data: Optional[_TwilightHelpArgs] = None
-        self.help_id: str = TwilightHelpManager.auto_id
+        self.help_id: str = TwilightHelpManager.AUTO_ID
+        self.help_brief: str = TwilightHelpManager.AUTO_ID
         self.matcher: TwilightMatcher = TwilightMatcher(*root)
 
     def __repr__(self) -> str:
@@ -677,9 +678,10 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         sep: str = " -> ",
         formatter_class: Type[HelpFormatter] = HelpFormatter,
         *,
-        id: str = TwilightHelpManager.auto_id,
+        brief: Optional[str] = None,
+        help_id: str = TwilightHelpManager.AUTO_ID,
         manager: Union[str, TwilightHelpManager] = "global",
-    ) -> str:
+    ) -> Self:
         """利用 Match 中的信息生成帮助字符串.
 
         Args:
@@ -689,7 +691,8 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             dest (bool, optional): 是否显示分派位置. Defaults to True.
             sep (str, optional): 分派位置之间的分隔符. Defaults to " -> ".
             formatter_class (Type[HelpFormatter], optional): 帮助格式化器. Defaults to HelpFormatter.
-            id (str, optional): 命令 id. 默认为自动生成 (推荐自行指定).
+            help_id (str, optional): 帮助 id. 默认为自动生成 (推荐自行指定).
+            brief (str, optional): 简要介绍, 默认与 description 相同.
             manager (str, optional): 帮助信息管理器. 默认 "global" (全局管理器).
 
         Returns:
@@ -703,12 +706,24 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             "sep": sep,
             "formatter_class": formatter_class,
         }
-        self.help_id = id
+        self.help_id = help_id
+        self.help_brief = brief or description
         help_mgr = TwilightHelpManager.get_help_mgr(manager)
         help_mgr.register(self)
-        return self.matcher.get_help(usage, description, epilog, dest, sep, formatter_class)
+        return self
 
-    get_help = help
+    def get_help(
+        self,
+        usage: str = "",
+        description: str = "",
+        epilog: str = "",
+        dest: bool = True,
+        sep: str = " -> ",
+        formatter_class: Type[HelpFormatter] = HelpFormatter,
+    ) -> str:
+        if self.help_data:
+            return self.matcher.get_help(**self.help_data)
+        return self.matcher.get_help(usage, description, epilog, dest, sep, formatter_class)
 
     async def beforeExecution(self, interface: DispatcherInterface):
         """检验 MessageChain 并将 Sparkle 存入本地存储

@@ -4,11 +4,28 @@ import enum
 import inspect
 import re
 from contextvars import ContextVar
-from typing import Any, Dict, List, NoReturn, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    ClassVar,
+    Dict,
+    Final,
+    List,
+    NoReturn,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
-from graia.ariadne.message.element import Element
-
+from ...message.element import Element
+from ...typing import T
 from ..chain import Element_T, MessageChain
+
+if TYPE_CHECKING:
+    from .twilight import Twilight
 
 elem_mapping_ctx: ContextVar[Dict[str, Element]] = ContextVar("elem_mapping_ctx")
 
@@ -289,3 +306,76 @@ class TwilightParser(argparse.ArgumentParser):
         if "type" not in action_init_sig.parameters:
             return False
         return True
+
+
+class TwilightHelpManager:
+    auto_id: Final[str] = "&auto_id" + hex(id("&auto_id"))
+    _manager_ref: ClassVar[Dict[str, "TwilightHelpManager"]] = {}
+
+    def __init__(self, name: str):
+        self.name: str = name
+        self.help_map: Dict[str, "Twilight"] = {}
+        TwilightHelpManager._manager_ref[name] = self
+
+    def register(self, twilight: "Twilight") -> None:
+        if twilight.help_id == self.auto_id:
+            from .twilight import ElementMatch, FullMatch, RegexMatch, UnionMatch
+
+            extracted_ids: List[str] = []
+            for match in twilight.matcher.origin_match_list:
+                if isinstance(match, FullMatch):
+                    extracted_ids.append(match.pattern)
+                elif isinstance(match, UnionMatch):
+                    extracted_ids.extend(match.pattern)
+                elif isinstance(match, RegexMatch):
+                    extracted_ids.append(match.pattern)
+                elif isinstance(match, ElementMatch):
+                    extracted_ids.append(match.type.__name__)
+            if not extracted_ids:
+                raise ValueError(f"Unable to extract help_id from {twilight}")
+            help_id = extracted_ids[0]
+        else:
+            help_id = twilight.help_id
+        if help_id in self.help_map and self.help_map[help_id] is not twilight:
+            raise ValueError(
+                f"Help Manager {self.name}'s help id {help_id} has been registered", self.help_map[help_id]
+            )
+        self.help_map[twilight.help_id] = twilight
+
+    @classmethod
+    def get_help_mgr(cls, mgr: Union["TwilightHelpManager", str]) -> "TwilightHelpManager":
+        if isinstance(mgr, str):
+            return TwilightHelpManager(mgr)
+        return mgr
+
+    @overload
+    def get_help(
+        self,
+        *,
+        fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
+    ) -> str:
+        ...
+
+    @overload
+    def get_help(
+        self,
+        *,
+        fmt_func: Callable[[str], T],
+        fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
+    ) -> T:
+        ...
+
+    def get_help(
+        self,
+        *,
+        fmt_func: Optional[Callable[[str], T]] = None,
+        fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
+    ) -> T:
+        """获取本管理器总的帮助信息
+
+        Args:
+            fmt_func (Optional[Callable[[str], T]]): 如果指定, 则使用该函数来转换帮助信息格式
+            fmt_cls (Type[argparse.HelpFormatter], optional): 如果指定, 则使用该类来格式化帮助信息. \
+                默认为 argparse.HelpFormatter
+        """
+        ...

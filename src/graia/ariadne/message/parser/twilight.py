@@ -1,11 +1,13 @@
 """Twilight: 混合式消息链处理器"""
 import abc
 import enum
+import inspect
 import re
-from argparse import Action
+from argparse import Action, HelpFormatter
 from typing import (
     TYPE_CHECKING,
     Any,
+    Awaitable,
     Callable,
     DefaultDict,
     Dict,
@@ -17,6 +19,7 @@ from typing import (
     TypedDict,
     TypeVar,
     Union,
+    cast,
     final,
     overload,
 )
@@ -37,6 +40,7 @@ from .util import (
     CommandToken,
     ElementType,
     MessageChainType,
+    TwilightHelpManager,
     TwilightParser,
     Unmatched,
     elem_mapping_ctx,
@@ -441,6 +445,7 @@ class TwilightMatcher:
     """Twilight 匹配器"""
 
     def __init__(self, *root: Union[Iterable[Match], Match]):
+        self.origin_match_list: List[Match] = []
         self._parser = TwilightParser(prog="", add_help=False)
         self._dest_map: Dict[str, ArgumentMatch] = {}
         self._group_map: Dict[int, RegexMatch] = {}
@@ -453,6 +458,7 @@ class TwilightMatcher:
         for i in root:
             if isinstance(i, Match):
                 i = [i]
+            self.origin_match_list.extend(i)
             for m in i:
                 if isinstance(m, RegexMatch):
                     self.match_ref[RegexMatch].append(m)
@@ -525,6 +531,7 @@ class TwilightMatcher:
         epilog: str = "",
         dest: bool = True,
         sep: str = " -> ",
+        formatter_class: Type[HelpFormatter] = HelpFormatter,
     ) -> str:
         """利用 Match 中的信息生成帮助字符串.
 
@@ -534,12 +541,13 @@ class TwilightMatcher:
             epilog (str, optional): 后置总结. Defaults to "".
             dest (bool, optional): 是否显示分派位置. Defaults to True.
             sep (str, optional): 分派位置分隔符. Defaults to " -> ".
+            formatter_class (Type[HelpFormatter], optional): 帮助格式化器. Defaults to HelpFormatter.
 
         Returns:
             str: 生成的帮助字符串, 被格式化与缩进过了
         """
 
-        formatter = self._parser._get_formatter()
+        formatter = formatter_class(prog="")
 
         if usage:
             formatter.add_usage(None, self._parser._actions, [], prefix=usage + " ")
@@ -579,6 +587,15 @@ class _TwilightLocalStorage(TypedDict):
     twilight: "Twilight"
 
 
+class _TwilightHelpArgs(TypedDict):
+    usage: str
+    description: str
+    epilog: str
+    dest: bool
+    sep: str
+    formatter_class: Type[HelpFormatter]
+
+
 class Twilight(Generic[T_Sparkle], BaseDispatcher):
     """暮光"""
 
@@ -594,6 +611,8 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             map_param (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
         """
         self.map_param = map_param or {}
+        self.help_data: Optional[_TwilightHelpArgs] = None
+        self.help_id: str = TwilightHelpManager.auto_id
         self.matcher: TwilightMatcher = TwilightMatcher(*root)
 
     def __repr__(self) -> str:
@@ -649,13 +668,17 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
 
         return cls(*match, *extra_args)
 
-    def get_help(
+    def help(
         self,
         usage: str = "",
         description: str = "",
         epilog: str = "",
         dest: bool = True,
         sep: str = " -> ",
+        formatter_class: Type[HelpFormatter] = HelpFormatter,
+        *,
+        id: str = TwilightHelpManager.auto_id,
+        manager: Union[str, TwilightHelpManager] = "global",
     ) -> str:
         """利用 Match 中的信息生成帮助字符串.
 
@@ -665,11 +688,27 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             epilog (str, optional): 后置总结. Defaults to "".
             dest (bool, optional): 是否显示分派位置. Defaults to True.
             sep (str, optional): 分派位置之间的分隔符. Defaults to " -> ".
+            formatter_class (Type[HelpFormatter], optional): 帮助格式化器. Defaults to HelpFormatter.
+            id (str, optional): 命令 id. 默认为自动生成 (推荐自行指定).
+            manager (str, optional): 帮助信息管理器. 默认 "global" (全局管理器).
 
         Returns:
             str: 生成的帮助字符串, 被格式化与缩进过了
         """
-        return self.matcher.get_help(usage, description, epilog, dest, sep)
+        self.help_data = {
+            "usage": usage,
+            "description": description,
+            "epilog": epilog,
+            "dest": dest,
+            "sep": sep,
+            "formatter_class": formatter_class,
+        }
+        self.help_id = id
+        help_mgr = TwilightHelpManager.get_help_mgr(manager)
+        help_mgr.register(self)
+        return self.matcher.get_help(usage, description, epilog, dest, sep, formatter_class)
+
+    get_help = help
 
     async def beforeExecution(self, interface: DispatcherInterface):
         """检验 MessageChain 并将 Sparkle 存入本地存储
@@ -721,29 +760,38 @@ class ResultValue(Decorator):
         raise ExecutionStop
 
 
-class Help(Decorator):
+class Help(Decorator, Generic[T]):
     """返回帮助信息的装饰器"""
 
     pre = True
 
-    if TYPE_CHECKING:
+    formatter: Optional[Callable[[str, DecoratorInterface], Union[Awaitable[T], T]]]
 
-        @overload
-        def __init__(  # type: ignore
-            self,
-            usage: str = "",
-            description: str = "",
-            epilog: str = "",
-            dest: bool = True,
-            sep: str = " -> ",
-        ) -> None:
-            ...
+    @overload
+    def __init__(self) -> None:
+        ...
 
-    def __init__(self, *args, **kwargs) -> None:
-        self.args = args
-        self.kwargs = kwargs
+    @overload
+    def __init__(self, formatter: Callable[[str, DecoratorInterface], Union[Awaitable[T], T]]) -> None:
+        ...
 
-    async def target(self, i: DecoratorInterface):
+    def __init__(
+        self, formatter: Optional[Callable[[str, DecoratorInterface], Union[Awaitable[T], T]]] = None
+    ) -> None:
+        """
+        Args:
+            formatter (Optional[Callable[[str, DecoratorInterface], Union[Awaitable[T], T]]], optional): \
+                帮助信息格式化函数.
+        """
+        self.formatter = formatter
+
+    async def target(self, i: DecoratorInterface) -> T:
         twilight: Twilight = i.local_storage["twilight"]
-        # TODO: a better impl, support managing with other commands
-        return twilight.get_help(*self.args, **self.kwargs)
+        help_string: str = twilight.matcher.get_help(**(twilight.help_data or {}))
+        if self.formatter:
+            coro_or_result = self.formatter(help_string, i)
+            if inspect.isawaitable(coro_or_result):
+                return await coro_or_result
+            else:
+                return cast(T, coro_or_result)
+        return cast(T, help_string)

@@ -27,6 +27,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Set,
     Tuple,
     Type,
     TypeVar,
@@ -145,6 +146,7 @@ class AsyncSignal(Generic[T]):
     def __init__(self, value: T = None) -> None:
         self._waiters: Dict[T, Deque[asyncio.Future]] = {}
         self._value: T = value
+        self._special: Dict[str, asyncio.Future] = {}
 
     def __repr__(self) -> str:
         waiter_str = f", waiters: {len(self._waiters)}" if self._waiters else ""
@@ -163,11 +165,13 @@ class AsyncSignal(Generic[T]):
                 fut.set_result(True)
         waiter_deque.clear()
 
-    async def wait(self, value: T) -> Literal[True]:
+    async def wait(self, value: T, wait_id: Optional[str] = None) -> Literal[True]:
         if self._value == value:
             return True
 
         fut = asyncio.get_running_loop().create_future()
+        if wait_id:
+            self._special[wait_id] = fut
         self._waiters.setdefault(value, collections.deque()).append(fut)
         return await fut
 
@@ -276,7 +280,7 @@ async def yield_with_timeout(
     Yields:
         T: getter_coro 的返回值
     """
-    last_tsk = None
+    last_tsk: Optional[Set["asyncio.Task[T]"]] = None
     while predicate():
         last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
         done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)

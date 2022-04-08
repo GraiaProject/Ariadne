@@ -55,7 +55,7 @@ if __name__ == "__main__":
         ComposeForwardAdapter(bcc, MiraiSession(url, account, verify_key)),
         loop=loop,
         use_bypass_listener=True,
-        max_retry=5,
+        max_retry=1,
     )
 
     sched = app.create(GraiaScheduler)
@@ -207,7 +207,4 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
 
-    try:
-        loop.run_until_complete(main())
-    except KeyboardInterrupt:
-        loop.run_until_complete(app.join())
+    app.launch_blocking()

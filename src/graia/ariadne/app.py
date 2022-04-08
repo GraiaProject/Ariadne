@@ -3,7 +3,6 @@
 
 import asyncio
 import base64
-import contextlib
 import importlib.metadata
 import inspect
 import io
@@ -1598,31 +1597,30 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
                         else:
                             self.broadcast.postEvent(event)
             except asyncio.exceptions.TimeoutError:
-                logger.critical("Timeout when connecting to mirai-api-http. Configuration problem?")
+                logger.critical("Timeout connecting to mirai-api-http. Configuration problem?")
             except Exception as e:
                 logger.exception(e)
             self.broadcast.postEvent(AdapterShutdowned(self))
-            self.adapter.connected.set(False)
             if retry_cnt == self.max_retry:
-                logger.critical(f"Max retry exceeded: {self.max_retry}. Stop Ariadne.")
-                logger.warning("Press Ctrl-C to confirm exit.")
+                logger.critical(f"Max retry exceeded: {self.max_retry}.")
                 break
             if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
-                if not self.adapter.mirai_session.session_key or self.adapter.mirai_session.single_mode:
+                if not self.adapter.connected.value():
                     retry_cnt += 1
                 else:
-                    retry_cnt = 0
+                    retry_cnt = 1
                 await self.adapter.stop()
-                logger.warning(f"daemon: adapter down, restart in {retry_interval}s")
+                logger.warning(f"Adapter down, restart in {retry_interval}s")
                 await asyncio.sleep(retry_interval)
-                logger.info("daemon: restarting adapter")
-
-        logger.debug("Ariadne daemon stopped.")
+                logger.warning(f"Retry: {retry_cnt} / {self.max_retry}")
 
         exceptions: List[Tuple[Type[Exception], tuple]] = []
 
         logger.info("Stopping Ariadne...")
         self.status = AriadneStatus.CLEANUP
+        self.adapter.connected._special.get("__ariadne_launch__", self.loop.create_future()).set_exception(
+            asyncio.CancelledError
+        )
         for t in asyncio.all_tasks(self.loop):
             if t is asyncio.current_task(self.loop):
                 continue
@@ -1690,7 +1688,11 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
 
         self.running.add(self)
 
-        await self.adapter.connected.wait(True)
+        try:
+            await self.adapter.connected.wait(True, "__ariadne_launch__")
+        except asyncio.CancelledError:
+            logger.error("Launch abort!")
+            return
 
         self.status = AriadneStatus.RUNNING
 
@@ -1722,8 +1724,10 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
         """以 async 阻塞方式启动 Ariadne 并等待其停止."""
 
         def sig_handler(*_):
-            if self.status is AriadneStatus.RUNNING:
+            if self.status in {AriadneStatus.RUNNING, AriadneStatus.LAUNCH}:
                 self.status = AriadneStatus.SHUTDOWN
+                logger.warning("Stop signal received, scheduling stop process.")
+                logger.warning("Press Ctrl-C again to force quit.")
 
         signal_handler(sig_handler)
         await self.launch()
@@ -1732,8 +1736,7 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
 
     def launch_blocking(self):
         """以阻塞方式启动 Ariadne 并等待其停止."""
-        with contextlib.suppress(KeyboardInterrupt):
-            self.loop.run_until_complete(self.lifecycle())
+        self.loop.run_until_complete(self.lifecycle())
         self.loop.run_until_complete(self.join())
 
     @app_ctx_manager

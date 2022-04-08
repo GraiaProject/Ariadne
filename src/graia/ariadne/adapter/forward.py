@@ -6,6 +6,7 @@ from asyncio import CancelledError, Task
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple, Union
 
 from aiohttp import (
+    ClientConnectionError,
     ClientSession,
     ClientWebSocketResponse,
     FormData,
@@ -252,6 +253,8 @@ class WebsocketAdapter(Adapter):
                             logger.warning(f"websocket: unknown message type - {ws_message.type}")
             except CancelledError:
                 pass
+            except ClientConnectionError as e:
+                logger.error(f"{e.__class__.__name__}: {e}")
             except Exception as e:
                 logger.exception(e)
             finally:
@@ -260,7 +263,8 @@ class WebsocketAdapter(Adapter):
                     self.ping_task = None
                     if self.log:
                         logger.debug("websocket: ping task complete")
-                logger.info("websocket: disconnected")
+                if self.websocket:
+                    logger.info("websocket: disconnected")
                 self.running = False
                 self.connected.set(False)
                 self.mirai_session.session_key = None

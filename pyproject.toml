@@ -40,7 +40,7 @@ yarl = "^1.7"
 loguru = "^0.6"
 typing-extensions = "^4.0.0"
 arclet-alconna-graia = { version = "^0.0.4", optional = true }
-graia-scheduler = { version = "^0.0.6", optional = true }
+graia-scheduler = { version = ">=0.0.6,<0.0.8", optional = true }
 graia-saya = { version = "^0.0", optional = true }
 fastapi = { version = "^0.74.1", optional = true }
 uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }

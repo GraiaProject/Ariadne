@@ -79,7 +79,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "arclet-alconna-graia"
-version = "0.0.4"
+version = "0.0.7.4"
 description = "Support Alconna to GraiaProject"
 category = "main"
 optional = true
@@ -1625,7 +1625,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f8229da6e9aa5175b8cf32ef636d06f3ec96a3efc15db791a9f410ccbf245056"
+content-hash = "9b1b7cb0d48d376b9452864486367e7f0eba63d88642eff69447259cfcd78d38"
 
 [metadata.files]
 aiohttp = [
@@ -1714,7 +1714,7 @@ arclet-alconna = [
     {file = "arclet-alconna-0.7.7.1.tar.gz", hash = "sha256:6fdd965878287094d443fe7254a30ea96b6d6116245bf95dd98c081d3ec48825"},
 ]
 arclet-alconna-graia = [
-    {file = "arclet_alconna_graia-0.0.4-py3-none-any.whl", hash = "sha256:8b985b7ec112d7f4cede011b4e27b7e6e321fbed569f433f3b401b74c0b80a3a"},
+    {file = "arclet_alconna_graia-0.0.7.4-py3-none-any.whl", hash = "sha256:f35c98e21e6f49bbfa1e45304729367caf74817a4708461a3c935a9514815412"},
 ]
 asgiref = [
     {file = "asgiref-3.5.0-py3-none-any.whl", hash = "sha256:88d59c13d634dcffe0510be048210188edd79aeccb6a6c9028cdad6f31d730a9"},

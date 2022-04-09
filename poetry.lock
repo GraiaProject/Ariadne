@@ -476,7 +476,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "graia-scheduler"
-version = "0.0.6"
+version = "0.0.7"
 description = "a scheduler for graia framework"
 category = "main"
 optional = true
@@ -1625,7 +1625,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "575b51f3c2bf880fc4792e4532ea1e80a6b7f12ab2c77b1369e65294d7c52a08"
+content-hash = "f8229da6e9aa5175b8cf32ef636d06f3ec96a3efc15db791a9f410ccbf245056"
 
 [metadata.files]
 aiohttp = [
@@ -1926,8 +1926,8 @@ graia-saya = [
     {file = "graia_saya-0.0.15-py3-none-any.whl", hash = "sha256:b1932309d76efb148f55ea2b7b72fea8adf377dafc8fe5ad306876b44ebad4c8"},
 ]
 graia-scheduler = [
-    {file = "graia-scheduler-0.0.6.tar.gz", hash = "sha256:aa4a40a7841709638cc98fe7a093ae0582858ba1326d67961de73e91bc5617b5"},
-    {file = "graia_scheduler-0.0.6-py3-none-any.whl", hash = "sha256:bc29952bbb1c2f8c8875c32bec9dcdedc0fa22ba89b94804498963b491eed1e5"},
+    {file = "graia-scheduler-0.0.7.tar.gz", hash = "sha256:520439d7926a74c5aebabb773866657854d126b02f601336066f1528fe154529"},
+    {file = "graia_scheduler-0.0.7-py3-none-any.whl", hash = "sha256:d5e69b4f92e745d12acf572cff2d87dd587b07c5d5f1ab406b661a784862071c"},
 ]
 graphviz = [
     {file = "graphviz-0.19.1-py3-none-any.whl", hash = "sha256:f34088c08be2ec16279dfa9c3b4ff3d1453c5c67597a33e2819b000e18d4c546"},

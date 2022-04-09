@@ -40,6 +40,7 @@ from graia.ariadne.message.parser.twilight import (
 )
 from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
 from graia.ariadne.util.cooldown import CoolDown
+from graia.ariadne.util.validator import CertainGroup, CertainMember
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
@@ -106,6 +107,10 @@ if __name__ == "__main__":
     @bcc.receiver(GroupEvent)
     async def log(group: Group):
         logger.info(repr(group))
+
+    @bcc.receiver(GroupMessage, decorators=[CertainMember(2907489501)])
+    async def reply_to_me(app: Ariadne, ev: MessageEvent):
+        await app.sendMessage(ev, MessageChain.create("Yo"))
 
     @bcc.receiver(ExceptionThrowed)
     async def e(app: Ariadne, e: ExceptionThrowed):

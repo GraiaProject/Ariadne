@@ -4,9 +4,10 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from graia.broadcast.entities.listener import Listener
+from graia.broadcast.priority import Priority
 from loguru import logger
 from pydantic import BaseConfig, BaseModel, Extra, Field, validator
 from pydantic.networks import AnyHttpUrl
@@ -118,7 +119,7 @@ class ChatLogConfig:
             TempMessage,
         )
 
-        @app.broadcast.receiver(GroupMessage, -1)
+        @app.broadcast.receiver(GroupMessage, priority=Priority.Logger)
         def log_group_message(event: GroupMessage):
             logger.log(
                 self.log_level,
@@ -133,7 +134,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(FriendMessage, -1)
+        @app.broadcast.receiver(FriendMessage, priority=Priority.Logger)
         def log_friend_message(event: FriendMessage):
             logger.log(
                 self.log_level,
@@ -145,7 +146,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(TempMessage, -1)
+        @app.broadcast.receiver(TempMessage, priority=Priority.Logger)
         def log_temp_message(event: TempMessage):
             logger.log(
                 self.log_level,
@@ -160,7 +161,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(StrangerMessage, -1)
+        @app.broadcast.receiver(StrangerMessage, priority=Priority.Logger)
         def log_stranger_message(event: StrangerMessage):
             logger.log(
                 self.log_level,
@@ -172,7 +173,7 @@ class ChatLogConfig:
                 ),
             )
 
-        @app.broadcast.receiver(OtherClientMessage, -1)
+        @app.broadcast.receiver(OtherClientMessage, priority=Priority.Logger)
         def log_other_client_message(event: OtherClientMessage):
             logger.log(
                 self.log_level,
@@ -200,7 +201,7 @@ class ChatLogConfig:
                 log_active_message,
                 app.broadcast.getDefaultNamespace(),
                 list(gen_subclass(ActiveMessage)),
-                priority=-1,
+                priority=Priority.Logger,
             )
         )
 
@@ -305,6 +306,9 @@ class Group(AriadneBaseModel):
     def __str__(self) -> str:
         return f"{self.name}({self.id})"
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, Group) and self.id == other.id
+
     async def getConfig(self) -> "GroupConfig":
         """获取该群组的 Config
 
@@ -374,6 +378,9 @@ class Member(AriadneBaseModel):
 
     def __int__(self):
         return self.id
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, (Friend, Member, Stranger)) and self.id == other.id
 
     async def getProfile(self) -> "Profile":
         """获取该群成员的 Profile
@@ -456,6 +463,9 @@ class Friend(AriadneBaseModel):
     def __str__(self) -> str:
         return f"{self.remark}({self.id})"
 
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, (Friend, Member, Stranger)) and self.id == other.id
+
     async def getProfile(self) -> "Profile":
         """获取该好友的 Profile
 
@@ -500,6 +510,9 @@ class Stranger(AriadneBaseModel):
 
     def __str__(self) -> str:
         return f"Stranger({self.id}, {self.nickname})"
+
+    def __eq__(self, other: Any) -> bool:
+        return isinstance(other, (Friend, Member, Stranger)) and self.id == other.id
 
     async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该陌生人的头像

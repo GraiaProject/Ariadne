@@ -99,7 +99,8 @@ class Adapter(abc.ABC):
     async def stop(self):
         """停止 Adapter"""
         self.running = False
-        await self.fetch_task
+        if self.fetch_task:
+            await self.fetch_task
         logger.success("Event fetch task completed.")
         self.fetch_task = None
 

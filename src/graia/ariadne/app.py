@@ -1618,9 +1618,9 @@ class Ariadne(MessageMixin, RelationshipMixin, OperationMixin, AnnouncementMixin
 
         logger.info("Stopping Ariadne...")
         self.status = AriadneStatus.CLEANUP
-        self.adapter.connected._special.get("__ariadne_launch__", self.loop.create_future()).set_exception(
-            asyncio.CancelledError
-        )
+        launch_fut = self.adapter.connected._special.get("__ariadne_launch__", self.loop.create_future())
+        if not launch_fut.done():
+            launch_fut.set_exception(asyncio.CancelledError)
         for t in asyncio.all_tasks(self.loop):
             if t is asyncio.current_task(self.loop):
                 continue

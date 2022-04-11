@@ -846,7 +846,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocs-section-index"
-version = "0.3.3"
+version = "0.3.4"
 description = "MkDocs plugin to allow clickable sections that lead to an index page"
 category = "dev"
 optional = false
@@ -1625,7 +1625,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f8229da6e9aa5175b8cf32ef636d06f3ec96a3efc15db791a9f410ccbf245056"
+content-hash = "12f6cc30b560c9cea5419b8ccd734762927f01456eb8e7e32e92fa9c22573cdb"
 
 [metadata.files]
 aiohttp = [
@@ -2084,8 +2084,8 @@ mkdocs-material-extensions = [
     {file = "mkdocs_material_extensions-1.0.3-py3-none-any.whl", hash = "sha256:a82b70e533ce060b2a5d9eb2bc2e1be201cf61f901f93704b4acf6e3d5983a44"},
 ]
 mkdocs-section-index = [
-    {file = "mkdocs-section-index-0.3.3.tar.gz", hash = "sha256:434c7c2378a7c2a7ce15f642fcb0cd04af741a7d157eab47e6c02c3eb8a52a98"},
-    {file = "mkdocs_section_index-0.3.3-py3-none-any.whl", hash = "sha256:a79d8b6e21b5d9d4edf056246ea1d1d4f6c8705469c20bbe06e3ecd5b30fc4e7"},
+    {file = "mkdocs-section-index-0.3.4.tar.gz", hash = "sha256:050151bfe7c0e374f197335e0ecb19c45b53dbafc0f817aa203f0cc24bcf7d10"},
+    {file = "mkdocs_section_index-0.3.4-py3-none-any.whl", hash = "sha256:214f7a6df9d35a5772e9577f3899ff3edd90044064589e6dd4d84615b72a8024"},
 ]
 mkdocstrings = [
     {file = "mkdocstrings-0.18.1-py3-none-any.whl", hash = "sha256:4053929356df8cd69ed32eef71d8f676a472ef72980c9ffd4f933ead1debcdad"},

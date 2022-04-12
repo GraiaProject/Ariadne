@@ -3,5 +3,11 @@ updates:
   - directory: "/"
     package-ecosystem: "pip"
     schedule:
-      interval: "daily"
+      interval: "weekly"
+      day: "saturday"
     rebase-strategy: "auto"
+    commit-message:
+      include: scope
+      prefix: ":arrow_up:"
+    reviewers:
+      - "BlueGlassBlock"

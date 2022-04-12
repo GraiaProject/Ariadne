@@ -27,7 +27,13 @@ from graia.ariadne.event.mirai import (
 )
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import At, Forward, MultimediaElement, Plain, Source
-from graia.ariadne.message.parser.base import DetectPrefix, MatchContent, MentionMe
+from graia.ariadne.message.parser.base import (
+    DetectPrefix,
+    FuzzyDispatcher,
+    FuzzyMatch,
+    MatchContent,
+    MentionMe,
+)
 from graia.ariadne.message.parser.twilight import (
     ArgResult,
     ArgumentMatch,
@@ -108,9 +114,17 @@ if __name__ == "__main__":
     async def log(group: Group):
         logger.info(repr(group))
 
-    @bcc.receiver(GroupMessage, decorators=[CertainMember(2907489501)])
-    async def reply_to_me(app: Ariadne, ev: MessageEvent):
-        await app.sendMessage(ev, MessageChain.create("Yo"))
+    @bcc.receiver(
+        GroupMessage, decorators=[CertainGroup(int(t_group))], dispatchers=[FuzzyDispatcher("github")]
+    )
+    async def reply_to_me(app: Ariadne, ev: MessageEvent, rate: float):
+        await app.sendMessage(ev, MessageChain.create(f"Git host! rate: {rate}"))
+
+    @bcc.receiver(
+        GroupMessage, decorators=[CertainGroup(int(t_group))], dispatchers=[FuzzyDispatcher("gayhub")]
+    )
+    async def reply_to_me(app: Ariadne, ev: MessageEvent, rate: float):
+        await app.sendMessage(ev, MessageChain.create(f"Gay host! rate: {rate}"))
 
     @bcc.receiver(ExceptionThrowed)
     async def e(app: Ariadne, e: ExceptionThrowed):

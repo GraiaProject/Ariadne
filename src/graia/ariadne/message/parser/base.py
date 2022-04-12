@@ -1,16 +1,21 @@
 """Ariadne 基础的 parser, 包括 DetectPrefix 与 DetectSuffix"""
 import abc
+import difflib
 import fnmatch
 import re
-from typing import List, Optional, Type, Union
+import weakref
+from typing import ClassVar, DefaultDict, Dict, List, Optional, Tuple, Type, Union
 
 from graia.broadcast.entities.decorator import Decorator
+from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from loguru import logger
 
 from ... import get_running
 from ...event.message import GroupMessage
+from ...typing import generic_issubclass
 from ..chain import MessageChain
 from ..element import At, Element, Plain, Quote, Source
 
@@ -34,6 +39,8 @@ class Compose(Decorator):
 
 
 class ChainDecorator(abc.ABC, Decorator):
+    pre = True
+
     @abc.abstractmethod
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         ...
@@ -46,8 +53,6 @@ class ChainDecorator(abc.ABC, Decorator):
 
 class DetectPrefix(ChainDecorator):
     """前缀检测器"""
-
-    pre = True
 
     def __init__(self, prefix: str) -> None:
         """初始化前缀检测器.
@@ -70,8 +75,6 @@ class DetectPrefix(ChainDecorator):
 class DetectSuffix(ChainDecorator):
     """后缀检测器"""
 
-    pre = True
-
     def __init__(self, suffix: str) -> None:
         """初始化后缀检测器.
 
@@ -92,8 +95,6 @@ class DetectSuffix(ChainDecorator):
 
 class MentionMe(ChainDecorator):
     """At 账号或者提到账号群昵称"""
-
-    pre = True
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         ariadne = get_running()
@@ -122,8 +123,6 @@ class MentionMe(ChainDecorator):
 class Mention(ChainDecorator):
     """At 或提到指定人"""
 
-    pre = True
-
     def __init__(self, target: Union[int, str]) -> None:
         self.person: Union[int, str] = target
 
@@ -151,8 +150,6 @@ class Mention(ChainDecorator):
 class ContainKeyword(ChainDecorator):
     """消息中含有指定关键字"""
 
-    pre = True
-
     def __init__(self, keyword: str) -> None:
         self.keyword: str = keyword
 
@@ -165,8 +162,6 @@ class ContainKeyword(ChainDecorator):
 
 class MatchContent(ChainDecorator):
     """匹配字符串 / 消息链"""
-
-    pre = True
 
     def __init__(self, content: Union[str, MessageChain]) -> None:
         self.content: Union[str, MessageChain] = content
@@ -183,8 +178,6 @@ class MatchContent(ChainDecorator):
 
 class MatchRegex(ChainDecorator):
     """匹配正则表达式"""
-
-    pre = True
 
     def __init__(self, regex: str, flags: re.RegexFlag = re.RegexFlag(0)) -> None:
         """初始化匹配正则表达式.
@@ -240,3 +233,86 @@ class MatchTemplate(ChainDecorator):
             raise ExecutionStop
         if interface.annotation is MessageChain:
             return chain
+
+
+class FuzzyMatch(ChainDecorator):
+    """模糊匹配
+
+    Warning:
+        我们更推荐使用 FuzzyDispatcher 来进行模糊匹配操作, 因为其具有上下文匹配数量限制.
+    """
+
+    def __init__(self, template: str, min_rate: float = 0.6) -> None:
+        self.template: str = template
+        self.min_rate: float = min_rate
+
+    def match(self, chain: MessageChain):
+        """匹配消息链"""
+        text_frags: List[str] = []
+        for element in chain:
+            if isinstance(element, Plain):
+                text_frags.append(element.text)
+            else:
+                text_frags.append(element.asDisplay())
+        text = "".join(text_frags)
+        matcher = difflib.SequenceMatcher(a=text, b=self.template)
+        # return false when **any** ratio calc falls undef the rate
+        if matcher.real_quick_ratio() < self.min_rate:
+            return False
+        if matcher.quick_ratio() < self.min_rate:
+            return False
+        return matcher.ratio() >= self.min_rate
+
+    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+        if not self.match(chain):
+            raise ExecutionStop
+        if interface.annotation is MessageChain:
+            return chain
+
+
+class FuzzyDispatcher(BaseDispatcher):
+    scope_map: ClassVar[DefaultDict[str, List[str]]] = DefaultDict(list)
+    event_ref: ClassVar["Dict[int, Dict[str, Tuple[str, float]]]"] = {}
+
+    def __init__(self, template: str, min_rate: float = 0.6, scope: str = "") -> None:
+        self.template: str = template
+        self.min_rate: float = min_rate
+        self.scope: str = scope
+        self.scope_map[scope].append(template)
+
+    async def beforeExecution(self, interface: DispatcherInterface):
+        event = interface.event
+        if id(event) not in self.event_ref:
+            chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
+            text_frags: List[str] = []
+            for element in chain:
+                if isinstance(element, Plain):
+                    text_frags.append(element.text)
+                else:
+                    text_frags.append(element.asDisplay())
+            text = "".join(text_frags)
+            matcher = difflib.SequenceMatcher()
+            matcher.set_seq2(text)
+            rate_calc = self.event_ref[id(event)] = {}
+            weakref.finalize(event, lambda d: self.event_ref.pop(d), id(event))
+            for scope, templates in self.scope_map.items():
+                max_match: float = 0.0
+                for template in templates:
+                    matcher.set_seq1(template)
+                    if matcher.real_quick_ratio() < max_match:
+                        continue
+                    if matcher.quick_ratio() < max_match:
+                        continue
+                    if matcher.ratio() < max_match:
+                        continue
+                    rate_calc[scope] = (template, matcher.ratio())
+                    max_match = matcher.ratio()
+        win_template, win_rate = self.event_ref[id(event)].get(self.scope, (self.template, 0.0))
+        if win_template != self.template or win_rate < self.min_rate:
+            raise ExecutionStop
+
+    async def catch(self, i: DispatcherInterface) -> Optional[float]:
+        event = i.event
+        _, rate = self.event_ref[id(event)].get(self.scope, (self.template, 0.0))
+        if generic_issubclass(float, i.annotation) and "rate" in i.name:
+            return rate

@@ -261,7 +261,7 @@ class Face(Element):
 
     def __init__(self, id: int = ..., name: str = ..., **data) -> None:
         if id is not ...:
-            data.update(id=id)
+            data.update(faceId=id)
         if name is not ...:
             data.update(name=name)
         super().__init__(**data)

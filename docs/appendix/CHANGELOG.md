@@ -23,13 +23,13 @@
 
 优化了 `Ariadne` 的生命周期的实现.
 
-### Breaking Changes
+### 修复
 
-修改了 `GroupNameChangeEvent` 与 `GroupEntranceAnnouncementChangeEvent` 的字段类型.
+修复了 `GroupNameChangeEvent` 与 `GroupEntranceAnnouncementChangeEvent` 的字段类型.
 
 ## 0.6.15
 
-修复 `Ariadne` `Adapter` 过早设置 `connected` 信号的 bug. ([#131](https://github.com/GraiaProject/Ariadne/issues/131))
+修复 `Ariadne` `Adapter` 过早设置 `connected` 旗标的 bug. ([#131](https://github.com/GraiaProject/Ariadne/issues/131))
 
 提升了 `CoolDown` 的代码补全.
 

@@ -1,12 +1,39 @@
 # 更改日志
 
-# 0.6.15
+## 0.6.16
+
+### 新增
+
+现在可以通过 `graia.ariadne.util.interrupt` 中的 `FunctionWaiter` 与 `EventWaiter`
+更方便地使用中断(Interrupt)了. ([使用说明](../advance/broadcast/interrupt.md))
+
+现在可以使用 `graia.ariadne.util.validator` 中的
+`CertainGroup`、`CertainFriend`、`CertainMember` 与 `Quoting`
+作为 `decorator` 用于指定**必须由哪个群/好友/群成员**或**必须回复指定消息(使用消息ID)**才能触发.
+
+新增 `FuzzyMatch`. (模糊匹配，更推荐使用 `FuzzyDispatcher`，[使用说明](../basic/base-parser.md))
+
+可以在 `Group`、`Member`、`Friend` 与 `Stranger` 之间使用 `==` 运算符判断是否为同一对象了.
+
+### 改进
+
+提高了 `Adapter` 的稳定性.
+
+优化了 `Twilight` 的帮助字符串生成器. (如: 可自定义格式化帮助字符串的格式)
+
+优化了 `Ariadne` 的生命周期的实现.
+
+### Breaking Changes
+
+修改了 `GroupNameChangeEvent` 与 `GroupEntranceAnnouncementChangeEvent` 的字段类型.
+
+## 0.6.15
 
 修复 `Ariadne` `Adapter` 过早设置 `connected` 信号的 bug. ([#131](https://github.com/GraiaProject/Ariadne/issues/131))
 
 提升了 `CoolDown` 的代码补全.
 
-# 0.6.14
+## 0.6.14
 
 修复 `Python 3.8` 兼容性 (#130)
 
@@ -14,7 +41,7 @@
 
 补充 `graia.ariadne.entry` 导出.
 
-# 0.6.13
+## 0.6.13
 
 将 `WildcardMatch` 行为更换为以前的行为 (依照是否有内容判断 `matched` 字段).
 

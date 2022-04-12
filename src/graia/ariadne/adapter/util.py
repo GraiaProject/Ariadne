@@ -32,7 +32,7 @@ def validate_response(data: Dict[str, Any]) -> Union[dict, Exception]:
     """验证远程服务器的返回值
 
     Args:
-        code (dict): 返回的对象
+        data (dict): 返回的对象
 
     Raises:
         Exception: 请参照 code_exceptions_mapping

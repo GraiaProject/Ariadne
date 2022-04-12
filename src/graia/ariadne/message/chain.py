@@ -103,8 +103,8 @@ class MessageChain(AriadneBaseModel):
         比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
         Args:
-            *elements(Union[Iterable[Element], Element, str]): 元素的容器, \
-            为承载元素的可迭代对象/单元素实例, \
+            *elements (Union[Iterable[Element], Element, str]): \
+            元素的容器, 为承载元素的可迭代对象/单元素实例, \
             字符串会被自动不可逆的转换为 `Plain`
 
         Returns:
@@ -139,8 +139,7 @@ class MessageChain(AriadneBaseModel):
 
     def unzip(self) -> List[Union[str, Element]]:
         """解压消息链为元素/单字符列表.
-        Args:
-            self (MessageChain): 消息链.
+
         Return:
             List[Union[str, Element]]: 解压后的元素/字符列表.
         """
@@ -279,7 +278,7 @@ class MessageChain(AriadneBaseModel):
         """判断消息链是否含有子链. 使用 KMP 算法.
 
         Args:
-            chain (Union[MessageChain, List[Element]]): 要判断的子链.
+            subchain (Union[MessageChain, List[Element]]): 要判断的子链.
 
         Returns:
             List[int]: 所有找到的下标.
@@ -755,7 +754,7 @@ class MessageChain(AriadneBaseModel):
         """移除消息链后缀.
 
         Args:
-            prefix (str): 要移除的后缀.
+            suffix (str): 要移除的后缀.
             copy (bool, optional): 是否在副本上修改, 默认为 True.
 
         Returns:
@@ -778,7 +777,7 @@ class MessageChain(AriadneBaseModel):
         """将多个消息链连接起来, 并在其中插入自身.
 
         Args:
-            chains (Iterable[MessageChain]): 要连接的消息链.
+            *chains (Iterable[MessageChain]): 要连接的消息链.
             merge (bool, optional): 是否合并消息链文本, 默认为 True.
 
         Returns:

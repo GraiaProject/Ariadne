@@ -721,6 +721,19 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         sep: str = " -> ",
         formatter_class: Type[HelpFormatter] = HelpFormatter,
     ) -> str:
+        """利用 Match 中的信息生成帮助字符串.
+
+        Args:
+            usage (str, optional): 使用方法 (命令格式).
+            description (str, optional): 前导描述. Defaults to "".
+            epilog (str, optional): 后置总结. Defaults to "".
+            dest (bool, optional): 是否显示分派位置. Defaults to True.
+            sep (str, optional): 分派位置分隔符. Defaults to " -> ".
+            formatter_class (Type[HelpFormatter], optional): 帮助格式化器. Defaults to HelpFormatter.
+
+        Returns:
+            str: 生成的帮助字符串, 被格式化与缩进过了
+        """
         if self.help_data:
             return self.matcher.get_help(**self.help_data)
         return self.matcher.get_help(usage, description, epilog, dest, sep, formatter_class)

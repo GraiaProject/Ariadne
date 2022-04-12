@@ -20,8 +20,8 @@ class Formatter:
         """通过初始化时传入的格式字符串 格式化消息链
 
         Args:
-            *args (Union[Element, MessageChain, str]): 格式化时传入的关键字参数
-            **kwargs (Union[Element, MessageChain, str]): 格式化时传入的关键字参数
+            *o_args (Union[Element, MessageChain, str]): 格式化时传入的关键字参数
+            **o_kwargs (Union[Element, MessageChain, str]): 格式化时传入的关键字参数
 
         Returns:
             MessageChain: 格式化后的消息链

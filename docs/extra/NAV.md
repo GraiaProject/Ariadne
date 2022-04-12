@@ -3,6 +3,7 @@
     - [使用 Channel](./saya/channel.md)
     - [跨模块](./saya/cross-module.md)
 - [计划任务](./scheduler.md)
+- [冷却](./cooldown.md)
 - [日志记录](./log.md)
 - [消息链工具](./msg-chain-tool.md)
 - [函数异步化](./async-exec.md)

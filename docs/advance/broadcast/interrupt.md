@@ -115,6 +115,46 @@ async def handler(...):
 
 !!! note "在 `InterruptControl.wait` 上使用 `timeout` 参数可以设置超时时间, 超时会引发 `TimeoutError`."
 
+
+## 方便的封装
+
+从 `Ariadne` 0.6.16 开始, 我们引入了两个方便的 `Waiter` 封装：
+
+- [`FunctionWaiter`][graia.ariadne.util.interrupt.FunctionWaiter]
+- [`EventWaiter`][graia.ariadne.util.interrupt.EventWaiter]
+
+二者支持以下用法:
+
+```py
+res = await FunctionWaiter(...).wait()
+
+try:
+    res = await EventWaiter(...).wait(timeout=30)
+except asyncio.TimeoutError:
+    ...
+```
+
+等价于:
+
+```py
+inc = InterruptControl(broadcast)
+res = await inc.wait(FunctionWaiter(...))
+try:
+    res = await inc.wait(EventWaiter(...), timeout=30)
+except asyncio.TimeoutError:
+    ...
+```
+
+`FunctionWaiter` 对 `Waiter.create_using_function` 的简单封装.
+
+它的参数名更自然, 且自动支持了类型标注.
+
+`EventWaiter` 返回对应的事件, 和 `Application` 中提供的方便封装类似.
+
+同时提供了 `extra_validator` 以供你自定义额外的验证.
+
+!!! info "配合 [`util.validator`][graia.ariadne.util.validator] 模块使用更佳"
+
 ## 它是怎么运作的?
 
 `Interrupt` 创建的 `Waiter` 对象很像 `asyncio.Future`, 是基于回调的设计.

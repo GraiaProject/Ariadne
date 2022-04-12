@@ -22,6 +22,14 @@ class FunctionWaiter(Waiter, Generic[T]):
         decorators: Optional[List[Decorator]] = None,
         priority: int = 15,
     ) -> None:
+        """
+        Args:
+            func (Callable): 调用函数
+            events (List[Type[Dispatchable]]): 事件类型
+            dispatchers (Optional[List[T_Dispatcher]]): 广播器
+            decorators (Optional[List[Decorator]]): 装饰器
+            priority (int): 优先级
+        """
         self.listening_events = self.events = events
         self.using_dispatchers = self.dispatchers = dispatchers or []
         self.using_decorators = self.decorators = decorators or []
@@ -47,13 +55,21 @@ class EventWaiter(Waiter, Generic[T_E]):
 
     def __init__(
         self,
-        event: Type[T_E],
+        events: List[Type[T_E]],
         dispatchers: Optional[List[T_Dispatcher]] = None,
         decorators: Optional[List[Decorator]] = None,
         extra_validator: Optional[Callable[[T_E], bool]] = None,
         priority: int = 15,
     ) -> None:
-        self.events = [event]
+        """
+        Args:
+            events (List[Type[T_E]]): 事件类型
+            dispatchers (Optional[List[T_Dispatcher]], optional): Dispatcher 列表
+            decorators (Optional[List[Decorator]], optional): Decorator 列表
+            extra_validator (Optional[Callable[[T_E], bool]], optional): 额外的验证器
+            priority (int, optional): 优先级, 越小越靠前
+        """
+        self.events = events
         self.listening_events = cast(List[Type[Dispatchable]], self.events)
         self.using_dispatchers = self.dispatchers = dispatchers or []
         self.using_decorators = self.decorators = decorators or []

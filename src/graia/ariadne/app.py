@@ -473,7 +473,7 @@ class RelationshipMixin(AriadneMixin):
         """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息.
 
         Args:
-            group_id (Union[Group, int]): 已知的群组唯一 ID
+            group (Union[Group, int]): 已知的群组唯一 ID
             member_id (int): 已知的群组成员的 ID
 
         Returns:
@@ -1371,7 +1371,7 @@ class MultimediaMixin(AriadneMixin):
     ) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
         Args:
-            image_bytes (Union[bytes, io.IOBase, os.PathLike]): 图片的原始数据
+            data (Union[bytes, io.IOBase, os.PathLike]): 图片的原始数据
             method (str | UploadMethod, optional): 图片的上传类型, 可从上下文推断
         Returns:
             Image: 生成的图片消息元素

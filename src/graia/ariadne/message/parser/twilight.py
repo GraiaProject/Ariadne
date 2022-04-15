@@ -1,5 +1,6 @@
 """Twilight: 混合式消息链处理器"""
 import abc
+import contextlib
 import enum
 import inspect
 import re
@@ -582,11 +583,6 @@ class TwilightMatcher:
         return repr(list(self._group_map.values()) + list(self._dest_map.values()))  # type: ignore
 
 
-class _TwilightLocalStorage(TypedDict):
-    result: Sparkle
-    twilight: "Twilight"
-
-
 class _TwilightHelpArgs(TypedDict):
     usage: str
     description: str
@@ -747,17 +743,17 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         Raises:
             ExecutionStop: 匹配以任意方式失败
         """
-        local_storage: _TwilightLocalStorage = interface.local_storage  # type: ignore
+        local_storage = interface.local_storage
         chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
-        try:
-            local_storage["result"] = self.generate(chain)
-            local_storage["twilight"] = self
-        except Exception as e:
-            raise ExecutionStop from e
+        with contextlib.suppress(Exception):
+            local_storage[f"{__name__}:result"] = self.generate(chain)
+            local_storage[f"{__name__}:twilight"] = self
+            return
+        raise ExecutionStop
 
     async def catch(self, interface: DispatcherInterface):
-        local_storage: _TwilightLocalStorage = interface.local_storage  # type: ignore
-        sparkle = local_storage["result"]
+        local_storage = interface.local_storage
+        sparkle: T_Sparkle = local_storage[f"{__name__}:result"]
         if generic_issubclass(Sparkle, interface.annotation):
             return sparkle
         if generic_issubclass(Twilight, interface.annotation):
@@ -781,7 +777,7 @@ class ResultValue(Decorator):
 
     @staticmethod
     async def target(i: DecoratorInterface):
-        sparkle: Sparkle = i.local_storage["result"]
+        sparkle: Sparkle = i.local_storage[f"{__name__}:result"]
         res = sparkle.res.get(i.name, None)
         if generic_isinstance(res, i.annotation):
             return res
@@ -814,7 +810,7 @@ class Help(Decorator, Generic[T]):
         self.formatter = formatter
 
     async def target(self, i: DecoratorInterface) -> T:
-        twilight: Twilight = i.local_storage["twilight"]
+        twilight: Twilight = i.local_storage[f"{__name__}:twilight"]
         help_string: str = twilight.matcher.get_help(**(twilight.help_data or {}))
         if self.formatter:
             coro_or_result = self.formatter(help_string, i)

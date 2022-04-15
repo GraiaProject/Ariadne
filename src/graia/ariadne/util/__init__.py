@@ -4,6 +4,7 @@
 # Utility Layout
 import asyncio
 import collections
+import contextlib
 import functools
 import inspect
 import logging
@@ -13,6 +14,7 @@ import typing
 import warnings
 from asyncio.events import AbstractEventLoop
 from contextvars import ContextVar
+from types import TracebackType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -39,6 +41,7 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
+from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
@@ -47,7 +50,7 @@ from loguru import logger
 from ..typing import DictStrAny, P, R, T
 
 
-def loguru_excepthook(cls, val, tb, *_, **__):
+def loguru_excepthook(cls: Type[BaseException], val: BaseException, tb: TracebackType, *_, **__):
     """loguru 异常回调
 
     Args:
@@ -55,6 +58,27 @@ def loguru_excepthook(cls, val, tb, *_, **__):
         val (Exception): 异常的实际值
         tb (TracebackType): 回溯消息
     """
+    exec_module_name = tb.tb_frame.f_globals.get("__name__", "")
+    if issubclass(cls, ExecutionStop) and exec_module_name.startswith("graia"):
+        return
+    elif isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
+        with contextlib.suppress(Exception):
+            local_dict = tb.tb_frame.f_locals
+            _, param_name, param_anno, param_default = val.args
+            if isinstance(param_anno, type):
+                param_anno = param_anno.__qualname__
+            param_repr = "".join(
+                [
+                    param_name,
+                    f": {param_anno}" if param_anno else "",
+                    f" = {param_default}" if param_default else "",
+                ]
+            )
+            val = RequirementCrashed(
+                "Unable to lookup parameter " f"({param_repr})",
+                local_dict["dispatchers"],
+            )
+
     logger.opt(exception=(cls, val, tb)).error("Exception:")
 
 

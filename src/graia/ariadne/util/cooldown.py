@@ -96,13 +96,13 @@ class CoolDown(BaseDispatcher):
             res = self.override_condition(**param_dict)
             if not ((await res) if inspect.isawaitable(res) else res):
                 raise ExecutionStop
-        interface.local_storage["next_exec_time"] = next_exec_time
-        interface.local_storage["delta"] = delta
+        interface.local_storage[f"{__name__}:next_exec_time"] = next_exec_time
+        interface.local_storage[f"{__name__}:delta"] = delta
 
     async def catch(self, interface: DispatcherInterface[MessageEvent]):
         annotation = interface.annotation
-        next_exec_time: datetime = interface.local_storage["next_exec_time"]
-        delta: timedelta = interface.local_storage["delta"]
+        next_exec_time: datetime = interface.local_storage[f"{__name__}:next_exec_time"]
+        delta: timedelta = interface.local_storage[f"{__name__}:delta"]
         if builtins.type(None) in typing.get_args(annotation) and delta.total_seconds() <= 0:
             return Force(None)
         if generic_issubclass(datetime, annotation):

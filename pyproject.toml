@@ -45,6 +45,7 @@ graia-saya = { version = "^0.0", optional = true }
 fastapi = { version = ">=0.74.1, <1.0.0", optional = true }
 uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
 prompt-toolkit = { version = "^3.0.24", optional = true }
+graia-amnesia = "^0.2.0"
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna-graia"]

@@ -277,6 +277,22 @@ url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 reference = "tuna-tsinghua"
 
 [[package]]
+name = "commonmark"
+version = "0.9.1"
+description = "Python parser for the CommonMark Markdown spec"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
 name = "coverage"
 version = "6.3.2"
 description = "Code coverage measurement for Python"
@@ -438,6 +454,27 @@ python-dateutil = ">=2.8.1"
 
 [package.extras]
 dev = ["twine", "markdown", "flake8", "wheel"]
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
+name = "graia-amnesia"
+version = "0.2.0"
+description = "a collection of shared components for graia"
+category = "main"
+optional = false
+python-versions = ">=3.8,<4.0"
+
+[package.dependencies]
+loguru = ">=0.6.0,<0.7.0"
+rich = ">=12.0.0,<13.0.0"
+
+[package.extras]
+orjson = ["orjson (>=3.6.7,<4.0.0)"]
+ujson = ["ujson (>=5.2.0,<6.0.0)"]
 
 [package.source]
 type = "legacy"
@@ -1156,7 +1193,7 @@ reference = "tuna-tsinghua"
 name = "pygments"
 version = "2.11.2"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 
@@ -1316,6 +1353,27 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 pyyaml = "*"
+
+[package.source]
+type = "legacy"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
+reference = "tuna-tsinghua"
+
+[[package]]
+name = "rich"
+version = "12.2.0"
+description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+category = "main"
+optional = false
+python-versions = ">=3.6.3,<4.0.0"
+
+[package.dependencies]
+commonmark = ">=0.9.0,<0.10.0"
+pygments = ">=2.6.0,<3.0.0"
+typing-extensions = {version = ">=4.0.0,<5.0", markers = "python_version < \"3.9\""}
+
+[package.extras]
+jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 
 [package.source]
 type = "legacy"
@@ -1625,7 +1683,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "dd326622c027445e29750dae4a32d9e7ce135f9aba4e713a1f56de5a8a79539a"
+content-hash = "e52dc0363d3e655e4fff80c49a31e0244213d5095f76443fa0d38d8b195bd677"
 
 [metadata.files]
 aiohttp = [
@@ -1781,6 +1839,10 @@ colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
+commonmark = [
+    {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
+    {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
+]
 coverage = [
     {file = "coverage-6.3.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9b27d894748475fa858f9597c0ee1d4829f44683f3813633aaf94b19cb5453cf"},
     {file = "coverage-6.3.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:37d1141ad6b2466a7b53a22e08fe76994c2d35a5b6b469590424a9953155afac"},
@@ -1916,6 +1978,10 @@ frozenlist = [
 ghp-import = [
     {file = "ghp-import-2.0.2.tar.gz", hash = "sha256:947b3771f11be850c852c64b561c600fdddf794bab363060854c1ee7ad05e071"},
     {file = "ghp_import-2.0.2-py3-none-any.whl", hash = "sha256:5f8962b30b20652cdffa9c5a9812f7de6bcb56ec475acac579807719bf242c46"},
+]
+graia-amnesia = [
+    {file = "graia-amnesia-0.2.0.tar.gz", hash = "sha256:ee3c53161692eb693353e8069f3bed370f56f77fbd70bc94042b636ffb4341b3"},
+    {file = "graia_amnesia-0.2.0-py3-none-any.whl", hash = "sha256:380829a94ebaa3d7349ee57fbe42345ae51021ce9a9ecf497191f52f24f155d5"},
 ]
 graia-broadcast = [
     {file = "graia-broadcast-0.16.1.tar.gz", hash = "sha256:40d532672b35d26ae0779e13f50593d5c505d8765c8545ed5bb5648bd3f7c6c2"},
@@ -2320,6 +2386,10 @@ pyyaml = [
 pyyaml-env-tag = [
     {file = "pyyaml_env_tag-0.1-py3-none-any.whl", hash = "sha256:af31106dec8a4d68c60207c1886031cbf839b68aa7abccdb19868200532c2069"},
     {file = "pyyaml_env_tag-0.1.tar.gz", hash = "sha256:70092675bda14fdec33b31ba77e7543de9ddc88f2e5b99160396572d11525bdb"},
+]
+rich = [
+    {file = "rich-12.2.0-py3-none-any.whl", hash = "sha256:c50f3d253bc6a9bb9c79d61a26d510d74abdf1b16881260fab5edfc3edfb082f"},
+    {file = "rich-12.2.0.tar.gz", hash = "sha256:ea74bc9dad9589d8eea3e3fd0b136d8bf6e428888955f215824c2894f0da8b47"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

@@ -76,3 +76,18 @@ assert img.base64 is not None
 ### 收不到消息，且控制台显示 `Failed to send message, your account may be blocked.`
 
 你的账号可能被 **风控** 了. 请等待几天后再试.
+
+### MCL 显示 `Cannot download package "net.mamoe:mirai-api-http"`
+
+如果你的 MCL 显示以下错误输出:
+
+```text
+[INFO] Verifying "net.mamoe:mirai-api-http" v2.5.0
+[ERROR] "net.mamoe:mirai-api-http" is corrupted.
+[ERROR] Cannot download package "net.mamoe:mirai-api-http"
+[ERROR] The local file "net.mamoe:mirai-api-http" is still corrupted, please check the network.
+```
+
+请手动下载 `mirai-api-http` 包, 并将其放置于 `MCL` 的 `plugins` 目录下.
+
+之后便可以安全忽略这个错误. (这是因为 `mirai-api-http` 的维护者忘记发布 `mirai-api-http` 到 maven 仓库托管了, 详见 [这里](https://github.com/project-mirai/mirai-api-http/issues/557#issuecomment-1099900036))

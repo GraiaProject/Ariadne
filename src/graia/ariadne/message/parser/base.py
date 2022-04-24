@@ -54,7 +54,7 @@ class ChainDecorator(abc.ABC, Decorator):
 class DetectPrefix(ChainDecorator):
     """前缀检测器"""
 
-    def __init__(self, prefix: str) -> None:
+    def __init__(self, prefix: Union[str, List[str]]) -> None:
         """初始化前缀检测器.
 
         Args:
@@ -65,9 +65,19 @@ class DetectPrefix(ChainDecorator):
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
-        if not rest.startswith(self.prefix):
+        result = None
+        if isinstance(self.prefix, List):
+            for prefix in self.prefix:
+                if rest.startswith(prefix):
+                    result = rest.removeprefix(prefix).removeprefix(" ")
+                    break
+        elif isinstance(self.prefix, str):
+            if rest.startswith(self.prefix):
+                result = rest.removeprefix(self.prefix).removeprefix(" ")
+        else:
             raise ExecutionStop
-        result = rest.removeprefix(self.prefix).removeprefix(" ")
+        if result is None:
+            raise ExecutionStop
         if interface.annotation is MessageChain:
             return header + result
 
@@ -75,7 +85,7 @@ class DetectPrefix(ChainDecorator):
 class DetectSuffix(ChainDecorator):
     """后缀检测器"""
 
-    def __init__(self, suffix: str) -> None:
+    def __init__(self, suffix: Union[str, List[str]]) -> None:
         """初始化后缀检测器.
 
         Args:
@@ -86,9 +96,19 @@ class DetectSuffix(ChainDecorator):
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
-        if not rest.endswith(self.suffix):
+        result = None
+        if isinstance(self.suffix, List): 
+            for suffix in self.suffix:
+                if rest.endswith(suffix):
+                    result = rest.removeprefix(suffix).removeprefix(" ")
+                    break
+        elif isinstance(self.suffix, str):
+            if rest.endswith(self.suffix):
+                result = rest.removesuffix(self.suffix).removesuffix(" ")
+        else:
             raise ExecutionStop
-        result = rest.removesuffix(self.suffix).removesuffix(" ")
+        if result is None:
+            raise ExecutionStop
         if interface.annotation is MessageChain:
             return header + result
 

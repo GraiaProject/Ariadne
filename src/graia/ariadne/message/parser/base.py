@@ -97,7 +97,7 @@ class DetectSuffix(ChainDecorator):
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         result = None
-        if isinstance(self.suffix, List): 
+        if isinstance(self.suffix, List):
             for suffix in self.suffix:
                 if rest.endswith(suffix):
                     result = rest.removeprefix(suffix).removeprefix(" ")

@@ -9,8 +9,8 @@ authors = [
 packages = [{ include = "graia", from = "src" }]
 readme = "README.md"
 repository = "https://github.com/GraiaProject/Ariadne"
-documentation = "https://graia.rtfd.io/"
-homepage = "https://graia.rtfd.io/"
+documentation = "https://graia.rtfd.io/projects/ariadne"
+homepage = "https://graia.rtfd.io/projects/ariadne"
 keywords = ["graia", "bot", "qq", "framework", "mirai"]
 classifiers = [
     "Topic :: Communications :: Chat",

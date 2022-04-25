@@ -4,7 +4,7 @@ import difflib
 import fnmatch
 import re
 import weakref
-from typing import ClassVar, DefaultDict, Dict, List, Optional, Tuple, Type, Union
+from typing import ClassVar, DefaultDict, Dict, List, Optional, Tuple, Type, Union, Iterable
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -54,28 +54,27 @@ class ChainDecorator(abc.ABC, Decorator):
 class DetectPrefix(ChainDecorator):
     """前缀检测器"""
 
-    def __init__(self, prefix: Union[str, List[str]]) -> None:
+    def __init__(self, prefix: Union[str, Iterable[str]]) -> None:
         """初始化前缀检测器.
 
         Args:
-            prefix (str): 要匹配的前缀
+            prefix Union[str, Iterable[str]]: 要匹配的前缀
         """
-        self.prefix = prefix
+        if isinstance(prefix, str):
+            self.prefix = tuple([prefix])
+        elif isinstance(prefix, Iterable):
+            self.prefix = tuple(prefix)
+        else:
+            raise TypeError("prefix must be str or Iterable[str]")
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         result = None
-        if isinstance(self.prefix, List):
-            for prefix in self.prefix:
-                if rest.startswith(prefix):
-                    result = rest.removeprefix(prefix).removeprefix(" ")
-                    break
-        elif isinstance(self.prefix, str):
-            if rest.startswith(self.prefix):
-                result = rest.removeprefix(self.prefix).removeprefix(" ")
-        else:
-            raise ExecutionStop
+        for prefix in self.prefix:
+            if rest.startswith(prefix):
+                result = rest.removeprefix(prefix).removeprefix(" ")
+                break
         if result is None:
             raise ExecutionStop
         if interface.annotation is MessageChain:
@@ -85,28 +84,27 @@ class DetectPrefix(ChainDecorator):
 class DetectSuffix(ChainDecorator):
     """后缀检测器"""
 
-    def __init__(self, suffix: Union[str, List[str]]) -> None:
+    def __init__(self, suffix: Union[str, Iterable[str]]) -> None:
         """初始化后缀检测器.
 
         Args:
-            suffix (str): 要匹配的后缀
+            suffix Union[str, Iterable[str]]: 要匹配的后缀
         """
-        self.suffix = suffix
+        if isinstance(suffix, str):
+            self.suffix = tuple([suffix])
+        elif isinstance(suffix, Iterable):
+            self.suffix = tuple(suffix)
+        else:
+            raise TypeError("suffix must be str or Iterable[str]")
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         result = None
-        if isinstance(self.suffix, List):
-            for suffix in self.suffix:
-                if rest.endswith(suffix):
-                    result = rest.removeprefix(suffix).removeprefix(" ")
-                    break
-        elif isinstance(self.suffix, str):
-            if rest.endswith(self.suffix):
-                result = rest.removesuffix(self.suffix).removesuffix(" ")
-        else:
-            raise ExecutionStop
+        for suffix in self.suffix:
+            if rest.endswith(suffix):
+                result = rest.removesuffix(suffix).removesuffix(" ")
+                break
         if result is None:
             raise ExecutionStop
         if interface.annotation is MessageChain:

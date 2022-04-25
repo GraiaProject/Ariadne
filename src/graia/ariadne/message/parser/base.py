@@ -58,7 +58,7 @@ class DetectPrefix(ChainDecorator):
         """初始化前缀检测器.
 
         Args:
-            prefix Union[str, Iterable[str]]: 要匹配的前缀
+            prefix (Union[str, Iterable[str]]): 要匹配的前缀
         """
         if isinstance(prefix, str):
             self.prefix = tuple([prefix])
@@ -88,7 +88,7 @@ class DetectSuffix(ChainDecorator):
         """初始化后缀检测器.
 
         Args:
-            suffix Union[str, Iterable[str]]: 要匹配的后缀
+            suffix (Union[str, Iterable[str]]): 要匹配的后缀
         """
         if isinstance(suffix, str):
             self.suffix = tuple([suffix])

@@ -121,6 +121,7 @@ plugins:
             show_signature_annotations: yes
             separate_signature: yes
             docstring_section_style: list
+            line_length: 80
 
   - literate-nav:
       nav_file: NAV.md

@@ -20,7 +20,7 @@ jobs:
           pip install -r ./docs/requirements.txt
       - name: Build with MKDocs
         run: |
-          mkdocs build
+          PYTHONPATH=src mkdocs build
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

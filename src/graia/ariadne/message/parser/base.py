@@ -4,7 +4,17 @@ import difflib
 import fnmatch
 import re
 import weakref
-from typing import ClassVar, DefaultDict, Dict, List, Optional, Tuple, Type, Union, Iterable
+from typing import (
+    ClassVar,
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher

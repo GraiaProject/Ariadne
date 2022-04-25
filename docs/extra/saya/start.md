@@ -225,4 +225,4 @@ modules.module_as_dir :: 模块加载成功!!!
 
 恭喜你, 完成了第一个 `Saya Application`, 我们可以前往下一章了.
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/11_classification.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/saya.html)"

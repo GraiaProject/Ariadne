@@ -109,4 +109,4 @@ async def save_images(..., img_bytes: List[bytes] = get_img_bytes):
 
 最后顺口一提, 有头和无头装饰器并不冲突.
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/9_not_everyone_have_st.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/depend.html)"

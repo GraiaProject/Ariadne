@@ -184,4 +184,4 @@ async def prompt(
 
 - **style** (`Style, optional`): 输入提示的格式, 详见 `prompt_toolkit` 的介绍.
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/14_backend_laning.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/console.html)"

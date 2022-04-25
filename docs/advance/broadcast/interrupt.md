@@ -182,4 +182,4 @@ except asyncio.TimeoutError:
 
 就这么多, 接下来我们将介绍在 `FastAPI` 中广泛运用的特性: 依赖注入 (`Depend`).
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/12_setu_tag_pls.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/interrupt_control.html)"

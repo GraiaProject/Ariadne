@@ -136,4 +136,4 @@ alconna = Alconna(command="指令", main_args=Args.foo[str], options=[Option("�
 
 `Ariadne` 只对 `Alconna` 进行了简单的封装, 接下来你可以访问其 [文档](https://arcletproject.github.io/docs/alconna/tutorial) 进一步了解用法.
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_4_alconna.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/alconna.html)"

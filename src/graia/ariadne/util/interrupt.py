@@ -1,4 +1,4 @@
-from typing import Callable, Generic, List, Optional, Type, TypeVar, cast
+from typing import Awaitable, Callable, Generic, List, Optional, Type, TypeVar, cast
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
@@ -16,7 +16,7 @@ class FunctionWaiter(Waiter, Generic[T]):
 
     def __init__(
         self,
-        func: Callable[..., T],
+        func: Callable[..., Awaitable[Optional[T]]],
         events: List[Type[Dispatchable]],
         dispatchers: Optional[List[T_Dispatcher]] = None,
         decorators: Optional[List[Decorator]] = None,

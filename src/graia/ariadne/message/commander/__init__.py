@@ -329,6 +329,9 @@ class CommandHandler(ExecTarget):
 class Commander:
     """便利的指令触发体系"""
 
+    async def __execute(self, chain: MessageChain):
+        await self.execute(chain)
+
     def __init__(self, broadcast: Broadcast, listen: bool = True):
         """
         Args:
@@ -339,22 +342,17 @@ class Commander:
         self.command_handlers: List[CommandHandler] = []
         self.validators: List[Callable] = [chain_validator]
 
-        async def execute_func(chain: MessageChain):
-            await self.execute(chain)
-
-        self.listen_func = execute_func
-
         if listen:
             self.broadcast.listeners.append(
                 Listener(
-                    self.listen_func,
+                    self.__execute,
                     self.broadcast.getDefaultNamespace(),
                     list(gen_subclass(MessageEvent)),
                 )
             )
 
     def __del__(self):
-        self.broadcast.listeners = [i for i in self.broadcast.listeners if i.callable != self.listen_func]
+        self.broadcast.listeners = [i for i in self.broadcast.listeners if i.callable != self.__execute]
 
     def add_type_cast(self, *caster: Callable):
         """添加类型验证器 (type caster / validator)"""

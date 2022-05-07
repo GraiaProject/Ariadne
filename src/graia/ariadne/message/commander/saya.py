@@ -6,6 +6,7 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.saya.behaviour import Behaviour
 from graia.saya.cube import Cube
 from graia.saya.schema import BaseSchema
+from typing_extensions import LiteralString
 
 from . import Arg, Commander, Slot
 
@@ -14,7 +15,7 @@ from . import Arg, Commander, Slot
 class CommandSchema(BaseSchema):
     """命令监听 Schema, 相当于 commander.command"""
 
-    command: str
+    command: LiteralString
     settings: Dict[str, Union[Slot, Arg]] = field(default_factory=dict)
     dispatchers: List[BaseDispatcher] = field(default_factory=list)
     decorators: List[Decorator] = field(default_factory=list)

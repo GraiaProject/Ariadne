@@ -28,6 +28,7 @@ from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
+from typing_extensions import LiteralString
 
 from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
@@ -357,7 +358,7 @@ class Commander:
 
     def command(
         self,
-        command: str,
+        command: LiteralString,
         setting: Optional[Dict[str, Union[Slot, Arg]]] = None,
         dispatchers: Sequence[BaseDispatcher] = (),
         decorators: Sequence[Decorator] = (),

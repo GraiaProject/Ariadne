@@ -1125,7 +1125,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "pydeps"
-version = "1.10.17"
+version = "1.10.18"
 description = "Display module dependencies"
 category = "dev"
 optional = true
@@ -2243,8 +2243,8 @@ pydantic = [
     {file = "pydantic-1.9.0.tar.gz", hash = "sha256:742645059757a56ecd886faf4ed2441b9c0cd406079c2b4bee51bcc3fbcd510a"},
 ]
 pydeps = [
-    {file = "pydeps-1.10.17-py3-none-any.whl", hash = "sha256:9f739bb4e44ae280ca58ce66945f025feaea08668a268bb9d08197c27012acfa"},
-    {file = "pydeps-1.10.17.tar.gz", hash = "sha256:bf06061e0c1d4888febde39eb5b4a4a68055cbcf2205769003a43b7642f3140d"},
+    {file = "pydeps-1.10.18-py3-none-any.whl", hash = "sha256:865b5361e8c99c492ee1625da21776854f4c5eeeb09ebe3fa2384a134b4d457a"},
+    {file = "pydeps-1.10.18.tar.gz", hash = "sha256:d512f6f0984947a45553598798cdf229a4a23a2c1389eaf60139416a68fcec5f"},
 ]
 pyflakes = [
     {file = "pyflakes-2.4.0-py2.py3-none-any.whl", hash = "sha256:3bb3a3f256f4b7968c9c788781e4ff07dce46bdf12339dcda61053375426ee2e"},

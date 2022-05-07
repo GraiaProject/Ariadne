@@ -1042,7 +1042,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "pre-commit"
-version = "2.18.1"
+version = "2.19.0"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 category = "dev"
 optional = false
@@ -1625,7 +1625,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "d7be9beff4aa99c8f32f6cd94f65fdf0e9d19f91c3b1be5e60b013eea4baf7ad"
+content-hash = "696ec6aa014caf9b41b94f94f50b3247aa32cdebca06054e9028d83c2aa845c8"
 
 [metadata.files]
 aiohttp = [
@@ -2189,8 +2189,8 @@ pluggy = [
     {file = "pluggy-1.0.0.tar.gz", hash = "sha256:4224373bacce55f955a878bf9cfa763c1e360858e330072059e10bad68531159"},
 ]
 pre-commit = [
-    {file = "pre_commit-2.18.1-py2.py3-none-any.whl", hash = "sha256:02226e69564ebca1a070bd1f046af866aa1c318dbc430027c50ab832ed2b73f2"},
-    {file = "pre_commit-2.18.1.tar.gz", hash = "sha256:5d445ee1fa8738d506881c5d84f83c62bb5be6b2838e32207433647e8e5ebe10"},
+    {file = "pre_commit-2.19.0-py2.py3-none-any.whl", hash = "sha256:10c62741aa5704faea2ad69cb550ca78082efe5697d6f04e5710c3c229afdd10"},
+    {file = "pre_commit-2.19.0.tar.gz", hash = "sha256:4233a1e38621c87d9dda9808c6606d7e7ba0e087cd56d3fe03202a01d2919615"},
 ]
 prompt-toolkit = [
     {file = "prompt_toolkit-3.0.29-py3-none-any.whl", hash = "sha256:62291dad495e665fca0bda814e342c69952086afb0f4094d0893d357e5c78752"},

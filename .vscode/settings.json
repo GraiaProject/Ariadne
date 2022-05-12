@@ -32,6 +32,7 @@
     "pypi",
     "quickstart",
     "smartsymbols",
+    "starlette",
     "superfences",
     "tasklist",
     "ujson",
@@ -43,5 +44,5 @@
   "editor.fontLigatures": false,
   "python.linting.flake8Enabled": true,
   "python.analysis.typeCheckingMode": "basic",
-  "sourcery.ruleType.comments": false
+  "jupyter.jupyterServerType": "local"
 }

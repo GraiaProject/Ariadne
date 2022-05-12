@@ -13,7 +13,7 @@ from .typing import T
 
 
 @overload
-def get_running(type: Type[T] = Ariadne) -> T:
+def get_running() -> Ariadne:
     ...
 
 
@@ -23,7 +23,7 @@ def get_running(type: Type[T], fail_err: Literal[False]) -> Optional[T]:
 
 
 @overload
-def get_running(type: Type[T], fail_err: Literal[True]) -> T:
+def get_running(type: Type[T], fail_err: Literal[True] = True) -> T:
     ...
 
 

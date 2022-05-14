@@ -812,7 +812,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.2.13"
+version = "8.2.14"
 description = "Documentation that simply works"
 category = "dev"
 optional = false
@@ -1626,7 +1626,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "1bfecf68683a7f7f1ab08ff8eeb4dbe134fc1ba581aeecf688715c4902d1c567"
+content-hash = "19afb6ce642c597febbefcd452ff027c35f9b18d958d223ba298e95f0dea1bae"
 
 [metadata.files]
 aiohttp = [
@@ -2077,8 +2077,8 @@ mkdocs-literate-nav = [
     {file = "mkdocs_literate_nav-0.4.1-py3-none-any.whl", hash = "sha256:a4b761792ba21defbe2dfd5e0de6ba451639e1ca0f0661c37eda83cc6261e4f9"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.2.13.tar.gz", hash = "sha256:505408fe001d668543236f5db5a88771460ad83ef7b58826630cc1f8b7e63099"},
-    {file = "mkdocs_material-8.2.13-py2.py3-none-any.whl", hash = "sha256:2666f1d7d6a8dc28dda1e777f77add12799e66bd00250de99914a33525763816"},
+    {file = "mkdocs-material-8.2.14.tar.gz", hash = "sha256:413c349ef531ffe9f2eab6c8a71203fb0a7ebdc301ab9a2529ddd90c173673de"},
+    {file = "mkdocs_material-8.2.14-py2.py3-none-any.whl", hash = "sha256:072cbba38f95b1989118b76ad6e3b61f56c4a6215622c960adf2f2c65a613dba"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},

@@ -78,7 +78,7 @@ objgraph = { version = ">= 3.5", optional = true }
 pydeps = { version = "^1.10", optional = true }
 yappi = { version = "^1.3.3", optional = true }
 mkdocstrings = { extras = ["python"], version = "^0.18.0" }
-mkdocs-material = "^8.2.13"
+mkdocs-material = "^8.2.14"
 mkdocs-gen-files = "^0.3.4"
 mkdocs-section-index = "^0.3.3"
 mkdocs-literate-nav = "^0.4.1"

@@ -1,7 +1,20 @@
 import abc
 import asyncio
+import builtins
 import secrets
-from typing import Any, Callable, Dict, Generic, MutableMapping, Optional, Set, Type
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    MutableMapping,
+    Optional,
+    Set,
+    Type,
+    Union,
+)
 from weakref import WeakValueDictionary
 
 from aiohttp import FormData
@@ -30,6 +43,7 @@ from yarl import URL
 
 from graia.ariadne.exception import InvalidSession
 
+from ..event import MiraiEvent
 from .config import (
     ConfigUnion,
     HttpClientConfig,
@@ -50,12 +64,12 @@ class ConnectionStatus(BaseConnectionStatus):
 
     def update(
         self,
-        session_key: Optional[str] = ...,
+        session_key: Union[str, None, builtins.ellipsis] = ...,
         connected: Optional[bool] = None,
         succeed: Optional[bool] = None,
     ):
         past = self.frame
-        if session_key is not ...:
+        if not isinstance(session_key, builtins.ellipsis):
             self.session_key = session_key
             self.connected = session_key is not None
         if connected is not None:
@@ -69,14 +83,16 @@ class ConnectionStatus(BaseConnectionStatus):
         return bool(self.connected and self.session_key)
 
 
-class AbstractConnector(Generic[T_Config]):
+class ConnectorMixin(Generic[T_Config]):
     status: ConnectionStatus
     config: T_Config
     dependency: Set[str]
     http_interface: AiohttpClientInterface
+    event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
     def __init__(self, config: T_Config) -> None:
         self.config = config
+        self.event_callbacks = []
         self.status = ConnectionStatus()
 
     @abc.abstractmethod
@@ -93,10 +109,11 @@ _reg = TransportRegistrar()
 
 
 @_reg.apply
-class AbstractWebsocketConnector(Transport):
+class WebsocketMixin(Transport):
     ws_io: AbstractWebsocketIO
     futures: MutableMapping[str, asyncio.Future]
     status: ConnectionStatus
+    event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
     @_reg.on(WebsocketReceivedEvent)
     @data_type(str)
@@ -115,7 +132,8 @@ class AbstractWebsocketConnector(Transport):
         if sync_id in self.futures:
             self.futures[sync_id].set_result(data)
         elif "type" in data:
-            logger.debug(build_event(data))  # TODO: broadcast
+            event = build_event(data)
+            await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         else:
             logger.warning(f"Got unknown data: {data}")
 
@@ -145,11 +163,11 @@ _reg = TransportRegistrar()
 
 
 @_reg.apply
-class WebsocketServerConnector(AbstractWebsocketConnector, AbstractConnector[WebsocketServerConfig]):
+class WebsocketServerConnector(WebsocketMixin, ConnectorMixin[WebsocketServerConfig]):
     dependency = {"http.universal_server"}
 
     def __init__(self, config: WebsocketServerConfig) -> None:
-        AbstractConnector.__init__(self, config)
+        ConnectorMixin.__init__(self, config)
         self.declares.append(WebsocketEndpoint(self.config.path))
         self.futures = WeakValueDictionary()
 
@@ -187,11 +205,11 @@ _reg = TransportRegistrar()
 
 
 @_reg.apply
-class WebsocketClientConnector(AbstractWebsocketConnector, AbstractConnector[WebsocketClientConfig]):
+class WebsocketClientConnector(WebsocketMixin, ConnectorMixin[WebsocketClientConfig]):
     dependency = {"http.universal_client"}
 
     def __init__(self, config: WebsocketClientConfig) -> None:
-        AbstractConnector.__init__(self, config)
+        ConnectorMixin.__init__(self, config)
         self.futures = WeakValueDictionary()
 
     async def mainline(self, mgr: LaunchManager) -> None:
@@ -206,7 +224,7 @@ class WebsocketClientConnector(AbstractWebsocketConnector, AbstractConnector[Web
         self.ws_io = io
 
 
-class HttpServerConnector(AbstractConnector[HttpServerConfig], Transport):
+class HttpServerConnector(ConnectorMixin[HttpServerConfig], Transport):
     dependency = {"http.universal_server"}
 
     def __init__(self, config: HttpServerConfig) -> None:
@@ -223,7 +241,8 @@ class HttpServerConnector(AbstractConnector[HttpServerConfig], Transport):
         data = Json.deserialize((await io.read()).decode("utf-8"))
         assert isinstance(data, dict)
         self.status.update(connected=True)
-        logger.debug(build_event(data))  # TODO: broadcast
+        event = build_event(data)
+        await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         return {"command": "", "data": {}}
 
     async def mainline(self, mgr: LaunchManager) -> None:
@@ -232,12 +251,12 @@ class HttpServerConnector(AbstractConnector[HttpServerConfig], Transport):
         router.use(self)
 
 
-class HttpClientConnector(AbstractConnector[HttpClientConfig]):
+class HttpClientConnector(ConnectorMixin[HttpClientConfig]):
     dependency = {"http.universal_client"}
     http_interface: AiohttpClientInterface
 
     def __init__(self, config: HttpClientConfig) -> None:
-        AbstractConnector.__init__(self, config)
+        ConnectorMixin.__init__(self, config)
         self.interface_getter: Callable[[], AiohttpClientInterface] = lambda: self.http_interface
 
     async def request(
@@ -309,15 +328,16 @@ class HttpClientConnector(AbstractConnector[HttpClientConfig]):
                 )
                 assert isinstance(data, list)
                 for event_data in data:
-                    logger.debug(build_event(event_data))  # TODO: broadcast
+                    event = build_event(event_data)
+                    await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
 
-    def hook(self, connector: AbstractConnector):
+    def hook(self, connector: ConnectorMixin):
         self.interface_getter = lambda: connector.http_interface
         self.status = connector.status
         connector.call = self.call
 
 
-CONFIG_MAP: Dict[Type[ConfigUnion], Type[AbstractConnector]] = {
+CONFIG_MAP: Dict[Type[ConfigUnion], Type[ConnectorMixin]] = {
     HttpClientConfig: HttpClientConnector,
     HttpServerConfig: HttpServerConnector,
     WebsocketClientConfig: WebsocketClientConnector,

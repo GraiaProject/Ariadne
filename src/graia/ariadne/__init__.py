@@ -27,7 +27,7 @@ def get_running(type: Type[T], fail_err: Literal[True] = True) -> T:
     ...
 
 
-def get_running(type: Type[T] = Ariadne, fail_err: bool = True) -> Optional[T]:
+def get_running(type=Ariadne, fail_err: bool = True):
     """获取正在运行的实例
 
     Args:

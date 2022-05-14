@@ -280,7 +280,7 @@ reference = "tuna-tsinghua"
 name = "commonmark"
 version = "0.9.1"
 description = "Python parser for the CommonMark Markdown spec"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -464,23 +464,25 @@ reference = "tuna-tsinghua"
 name = "graia-amnesia"
 version = "0.4.0"
 description = "a collection of shared components for graia"
-category = "main"
+category = "dev"
 optional = false
-python-versions = ">=3.8,<4.0"
+python-versions = "^3.8"
+develop = false
 
 [package.dependencies]
-loguru = ">=0.6.0,<0.7.0"
-rich = ">=12.0.0,<13.0.0"
-yarl = ">=1.7.2,<2.0.0"
+loguru = "^0.6.0"
+rich = "^12.0.0"
+yarl = "^1.7.2"
 
 [package.extras]
 orjson = ["orjson (>=3.6.7,<4.0.0)"]
 ujson = ["ujson (>=5.2.0,<6.0.0)"]
 
 [package.source]
-type = "legacy"
-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
-reference = "tuna-tsinghua"
+type = "git"
+url = "https://github.com/BlueGlassBlock/Amnesia.git"
+reference = "master"
+resolved_reference = "98e1182042a754790514d08226c49963bca99088"
 
 [[package]]
 name = "graia-broadcast"
@@ -1144,7 +1146,7 @@ reference = "tuna-tsinghua"
 name = "pygments"
 version = "2.12.0"
 description = "Pygments is a syntax highlighting package written in Python."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -1314,7 +1316,7 @@ reference = "tuna-tsinghua"
 name = "rich"
 version = "12.4.1"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6.3,<4.0.0"
 
@@ -1603,7 +1605,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "5a3bcb7361e9bf36bb4ff6b41d57ca2130e1b4a45cdd0e90b581e6c9c25236ce"
+content-hash = "f2da24ae11bf2a2693cdfef9ea756799a3c480be0b3667ea4b841e3b17afb16b"
 
 [metadata.files]
 aiohttp = [
@@ -1899,10 +1901,7 @@ ghp-import = [
     {file = "ghp-import-2.1.0.tar.gz", hash = "sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343"},
     {file = "ghp_import-2.1.0-py3-none-any.whl", hash = "sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619"},
 ]
-graia-amnesia = [
-    {file = "graia-amnesia-0.4.0.tar.gz", hash = "sha256:d867ba6ef1df5713362cbf0721885e5bbbd573e41e297cd59dcad0a191a099a3"},
-    {file = "graia_amnesia-0.4.0-py3-none-any.whl", hash = "sha256:88d5cbce946dff8b52319d2fb46b02dbeec1d3c5ee40730fc0f237bcb6ecfa1b"},
-]
+graia-amnesia = []
 graia-broadcast = [
     {file = "graia-broadcast-0.16.1.tar.gz", hash = "sha256:40d532672b35d26ae0779e13f50593d5c505d8765c8545ed5bb5648bd3f7c6c2"},
     {file = "graia_broadcast-0.16.1-py3-none-any.whl", hash = "sha256:89f519b95f3701229674e0f78e31b5497ff30d017e8b949e153c7247adcfe0e3"},

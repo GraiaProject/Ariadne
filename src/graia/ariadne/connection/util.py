@@ -4,10 +4,11 @@ from enum import Enum
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type, Union, overload
 
+from graia.amnesia.builtins.aiohttp import AiohttpRouter
 from graia.amnesia.launch.manager import LaunchManager
 from loguru import logger
 
-from ..event.mirai import MiraiEvent
+from ..event import MiraiEvent
 from ..exception import (
     AccountMuted,
     AccountNotFound,
@@ -23,15 +24,11 @@ from ..exception import (
 from ..util import gen_subclass
 
 if TYPE_CHECKING:
-    from graia.amnesia.builtins.aiohttp import AiohttpRouter
     from graia.amnesia.builtins.starlette import StarletteRouter
-
 else:
     try:
-        from graia.amnesia.builtins.aiohttp import AiohttpRouter
         from graia.amnesia.builtins.starlette import StarletteRouter
     except ImportError:
-        AiohttpRouter = type("AiohttpRouter", (object,), {})
         StarletteRouter = type("StarletteRouter", (object,), {})
 
 
@@ -83,9 +80,7 @@ def validate_response(data: Any, raising: bool = True):
 
 @lru_cache(maxsize=1024)
 def extract_event_type(event_type: str) -> Optional[Type[MiraiEvent]]:
-    for cls in gen_subclass(MiraiEvent):
-        if cls.__name__ == event_type:
-            return cls
+    return next((cls for cls in gen_subclass(MiraiEvent) if cls.__name__ == event_type), None)
 
 
 def build_event(data: dict) -> MiraiEvent:

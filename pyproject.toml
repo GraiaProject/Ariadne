@@ -78,6 +78,7 @@ mkdocs-material = "^8.2.1"
 mkdocs-gen-files = "^0.3.4"
 mkdocs-section-index = "^0.3.3"
 mkdocs-literate-nav = "^0.4.1"
+graia-amnesia = {git = "https://github.com/BlueGlassBlock/Amnesia.git"}
 
 [tool.isort]
 profile = "black"

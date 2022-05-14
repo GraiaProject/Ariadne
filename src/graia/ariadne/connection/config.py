@@ -9,8 +9,8 @@ class HttpClientConfig(BaseModel):
     verify_key: str
     host: str = "http://localhost:8080"
 
-    def get_url(self, route: str, **params) -> str:
-        return str((URL(self.host) / route).with_query(params))
+    def get_url(self, route: str) -> str:
+        return str((URL(self.host) / route))
 
 
 class WebsocketClientConfig(BaseModel):
@@ -18,8 +18,8 @@ class WebsocketClientConfig(BaseModel):
     verify_key: str
     host: str = "http://localhost:8080"
 
-    def get_url(self, route: str, **params) -> str:
-        return str((URL(self.host) / route).with_query(params))
+    def get_url(self, route: str) -> str:
+        return str((URL(self.host) / route))
 
 
 class WebsocketServerConfig(BaseModel):

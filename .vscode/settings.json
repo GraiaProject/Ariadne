@@ -44,5 +44,6 @@
   "editor.fontLigatures": false,
   "python.linting.flake8Enabled": true,
   "python.analysis.typeCheckingMode": "basic",
-  "jupyter.jupyterServerType": "local"
+  "jupyter.jupyterServerType": "local",
+  "python.linting.enabled": false
 }

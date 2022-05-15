@@ -7,82 +7,82 @@ from graia.amnesia.launch.manager import LaunchManager
 from graia.amnesia.launch.service import Service
 
 from ..event.mirai import MiraiEvent
-from .config import ConfigUnion
-from .connector import CONFIG_MAP, ConnectionStatus, ConnectorMixin, HttpClientConnector
+from .config import U_Config
+from .connection import CONFIG_MAP, ConnectionStatus, ConnectionMixin, HttpClientConnection
 from .util import CallMethod as CallMethod  # noqa: F401
 
 
-class ConnectionInterface(ExportInterface["ConnectionService"]):
-    service: "ConnectionService"
-    connector: Optional[ConnectorMixin]
+class ConnectionInterface(ExportInterface["ElizabethConnectionService"]):
+    service: "ElizabethConnectionService"
+    connection: Optional[ConnectionMixin]
 
-    def __init__(self, service: "ConnectionService") -> None:
+    def __init__(self, service: "ElizabethConnectionService") -> None:
         self.service = service
 
     def bind(self, account: int) -> None:
         if account not in self.service.connections:
             raise ValueError(f"Account {account} not found")
-        self.connector = self.service.connections[account]
+        self.connection = self.service.connections[account]
 
     async def call(
         self, method: CallMethod, command: str, params: dict, *, account: Optional[int] = None
     ) -> Any:
-        connector = self.connector
+        connection = self.connection
         if account is not None:
-            connector = self.service.connections.get(account)
-        if connector is None:
+            connection = self.service.connections.get(account)
+        if connection is None:
             raise ValueError(f"Unable to find connection to execute {command}")
-        return await connector.call(method, command, params)
+        return await connection.call(method, command, params)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:
-        if self.connector is None:
+        if self.connection is None:
             raise ValueError("Unable to find connection to add callback")
-        self.connector.event_callbacks.append(callback)
+        self.connection.event_callbacks.append(callback)
 
     @property
     def status(self) -> ConnectionStatus:
-        if self.connector:
-            return self.connector.status
+        if self.connection:
+            return self.connection.status
         raise ValueError(f"{self} is not bound to an account")
 
 
-class ConnectionService(Service):
+class ElizabethConnectionService(Service):
     supported_interface_types = {ConnectionInterface}
 
-    def __init__(self, configs: List[ConfigUnion]) -> None:
-        self.connections: Dict[int, ConnectorMixin] = {}
+    def __init__(self, configs: List[U_Config]) -> None:
+        self.connections: Dict[int, ConnectionMixin] = {}
         self.event_callbacks: Dict[int, List[Callable[["MiraiEvent"], Awaitable[Any]]]] = {}
-        conf_map: Dict[int, List[ConfigUnion]] = {}
+        conf_map: Dict[int, List[U_Config]] = {}
         for conf in configs:
             conf_map.setdefault(conf.account, []).append(conf)
         for configs in conf_map.values():
-            configs.sort(key=lambda x: isinstance(x, HttpClientConnector))
+            configs.sort(key=lambda x: isinstance(x, HttpClientConnection))
             # make sure the http client is the last one
             for conf in configs:
                 self.update_from_config(conf)
 
-    def update_from_config(self, config: ConfigUnion) -> None:
+    def update_from_config(self, config: U_Config) -> None:
         account: int = config.account
-        connector = CONFIG_MAP[config.__class__](config)
+        connection = CONFIG_MAP[config.__class__](config)
         if account not in self.connections:
-            self.connections[account] = connector
-        elif isinstance(connector, HttpClientConnector):
-            connector.hook(self.connections[account])
+            self.connections[account] = connection
+        elif isinstance(connection, HttpClientConnection):
+            connection.hook(self.connections[account])
         else:
             raise ValueError(
-                f"{account} already has connector {self.connections[account]}, found {connector}"
+                f"{account} already has connection {self.connections[account]}, found {connection}"
             )
 
     async def mainline(self, mgr: LaunchManager) -> None:
         await asyncio.wait(
-            [asyncio.create_task(connector.mainline(mgr)) for connector in self.connections.values()]
+            [asyncio.create_task(connection.mainline(mgr)) for connection in self.connections.values()]
         )
 
     @property
     def launch_component(self) -> LaunchComponent:
         requirements: MutableSet[str] = set()
-        for connector in self.connections.values():
-            requirements.update(connector.dependency)
+        for connection in self.connections.values():
+            requirements.update(connection.dependencies)
         return LaunchComponent("elizabeth.connection", requirements, self.mainline)
 
     def get_interface(self, interface_type: type):

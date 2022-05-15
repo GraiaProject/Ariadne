@@ -21,16 +21,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
-[[tool.poetry.source]]
-name = "tuna-tsinghua"
-default = false
-url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple/"
-
-[[tool.poetry.source]]
-name = "aliyun"
-default = false
-url = "https://mirrors.aliyun.com/pypi/simple/"
-
 [tool.poetry.dependencies]
 python = "^3.8"
 graia-broadcast = "^0.16.1"

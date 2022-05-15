@@ -6,13 +6,13 @@ from graia.broadcast import Broadcast
 
 from graia.ariadne.model import AriadneStatus
 
-from .connection.connector import ConnectorMixin
+from .connection.connection import ConnectionMixin
 
 
 class Ariadne(ExportInterface["ElizabethService"]):
     broadcast: Optional[Broadcast]
     account: Optional[int]
-    connector: Optional[ConnectorMixin]
+    connector: Optional[ConnectionMixin]
     status: AriadneStatus
 
     def __init__(self, service: "ElizabethService") -> None:

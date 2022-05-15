@@ -40,4 +40,4 @@ T_Config = TypeVar(
     "T_Config", HttpClientConfig, WebsocketClientConfig, WebsocketServerConfig, HttpServerConfig
 )
 
-ConfigUnion = Union[HttpClientConfig, WebsocketClientConfig, WebsocketServerConfig, HttpServerConfig]
+U_Config = Union[HttpClientConfig, WebsocketClientConfig, WebsocketServerConfig, HttpServerConfig]

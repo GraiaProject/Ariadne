@@ -45,7 +45,7 @@ from graia.ariadne.exception import InvalidSession
 
 from ..event import MiraiEvent
 from .config import (
-    ConfigUnion,
+    U_Config,
     HttpClientConfig,
     HttpServerConfig,
     T_Config,
@@ -83,10 +83,11 @@ class ConnectionStatus(BaseConnectionStatus):
         return bool(self.connected and self.session_key)
 
 
-class ConnectorMixin(Generic[T_Config]):
+class ConnectionMixin(Generic[T_Config]):
     status: ConnectionStatus
     config: T_Config
-    dependency: Set[str]
+    dependencies: Set[str]
+
     http_interface: AiohttpClientInterface
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
@@ -101,21 +102,21 @@ class ConnectorMixin(Generic[T_Config]):
 
     async def call(self, method: CallMethod, command: str, params: Optional[dict] = None) -> Any:
         raise NotImplementedError(
-            f"Connector {self} can't perform {command!r}, consider *hooking* a HttpClientConnector?"
+            f"Connection {self} can't perform {command!r}, consider *hooking* a HttpClientConnection?"
         )
 
 
-_reg = TransportRegistrar()
+t = TransportRegistrar()
 
 
-@_reg.apply
-class WebsocketMixin(Transport):
+@t.apply
+class WebsocketConnectionMixin(Transport):
     ws_io: AbstractWebsocketIO
     futures: MutableMapping[str, asyncio.Future]
     status: ConnectionStatus
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
-    @_reg.on(WebsocketReceivedEvent)
+    @t.on(WebsocketReceivedEvent)
     @data_type(str)
     @json_require
     async def _(self, io: AbstractWebsocketIO, raw: Any) -> None:  # event pass and callback
@@ -137,7 +138,7 @@ class WebsocketMixin(Transport):
         else:
             logger.warning(f"Got unknown data: {data}")
 
-    @_reg.on(WebsocketCloseEvent)
+    @t.on(WebsocketCloseEvent)
     async def _(self, _: AbstractWebsocketIO) -> None:
         del self.ws_io
         self.status.update(session_key=None)
@@ -152,22 +153,22 @@ class WebsocketMixin(Transport):
         elif method == CallMethod.RESTPOST:
             content["subCommand"] = "update"
         elif method == CallMethod.MULTIPART:
-            raise NotImplementedError("Please hook HttpClientConnector for multipart operation")
+            raise NotImplementedError("Please hook HttpClientConnection for multipart operation")
         self.futures[sync_id] = fut
         await self.status.wait_for_available()
         await self.ws_io.send(content)
         return await fut
 
 
-_reg = TransportRegistrar()
+t = TransportRegistrar()
 
 
-@_reg.apply
-class WebsocketServerConnector(WebsocketMixin, ConnectorMixin[WebsocketServerConfig]):
-    dependency = {"http.universal_server"}
+@t.apply
+class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketServerConfig]):
+    dependencies = {"http.universal_server"}
 
     def __init__(self, config: WebsocketServerConfig) -> None:
-        ConnectorMixin.__init__(self, config)
+        ConnectionMixin.__init__(self, config)
         self.declares.append(WebsocketEndpoint(self.config.path))
         self.futures = WeakValueDictionary()
 
@@ -176,7 +177,7 @@ class WebsocketServerConnector(WebsocketMixin, ConnectorMixin[WebsocketServerCon
         router = get_router(mgr)
         router.use(self)
 
-    @_reg.on(WebsocketConnectEvent)
+    @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:
         req: HttpRequest = await io.extra(HttpRequest)
         for k, v in self.config.headers:
@@ -201,15 +202,15 @@ class WebsocketServerConnector(WebsocketMixin, ConnectorMixin[WebsocketServerCon
         self.ws_io = io
 
 
-_reg = TransportRegistrar()
+t = TransportRegistrar()
 
 
-@_reg.apply
-class WebsocketClientConnector(WebsocketMixin, ConnectorMixin[WebsocketClientConfig]):
-    dependency = {"http.universal_client"}
+@t.apply
+class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketClientConfig]):
+    dependencies = {"http.universal_client"}
 
     def __init__(self, config: WebsocketClientConfig) -> None:
-        ConnectorMixin.__init__(self, config)
+        ConnectionMixin.__init__(self, config)
         self.futures = WeakValueDictionary()
 
     async def mainline(self, mgr: LaunchManager) -> None:
@@ -219,13 +220,13 @@ class WebsocketClientConnector(WebsocketMixin, ConnectorMixin[WebsocketClientCon
             str((URL(config.host) / "all").with_query({"qq": config.account, "verifyKey": config.verify_key}))
         ).use(self)
 
-    @_reg.on(WebsocketConnectEvent)
+    @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:  # start authenticate
         self.ws_io = io
 
 
-class HttpServerConnector(ConnectorMixin[HttpServerConfig], Transport):
-    dependency = {"http.universal_server"}
+class HttpServerConnection(ConnectionMixin[HttpServerConfig], Transport):
+    dependencies = {"http.universal_server"}
 
     def __init__(self, config: HttpServerConfig) -> None:
         super().__init__(config)
@@ -251,12 +252,12 @@ class HttpServerConnector(ConnectorMixin[HttpServerConfig], Transport):
         router.use(self)
 
 
-class HttpClientConnector(ConnectorMixin[HttpClientConfig]):
-    dependency = {"http.universal_client"}
+class HttpClientConnection(ConnectionMixin[HttpClientConfig]):
+    dependencies = {"http.universal_client"}
     http_interface: AiohttpClientInterface
 
     def __init__(self, config: HttpClientConfig) -> None:
-        ConnectorMixin.__init__(self, config)
+        ConnectionMixin.__init__(self, config)
         self.interface_getter: Callable[[], AiohttpClientInterface] = lambda: self.http_interface
 
     async def request(
@@ -331,15 +332,15 @@ class HttpClientConnector(ConnectorMixin[HttpClientConfig]):
                     event = build_event(event_data)
                     await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
 
-    def hook(self, connector: ConnectorMixin):
-        self.interface_getter = lambda: connector.http_interface
-        self.status = connector.status
-        connector.call = self.call
+    def hook(self, Connection: ConnectionMixin):
+        self.interface_getter = lambda: Connection.http_interface
+        self.status = Connection.status
+        Connection.call = self.call
 
 
-CONFIG_MAP: Dict[Type[ConfigUnion], Type[ConnectorMixin]] = {
-    HttpClientConfig: HttpClientConnector,
-    HttpServerConfig: HttpServerConnector,
-    WebsocketClientConfig: WebsocketClientConnector,
-    WebsocketServerConfig: WebsocketServerConnector,
+CONFIG_MAP: Dict[Type[U_Config], Type[ConnectionMixin]] = {
+    HttpClientConfig: HttpClientConnection,
+    HttpServerConfig: HttpServerConnection,
+    WebsocketClientConfig: WebsocketClientConnection,
+    WebsocketServerConfig: WebsocketServerConnection,
 }

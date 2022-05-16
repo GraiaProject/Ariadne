@@ -131,6 +131,7 @@ class WebsocketConnectionMixin(Transport):
     ws_io: AbstractWebsocketIO
     futures: MutableMapping[str, asyncio.Future]
     status: ConnectionStatus
+    fallback: Optional["HttpClientConnection"]
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
     @t.on(WebsocketReceivedEvent)
@@ -171,7 +172,11 @@ class WebsocketConnectionMixin(Transport):
         elif method == CallMethod.RESTPOST:
             content["subCommand"] = "update"
         elif method == CallMethod.MULTIPART:
-            raise NotImplementedError("Please hook HttpClientConnection for multipart operation")
+            if self.fallback:
+                return await self.fallback.call(method, command, params)
+            raise NotImplementedError(
+                f"Connection {self} can't perform {command!r}, consider configuring a HttpClientConnection?"
+            )
         self.futures[sync_id] = fut
         await self.status.wait_for_available()
         await self.ws_io.send(content)

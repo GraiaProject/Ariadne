@@ -14,6 +14,8 @@ from ..exception import InvalidArgument
 from ..model import CallMethod, MiraiSession
 from ..util import AsyncSignal
 
+# FIXME
+
 
 class Adapter(abc.ABC):
 

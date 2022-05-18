@@ -688,7 +688,7 @@ class MultimediaElement(Element):
             return b64decode(self.base64)
         if not self.url:
             raise ValueError("you should offer a url.")
-        session = get_running(Adapter).session
+        session = get_running(Adapter).session  # FIXME
         if not session:
             raise RuntimeError("Unable to get session!")
         async with session.get(self.url) as response:

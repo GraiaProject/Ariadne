@@ -199,33 +199,31 @@ class ActiveStrangerMessage(ActiveMessage):
         mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
-class FriendSyncMessage(ActiveFriendMessage):
+class SyncMessage(MiraiEvent):
+    """同步消息: 从其他客户端同步的主动消息"""
+
+    sync = True
+
+
+class FriendSyncMessage(SyncMessage, ActiveFriendMessage):
     """好友同步消息"""
 
     type: str = "FriendSyncMessage"
 
-    sync = True
 
-
-class GroupSyncMessage(ActiveGroupMessage):
+class GroupSyncMessage(SyncMessage, ActiveGroupMessage):
     """群组同步消息"""
 
     type: str = "GroupSyncMessage"
 
-    sync = True
 
-
-class TempSyncMessage(ActiveTempMessage):
+class TempSyncMessage(SyncMessage, ActiveTempMessage):
     """临时会话同步消息"""
 
     type: str = "TempSyncMessage"
 
-    sync = True
 
-
-class StrangerSyncMessage(ActiveStrangerMessage):
+class StrangerSyncMessage(SyncMessage, ActiveStrangerMessage):
     """陌生人同步消息"""
 
     type: str = "StrangerSyncMessage"
-
-    sync = True

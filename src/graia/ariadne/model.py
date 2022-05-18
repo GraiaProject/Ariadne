@@ -4,20 +4,19 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, Type, Union
 
-from graia.broadcast.entities.listener import Listener
-from graia.broadcast.priority import Priority
 from loguru import logger
 from pydantic import BaseConfig, BaseModel, Extra, Field, validator
 from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
 
-from .util import gen_subclass, internal_cls
+from .util import internal_cls
 
 if TYPE_CHECKING:
-    from .app import Ariadne
+    from .event import MiraiEvent
+    from .instance import Ariadne
     from .message.chain import MessageChain
     from .typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 
@@ -77,7 +76,7 @@ class AriadneBaseModel(BaseModel):
         arbitrary_types_allowed = True
 
 
-@dataclass
+@dataclass  # FIXME
 class ChatLogConfig:
     """配置日志如何记录 QQ 消息与事件."""
 
@@ -108,102 +107,46 @@ class ChatLogConfig:
 
     active_message_log_format: str = "{bot_id}: {sync_label}[{subject}] <- {message_string}"
 
-    def initialize(self, app: "Ariadne"):
+    def initialize(self, app):
         """利用 Ariadne 对象注册事件日志处理器"""
+        pass
+
+
+class LogConfig(Dict[Type["MiraiEvent"], str]):
+    def __init__(self, log_level: str = "INFO"):
         from .event.message import (
             ActiveMessage,
             FriendMessage,
             GroupMessage,
             OtherClientMessage,
             StrangerMessage,
+            SyncMessage,
             TempMessage,
         )
 
-        @app.broadcast.receiver(GroupMessage, priority=Priority.Logger)
-        def log_group_message(event: GroupMessage):
-            logger.log(
-                self.log_level,
-                self.group_message_log_format.format(
-                    group_id=event.sender.group.id,
-                    group_name=event.sender.group.name,
-                    member_id=event.sender.id,
-                    member_name=event.sender.name,
-                    member_permission=event.sender.permission.name,
-                    bot_id=app.mirai_session.account,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                ),
-            )
+        self.log_level: str = log_level
 
-        @app.broadcast.receiver(FriendMessage, priority=Priority.Logger)
-        def log_friend_message(event: FriendMessage):
-            logger.log(
-                self.log_level,
-                self.friend_message_log_format.format(
-                    bot_id=app.mirai_session.account,
-                    friend_name=event.sender.nickname,
-                    friend_id=event.sender.id,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                ),
-            )
+        account_seg = "{ariadne.account}"
+        msg_chain_seg = "{event.messageChain.safe_display}"
+        sender_seg = "{event.sender.name}({event.sender.id})"
+        group_seg = "{event.sender.group.name}({event.sender.group.id})"
+        client_seg = "{event.sender.platform}({event.sender.id})"
+        self[GroupMessage] = f"{account_seg}: [{group_seg}] {sender_seg} -> {msg_chain_seg}"
+        self[TempMessage] = f"{account_seg}: [{group_seg}.{sender_seg}] -> {msg_chain_seg}"
+        self[FriendMessage] = f"{account_seg}: [{sender_seg}] -> {msg_chain_seg}"
+        self[StrangerMessage] = f"{account_seg}: [{sender_seg}] -> {msg_chain_seg}"
+        self[OtherClientMessage] = f"{account_seg}: [{client_seg}] -> {msg_chain_seg}"
+        self[SyncMessage] = f"{account_seg}: [SYNC] [{{event.subject}}] <- {msg_chain_seg}"
+        self[ActiveMessage] = f"{account_seg}: [{{event.subject}}] <- {msg_chain_seg}"
 
-        @app.broadcast.receiver(TempMessage, priority=Priority.Logger)
-        def log_temp_message(event: TempMessage):
-            logger.log(
-                self.log_level,
-                self.temp_message_log_format.format(
-                    group_id=event.sender.group.id,
-                    group_name=event.sender.group.name,
-                    member_id=event.sender.id,
-                    member_name=event.sender.name,
-                    member_permission=event.sender.permission.name,
-                    bot_id=app.mirai_session.account,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                ),
-            )
+    def event_hook(self, app: "Ariadne") -> Callable[["MiraiEvent"], Awaitable[None]]:
+        async def log_event(event: "MiraiEvent"):
+            for k, v in self.items():
+                if isinstance(event, k):
+                    logger.log(self.log_level, v.format(event=event, ariadne=app))
+                    break
 
-        @app.broadcast.receiver(StrangerMessage, priority=Priority.Logger)
-        def log_stranger_message(event: StrangerMessage):
-            logger.log(
-                self.log_level,
-                self.stranger_message_log_format.format(
-                    bot_id=app.mirai_session.account,
-                    stranger_name=event.sender.nickname,
-                    stranger_id=event.sender.id,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                ),
-            )
-
-        @app.broadcast.receiver(OtherClientMessage, priority=Priority.Logger)
-        def log_other_client_message(event: OtherClientMessage):
-            logger.log(
-                self.log_level,
-                self.other_client_message_log_format.format(
-                    bot_id=app.mirai_session.account,
-                    platform_name=event.sender.platform,
-                    platform_id=event.sender.id,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                ),
-            )
-
-        def log_active_message(event: ActiveMessage):
-            logger.log(
-                self.log_level,
-                self.active_message_log_format.format(
-                    bot_id=app.mirai_session.account,
-                    sync_label="[SYNC]" if event.sync else "",
-                    subject=event.subject,
-                    message_string=event.messageChain.asDisplay().__repr__(),
-                ),
-            )
-
-        app.broadcast.listeners.append(
-            Listener(
-                log_active_message,
-                app.broadcast.getDefaultNamespace(),
-                list(gen_subclass(ActiveMessage)),
-                priority=Priority.Logger,
-            )
-        )
+        return log_event
 
 
 class MiraiSession(AriadneBaseModel):

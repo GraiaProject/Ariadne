@@ -1,10 +1,11 @@
 import asyncio
-from typing import Dict, Iterable, MutableSet
+from typing import Dict, Iterable, MutableSet, Tuple
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.launch.component import LaunchComponent
 from graia.amnesia.launch.manager import LaunchManager
 from graia.amnesia.launch.service import Service
+from graia.broadcast import Broadcast
 from typing_extensions import Self
 
 from .connection import (
@@ -20,11 +21,15 @@ class ElizabethService(Service):
     supported_interface_types = {ConnectionInterface}
     http_interface: AiohttpClientInterface
     connections: Dict[int, ConnectionMixin]
+    broadcast: Broadcast
 
     def __init__(self) -> None:
         self.connections = {}
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        self.broadcast = Broadcast(loop=loop)
 
-    def add_configs(self, configs: Iterable[U_Config]) -> Self:
+    def add_configs(self, configs: Iterable[U_Config]) -> Tuple[Self, int]:
         configs = list(configs)
         assert configs
         account: int = configs[0].account
@@ -36,7 +41,7 @@ class ElizabethService(Service):
         # make sure the http client is the last one
         for conf in configs:
             self.update_from_config(conf)
-        return self
+        return self, account
 
     def update_from_config(self, config: U_Config) -> None:
         account: int = config.account
@@ -59,8 +64,14 @@ class ElizabethService(Service):
             connection.fallback.status = connection.status
         await connection.mainline(mgr)  # TODO: auto reboot
 
-    async def mainline(self, mgr: LaunchManager) -> None:
+    async def prepare(self, mgr: LaunchManager) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)
+        if self.broadcast:
+            assert asyncio.get_running_loop() is self.loop, "Broadcast is attached to a different loop"
+        else:
+            self.broadcast = Broadcast(loop=asyncio.get_running_loop())
+
+    async def mainline(self, mgr: LaunchManager) -> None:
         await asyncio.wait(
             [asyncio.create_task(self.connection_daemon(conn, mgr)) for conn in self.connections.values()]
         )
@@ -70,7 +81,11 @@ class ElizabethService(Service):
         requirements: MutableSet[str] = set()
         for connection in self.connections.values():
             requirements |= connection.dependencies
-        return LaunchComponent("elizabeth.connection", requirements, self.mainline)
+        return LaunchComponent("elizabeth.connection", requirements, self.mainline, self.prepare)
+
+    @property
+    def loop(self) -> asyncio.AbstractEventLoop:
+        return self.broadcast.loop
 
     def get_interface(self, interface_type: type):
         if interface_type is ConnectionInterface:

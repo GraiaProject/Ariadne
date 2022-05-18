@@ -380,7 +380,7 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
     def bind(self, account: int) -> Self:
         return ConnectionInterface(self.service, account)
 
-    async def call(
+    async def direct_call(
         self, method: CallMethod, command: str, params: dict, *, account: Optional[int] = None
     ) -> Any:
         connection = self.connection
@@ -389,6 +389,14 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         if connection is None:
             raise ValueError(f"Unable to find connection to execute {command}")
         return await connection.call(method, command, params)
+
+    async def call(
+        self, method: CallMethod, command: str, params: dict, *, account: Optional[int] = None
+    ) -> Any:
+        await self.status.wait_for_available()  # wait until session_key is present
+        session_key = self.status.session_key
+        params["sessionKey"] = session_key
+        return await self.direct_call(method, command, params, account=account)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:
         if self.connection is None:

@@ -840,5 +840,9 @@ class MessageChain(AriadneBaseModel):
             result_list.append(Plain("".join(char_stk)))
         return MessageChain(result_list, inline=True)
 
+    @property
+    def safe_display(self) -> str:
+        return repr(str(self))[1:-1]
+
 
 _update_forward_refs()

@@ -1014,7 +1014,7 @@ class RequestEvent(MiraiEvent):
         from .. import get_running
         from ..adapter import Adapter
 
-        adapter = get_running(Adapter)
+        adapter = get_running(Adapter)  # FIXME
         if not adapter.mirai_session.session_key:
             raise InvalidSession("you must authenticate before this.")
         api_route = self.type[0].lower() + self.type[1:]

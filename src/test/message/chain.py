@@ -16,6 +16,8 @@ from graia.ariadne.message.element import (
 )
 from graia.ariadne.util import Dummy
 
+__name__ = "graia.test.message.chain"  # monkey patch to pass internal class check
+
 
 def test_create():
     chain = MessageChain([Plain("Hello World"), At(12345), Plain("1234567")])
@@ -28,58 +30,16 @@ def test_create():
     ) == MessageChain([At(12345), "hello"])
 
 
-def test_subchain():
-    # group 1
-    assert MessageChain.create("hello world").subchain(slice((0, 3), None)) == MessageChain(
-        [Plain(text="lo world")]
-    )
-    assert MessageChain.create("hello world").subchain(slice(None, (1, 7))) == MessageChain(
-        [Plain(text="hello w")]
-    )
-    assert MessageChain.create("hello world").subchain(slice((0, 3), (1, 7))) == MessageChain(
-        [Plain(text="lo w")]
-    )
-
-    # group 2
-    assert MessageChain.create("hello", At(12345), "world").subchain(slice((0, 3), (3, 2))) == MessageChain(
-        [Plain(text="lo"), At(12345), Plain("wo")]
-    )
-    assert MessageChain.create("hello", At(12345), "world").subchain(slice((0, 3), None)) == MessageChain(
-        [Plain(text="lo"), At(12345), Plain("world")]
-    )
-    assert MessageChain.create("hello", At(12345), "world").subchain(slice(None, (3, 2))) == MessageChain(
-        [Plain(text="hello"), At(12345), Plain("wo")]
-    )
-
-    # group 3
-    assert MessageChain.create("hello", At(12345)).subchain(
-        slice((0, 3), (2, 2)), ignore_text_index=True
-    ) == MessageChain([Plain(text="lo"), At(12345)])
-    assert MessageChain.create(["hello"]).subchain(slice((1,), (1,))) == MessageChain([])
-    with pytest.raises(ValueError):
-        assert MessageChain.create("hello", At(12345)).subchain(slice((0, 3), (2, 2))) == MessageChain(
-            [Plain(text="lo"), At(12345)]
-        )
-    with pytest.raises(ValueError):
-        MessageChain.create("hello", At(12345)).subchain(slice((0, 3), (2, 2)))
-
-    assert MessageChain.create(At(12345)).subchain(
-        slice((0, 1), None), ignore_text_index=True
-    ) == MessageChain([At(12345)])
-    with pytest.raises(ValueError):
-        MessageChain.create(At(12345)).subchain(slice((0, 1), None))
-
-    assert MessageChain.create(At(12345), "hello").subchain(
-        slice((0, 3), None), ignore_text_index=True
-    ) == MessageChain([At(12345), "hello"])
-    with pytest.raises(ValueError):
-        MessageChain.create(At(12345), "hello").subchain(slice((0, 3), None))
-
-
 def test_include_exclude():
     msg_chain = MessageChain.create("Hello", At(target=12345))
     assert msg_chain.include(Plain) == MessageChain([Plain(text="Hello")])
     assert msg_chain.exclude(Plain) == MessageChain([At(target=12345)])
+
+
+def test_safe_display():
+    msg_chain = MessageChain.create("Hello", At(target=12345))
+    assert msg_chain.safe_display == "Hello@12345"
+    assert "{chain.safe_display}".format(chain=msg_chain) == "Hello@12345"
 
 
 def test_split():
@@ -147,8 +107,7 @@ def test_get():
     assert msg_chain[Plain] == [Plain("Hello World!"), Plain("Foo test!")]
     assert msg_chain[Plain, 1] == [Plain("Hello World!")]
     assert msg_chain[1] == At(target=12345)
-    assert msg_chain[(0,):(2,)] == MessageChain(["Hello World!", At(target=12345)])
-    assert msg_chain[(0, 2):(2,)] == MessageChain(["llo World!", At(target=12345)])
+    assert msg_chain[:2] == MessageChain(["Hello World!", At(target=12345)])
     with pytest.raises(NotImplementedError):
         msg_chain["trial"]
     assert msg_chain.get(Plain) == msg_chain[Plain]

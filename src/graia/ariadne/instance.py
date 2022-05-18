@@ -28,12 +28,32 @@ class Ariadne:
         self.connection.event_callbacks.append(self.log_config.event_hook(self))
 
     @classmethod
+    def _patch_launch_manager(cls) -> None:
+        if "http.universal_client" not in cls.launch_manager.launch_components:
+            from graia.amnesia.builtins.aiohttp import AiohttpService
+
+            cls.launch_manager.add_service(AiohttpService())
+
+        if (
+            "http.universal_server" in cls.service.launch_component.required
+            and "http.universal_server" not in cls.launch_manager.launch_components
+        ):
+            from graia.amnesia.builtins.aiohttp import AiohttpServerService
+
+            cls.launch_manager.add_service(AiohttpServerService())
+
+        if "elizabeth.service" not in cls.launch_manager.launch_components:
+            cls.launch_manager.add_service(cls.service)
+
+    @classmethod
     async def launch(cls) -> None:
         assert asyncio.get_running_loop() is cls.service.loop, "ElizabethService attached to different loop"
+        cls._patch_launch_manager()
         await cls.launch_manager.launch()
 
     @classmethod
     def launch_blocking(cls):
+        cls._patch_launch_manager()
         cls.launch_manager.launch_blocking(loop=cls.service.loop)
 
     def __getattr__(self, snake_case_name: str) -> Callable:

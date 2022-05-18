@@ -81,7 +81,7 @@ class ElizabethService(Service):
         requirements: MutableSet[str] = set()
         for connection in self.connections.values():
             requirements |= connection.dependencies
-        return LaunchComponent("elizabeth.connection", requirements, self.mainline, self.prepare)
+        return LaunchComponent("elizabeth.service", requirements, self.mainline, self.prepare)
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:

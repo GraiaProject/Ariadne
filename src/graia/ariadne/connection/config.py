@@ -3,7 +3,10 @@ from typing import Dict, TypeVar, Union
 from pydantic import BaseModel, Field
 from yarl import URL
 
+from ..util import internal_cls
 
+
+@internal_cls()
 class HttpClientConfig(BaseModel):
     account: int
     verify_key: str
@@ -13,6 +16,7 @@ class HttpClientConfig(BaseModel):
         return str((URL(self.host) / route))
 
 
+@internal_cls()
 class WebsocketClientConfig(BaseModel):
     account: int
     verify_key: str
@@ -22,6 +26,7 @@ class WebsocketClientConfig(BaseModel):
         return str((URL(self.host) / route))
 
 
+@internal_cls()
 class WebsocketServerConfig(BaseModel):
     account: int
     verify_key: str
@@ -30,6 +35,7 @@ class WebsocketServerConfig(BaseModel):
     headers: Dict[str, str] = Field(default_factory=dict)
 
 
+@internal_cls()
 class HttpServerConfig(BaseModel):
     account: int
     path: str = "/"

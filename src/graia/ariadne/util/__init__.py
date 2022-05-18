@@ -420,6 +420,35 @@ def get_cls(obj) -> Optional[type]:
         return obj
 
 
+_T_cls = TypeVar("_T_cls", bound=type)
+
+
+def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Callable[[_T_cls], _T_cls]:
+    if alt:
+        hint = f"Use {alt.__module__}.{alt.__qualname__}!"
+    else:
+        hint = f"Only modules start with {module} can initialize it!"
+
+    def deco(cls: _T_cls) -> _T_cls:
+        origin_init = cls.__init__
+
+        @functools.wraps(origin_init)
+        def _wrapped_init_(self: object, *args, module_check: bool = True, **kwargs):
+            frame = inspect.stack()[1].frame  # outer frame
+            module_name: str = frame.f_globals["__name__"]
+            if not module_name.startswith(module) and module_check:
+                raise NameError(
+                    f"{self.__class__.__module__}.{self.__class__.__qualname__} is an internal class!",
+                    hint,
+                )
+            return origin_init(self, *args, **kwargs)
+
+        cls.__init__ = _wrapped_init_
+        return cls
+
+    return deco
+
+
 # Import layout
 from . import async_exec  # noqa: F401, E402
 from .async_exec import (  # noqa: F401, E402

@@ -59,7 +59,7 @@ alconna = Alconna("指令", Args.foo[str], options=[Option("my选项")])
 
 ## 结构
 
-通过阅读 Alconna 的签名可以得知，Alconna 支持四大类参数: 
+通过阅读 Alconna 的签名可以得知，Alconna 支持四大类参数:
 - `command` : 命令名称，你的命令的名字，与 headers 至少有一个填写
 - `main_args` : 主参数，填入后当且仅当命令中含有该参数时才会成功解析
 - `headers` : 呼叫该命令的命令头，一般是你的机器人的名字或者符号，与 command 至少有一个填写. 例如: /, !
@@ -89,7 +89,7 @@ Alconna(
 
 ```
 /name sub_name sub_opt sub_arg sub_main_arg opt arg main_args
-/name main_args sub_name sub_main_arg opt arg 
+/name main_args sub_name sub_main_arg opt arg
 /name opt arg main_args
 /name main_args
 ```
@@ -180,7 +180,7 @@ from arclet.alconna import Option, Args
 class Test(AlconnaDuplication):
   my_args: ArgsStub
   my_option: OptionStub
-  
+
 
 alc = Alconna("test", Args.foo[int]) + Option("my_option", Args.bar[str])
 

@@ -14,7 +14,7 @@ from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
 
-from graia.ariadne.util import gen_subclass
+from .util import gen_subclass, internal_cls
 
 if TYPE_CHECKING:
     from .app import Ariadne
@@ -288,6 +288,7 @@ class MemberPerm(Enum):
         return perm_map[self.value]
 
 
+@internal_cls()
 class Group(AriadneBaseModel):
     """描述 Tencent QQ 中的群组."""
 
@@ -346,6 +347,7 @@ class Group(AriadneBaseModel):
         return await (await session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/")).content.read()
 
 
+@internal_cls()
 class Member(AriadneBaseModel):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
 
@@ -445,6 +447,7 @@ class Member(AriadneBaseModel):
         return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
 
 
+@internal_cls()
 class Friend(AriadneBaseModel):
     """描述 Tencent QQ 中的好友."""
 
@@ -493,6 +496,7 @@ class Friend(AriadneBaseModel):
         return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
 
 
+@internal_cls()
 class Stranger(AriadneBaseModel):
     """描述 Tencent QQ 中的陌生人."""
 
@@ -563,6 +567,7 @@ class MemberInfo(AriadneBaseModel):
     """特殊头衔"""
 
 
+@internal_cls()
 class DownloadInfo(AriadneBaseModel):
     """描述一个文件的下载信息."""
 
@@ -588,6 +593,7 @@ class DownloadInfo(AriadneBaseModel):
     """下载 url"""
 
 
+@internal_cls()
 class Announcement(AriadneBaseModel):
     """群公告"""
 
@@ -610,6 +616,7 @@ class Announcement(AriadneBaseModel):
     """公告发布时间"""
 
 
+@internal_cls()
 class FileInfo(AriadneBaseModel):
     """群组文件详细信息"""
 
@@ -677,6 +684,7 @@ class CallMethod(str, Enum):
     MULTIPART = "multipart"
 
 
+@internal_cls()
 class Client(AriadneBaseModel):
     """
     指示其他客户端
@@ -689,6 +697,7 @@ class Client(AriadneBaseModel):
     """平台字符串表示"""
 
 
+@internal_cls()
 class Profile(AriadneBaseModel):
     """
     指示某个用户的个人资料

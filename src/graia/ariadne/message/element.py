@@ -13,7 +13,7 @@ from pydantic.fields import Field
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod
-from ..util import wrap_bracket
+from ..util import internal_cls, wrap_bracket
 
 if TYPE_CHECKING:
     from ..typing import ReprArgs
@@ -129,6 +129,7 @@ class Plain(Element):
         return self.text
 
 
+@internal_cls()
 class Source(Element):
     """表示消息在一个特定聊天区域内的唯一标识"""
 
@@ -160,6 +161,7 @@ class Source(Element):
         return (await ariadne.getMessageFromId(self.id)).messageChain
 
 
+@internal_cls()
 class Quote(Element):
     """表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"""
 
@@ -273,11 +275,9 @@ class Face(Element):
         return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
 
 
+@internal_cls()
 class MarketFace(Element):
-    """表示消息中的商城表情.
-
-    注意: 本类型不支持用户发送
-    """
+    """表示消息中的商城表情."""
 
     type: str = "MarketFace"
 
@@ -570,6 +570,7 @@ class Forward(Element):
         return ""
 
 
+@internal_cls()
 class File(Element):
     """指示一个文件信息元素"""
 

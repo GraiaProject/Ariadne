@@ -7,6 +7,7 @@ from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
 
+from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from pydantic import validator
 from pydantic.fields import Field
 
@@ -681,16 +682,13 @@ class MultimediaElement(Element):
         Returns:
             bytes: 元素原始数据
         """
-        from .. import get_running
-        from ..adapter import Adapter
+        from ..instance import Ariadne
 
         if self.base64:
             return b64decode(self.base64)
         if not self.url:
             raise ValueError("you should offer a url.")
-        session = get_running(Adapter).session  # FIXME
-        if not session:
-            raise RuntimeError("Unable to get session!")
+        session = Ariadne.launch_manager.get_interface(AiohttpClientInterface).service.session
         async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()

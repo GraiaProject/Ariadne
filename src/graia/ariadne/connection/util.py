@@ -115,3 +115,19 @@ class CallMethod(str, Enum):
     RESTGET = "get"
     RESTPOST = "update"
     MULTIPART = "multipart"
+
+
+class UploadMethod(str, Enum):
+    """用于向 `upload` 系列方法描述上传类型"""
+
+    Friend = "friend"
+    """好友"""
+
+    Group = "group"
+    """群组"""
+
+    Temp = "temp"
+    """临时消息"""
+
+    def __str__(self) -> str:
+        return self.value

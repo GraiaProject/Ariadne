@@ -118,9 +118,9 @@ class ConnectionMixin(Generic[T_Config]):
     async def mainline(self, mgr: LaunchManager) -> None:
         ...
 
-    async def call(self, method: CallMethod, command: str, params: Optional[dict] = None) -> Any:
+    async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         if self.fallback:
-            return await self.fallback.call(method, command, params)
+            return await self.fallback.call(command, method, params)
         raise NotImplementedError(
             f"Connection {self} can't perform {command!r}, consider configuring a HttpClientConnection?"
         )
@@ -168,7 +168,7 @@ class WebsocketConnectionMixin(Transport):
         del self.ws_io
         self.status.update(session_key=None, alive=False)
 
-    async def call(self, method: CallMethod, command: str, params: Optional[dict] = None) -> Any:
+    async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         params = params or {}
         sync_id: str = secrets.token_urlsafe(12)
         fut = asyncio.get_running_loop().create_future()
@@ -179,7 +179,7 @@ class WebsocketConnectionMixin(Transport):
             content["subCommand"] = "update"
         elif method == CallMethod.MULTIPART:
             if self.fallback:
-                return await self.fallback.call(method, command, params)
+                return await self.fallback.call(command, method, params)
             raise NotImplementedError(
                 f"Connection {self} can't perform {command!r}, consider configuring a HttpClientConnection?"
             )
@@ -316,7 +316,7 @@ class HttpClientConnection(ConnectionMixin[HttpClientConfig]):
         )
         self.status.update(session_key=session_key)
 
-    async def call(self, method: CallMethod, command: str, params: Optional[dict] = None) -> Any:
+    async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         params = params or {}
         command = command.replace("_", "/")
         while not self.status.connected:
@@ -381,22 +381,22 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         return ConnectionInterface(self.service, account)
 
     async def direct_call(
-        self, method: CallMethod, command: str, params: dict, *, account: Optional[int] = None
+        self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None
     ) -> Any:
         connection = self.connection
         if account is not None:
             connection = self.service.connections.get(account)
         if connection is None:
             raise ValueError(f"Unable to find connection to execute {command}")
-        return await connection.call(method, command, params)
+        return await connection.call(command, method, params)
 
     async def call(
-        self, method: CallMethod, command: str, params: dict, *, account: Optional[int] = None
+        self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None
     ) -> Any:
         await self.status.wait_for_available()  # wait until session_key is present
         session_key = self.status.session_key
         params["sessionKey"] = session_key
-        return await self.direct_call(method, command, params, account=account)
+        return await self.direct_call(command, method, params, account=account)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:
         if self.connection is None:

@@ -103,7 +103,7 @@ class AriadneMixin:
         return self.mirai_session.session_key
 
 
-class MessageMixin(AriadneMixin):
+class MessageMixin(AriadneMixin):  # TODO
     """用于发送, 撤回, 获取消息的 Mixin 类."""
 
     default_send_action: SendMessageActionProtocol
@@ -385,7 +385,7 @@ class MessageMixin(AriadneMixin):
         )
 
 
-class RelationshipMixin(AriadneMixin):
+class RelationshipMixin(AriadneMixin):  # TODO
     """获取各种关系模型的 Mixin 类."""
 
     @app_ctx_manager

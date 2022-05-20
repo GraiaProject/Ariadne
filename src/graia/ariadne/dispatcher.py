@@ -1,8 +1,10 @@
 """Ariadne 内置的 Dispatcher"""
 
 
+import asyncio
 import contextlib
 
+from graia.broadcast import Broadcast
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
@@ -18,9 +20,10 @@ class MessageChainDispatcher(AbstractDispatcher):
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage, MessageEvent
 
-        if isinstance(interface.event, (MessageEvent, ActiveMessage)):
-            if generic_issubclass(MessageChain, interface.annotation):
-                return interface.event.messageChain
+        if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
+            MessageChain, interface.annotation
+        ):
+            return interface.event.messageChain
 
 
 class ContextDispatcher(AbstractDispatcher):
@@ -28,12 +31,16 @@ class ContextDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        from . import get_running
+        from .instance import Ariadne
 
         if generic_isinstance(interface.event, interface.annotation):
             return interface.event
 
-        return get_running(interface.annotation, fail_err=False)
+        if generic_issubclass(Broadcast, interface.annotation):
+            return Ariadne.service.broadcast
+
+        if generic_issubclass(asyncio.AbstractEventLoop, interface.annotation):
+            return Ariadne.service.broadcast.loop
 
 
 class SourceDispatcher(AbstractDispatcher):
@@ -43,9 +50,10 @@ class SourceDispatcher(AbstractDispatcher):
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage, MessageEvent
 
-        if isinstance(interface.event, (MessageEvent, ActiveMessage)):
-            if generic_issubclass(Source, interface.annotation):
-                return interface.event.messageChain.getFirst(Source)
+        if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
+            Source, interface.annotation
+        ):
+            return interface.event.messageChain.getFirst(Source)
 
 
 class SenderDispatcher(AbstractDispatcher):
@@ -70,9 +78,10 @@ class SubjectDispatcher(AbstractDispatcher):
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage
 
-        if isinstance(interface.event, ActiveMessage):
-            if generic_issubclass(interface.annotation, interface.event.subject):
-                return interface.event.subject
+        if isinstance(interface.event, ActiveMessage) and generic_issubclass(
+            interface.annotation, interface.event.subject
+        ):
+            return interface.event.subject
 
 
 class BaseDispatcher(AbstractDispatcher):

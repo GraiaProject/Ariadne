@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, Iterable, MutableSet, Tuple
+from typing import Dict, Iterable, MutableSet, Tuple, Type, overload
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.launch.component import LaunchComponent
@@ -86,6 +86,14 @@ class ElizabethService(Service):
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
         return self.broadcast.loop
+
+    @overload
+    def get_interface(self, interface_type: Type[ConnectionInterface]) -> ConnectionInterface:
+        ...
+
+    @overload
+    def get_interface(self, interface_type: type) -> None:
+        ...
 
     def get_interface(self, interface_type: type):
         if interface_type is ConnectionInterface:

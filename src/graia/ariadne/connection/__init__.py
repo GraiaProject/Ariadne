@@ -165,6 +165,7 @@ class WebsocketConnectionMixin(Transport):
 
     @t.on(WebsocketCloseEvent)
     async def _(self, _: AbstractWebsocketIO) -> None:
+        logger.info("Websocket connection closed", style="dark_orange")
         del self.ws_io
         self.status.update(session_key=None, alive=False)
 
@@ -250,6 +251,7 @@ class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
     @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:  # start authenticate
         self.ws_io = io
+        self.status.update(alive=True)
 
 
 class HttpServerConnection(ConnectionMixin[HttpServerConfig], Transport):

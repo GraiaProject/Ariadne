@@ -42,6 +42,9 @@ class ContextDispatcher(AbstractDispatcher):
         if generic_issubclass(asyncio.AbstractEventLoop, interface.annotation):
             return Ariadne.service.broadcast.loop
 
+        if generic_issubclass(Ariadne, interface.annotation):
+            return Ariadne.current()
+
 
 class SourceDispatcher(AbstractDispatcher):
     """提取 MessageEvent 消息链 Source 元素的 Dispatcher"""

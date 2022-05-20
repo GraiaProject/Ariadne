@@ -6,6 +6,7 @@ import base64
 import inspect
 import io
 import os
+import sys
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -17,30 +18,25 @@ from typing import (
     Iterable,
     List,
     Literal,
-    MutableMapping,
     Optional,
     Type,
     Union,
     cast,
     overload,
 )
-from weakref import WeakValueDictionary
 
 from graia.amnesia.launch.manager import LaunchManager
 from graia.broadcast import Broadcast
 from loguru import logger
-
-from graia.ariadne.context import enter_context, enter_message_send_context
-from graia.ariadne.event.message import (
-    FriendMessage,
-    GroupMessage,
-    MessageEvent,
-    TempMessage,
-)
+from typing_extensions import Self
 
 from .connection import ConnectionInterface
 from .connection.config import U_Config
 from .connection.util import CallMethod, UploadMethod, build_event
+from .context import enter_context, enter_message_send_context
+from .event import MiraiEvent
+from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
+from .event.mirai import FriendEvent, GroupEvent
 from .message.chain import MessageChain
 from .message.element import Source
 from .model import (
@@ -67,13 +63,25 @@ if TYPE_CHECKING:
 class Ariadne:
     service: ClassVar[ElizabethService] = ElizabethService()
     launch_manager: ClassVar[LaunchManager] = LaunchManager()
-    instances: ClassVar[MutableMapping[int, "Ariadne"]] = WeakValueDictionary()
+    _launch_task: ClassVar[Optional[asyncio.Task]] = None
+    instances: ClassVar[Dict[int, "Ariadne"]] = {}
     default_account: ClassVar[Optional[int]] = None
     default_send_action: SendMessageActionProtocol
     held_objects: ClassVar[Dict[type, Any]] = {
         Broadcast: service.broadcast,
         asyncio.AbstractEventLoop: service.loop,
     }
+
+    def __new__(
+        cls: type[Self],
+        connection: Union[Iterable[U_Config], int] = (),
+        log_config: Optional[LogConfig] = None,
+    ) -> Self:
+        if isinstance(connection, int):
+            assert connection in Ariadne.service.connections, f"{connection} is not configured"
+            assert log_config is None, "You can't reconfigure existing instance"
+            return cls.instances[connection]
+        return super().__new__(cls)
 
     def __init__(
         self,
@@ -82,11 +90,12 @@ class Ariadne:
     ) -> None:
         from .util.send import Strict
 
+        if isinstance(connection, int):
+            return
         self.default_send_action = Strict
-        if isinstance(connection, Iterable):
-            account = Ariadne.service.add_configs(connection)[1]
-        else:
-            account = connection
+        account = Ariadne.service.add_configs(connection)[1]
+        assert account not in Ariadne.instances, "You can't configure an account twice!"
+        Ariadne.instances[account] = self
         self.account: int = account
         assert account in Ariadne.service.connections, f"{account} is not configured"
         self.connection: ConnectionInterface = Ariadne.service.get_interface(ConnectionInterface).bind(
@@ -94,8 +103,21 @@ class Ariadne:
         )
         self.log_config: LogConfig = log_config or LogConfig()
         self.connection.add_callback(self.log_config.event_hook(self))
-        if account not in Ariadne.instances:
-            Ariadne.instances[account] = self
+        self.connection.add_callback(self._event_hook)
+
+    async def _event_hook(self, event: MiraiEvent):
+        with enter_context(self, event):
+            sys.audit("AriadnePostRemoteEvent", event)
+            if isinstance(event, MessageEvent) and event.messageChain.onlyContains(Source):
+                event.messageChain.append("<! 不支持的消息类型 !>")
+            if isinstance(event, FriendEvent):
+                with enter_message_send_context(UploadMethod.Friend):
+                    self.service.broadcast.postEvent(event)
+            elif isinstance(event, GroupEvent):
+                with enter_message_send_context(UploadMethod.Group):
+                    self.service.broadcast.postEvent(event)
+            else:
+                self.service.broadcast.postEvent(event)
 
     @classmethod
     def _patch_launch_manager(cls) -> None:
@@ -119,7 +141,20 @@ class Ariadne:
     async def launch(cls) -> None:
         assert asyncio.get_running_loop() is cls.service.loop, "ElizabethService attached to different loop"
         cls._patch_launch_manager()
-        await cls.launch_manager.launch()
+        if cls._launch_task is None or cls._launch_task.done():
+            cls._launch_task = asyncio.create_task(cls.launch_manager.launch(), name="amnesia-launch")
+
+    @classmethod
+    async def lifecycle(cls) -> None:
+        if cls._launch_task is None or cls._launch_task.done():
+            await cls.launch()
+        if cls._launch_task is not None and not cls._launch_task.done():
+            await cls._launch_task
+
+    @classmethod
+    def stop(cls) -> None:
+        if cls._launch_task is not None and not cls._launch_task.done():
+            cls._launch_task.cancel()
 
     @classmethod
     def launch_blocking(cls):
@@ -170,13 +205,23 @@ class Ariadne:
             if len(cls.service.connections) != 1:
                 raise ValueError("Ambiguous account reference: set Ariadne.default_account")
             cls.default_account = next(iter(cls.service.connections))
-        return cls.instances.setdefault(cls.default_account, cls(cls.default_account))
+        return cls(cls.default_account)
 
     def __getattr__(self, snake_case_name: str) -> Callable:
         # snake_case to camelCase
         snake_segments = snake_case_name.split("_")
         camel_case_name = snake_segments[0] + "".join(s.capitalize() for s in snake_segments[1:])
         return self.__dict__[camel_case_name]
+
+    @app_ctx_manager
+    async def getVersion(self) -> str:
+        """获取后端 Mirai HTTP API 版本.
+
+        Returns:
+            str: 版本信息.
+        """
+        result = await self.connection.direct_call("about", CallMethod.GET, {})
+        return result["version"]
 
     async def getFileIterator(
         self,

@@ -6,6 +6,7 @@ from graia.amnesia.launch.component import LaunchComponent
 from graia.amnesia.launch.manager import LaunchManager
 from graia.amnesia.launch.service import Service
 from graia.broadcast import Broadcast
+from loguru import logger
 from typing_extensions import Self
 
 from .connection import (
@@ -15,6 +16,7 @@ from .connection import (
     HttpClientConnection,
 )
 from .connection.config import HttpClientConfig, U_Config
+from .dispatcher import ContextDispatcher
 
 
 class ElizabethService(Service):
@@ -24,10 +26,12 @@ class ElizabethService(Service):
     broadcast: Broadcast
 
     def __init__(self) -> None:
+
         self.connections = {}
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.broadcast = Broadcast(loop=loop)
+        self.broadcast.prelude_dispatchers.append(ContextDispatcher)
 
     def add_configs(self, configs: Iterable[U_Config]) -> Tuple[Self, int]:
         configs = list(configs)
@@ -62,7 +66,16 @@ class ElizabethService(Service):
         if connection.fallback:
             connection.fallback.http_interface = self.http_interface
             connection.fallback.status = connection.status
-        await connection.mainline(mgr)  # TODO: auto reboot
+        if "http.universal_server" in connection.dependencies:
+            logger.info(f"Establishing connection {connection}")
+            await connection.mainline(mgr)
+        elif "http.universal_client" in connection.dependencies:
+            while True:
+                try:
+                    logger.info(f"Establishing connection {connection}")
+                    await connection.mainline(mgr)
+                except Exception as e:
+                    logger.exception(e)
 
     async def prepare(self, mgr: LaunchManager) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)

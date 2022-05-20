@@ -4,20 +4,15 @@ import re
 from typing import Optional, Union
 
 import devtools
+from graia.amnesia import log
 from graia.broadcast import Broadcast
 from graia.broadcast.builtin.event import ExceptionThrowed
 from graia.scheduler import GraiaScheduler
 from graia.scheduler.timers import every_custom_seconds
 from loguru import logger
 
-from graia.ariadne.adapter import WebsocketAdapter
-from graia.ariadne.adapter.forward import ComposeForwardAdapter
-from graia.ariadne.adapter.reverse import (
-    ComposeReverseWebsocketAdapter,
-    ComposeWebhookAdapter,
-    ReverseWebsocketAdapter,
-)
 from graia.ariadne.app import Ariadne
+from graia.ariadne.connection.config import HttpClientConfig, WebsocketClientConfig
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import (
     CommandExecutedEvent,
@@ -44,26 +39,26 @@ from graia.ariadne.message.parser.twilight import (
     Twilight,
     WildcardMatch,
 )
-from graia.ariadne.model import Friend, Group, Member, MiraiSession, UploadMethod
+from graia.ariadne.model import Friend, Group, Member, MiraiSession
 from graia.ariadne.util.cooldown import CoolDown
 from graia.ariadne.util.validator import CertainGroup, CertainMember
 
+log.install()
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
         open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     )
     ALL_FLAG = True
-    loop = asyncio.new_event_loop()
-    loop.set_debug(True)
-
-    bcc = Broadcast(loop=loop)
+    Ariadne.service.loop.set_debug(True)
 
     app = Ariadne(
-        ComposeForwardAdapter(bcc, MiraiSession(url, account, verify_key)),
-        loop=loop,
-        use_bypass_listener=True,
-        max_retry=1,
+        [
+            WebsocketClientConfig(account=account, verify_key=verify_key, module_check=False),
+            HttpClientConfig(account=account, verify_key=verify_key, module_check=False),
+        ]
     )
+
+    bcc = Ariadne.service.broadcast
 
     sched = app.create(GraiaScheduler)
 
@@ -203,7 +198,7 @@ if __name__ == "__main__":
         dispatchers=[Twilight([RegexMatch("[./]stop")])],
     )
     async def stop(app: Ariadne):
-        await app.stop()
+        app.stop()
 
     @bcc.receiver(CommandExecutedEvent)
     async def cmd_log(event: CommandExecutedEvent):
@@ -226,4 +221,4 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
 
-    app.launch_blocking()
+    Ariadne.service.loop.run_until_complete(main())

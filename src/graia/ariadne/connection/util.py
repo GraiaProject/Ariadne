@@ -8,7 +8,6 @@ from graia.amnesia.builtins.aiohttp import AiohttpRouter
 from graia.amnesia.launch.manager import LaunchManager
 from loguru import logger
 
-from ..event import MiraiEvent
 from ..exception import (
     AccountMuted,
     AccountNotFound,
@@ -25,6 +24,8 @@ from ..util import gen_subclass
 
 if TYPE_CHECKING:
     from graia.amnesia.builtins.starlette import StarletteRouter
+
+    from ..event import MiraiEvent
 else:
     try:
         from graia.amnesia.builtins.starlette import StarletteRouter
@@ -80,6 +81,8 @@ def validate_response(data: Any, raising: bool = True):
 
 @lru_cache(maxsize=1024)
 def extract_event_type(event_type: str) -> Optional[Type[MiraiEvent]]:
+    from ..event import MiraiEvent
+
     return next((cls for cls in gen_subclass(MiraiEvent) if cls.__name__ == event_type), None)
 
 

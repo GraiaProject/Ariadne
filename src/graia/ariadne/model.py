@@ -1,7 +1,6 @@
 """Ariadne 各种 model 存放的位置"""
 import functools
 import json
-from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Dict, Optional, Type, Union
@@ -15,8 +14,8 @@ from yarl import URL
 from .util import internal_cls
 
 if TYPE_CHECKING:
+    from .app import Ariadne
     from .event import MiraiEvent
-    from .instance import Ariadne
     from .message.chain import MessageChain
     from .typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 
@@ -74,42 +73,6 @@ class AriadneBaseModel(BaseModel):
             datetime: datetime_encoder,
         }
         arbitrary_types_allowed = True
-
-
-@dataclass  # FIXME
-class ChatLogConfig:
-    """配置日志如何记录 QQ 消息与事件."""
-
-    enabled: bool = True
-    """是否开启聊天日志"""
-
-    log_level: str = "INFO"
-    """聊天日志的 log 等级"""
-
-    group_message_log_format: str = (
-        "{bot_id}: [{group_name}({group_id})] {member_name}({member_id}) -> {message_string}"
-    )
-    """群消息格式"""
-
-    friend_message_log_format: str = "{bot_id}: [{friend_name}({friend_id})] -> {message_string}"
-    """好友消息格式"""
-
-    temp_message_log_format: str = (
-        "{bot_id}: [{group_name}({group_id}).{member_name}({member_id})] -> {message_string}"
-    )
-    """临时消息格式"""
-
-    other_client_message_log_format: str = "{bot_id}: [{platform_name}({platform_id})] -> {message_string}"
-    """其他客户端消息格式"""
-
-    stranger_message_log_format: str = "{bot_id}: [{stranger_name}({stranger_id})] -> {message_string}"
-    """陌生人消息格式"""
-
-    active_message_log_format: str = "{bot_id}: {sync_label}[{subject}] <- {message_string}"
-
-    def initialize(self, app):
-        """利用 Ariadne 对象注册事件日志处理器"""
-        pass
 
 
 class LogConfig(Dict[Type["MiraiEvent"], str]):
@@ -259,9 +222,9 @@ class Group(AriadneBaseModel):
         Returns:
             Config: 该群组的设置对象.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        return await get_running().getGroupConfig(self)
+        return await Ariadne.current().getGroupConfig(self)
 
     async def modifyConfig(self, config: "GroupConfig") -> None:
         """修改该群组的 Config
@@ -269,9 +232,9 @@ class Group(AriadneBaseModel):
         Args:
             config (GroupConfig): 经过修改后的群设置对象.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        return await get_running().modifyGroupConfig(self, config)
+        return await Ariadne.current().modifyGroupConfig(self, config)
 
     async def getAvatar(self, cover: Optional[int] = None) -> bytes:
         """获取该群组的头像
@@ -281,13 +244,13 @@ class Group(AriadneBaseModel):
         Returns:
             bytes: 群头像的二进制内容.
         """
-        from . import get_running
+        from .app import Ariadne
 
         cover = (cover or 0) + 1
-        session = get_running().adapter.session
-        if not session:
-            raise RuntimeError("No running ClientSession")
-        return await (await session.get(f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/")).content.read()
+        rider = await Ariadne.service.http_interface.request(
+            "GET", f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/"
+        )
+        return await rider.io().read()
 
 
 @internal_cls()
@@ -333,9 +296,9 @@ class Member(AriadneBaseModel):
         Returns:
             Profile: 该群成员的 Profile 对象
         """
-        from . import get_running
+        from .app import Ariadne
 
-        return await get_running().getMemberProfile(self)
+        return await Ariadne.current().getMemberProfile(self)
 
     async def getInfo(self) -> "MemberInfo":
         """获取该成员的可修改状态
@@ -355,9 +318,9 @@ class Member(AriadneBaseModel):
         Returns:
             None: 没有返回.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        return await get_running().modifyMemberInfo(self, info)
+        return await Ariadne.current().modifyMemberInfo(self, info)
 
     async def modifyAdmin(self, assign: bool) -> None:
         """
@@ -369,9 +332,9 @@ class Member(AriadneBaseModel):
         Returns:
             None: 没有返回.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        return await get_running().modifyMemberAdmin(assign, self)
+        return await Ariadne.current().modifyMemberAdmin(assign, self)
 
     async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该群成员的头像
@@ -382,12 +345,13 @@ class Member(AriadneBaseModel):
         Returns:
             bytes: 群成员头像的二进制内容.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        session = get_running().adapter.session
-        if not session:
-            raise RuntimeError("No running ClientSession")
-        return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
+        rider = await Ariadne.service.http_interface.request(
+            "GET", f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+        )
+
+        return await rider.io().read()
 
 
 @internal_cls()
@@ -418,9 +382,9 @@ class Friend(AriadneBaseModel):
         Returns:
             Profile: 该好友的 Profile 对象
         """
-        from . import get_running
+        from .app import Ariadne
 
-        return await get_running().getFriendProfile(self)
+        return await Ariadne.current().getFriendProfile(self)
 
     async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该好友的头像
@@ -431,12 +395,13 @@ class Friend(AriadneBaseModel):
         Returns:
             bytes: 好友头像的二进制内容.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        session = get_running().adapter.session
-        if not session:
-            raise RuntimeError("No running ClientSession")
-        return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
+        rider = await Ariadne.service.http_interface.request(
+            "GET", f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+        )
+
+        return await rider.io().read()
 
 
 @internal_cls()
@@ -470,12 +435,13 @@ class Stranger(AriadneBaseModel):
         Returns:
             bytes: 陌生人头像的二进制内容.
         """
-        from . import get_running
+        from .app import Ariadne
 
-        session = get_running().adapter.session
-        if not session:
-            raise RuntimeError("No running ClientSession")
-        return await (await session.get(f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}")).content.read()
+        rider = await Ariadne.service.http_interface.request(
+            "GET", f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+        )
+
+        return await rider.io().read()
 
 
 class GroupConfig(AriadneBaseModel):
@@ -597,34 +563,6 @@ class FileInfo(AriadneBaseModel):
 
 
 FileInfo.update_forward_refs(FileInfo=FileInfo)
-
-
-class UploadMethod(str, Enum):
-    """用于向 `upload` 系列方法描述上传类型"""
-
-    Friend = "friend"
-    """好友"""
-
-    Group = "group"
-    """群组"""
-
-    Temp = "temp"
-    """临时消息"""
-
-    def __str__(self) -> str:
-        return self.value
-
-
-class CallMethod(str, Enum):
-    """
-    用于向 `Adapter.call_api` 指示操作类型.
-    """
-
-    GET = "GET"
-    POST = "POST"
-    RESTGET = "get"
-    RESTPOST = "update"
-    MULTIPART = "multipart"
 
 
 @internal_cls()

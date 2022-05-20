@@ -11,9 +11,10 @@ from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from pydantic import validator
 from pydantic.fields import Field
 
+from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
-from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod
+from ..model import AriadneBaseModel, Friend, Member, Stranger
 from ..util import internal_cls, wrap_bracket
 
 if TYPE_CHECKING:
@@ -154,12 +155,9 @@ class Source(Element):
         Returns:
             MessageChain: 原来的消息链.
         """
-        from .. import get_running
         from ..app import Ariadne
 
-        ariadne = get_running(Ariadne)
-
-        return (await ariadne.getMessageFromId(self.id)).messageChain
+        return (await Ariadne.current().getMessageFromId(self.id)).messageChain
 
 
 @internal_cls()
@@ -682,7 +680,7 @@ class MultimediaElement(Element):
         Returns:
             bytes: 元素原始数据
         """
-        from ..instance import Ariadne
+        from ..app import Ariadne
 
         if self.base64:
             return b64decode(self.base64)

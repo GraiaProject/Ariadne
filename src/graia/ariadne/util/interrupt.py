@@ -1,13 +1,12 @@
 from typing import Callable, Generic, List, Optional, Type, TypeVar, cast
 
-from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interrupt import InterruptControl, Waiter
 from graia.broadcast.typing import T_Dispatcher
 
-from .. import get_running
+from ..app import Ariadne
 from ..typing import T
 
 
@@ -40,7 +39,7 @@ class FunctionWaiter(Waiter, Generic[T]):
         self,
         timeout: Optional[float] = None,
     ) -> T:
-        inc: InterruptControl = InterruptControl(get_running(Broadcast))
+        inc: InterruptControl = InterruptControl(Ariadne.service.broadcast)
         return await inc.wait(
             self,
             timeout=timeout,  # type: ignore
@@ -86,7 +85,7 @@ class EventWaiter(Waiter, Generic[T_E]):
         self,
         timeout: Optional[float] = None,
     ) -> T_E:
-        inc: InterruptControl = InterruptControl(get_running(Broadcast))
+        inc: InterruptControl = InterruptControl(Ariadne.service.broadcast)
         return await inc.wait(
             self,
             timeout=timeout,  # type: ignore

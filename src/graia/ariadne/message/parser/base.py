@@ -11,9 +11,8 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from loguru import logger
 
-from ... import get_running
+from ...app import Ariadne
 from ...event.message import GroupMessage
 from ...typing import generic_issubclass
 from ..chain import MessageChain
@@ -97,11 +96,8 @@ class MentionMe(ChainDecorator):
     """At 账号或者提到账号群昵称"""
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
-        ariadne = get_running()
+        ariadne = Ariadne.current()
         if isinstance(interface.event, GroupMessage):
-            if not ariadne.account:
-                logger.warning("Unable to detect Ariadne's name because account is not set")
-                raise ExecutionStop
             name = (await ariadne.getMember(interface.event.sender.group, ariadne.account)).name
         else:
             name = (await ariadne.getBotProfile()).nickname

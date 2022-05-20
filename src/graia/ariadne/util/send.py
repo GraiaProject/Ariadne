@@ -1,7 +1,7 @@
 """本模块包含许多用于 Ariadne.SendMessage 的 action 函数"""
 from typing import Optional, TypeVar, Union, overload
 
-from .. import get_running
+from ..app import Ariadne
 from ..model import BotMessage
 from ..typing import SendMessageAction, SendMessageException
 
@@ -68,7 +68,7 @@ class Safe(SendMessageAction):
         from ..message.element import At, AtAll, Forward, MultimediaElement, Plain, Poke
 
         chain: MessageChain = item.send_data["message"]
-        ariadne = get_running()
+        ariadne = Ariadne.current()
 
         def convert(msg_chain: MessageChain, type) -> None:
             for ind, elem in enumerate(msg_chain.__root__[:]):
@@ -90,10 +90,11 @@ class Safe(SendMessageAction):
         ...
 
     @overload
-    async def exception(s, i):
+    async def exception(s, i):  # sourcery skip: instance-method-first-arg-name
         ...
 
     async def exception(s: Union["Safe", Exc_T], i: Optional[Exc_T] = None):  # type: ignore
+        # sourcery skip: instance-method-first-arg-name
         if not isinstance(s, Safe):
             return await Safe._handle(s, True)
         if i:

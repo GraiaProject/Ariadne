@@ -8,10 +8,10 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
 from typing_extensions import Literal
 
-from ..exception import InvalidSession
+from ..connection.util import CallMethod
 from ..message.chain import MessageChain
 from ..message.element import Element
-from ..model import CallMethod, Client, Friend, Group, Member, MemberPerm
+from ..model import Client, Friend, Group, Member, MemberPerm
 from ..typing import generic_issubclass
 from . import MiraiEvent
 
@@ -454,14 +454,14 @@ class NudgeEvent(MiraiEvent):
     class Dispatcher(BaseDispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            from .. import get_running
+            from ..app import Ariadne
 
             ev = interface.event
             if isinstance(ev, NudgeEvent):
                 if generic_issubclass(Group, interface.annotation) and ev.group_id is not None:
-                    return await get_running().getGroup(ev.group_id)
+                    return await Ariadne.current().getGroup(ev.group_id)
                 if generic_issubclass(Friend, interface.annotation) and ev.friend_id is not None:
-                    return await get_running().getFriend(ev.friend_id)
+                    return await Ariadne.current().getFriend(ev.friend_id)
 
 
 class GroupNameChangeEvent(GroupEvent):
@@ -1011,18 +1011,13 @@ class RequestEvent(MiraiEvent):
         """
         内部接口, 用于内部便捷发送相应操作.
         """
-        from .. import get_running
-        from ..adapter import Adapter
+        from ..app import Ariadne
 
-        adapter = get_running(Adapter)  # FIXME
-        if not adapter.mirai_session.session_key:
-            raise InvalidSession("you must authenticate before this.")
         api_route = self.type[0].lower() + self.type[1:]
-        await adapter.call_api(
-            f"resp/{api_route}",
+        await Ariadne.current().connection.call(
+            f"resp_{api_route}",
             CallMethod.POST,
             {
-                "sessionKey": adapter.mirai_session.session_key,
                 "eventId": self.requestId,
                 "fromId": self.supplicant,
                 "groupId": self.sourceGroup,

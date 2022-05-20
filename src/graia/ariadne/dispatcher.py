@@ -31,7 +31,7 @@ class ContextDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        from .instance import Ariadne
+        from .app import Ariadne
 
         if generic_isinstance(interface.event, interface.annotation):
             return interface.event

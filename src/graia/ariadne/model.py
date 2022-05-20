@@ -248,7 +248,7 @@ class Group(AriadneBaseModel):
 
         cover = (cover or 0) + 1
         rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/"
+            "GET", f"http://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/"
         )
         return await rider.io().read()
 
@@ -348,7 +348,7 @@ class Member(AriadneBaseModel):
         from .app import Ariadne
 
         rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+            "GET", f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
         )
 
         return await rider.io().read()
@@ -398,7 +398,7 @@ class Friend(AriadneBaseModel):
         from .app import Ariadne
 
         rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+            "GET", f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
         )
 
         return await rider.io().read()
@@ -438,7 +438,7 @@ class Stranger(AriadneBaseModel):
         from .app import Ariadne
 
         rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://q.qlogo.cn/g?b=qq&nk={self.id}&s={size}"
+            "GET", f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
         )
 
         return await rider.io().read()

@@ -1568,7 +1568,7 @@ reference = "tuna-tsinghua"
 
 [[package]]
 name = "yappi"
-version = "1.3.3"
+version = "1.3.5"
 description = "Yet Another Python Profiler"
 category = "dev"
 optional = true
@@ -1626,7 +1626,7 @@ standard = ["graia-saya", "graia-scheduler", "arclet-alconna-graia", "prompt-too
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "1bfecf68683a7f7f1ab08ff8eeb4dbe134fc1ba581aeecf688715c4902d1c567"
+content-hash = "d915bf6e9620accae29608daeddb0d97a9d022d855216c99b491dda5807b5e32"
 
 [metadata.files]
 aiohttp = [
@@ -2465,7 +2465,7 @@ win32-setctime = [
     {file = "win32_setctime-1.1.0.tar.gz", hash = "sha256:15cf5750465118d6929ae4de4eb46e8edae9a5634350c01ba582df868e932cb2"},
 ]
 yappi = [
-    {file = "yappi-1.3.3.tar.gz", hash = "sha256:855890cd9a90d833dd2df632d648de8ccd0a4c3131f1edc8abd004db0625b5e8"},
+    {file = "yappi-1.3.5.tar.gz", hash = "sha256:f54c25f04aa7c613633b529bffd14e0699a4363f414dc9c065616fd52064a49b"},
 ]
 yarl = [
     {file = "yarl-1.7.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:f2a8508f7350512434e41065684076f640ecce176d262a7d54f0da41d99c5a95"},

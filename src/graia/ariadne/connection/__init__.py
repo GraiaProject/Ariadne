@@ -34,6 +34,7 @@ from graia.amnesia.transport.common.websocket import (
     WebsocketConnectEvent,
     WebsocketEndpoint,
     WebsocketReceivedEvent,
+    WebsocketReconnect,
     WSConnectionAccept,
     WSConnectionClose,
 )
@@ -163,11 +164,17 @@ class WebsocketConnectionMixin(Transport):
         else:
             logger.warning(f"Got unknown data: {data}")
 
+    @t.handle(WebsocketReconnect)
+    async def _(self, _) -> bool:
+        logger.warning("Websocket reconnecting in 5s...", style="dark_orange")
+        await asyncio.sleep(5)
+        return True
+
     @t.on(WebsocketCloseEvent)
     async def _(self, _: AbstractWebsocketIO) -> None:
+        self.status.update(session_key=None, alive=False)
         logger.info("Websocket connection closed", style="dark_orange")
         del self.ws_io
-        self.status.update(session_key=None, alive=False)
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         params = params or {}
@@ -323,7 +330,6 @@ class HttpClientConnection(ConnectionMixin[HttpClientConfig]):
         command = command.replace("_", "/")
         while not self.status.connected:
             await self.status.wait_for_update()
-            logger.debug("Got update")
         if not self.status.session_key:
             await self.http_auth()
         try:
@@ -338,25 +344,26 @@ class HttpClientConnection(ConnectionMixin[HttpClientConfig]):
             raise
 
     async def mainline(self, _) -> None:
-        try:
-            await self.http_auth()
-        except Exception as e:
-            self.status.update(session_key=None)
-            logger.exception(e)
-        else:
-            while self.status.connected:
-                await asyncio.sleep(0.5)
+        while True:
+            try:
+                if not self.status.session_key:
+                    logger.info("HttpClient: authenticate", style="dark_orange")
+                    await self.http_auth()
                 data = await self.request(
                     "GET",
                     self.config.get_url("fetchMessage"),
                     {"sessionKey": self.status.session_key, "count": 10},
                 )
-                self.status.update(alive=True)
-                assert isinstance(data, list)
-                for event_data in data:
-                    event = build_event(event_data)
-                    await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
-            self.status.update(alive=False)
+            except Exception as e:
+                self.status.update(session_key=None, alive=False)
+                logger.exception(e)
+                continue
+            self.status.update(alive=True)
+            assert isinstance(data, list)
+            for event_data in data:
+                event = build_event(event_data)
+                await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
+            await asyncio.sleep(0.5)
 
 
 CONFIG_MAP: Dict[Type[U_Config], Type[ConnectionMixin]] = {

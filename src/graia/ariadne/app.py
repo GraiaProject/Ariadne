@@ -1031,7 +1031,7 @@ class Ariadne:
             description (str, optional): 描述字符串. Defaults to "".
 
         """
-        await self.connection.direct_call(
+        await self.connection.call(
             "cmd_register",
             CallMethod.POST,
             {
@@ -1052,7 +1052,7 @@ class Ariadne:
         """
         if isinstance(command, str):
             command = command.split(" ")
-        await self.connection.direct_call(
+        await self.connection.call(
             "cmd_execute",
             CallMethod.POST,
             {

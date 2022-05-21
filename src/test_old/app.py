@@ -206,6 +206,7 @@ if __name__ == "__main__":
 
     async def main():
         await app.launch()
+        await app.connection.status.wait_for_available()
         logger.debug(await app.getVersion())
         logger.debug(await app.getBotProfile())
         if ALL_FLAG:

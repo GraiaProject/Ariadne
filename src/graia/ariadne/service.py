@@ -66,16 +66,11 @@ class ElizabethService(Service):
         if connection.fallback:
             connection.fallback.http_interface = self.http_interface
             connection.fallback.status = connection.status
-        if "http.universal_server" in connection.dependencies:
-            logger.info(f"Establishing connection {connection}")
-            await connection.mainline(mgr)
-        elif "http.universal_client" in connection.dependencies:
-            while True:
-                try:
-                    logger.info(f"Establishing connection {connection}")
-                    await connection.mainline(mgr)
-                except Exception as e:
-                    logger.exception(e)
+        logger.info(
+            f"Establishing connection {connection}",
+            alt=f"[green]Establishing connection[/green] {connection}",
+        )
+        await connection.mainline(mgr)
 
     async def prepare(self, mgr: LaunchManager) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)

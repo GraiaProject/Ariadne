@@ -35,6 +35,11 @@ from ..util.send import Bypass as Bypass
 from ..util.send import Ignore as Ignore
 from ..util.send import Safe as Safe
 from ..util.send import Strict as Strict
+from ..util.validator import Certain as Certain
+from ..util.validator import CertainFriend as CertainFriend
+from ..util.validator import CertainGroup as CertainGroup
+from ..util.validator import CertainMember as CertainMember
+from ..util.validator import Quoting as Quoting
 from . import event as event
 from . import message as message
 from .broadcast import *

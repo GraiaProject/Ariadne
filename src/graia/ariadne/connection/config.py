@@ -39,6 +39,8 @@ _CFG_INFO_MAP = {
 
 
 def config(account: int, verify_key: str, *configs: Union[Type[U_Config], U_Config]) -> List[U_Info]:
+    assert isinstance(account, int)
+    assert isinstance(verify_key, str)
     configs = configs or (HttpClientConfig(), WebsocketClientConfig())
     infos: List[U_Info] = []
     for cfg in configs:

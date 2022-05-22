@@ -106,11 +106,12 @@ class ElizabethService(Service):
 
         for account in self.connections:
             app: Ariadne = Ariadne(account)
-            with enter_context(app=app):
-                await self.broadcast.postEvent(ApplicationShutdowned(app))
             task = self.connection_tasks.pop(account, None)
-            if task and not task.done():
-                task.cancel()
+            if task:
+                with enter_context(app=app):
+                    await self.broadcast.postEvent(ApplicationShutdowned(app))
+                if not task.done():
+                    task.cancel()
 
     @property
     def launch_component(self) -> LaunchComponent:

@@ -5,6 +5,7 @@ from typing import Optional, Union
 
 import devtools
 from graia.amnesia import log
+from graia.amnesia.builtins.aiohttp import AiohttpServerService
 from graia.broadcast import Broadcast
 from graia.broadcast.builtin.event import ExceptionThrowed
 from loguru import logger
@@ -19,9 +20,11 @@ if __name__ == "__main__":
     ALL_FLAG = True
     Ariadne.service.loop.set_debug(True)
 
+    Ariadne.launch_manager.add_service(AiohttpServerService(port=23333))
+
     app = Ariadne(
         config(
-            account,
+            int(account),
             verify_key,
             WebsocketServerConfig(path="/"),
             HttpClientConfig(host=url),

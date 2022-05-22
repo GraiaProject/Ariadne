@@ -24,6 +24,7 @@ from .element import (
     AtAll,
     Element,
     File,
+    Image,
     MultimediaElement,
     NotSendableElement,
     Plain,
@@ -72,6 +73,10 @@ class MessageChain(AriadneBaseModel):
                         break
             elif isinstance(i, str):
                 element_list.append(Plain(i))
+        if len(element_list) != 1:
+            assert all(
+                isinstance(element, (Plain, Image)) for element in element_list
+            ), "An MessageChain can only contain *one* special element"
         return element_list
 
     @classmethod
@@ -119,7 +124,11 @@ class MessageChain(AriadneBaseModel):
                 element_list.append(Plain(i))
             else:
                 element_list.extend(cls.build_chain(i))
-        return cls(__root__=element_list, inline=True)
+        if len(element_list) != 1:
+            assert all(
+                isinstance(element, (Plain, Image)) for element in element_list
+            ), "An MessageChain can only contain *one* special element"
+        return cls(__root__=element_list)
 
     def prepare(self, copy: bool = False) -> "MessageChain":
         """

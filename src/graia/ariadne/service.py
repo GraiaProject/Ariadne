@@ -18,7 +18,7 @@ from .connection import (
     HttpClientConnection,
 )
 from .connection._info import HttpClientInfo, T_Info, U_Info
-from .dispatcher import ContextDispatcher
+from .dispatcher import ContextDispatcher, NoneDispatcher
 
 
 class ElizabethService(Service):
@@ -35,6 +35,7 @@ class ElizabethService(Service):
         asyncio.set_event_loop(loop)
         self.broadcast = Broadcast(loop=loop)
         self.broadcast.prelude_dispatchers.append(ContextDispatcher)
+        self.broadcast.finale_dispatchers.append(NoneDispatcher)
 
     def add_configs(self, configs: Iterable[U_Info]) -> Tuple[Self, int]:
         configs = list(configs)

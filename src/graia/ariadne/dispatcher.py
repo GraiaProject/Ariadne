@@ -6,6 +6,7 @@ import contextlib
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
+from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
@@ -44,6 +45,15 @@ class ContextDispatcher(AbstractDispatcher):
 
         if generic_issubclass(Ariadne, interface.annotation):
             return Ariadne.current()
+
+
+class NoneDispatcher(AbstractDispatcher):
+    """给 Optional[...] 提供 None 的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if generic_isinstance(type(None), interface.annotation):
+            return Force(None)
 
 
 class SourceDispatcher(AbstractDispatcher):

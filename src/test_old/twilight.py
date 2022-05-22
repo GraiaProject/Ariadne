@@ -1,12 +1,11 @@
 import devtools
+from graia.amnesia.log import install
 
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import *
 from graia.ariadne.message.parser.twilight import *
-from graia.ariadne.util import inject_loguru_traceback
 
-inject_loguru_traceback()
-
+install()
 if __name__ == "__main__":
     twilight_args_kwargs = Twilight(
         [

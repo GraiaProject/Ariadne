@@ -4,18 +4,12 @@
 # Utility Layout
 import asyncio
 import collections
-import contextlib
 import functools
 import inspect
-import logging
 import sys
-import traceback
-import types
 import typing
 import warnings
-from asyncio.events import AbstractEventLoop
 from contextvars import ContextVar
-from types import TracebackType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -42,97 +36,12 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
-from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
 
 from ..typing import DictStrAny, P, R, T
-
-
-def type_repr(obj: Any) -> str:
-    if isinstance(obj, types.GenericAlias):
-        return repr(obj)
-    if isinstance(obj, type):
-        if obj.__module__ == "builtins":
-            return obj.__qualname__
-        return f"{obj.__module__}.{obj.__qualname__}"
-    if obj is ...:
-        return "..."
-    if isinstance(obj, types.FunctionType):
-        return obj.__name__
-    return repr(obj)
-
-
-def loguru_excepthook(cls: Type[BaseException], val: BaseException, tb: TracebackType, *_, **__):
-    """loguru 异常回调
-
-    Args:
-        cls (Type[Exception]): 异常类
-        val (Exception): 异常的实际值
-        tb (TracebackType): 回溯消息
-    """
-    exec_module_name = tb.tb_frame.f_globals.get("__name__", "")
-    if issubclass(cls, ExecutionStop) and exec_module_name.startswith("graia"):
-        return
-    elif isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
-        with contextlib.suppress(Exception):
-            local_dict = tb.tb_frame.f_locals
-            _, param_name, param_anno, param_default = val.args
-            if isinstance(param_anno, type):
-                param_anno = param_anno.__qualname__
-            param_repr = "".join(
-                [
-                    param_name,
-                    f": {type_repr(param_anno)}" if param_anno else "",
-                    f" = {param_default}" if param_default else "",
-                ]
-            )
-            val = RequirementCrashed(
-                "Unable to lookup parameter " f"({param_repr})",
-                local_dict["dispatchers"],
-            )
-
-    logger.opt(exception=(cls, val, tb)).error("Exception:")
-
-
-def loguru_async_handler(_, ctx: dict):
-    """loguru 异步异常回调
-
-    Args:
-        _ (AbstractEventLoop): 异常发生的事件循环
-        ctx (dict): 异常上下文
-    """
-    if "exception" in ctx:
-        logger.opt(exception=ctx["exception"]).error("Exception:")
-    else:
-        logger.error(f"Exception: {ctx}")
-
-
-class LoguruHandler(logging.Handler):
-    def emit(self, record):
-        # Get corresponding Loguru level if it exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-
-        # Find caller from where originated the logged message
-        frame, depth = logging.currentframe(), 2
-        while frame and frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-
-
-def inject_loguru_traceback(loop: Optional[AbstractEventLoop] = None):
-    """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
-    traceback.print_exception = loguru_excepthook
-    sys.excepthook = loguru_excepthook
-    if loop:
-        loop.set_exception_handler(loguru_async_handler)
 
 
 def inject_bypass_listener(broadcast: Broadcast):

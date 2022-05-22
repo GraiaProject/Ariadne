@@ -402,7 +402,13 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         return await connection.call(command, method, params)
 
     async def call(
-        self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None, in_session: bool = True
+        self,
+        command: str,
+        method: CallMethod,
+        params: dict,
+        *,
+        account: Optional[int] = None,
+        in_session: bool = True,
     ) -> Any:
         if in_session:
             await self.status.wait_for_available()  # wait until session_key is present

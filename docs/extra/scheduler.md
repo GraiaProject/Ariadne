@@ -65,4 +65,4 @@ async def scheduled_func():
     ...
 ```
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/10_ohayou_oniichan.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/scheduler.html)"

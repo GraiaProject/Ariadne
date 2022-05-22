@@ -28,6 +28,7 @@ from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
+from typing_extensions import LiteralString
 
 from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
@@ -338,22 +339,17 @@ class Commander:
         self.command_handlers: List[CommandHandler] = []
         self.validators: List[Callable] = [chain_validator]
 
-        async def execute_func(chain: MessageChain):
-            await self.execute(chain)
-
-        self.listen_func = execute_func
-
         if listen:
             self.broadcast.listeners.append(
                 Listener(
-                    self.listen_func,
+                    self.execute,
                     self.broadcast.getDefaultNamespace(),
                     list(gen_subclass(MessageEvent)),
                 )
             )
 
     def __del__(self):
-        self.broadcast.listeners = [i for i in self.broadcast.listeners if i.callable != self.listen_func]
+        self.broadcast.listeners = [i for i in self.broadcast.listeners if i.callable != self.execute]
 
     def add_type_cast(self, *caster: Callable):
         """添加类型验证器 (type caster / validator)"""
@@ -361,7 +357,7 @@ class Commander:
 
     def command(
         self,
-        command: str,
+        command: LiteralString,
         setting: Optional[Dict[str, Union[Slot, Arg]]] = None,
         dispatchers: Sequence[BaseDispatcher] = (),
         decorators: Sequence[Decorator] = (),

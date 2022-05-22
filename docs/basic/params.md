@@ -51,7 +51,7 @@ async def friend_message_listener(app: Ariadne):
 -   `StrangerMessage`
     -   `Stranger` 发送者.
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/2_other_event.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/other_event.html)"
 
 !!! info "提示"
 

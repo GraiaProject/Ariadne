@@ -194,4 +194,4 @@ async def on_match(chain: MessageChain):
     ...
 ```
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_1_base_parser.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/base_parser.html)"

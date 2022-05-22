@@ -367,4 +367,4 @@ async def reply(..., arg: RegexMatch):
 
 在 `i5-10500` 处理器上, `Twilight` 的性能大约为 `6000 ~ 10000 msg/s`, 取决于 `Twilight` 的复杂程度.
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_2_twilight.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/twilight.html)"

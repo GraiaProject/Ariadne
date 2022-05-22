@@ -207,13 +207,13 @@ assert message_chain.count(Plain) == 1
 
 !!! graiax "社区文档相关章节"
 
-    [总览](https://graiax.cn/make_ero_bot/tutorials/3_1_ero_comes.html)
+    [总览](https://graiax.cn/guide/message_chain.html)
 
-    [多媒体元素](https://graiax.cn/make_ero_bot/tutorials/3_2_kugimiya.html)
+    [多媒体元素](https://graiax.cn/guide/multimedia_message.html)
 
-    [文件发送](https://graiax.cn/make_ero_bot/tutorials/13_encrypt_compressed_file.html)
+    [文件发送](https://graiax.cn/guide/file_operation.html)
 
-    [合并转发](https://graiax.cn/make_ero_bot/tutorials/4_forward_message.html)
+    [合并转发](https://graiax.cn/guide/forward_message.html)
 
 如果你只是想对 `Ariadne` 有个粗略的了解, 并着手开始编写自己的 QQ bot, 相信这些知识已经足够.
 如果你想进一步挖掘 `Ariadne` 的 `MessageChain` 特性, 请看 [进阶篇](/advance/msg-chain) .

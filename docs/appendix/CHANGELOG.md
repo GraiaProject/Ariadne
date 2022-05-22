@@ -9,7 +9,7 @@
 
 现在可以使用 `graia.ariadne.util.validator` 中的
 `CertainGroup`、`CertainFriend`、`CertainMember` 与 `Quoting`
-作为 `decorator` 用于指定**必须由哪个群/好友/群成员**或**必须回复指定消息(使用消息ID)**才能触发.
+作为 `decorator` 用于指定 **必须由哪个群/好友/群成员** 或 **必须回复指定消息(使用消息ID)** 才能触发.
 
 新增 `FuzzyMatch`. (模糊匹配，更推荐使用 `FuzzyDispatcher`，[使用说明](../basic/base-parser.md))
 

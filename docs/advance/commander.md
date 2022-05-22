@@ -25,7 +25,7 @@
     - 大量术语
     - 杂乱无章的排版
 
-    请移步 [社区文档](https://graiax.cn/make_ero_bot/tutorials/6_3_commander.html) 获得更轻松的阅读体验.
+    请移步 [社区文档](https://graiax.cn/guide/commander.html) 获得更轻松的阅读体验.
 
 `#!python from graia.ariadne.message.commander import Commander, Slot, Arg`
 
@@ -255,4 +255,4 @@ async def eval_command(name: str, option: str):
     ...
 ```
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/6_3_commander.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/commander.html)"

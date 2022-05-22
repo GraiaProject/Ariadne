@@ -20,7 +20,7 @@
     如果你还不会使用 `mirai-console`，请移步:
 
     - [`Mirai API HTTP 安装`](appendix/mah-install.md)
-    - [社区文档: `Mirai` 的配置](https://graiax.cn/make_ero_bot/before/1_mirai.html)
+    - [社区文档: `Mirai` 的配置](https://graiax.cn/before/install_mirai.html)
 
     如果你使用时开发库出现了错误, 应先检查是否是 `Graia Framework` 的错误,
     确认之后, 请在我们的 [GitHub Issues](https://github.com/GraiaProject/Ariadne/issues) 处汇报你的错误,
@@ -141,7 +141,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend):
 loop.run_until_complete(app.lifecycle())
 ```
 
-!!! graiax "社区文档相关章节: [链接](https://graiax.cn/make_ero_bot/tutorials/1_hello_ero.html)"
+!!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/hello_ero.html)"
 
     你知道吗? `Graia Framework` 有一个活跃的社区文档: [`GraiaX`](https://graiax.cn/).
 

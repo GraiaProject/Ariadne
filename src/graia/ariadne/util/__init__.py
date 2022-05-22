@@ -10,6 +10,7 @@ import inspect
 import logging
 import sys
 import traceback
+import types
 import typing
 import warnings
 from asyncio.events import AbstractEventLoop
@@ -50,6 +51,20 @@ from loguru import logger
 from ..typing import DictStrAny, P, R, T
 
 
+def type_repr(obj: Any) -> str:
+    if isinstance(obj, types.GenericAlias):
+        return repr(obj)
+    if isinstance(obj, type):
+        if obj.__module__ == "builtins":
+            return obj.__qualname__
+        return f"{obj.__module__}.{obj.__qualname__}"
+    if obj is ...:
+        return "..."
+    if isinstance(obj, types.FunctionType):
+        return obj.__name__
+    return repr(obj)
+
+
 def loguru_excepthook(cls: Type[BaseException], val: BaseException, tb: TracebackType, *_, **__):
     """loguru 异常回调
 
@@ -70,7 +85,7 @@ def loguru_excepthook(cls: Type[BaseException], val: BaseException, tb: Tracebac
             param_repr = "".join(
                 [
                     param_name,
-                    f": {param_anno}" if param_anno else "",
+                    f": {type_repr(param_anno)}" if param_anno else "",
                     f" = {param_default}" if param_default else "",
                 ]
             )

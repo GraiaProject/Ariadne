@@ -11,8 +11,8 @@ _Another elegant framework for mirai and mirai-api-http v2._
 <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne" /></a>
 <a href="https://pypi.org/project/graia-ariadne"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne" /></a>
 
-<a href="https://graia.rtfd.io/"><img alt="docs" src="https://img.shields.io/badge/文档-here-blue" /></a>
-<a href="https://graia.readthedocs.io/refs/graia/ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-here-purple"></a>
+<a href="https://graia.readthedocs.io/projects/ariadne/"><img alt="docs" src="https://img.shields.io/badge/文档-here-blue" /></a>
+<a href="https://graia.readthedocs.io/projects/ariadne/refs/graia/ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-here-purple"></a>
 <a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-black.svg" alt="black" /></a>
 <a href="https://pycqa.github.io/isort/"><img src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat" alt="isort"/></a>
 <a href="https://github.com/GraiaProject/Ariadne/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/GraiaProject/Ariadne"></a>
@@ -56,7 +56,7 @@ app.launch_blocking()
 ```
 
 更多信息请看
-[![快速开始](https://img.shields.io/badge/文档-快速开始-blue)](https://graia.readthedocs.io/quickstart/)
+[![快速开始](https://img.shields.io/badge/文档-快速开始-blue)](https://graia.readthedocs.io/projects/ariadne/quickstart/)
 
 ## 讨论
 
@@ -66,10 +66,10 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 ## 文档
 
-[![API 文档](https://img.shields.io/badge/API_文档-here-purple)](https://graia.readthedocs.io/refs/graia/ariadne/)
-[![官方文档](https://img.shields.io/badge/官方文档-here-blue)](https://graia.rtfd.io/)
+[![API 文档](https://img.shields.io/badge/API_文档-here-purple)](https://graia.readthedocs.io/projects/ariadne/refs/graia/ariadne/)
+[![官方文档](https://img.shields.io/badge/官方文档-here-blue)](https://graia.readthedocs.io/projects/ariadne/)
 [![社区文档](https://img.shields.io/badge/社区文档-here-pink)](https://graiax.cn)
-[![鸣谢](https://img.shields.io/badge/鸣谢-here-lightgreen)](https://graia.rtfd.io/appendix/credits)
+[![鸣谢](https://img.shields.io/badge/鸣谢-here-lightgreen)](https://graia.readthedocs.io/projects/ariadne/appendix/credits)
 
 **如果认为本项目有帮助, 欢迎点一个 `Star`.**
 
@@ -79,7 +79,7 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 
 ## 持续集成 (CI) 状态
 
-[![Documentation Status](https://readthedocs.org/projects/graia/badge/?version=latest)](https://graia.rtfd.io/)
+[![Documentation Status](https://readthedocs.org/projects/graia-ariadne/badge/?version=latest)](https://graia.readthedocs.io/projects/ariadne/)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/GraiaProject/Ariadne/master.svg)](https://results.pre-commit.ci/latest/github/GraiaProject/Ariadne/master)
 
 [![Build and deploy API Docs](https://github.com/GraiaProject/Ariadne/actions/workflows/api-docs.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/api-docs.yml)

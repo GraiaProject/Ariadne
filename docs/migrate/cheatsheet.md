@@ -12,8 +12,6 @@
 
 `graia-template` -> `graia.ariadne.message.formatter` (用法不同)
 
-`graia-component` -> `graia.ariadne.message.component`
-
 ## 方法
 
 ## GraiaMiraiApplication

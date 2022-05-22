@@ -29,14 +29,13 @@
 === "单文件"
 
     ```py
-    from graia.ariadne.app import Ariadne, Friend, MessageChain
+    from graia.ariadne.entry import Ariadne, Friend, MessageChain, config
 
 
     app = Ariadne(
-    connect_info=MiraiSession(
-        host="http://localhost:8080",
-        verify_key="ServiceVerifyKey",
-        account=123456789,
+        config(
+            verify_key="ServiceVerifyKey",
+            account=123456789,
         )
     )
 

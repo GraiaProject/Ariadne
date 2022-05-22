@@ -23,6 +23,7 @@ from .element import (
     At,
     AtAll,
     Element,
+    Face,
     File,
     Image,
     MultimediaElement,
@@ -75,7 +76,7 @@ class MessageChain(AriadneBaseModel):
                 element_list.append(Plain(i))
         if len(element_list) != 1:
             assert all(
-                isinstance(element, (Plain, Image)) for element in element_list
+                isinstance(element, (Plain, Image, Face)) for element in element_list
             ), "An MessageChain can only contain *one* special element"
         return element_list
 
@@ -126,7 +127,7 @@ class MessageChain(AriadneBaseModel):
                 element_list.extend(cls.build_chain(i))
         if len(element_list) != 1:
             assert all(
-                isinstance(element, (Plain, Image)) for element in element_list
+                isinstance(element, (Plain, Image, Face)) for element in element_list
             ), "An MessageChain can only contain *one* special element"
         return cls(__root__=element_list)
 

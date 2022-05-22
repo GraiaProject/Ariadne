@@ -26,9 +26,10 @@ class ApplicationLifecycleEvent(Dispatchable):
         async def catch(interface: "DispatcherInterface"):
             from ..app import Ariadne
 
-            if isinstance(interface.event, ApplicationLifecycleEvent):
-                if generic_issubclass(Ariadne, interface.annotation):
-                    return interface.event.app
+            if isinstance(interface.event, ApplicationLifecycleEvent) and generic_issubclass(
+                Ariadne, interface.annotation
+            ):
+                return interface.event.app
 
 
 class ApplicationLaunched(ApplicationLifecycleEvent):

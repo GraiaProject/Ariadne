@@ -316,13 +316,12 @@ class CommandHandler(ExecTarget):
             if slot.param_name != self.pattern.wildcard:
                 value = slot_data.get(ind, None) or slot.default_factory()
                 param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
+            elif slot.type is _raw:
+                param_result[slot.param_name] = MessageChain([" "]).join(wildcard_list, merge=True)
             else:
-                if slot.type is _raw:
-                    param_result[slot.param_name] = MessageChain([" "]).join(wildcard_list, merge=True)
-                else:
-                    param_result[slot.param_name] = tuple(
-                        slot.model(val=chain).__dict__["val"] for chain in wildcard_list
-                    )
+                param_result[slot.param_name] = tuple(
+                    slot.model(val=chain).__dict__["val"] for chain in wildcard_list
+                )
         return param_result
 
 

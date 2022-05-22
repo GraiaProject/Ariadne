@@ -28,7 +28,6 @@ from typing import (
 from graia.amnesia.launch.manager import LaunchManager
 from graia.broadcast import Broadcast
 from loguru import logger
-from typing_extensions import Self
 
 from .connection import ConnectionInterface
 from .connection._info import U_Info
@@ -63,7 +62,6 @@ if TYPE_CHECKING:
 class Ariadne:
     service: ClassVar[ElizabethService] = ElizabethService()
     launch_manager: ClassVar[LaunchManager] = LaunchManager()
-    _launch_task: ClassVar[Optional[asyncio.Task]] = None
     instances: ClassVar[Dict[int, "Ariadne"]] = {}
     default_account: ClassVar[Optional[int]] = None
     default_send_action: SendMessageActionProtocol
@@ -72,26 +70,13 @@ class Ariadne:
         asyncio.AbstractEventLoop: service.loop,
     }
 
-    def __new__(
-        cls: type[Self],
-        connection: Union[Iterable[U_Info], int] = (),
-        log_config: Optional[LogConfig] = None,
-    ) -> Self:
-        if isinstance(connection, int):
-            assert connection in Ariadne.service.connections, f"{connection} is not configured"
-            assert log_config is None, "You can't reconfigure existing instance"
-            return cls.instances[connection]
-        return super().__new__(cls)
-
     def __init__(
         self,
-        connection: Union[Iterable[U_Info], int] = (),
+        connection: Iterable[U_Info] = (),
         log_config: Optional[LogConfig] = None,
     ) -> None:
         from .util.send import Strict
 
-        if isinstance(connection, int):
-            return
         self.default_send_action = Strict
         account = Ariadne.service.add_configs(connection)[1]
         assert account not in Ariadne.instances, "You can't configure an account twice!"
@@ -138,28 +123,15 @@ class Ariadne:
             cls.launch_manager.add_service(cls.service)
 
     @classmethod
-    async def launch(cls) -> None:
-        assert asyncio.get_running_loop() is cls.service.loop, "ElizabethService attached to different loop"
-        cls._patch_launch_manager()
-        if cls._launch_task is None or cls._launch_task.done():
-            cls._launch_task = asyncio.create_task(cls.launch_manager.launch(), name="amnesia-launch")
-
-    @classmethod
-    async def lifecycle(cls) -> None:
-        if cls._launch_task is None or cls._launch_task.done():
-            await cls.launch()
-        if cls._launch_task is not None and not cls._launch_task.done():
-            await cls._launch_task
-
-    @classmethod
-    def stop(cls) -> None:
-        if cls._launch_task is not None and not cls._launch_task.done():
-            cls._launch_task.cancel()
-
-    @classmethod
     def launch_blocking(cls):
         cls._patch_launch_manager()
         cls.launch_manager.launch_blocking(loop=cls.service.loop)
+
+    @classmethod
+    def stop(cls):
+        tsk = cls.launch_manager.maintask
+        if tsk:
+            tsk.cancel()
 
     @classmethod
     def create(cls, typ: Type[T], reuse: bool = True) -> T:
@@ -196,16 +168,19 @@ class Ariadne:
         return obj
 
     @classmethod
-    def current(cls) -> "Ariadne":
+    def current(cls, account: Optional[int] = None) -> "Ariadne":
+        if account:
+            assert account in Ariadne.service.connections, f"{account} is not configured"
+            return Ariadne.instances[account]
         from .context import ariadne_ctx
 
         if ariadne_ctx.get(None):
-            return ariadne_ctx.get()  # type: ignore
+            return ariadne_ctx.get()
         if not cls.default_account:
             if len(cls.service.connections) != 1:
-                raise ValueError("Ambiguous account reference: set Ariadne.default_account")
+                raise ValueError("Ambiguous account reference, set Ariadne.default_account")
             cls.default_account = next(iter(cls.service.connections))
-        return cls(cls.default_account)
+        return Ariadne.instances[cls.default_account]
 
     def __getattr__(self, snake_case_name: str) -> Callable:
         # snake_case to camelCase

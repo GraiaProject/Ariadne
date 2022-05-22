@@ -80,7 +80,7 @@ class ElizabethService(Service):
             f"Establishing connection {connection}",
             alt=f"[green]Establishing connection[/green] {connection}",
         )
-        app: Ariadne = Ariadne(account)
+        app: Ariadne = Ariadne.current(account)
         with enter_context(app=app):
             self.broadcast.postEvent(ApplicationLaunched(app))
         conn_task = asyncio.create_task(connection.mainline(mgr))
@@ -106,7 +106,7 @@ class ElizabethService(Service):
         from .event.lifecycle import ApplicationShutdowned
 
         for account in self.connections:
-            app: Ariadne = Ariadne(account)
+            app: Ariadne = Ariadne.current(account)
             task = self.connection_tasks.pop(account, None)
             if task:
                 with enter_context(app=app):

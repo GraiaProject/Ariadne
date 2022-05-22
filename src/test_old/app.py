@@ -185,9 +185,8 @@ if __name__ == "__main__":
     async def cmd_log(event: CommandExecutedEvent):
         devtools.debug(event)
 
+    @bcc.receiver(ApplicationLaunched)
     async def main():
-        await app.launch()
-        await app.connection.status.wait_for_available()
         logger.debug(await app.getVersion())
         logger.debug(await app.getBotProfile())
         if ALL_FLAG:
@@ -201,6 +200,5 @@ if __name__ == "__main__":
             logger.debug(await app.getFriendProfile(friend_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
             logger.debug(await app.getMemberProfile(member_list[0]))
-        await app.lifecycle()
 
     Ariadne.launch_blocking()

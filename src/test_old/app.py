@@ -13,6 +13,7 @@ from loguru import logger
 
 from graia.ariadne.app import Ariadne
 from graia.ariadne.connection.config import HttpClientConfig, WebsocketClientConfig
+from graia.ariadne.event.lifecycle import ApplicationLaunched, ApplicationShutdowned
 from graia.ariadne.event.message import FriendMessage, GroupMessage, MessageEvent
 from graia.ariadne.event.mirai import (
     CommandExecutedEvent,
@@ -200,6 +201,14 @@ if __name__ == "__main__":
     async def stop(app: Ariadne):
         app.stop()
 
+    @bcc.receiver(ApplicationLaunched)
+    async def m(app: Ariadne):
+        await app.sendFriendMessage(target, MessageChain.create("Launched!"))
+
+    @bcc.receiver(ApplicationShutdowned)
+    async def m(app: Ariadne):
+        await app.sendFriendMessage(target, MessageChain.create("Shutdown!"))
+
     @bcc.receiver(CommandExecutedEvent)
     async def cmd_log(event: CommandExecutedEvent):
         devtools.debug(event)
@@ -222,4 +231,4 @@ if __name__ == "__main__":
             logger.debug(await app.getMemberProfile(member_list[0]))
         await app.lifecycle()
 
-    Ariadne.service.loop.run_until_complete(main())
+    Ariadne.launch_blocking()

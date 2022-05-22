@@ -1,6 +1,7 @@
 """Ariadne 的类型标注"""
 
 import contextlib
+import enum
 import typing
 from typing import (
     TYPE_CHECKING,
@@ -170,3 +171,10 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
             if par.__bound__:
                 return generic_isinstance(obj, par.__bound__)
     return False
+
+
+class _SentinelClass(enum.Enum):
+    _Sentinel = object()
+
+
+Sentinel = _SentinelClass._Sentinel

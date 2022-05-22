@@ -23,22 +23,26 @@ from ..exception import (
 from ..util import gen_subclass
 
 if TYPE_CHECKING:
-    from graia.amnesia.builtins.starlette import StarletteRouter
 
     from ..event import MiraiEvent
-else:
-    try:
-        from graia.amnesia.builtins.starlette import StarletteRouter
-    except ImportError:
-        StarletteRouter = type("StarletteRouter", (object,), {})
 
 
-def get_router(mgr: LaunchManager) -> Union[AiohttpRouter, StarletteRouter]:
-    if AiohttpRouter in mgr._service_interfaces:
-        return mgr.get_interface(AiohttpRouter)
-    if StarletteRouter in mgr._service_interfaces:
-        return mgr.get_interface(StarletteRouter)
-    raise ValueError("No router found")
+try:
+    from graia.amnesia.builtins.starlette import StarletteRouter
+
+    def get_router(mgr: LaunchManager) -> Union[AiohttpRouter, StarletteRouter]:
+        if AiohttpRouter in mgr._service_interfaces:
+            return mgr.get_interface(AiohttpRouter)
+        if StarletteRouter in mgr._service_interfaces:
+            return mgr.get_interface(StarletteRouter)
+        raise ValueError("No router found")
+
+except ImportError:
+
+    def get_router(mgr: LaunchManager) -> Union[AiohttpRouter, StarletteRouter]:
+        if AiohttpRouter in mgr._service_interfaces:
+            return mgr.get_interface(AiohttpRouter)
+        raise ValueError("No router found")
 
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {
@@ -71,9 +75,7 @@ def validate_response(data: Any, raising: bool = True):
     if not isinstance(int_code, int) or int_code == 200 or int_code == 0:
         return data.get("data", data)
     exc_cls = code_exceptions_mapping.get(int_code)
-    if exc_cls:
-        exc = exc_cls(exc_cls.__doc__, data)
-    exc = UnknownError(data)
+    exc = exc_cls(exc_cls.__doc__, data) if exc_cls else UnknownError(data)
     if raising:
         raise exc
     return exc

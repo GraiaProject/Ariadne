@@ -1,5 +1,7 @@
 import asyncio
-from typing import Dict, Iterable, MutableSet, Tuple, Type, overload
+import contextlib
+from typing import Dict, Iterable, MutableMapping, MutableSet, Tuple, Type, overload
+from weakref import WeakValueDictionary
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.launch.component import LaunchComponent
@@ -15,7 +17,7 @@ from .connection import (
     ConnectionMixin,
     HttpClientConnection,
 )
-from .connection.config import HttpClientConfig, U_Config
+from .connection.config import HttpClientConfig, T_Config, U_Config
 from .dispatcher import ContextDispatcher
 
 
@@ -24,10 +26,11 @@ class ElizabethService(Service):
     http_interface: AiohttpClientInterface
     connections: Dict[int, ConnectionMixin]
     broadcast: Broadcast
+    connection_tasks: MutableMapping[int, asyncio.Task]
 
     def __init__(self) -> None:
-
         self.connections = {}
+        self.connection_tasks = WeakValueDictionary()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         self.broadcast = Broadcast(loop=loop)
@@ -61,7 +64,13 @@ class ElizabethService(Service):
         else:
             raise ValueError(f"Connection {self.connections[account]} conflicts with {connection}")
 
-    async def connection_daemon(self, connection: ConnectionMixin, mgr: LaunchManager) -> None:
+    async def connection_daemon(self, connection: ConnectionMixin[T_Config], mgr: LaunchManager) -> None:
+        from .app import Ariadne
+        from .context import enter_context
+        from .event.lifecycle import ApplicationLaunched
+
+        account = connection.config.account
+
         connection.http_interface = self.http_interface
         if connection.fallback:
             connection.fallback.http_interface = self.http_interface
@@ -70,7 +79,13 @@ class ElizabethService(Service):
             f"Establishing connection {connection}",
             alt=f"[green]Establishing connection[/green] {connection}",
         )
-        await connection.mainline(mgr)
+        app: Ariadne = Ariadne(account)
+        with enter_context(app=app):
+            self.broadcast.postEvent(ApplicationLaunched(app))
+        conn_task = asyncio.create_task(connection.mainline(mgr))
+        self.connection_tasks[account] = conn_task
+        with contextlib.suppress(asyncio.CancelledError):
+            await conn_task
 
     async def prepare(self, mgr: LaunchManager) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)
@@ -84,12 +99,25 @@ class ElizabethService(Service):
             [asyncio.create_task(self.connection_daemon(conn, mgr)) for conn in self.connections.values()]
         )
 
+    async def cleanup(self, mgr: LaunchManager) -> None:
+        from .app import Ariadne
+        from .context import enter_context
+        from .event.lifecycle import ApplicationShutdowned
+
+        for account in self.connections:
+            app: Ariadne = Ariadne(account)
+            with enter_context(app=app):
+                await self.broadcast.postEvent(ApplicationShutdowned(app))
+            task = self.connection_tasks.pop(account, None)
+            if task and not task.done():
+                task.cancel()
+
     @property
     def launch_component(self) -> LaunchComponent:
         requirements: MutableSet[str] = set()
         for connection in self.connections.values():
             requirements |= connection.dependencies
-        return LaunchComponent("elizabeth.service", requirements, self.mainline, self.prepare)
+        return LaunchComponent("elizabeth.service", requirements, self.mainline, self.prepare, self.cleanup)
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:

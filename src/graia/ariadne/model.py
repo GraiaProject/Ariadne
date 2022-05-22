@@ -11,7 +11,7 @@ from pydantic.networks import AnyHttpUrl
 from typing_extensions import Literal
 from yarl import URL
 
-from .util import internal_cls
+from .util import gen_subclass, internal_cls
 
 if TYPE_CHECKING:
     from .app import Ariadne
@@ -83,7 +83,6 @@ class LogConfig(Dict[Type["MiraiEvent"], str]):
             GroupMessage,
             OtherClientMessage,
             StrangerMessage,
-            SyncMessage,
             TempMessage,
         )
 
@@ -100,17 +99,17 @@ class LogConfig(Dict[Type["MiraiEvent"], str]):
         self[FriendMessage] = f"{account_seg}: [{user_seg}] -> {msg_chain_seg}"
         self[StrangerMessage] = f"{account_seg}: [{user_seg}] -> {msg_chain_seg}"
         self[OtherClientMessage] = f"{account_seg}: [{client_seg}] -> {msg_chain_seg}"
-        self[SyncMessage] = f"{account_seg}: [SYNC] [{{event.subject}}] <- {msg_chain_seg}"
-        self[ActiveMessage] = f"{account_seg}: [{{event.subject}}] <- {msg_chain_seg}"
+        for active_msg_cls in gen_subclass(ActiveMessage):
+            sync_label: str = "[SYNC] " if active_msg_cls.__fields__["sync"].default else ""
+            self[active_msg_cls] = f"{account_seg}: {sync_label}[{{event.subject}}] <- {msg_chain_seg}"
 
     def event_hook(self, app: "Ariadne") -> Callable[["MiraiEvent"], Awaitable[None]]:
-        async def log_event(event: "MiraiEvent"):
-            for k, v in self.items():
-                if isinstance(event, k):
-                    logger.log(self.log_level, v.format(event=event, ariadne=app))
-                    break
+        return functools.partial(self.log, app)
 
-        return log_event
+    async def log(self, app: "Ariadne", event: "MiraiEvent") -> None:
+        fmt = self.get(type(event))
+        if fmt:
+            logger.log(self.log_level, fmt.format(event=event, ariadne=app))
 
 
 class MiraiSession(AriadneBaseModel):

@@ -9,6 +9,7 @@ from typing import (
     Dict,
     Generic,
     List,
+    Literal,
     MutableMapping,
     Optional,
     Set,
@@ -44,9 +45,9 @@ from loguru import logger
 from typing_extensions import Self
 from yarl import URL
 
-from graia.ariadne.exception import InvalidSession
-
 from ..event import MiraiEvent
+from ..exception import InvalidSession
+from ..typing import Sentinel
 from .config import (
     HttpClientConfig,
     HttpServerConfig,
@@ -70,12 +71,12 @@ class ConnectionStatus(BaseConnectionStatus):
 
     def update(
         self,
-        session_key: Union[str, None] = ...,
+        session_key: Union[str, None, Literal[Sentinel]] = Sentinel,
         connected: Optional[bool] = None,
         alive: Optional[bool] = None,
     ):
         past = self.frame
-        if session_key is not ...:
+        if session_key is not Sentinel:
             self.session_key = session_key
             self.connected = session_key is not None
         if connected is not None:
@@ -135,7 +136,7 @@ t = TransportRegistrar()
 
 @t.apply
 class WebsocketConnectionMixin(Transport):
-    ws_io: AbstractWebsocketIO
+    ws_io: Optional[AbstractWebsocketIO]
     futures: MutableMapping[str, asyncio.Future]
     status: ConnectionStatus
     fallback: Optional["HttpClientConnection"]
@@ -168,13 +169,13 @@ class WebsocketConnectionMixin(Transport):
     async def _(self, _) -> bool:
         logger.warning("Websocket reconnecting in 5s...", style="dark_orange")
         await asyncio.sleep(5)
+        logger.warning("Websocket reconnecting...", style="dark_orange")
         return True
 
     @t.on(WebsocketCloseEvent)
     async def _(self, _: AbstractWebsocketIO) -> None:
         self.status.update(session_key=None, alive=False)
         logger.info("Websocket connection closed", style="dark_orange")
-        del self.ws_io
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         params = params or {}
@@ -193,6 +194,7 @@ class WebsocketConnectionMixin(Transport):
             )
         self.futures[sync_id] = fut
         await self.status.wait_for_available()
+        assert self.ws_io
         await self.ws_io.send(content)
         return await fut
 
@@ -389,7 +391,7 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
     def bind(self, account: int) -> Self:
         return ConnectionInterface(self.service, account)
 
-    async def direct_call(
+    async def _call(
         self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None
     ) -> Any:
         connection = self.connection
@@ -405,7 +407,7 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         await self.status.wait_for_available()  # wait until session_key is present
         session_key = self.status.session_key
         params["sessionKey"] = session_key
-        return await self.direct_call(command, method, params, account=account)
+        return await self._call(command, method, params, account=account)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:
         if self.connection is None:

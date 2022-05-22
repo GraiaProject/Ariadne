@@ -3,8 +3,6 @@
 # no error
 
 from graia.ariadne.event import MiraiEvent as MiraiEvent
-from graia.ariadne.event.lifecycle import AdapterLaunched as AdapterLaunched
-from graia.ariadne.event.lifecycle import AdapterShutdowned as AdapterShutdowned
 from graia.ariadne.event.lifecycle import ApplicationLaunched as ApplicationLaunched
 from graia.ariadne.event.lifecycle import (
     ApplicationLifecycleEvent as ApplicationLifecycleEvent,

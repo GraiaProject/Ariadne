@@ -36,6 +36,7 @@
     "quickstart",
     "RESTGET",
     "RESTPOST",
+    "sigexit",
     "smartsymbols",
     "sourcery",
     "starlette",

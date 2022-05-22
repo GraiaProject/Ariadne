@@ -41,15 +41,3 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
     """
     指示 Ariadne 关闭.
     """
-
-
-class AdapterLaunched(ApplicationLifecycleEvent):
-    """
-    指示远程适配器启动了.
-    """
-
-
-class AdapterShutdowned(ApplicationLifecycleEvent):
-    """
-    指示远程适配器关闭了.
-    """

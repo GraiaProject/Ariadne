@@ -220,7 +220,7 @@ class Ariadne:
         Returns:
             str: 版本信息.
         """
-        result = await self.connection.direct_call("about", CallMethod.GET, {})
+        result = await self.connection._call("about", CallMethod.GET, {})
         return result["version"]
 
     async def getFileIterator(
@@ -1321,6 +1321,7 @@ class Ariadne:
                 subject=(await self.getFriend(int(target), assertion=True)),
             )
             with enter_context(self, event):
+                await self.log_config.log(self, event)
                 self.service.broadcast.postEvent(event)
             if result["messageId"] < 0:
                 logger.warning("Failed to send message, your account may be blocked.")
@@ -1366,6 +1367,7 @@ class Ariadne:
                 subject=(await self.getGroup(int(target), assertion=True)),
             )
             with enter_context(self, event):
+                await self.log_config.log(self, event)
                 self.service.broadcast.postEvent(event)
             if result["messageId"] < 0:
                 logger.warning("Failed to send message, your account may be blocked.")
@@ -1417,6 +1419,7 @@ class Ariadne:
                 subject=(await self.getMember(int(group), int(target))),
             )
             with enter_context(self, event):
+                await self.log_config.log(self, event)
                 self.service.broadcast.postEvent(event)
             if result["messageId"] < 0:
                 logger.warning("Failed to send message, your account may be limited.")

@@ -31,7 +31,7 @@ from loguru import logger
 from typing_extensions import Self
 
 from .connection import ConnectionInterface
-from .connection.config import U_Config
+from .connection._info import U_Info
 from .connection.util import CallMethod, UploadMethod, build_event
 from .context import enter_context, enter_message_send_context
 from .event import MiraiEvent
@@ -74,7 +74,7 @@ class Ariadne:
 
     def __new__(
         cls: type[Self],
-        connection: Union[Iterable[U_Config], int] = (),
+        connection: Union[Iterable[U_Info], int] = (),
         log_config: Optional[LogConfig] = None,
     ) -> Self:
         if isinstance(connection, int):
@@ -85,7 +85,7 @@ class Ariadne:
 
     def __init__(
         self,
-        connection: Union[Iterable[U_Config], int] = (),
+        connection: Union[Iterable[U_Info], int] = (),
         log_config: Optional[LogConfig] = None,
     ) -> None:
         from .util.send import Strict

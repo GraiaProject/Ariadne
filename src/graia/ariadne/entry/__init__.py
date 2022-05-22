@@ -1,12 +1,13 @@
 """Ariadne 一站式导入的提供模块"""
 
-from graia.broadcast import Broadcast as Broadcast
+import contextlib
 
 from ..app import Ariadne as Ariadne
 from ..connection.config import HttpClientConfig as HttpClientConfig
 from ..connection.config import HttpServerConfig as HttpServerConfig
 from ..connection.config import WebsocketClientConfig as WebsocketClientConfig
 from ..connection.config import WebsocketServerConfig as WebsocketServerConfig
+from ..connection.config import config as config
 from ..connection.util import UploadMethod as UploadMethod
 from ..context import ariadne_ctx as ariadne_ctx
 from ..context import broadcast_ctx as broadcast_ctx
@@ -54,3 +55,8 @@ from .event import *
 from .message import *
 from .saya import *
 from .scheduler import *
+
+with contextlib.suppress(ImportError):
+    from ..console import Console as Console
+    from ..console.saya import ConsoleBehaviour as ConsoleBehaviour
+    from ..console.saya import ConsoleSchema as ConsoleSchema

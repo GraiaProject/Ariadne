@@ -48,13 +48,13 @@ from yarl import URL
 from ..event import MiraiEvent
 from ..exception import InvalidSession
 from ..typing import Sentinel
-from .config import (
-    HttpClientConfig,
-    HttpServerConfig,
-    T_Config,
-    U_Config,
-    WebsocketClientConfig,
-    WebsocketServerConfig,
+from ._info import (
+    HttpClientInfo,
+    HttpServerInfo,
+    T_Info,
+    U_Info,
+    WebsocketClientInfo,
+    WebsocketServerInfo,
 )
 from .util import CallMethod, build_event, get_router, validate_response
 
@@ -101,16 +101,16 @@ class ConnectionStatus(BaseConnectionStatus):
         )
 
 
-class ConnectionMixin(Generic[T_Config]):
+class ConnectionMixin(Generic[T_Info]):
     status: ConnectionStatus
-    config: T_Config
+    config: T_Info
     dependencies: Set[str]
 
     fallback: Optional["HttpClientConnection"]
     http_interface: AiohttpClientInterface
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
-    def __init__(self, config: T_Config) -> None:
+    def __init__(self, config: T_Info) -> None:
         self.config = config
         self.fallback = None
         self.event_callbacks = []
@@ -203,10 +203,10 @@ t = TransportRegistrar()
 
 
 @t.apply
-class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketServerConfig]):
+class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketServerInfo]):
     dependencies = {"http.universal_server"}
 
-    def __init__(self, config: WebsocketServerConfig) -> None:
+    def __init__(self, config: WebsocketServerInfo) -> None:
         ConnectionMixin.__init__(self, config)
         self.declares.append(WebsocketEndpoint(self.config.path))
         self.futures = WeakValueDictionary()
@@ -244,10 +244,10 @@ t = TransportRegistrar()
 
 
 @t.apply
-class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketClientConfig]):
+class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketClientInfo]):
     dependencies = {"http.universal_client"}
 
-    def __init__(self, config: WebsocketClientConfig) -> None:
+    def __init__(self, config: WebsocketClientInfo) -> None:
         ConnectionMixin.__init__(self, config)
         self.futures = WeakValueDictionary()
 
@@ -263,10 +263,10 @@ class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
         self.status.update(alive=True)
 
 
-class HttpServerConnection(ConnectionMixin[HttpServerConfig], Transport):
+class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
     dependencies = {"http.universal_server"}
 
-    def __init__(self, config: HttpServerConfig) -> None:
+    def __init__(self, config: HttpServerInfo) -> None:
         super().__init__(config)
         self.handlers[HttpEndpoint(self.config.path, ["POST"])] = self.__class__.handle_request
 
@@ -289,10 +289,10 @@ class HttpServerConnection(ConnectionMixin[HttpServerConfig], Transport):
         router.use(self)
 
 
-class HttpClientConnection(ConnectionMixin[HttpClientConfig]):
+class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
     dependencies = {"http.universal_client"}
 
-    def __init__(self, config: HttpClientConfig) -> None:
+    def __init__(self, config: HttpClientInfo) -> None:
         super().__init__(config)
 
     async def request(
@@ -368,11 +368,11 @@ class HttpClientConnection(ConnectionMixin[HttpClientConfig]):
             await asyncio.sleep(0.5)
 
 
-CONFIG_MAP: Dict[Type[U_Config], Type[ConnectionMixin]] = {
-    HttpClientConfig: HttpClientConnection,
-    HttpServerConfig: HttpServerConnection,
-    WebsocketClientConfig: WebsocketClientConnection,
-    WebsocketServerConfig: WebsocketServerConnection,
+CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {
+    HttpClientInfo: HttpClientConnection,
+    HttpServerInfo: HttpServerConnection,
+    WebsocketClientInfo: WebsocketClientConnection,
+    WebsocketServerInfo: WebsocketServerConnection,
 }
 
 

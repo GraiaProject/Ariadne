@@ -17,7 +17,7 @@ from .connection import (
     ConnectionMixin,
     HttpClientConnection,
 )
-from .connection.config import HttpClientConfig, T_Config, U_Config
+from .connection._info import HttpClientInfo, T_Info, U_Info
 from .dispatcher import ContextDispatcher
 
 
@@ -36,7 +36,7 @@ class ElizabethService(Service):
         self.broadcast = Broadcast(loop=loop)
         self.broadcast.prelude_dispatchers.append(ContextDispatcher)
 
-    def add_configs(self, configs: Iterable[U_Config]) -> Tuple[Self, int]:
+    def add_configs(self, configs: Iterable[U_Info]) -> Tuple[Self, int]:
         configs = list(configs)
         assert configs
         account: int = configs[0].account
@@ -44,13 +44,13 @@ class ElizabethService(Service):
         assert all(
             conf.account == account for conf in configs
         ), f"All configs must be for the account {account}"
-        configs.sort(key=lambda x: isinstance(x, HttpClientConfig))
+        configs.sort(key=lambda x: isinstance(x, HttpClientInfo))
         # make sure the http client is the last one
         for conf in configs:
             self.update_from_config(conf)
         return self, account
 
-    def update_from_config(self, config: U_Config) -> None:
+    def update_from_config(self, config: U_Info) -> None:
         account: int = config.account
         connection = CONFIG_MAP[config.__class__](config)
         if account not in self.connections:
@@ -64,7 +64,7 @@ class ElizabethService(Service):
         else:
             raise ValueError(f"Connection {self.connections[account]} conflicts with {connection}")
 
-    async def connection_daemon(self, connection: ConnectionMixin[T_Config], mgr: LaunchManager) -> None:
+    async def connection_daemon(self, connection: ConnectionMixin[T_Info], mgr: LaunchManager) -> None:
         from .app import Ariadne
         from .context import enter_context
         from .event.lifecycle import ApplicationLaunched

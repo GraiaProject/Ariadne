@@ -20,10 +20,12 @@ if __name__ == "__main__":
     Ariadne.service.loop.set_debug(True)
 
     app = Ariadne(
-        [
-            WebsocketClientConfig(account=account, verify_key=verify_key, module_check=False),
-            HttpClientConfig(account=account, verify_key=verify_key, module_check=False),
-        ]
+        config(
+            account,
+            verify_key,
+            WebsocketServerConfig(path="/"),
+            HttpClientConfig(host=url),
+        )
     )
 
     bcc = Ariadne.service.broadcast

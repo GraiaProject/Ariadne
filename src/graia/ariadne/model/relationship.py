@@ -10,6 +10,18 @@ from .util import AriadneBaseModel
 if TYPE_CHECKING:
     from . import Profile
 
+_MEMBER_PERM_LV_MAP: Dict[str, int] = {
+    "MEMBER": 1,
+    "ADMINISTRATOR": 2,
+    "OWNER": 3,
+}
+
+_MEMBER_PERM_REPR_MAP: Dict[str, str] = {
+    "MEMBER": "<普通成员>",
+    "ADMINISTRATOR": "<管理员>",
+    "OWNER": "<群主>",
+}
+
 
 @functools.total_ordering
 class MemberPerm(Enum):
@@ -23,16 +35,10 @@ class MemberPerm(Enum):
         return self.value
 
     def __lt__(self, other: "MemberPerm"):
-        lv_map = {MemberPerm.Member: 1, MemberPerm.Administrator: 2, MemberPerm.Owner: 3}
-        return lv_map[self] < lv_map[other]
+        return _MEMBER_PERM_LV_MAP[self.value] < _MEMBER_PERM_LV_MAP[other.value]
 
     def __repr__(self) -> str:
-        perm_map: Dict[str, str] = {
-            "MEMBER": "<普通成员>",
-            "ADMINISTRATOR": "<管理员>",
-            "OWNER": "<群主>",
-        }
-        return perm_map[self.value]
+        return _MEMBER_PERM_REPR_MAP[self.value]
 
 
 @internal_cls()

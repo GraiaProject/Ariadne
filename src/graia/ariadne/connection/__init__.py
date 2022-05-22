@@ -402,11 +402,12 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         return await connection.call(command, method, params)
 
     async def call(
-        self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None
+        self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None, in_session: bool = True
     ) -> Any:
-        await self.status.wait_for_available()  # wait until session_key is present
-        session_key = self.status.session_key
-        params["sessionKey"] = session_key
+        if in_session:
+            await self.status.wait_for_available()  # wait until session_key is present
+            session_key = self.status.session_key
+            params["sessionKey"] = session_key
         return await self._call(command, method, params, account=account)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:

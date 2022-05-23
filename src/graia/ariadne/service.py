@@ -1,6 +1,15 @@
 import asyncio
 import contextlib
-from typing import Dict, Iterable, MutableMapping, MutableSet, Tuple, Type, overload
+from typing import (
+    Dict,
+    Iterable,
+    MutableMapping,
+    MutableSet,
+    Optional,
+    Tuple,
+    Type,
+    overload,
+)
 from weakref import WeakValueDictionary
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
@@ -28,14 +37,15 @@ class ElizabethService(Service):
     broadcast: Broadcast
     connection_tasks: MutableMapping[int, asyncio.Task]
 
-    def __init__(self) -> None:
+    def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
         self.connections = {}
         self.connection_tasks = WeakValueDictionary()
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        self.broadcast = Broadcast(loop=loop)
-        self.broadcast.prelude_dispatchers.append(ContextDispatcher)
-        self.broadcast.finale_dispatchers.append(NoneDispatcher)
+        self.broadcast = broadcast or Broadcast(loop=asyncio.new_event_loop())
+        asyncio.set_event_loop(self.broadcast.loop)
+        if ContextDispatcher not in self.broadcast.prelude_dispatchers:
+            self.broadcast.prelude_dispatchers.append(ContextDispatcher)
+        if NoneDispatcher not in self.broadcast.finale_dispatchers:
+            self.broadcast.finale_dispatchers.append(NoneDispatcher)
 
     def add_configs(self, configs: Iterable[U_Info]) -> Tuple[Self, int]:
         configs = list(configs)

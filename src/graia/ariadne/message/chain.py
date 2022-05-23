@@ -44,6 +44,8 @@ ELEMENT_MAPPING: Dict[str, Type[Element]] = {
     i.__fields__["type"].default: i for i in gen_subclass(Element) if hasattr(i.__fields__["type"], "default")
 }
 
+ORDINARY_ELEMENT_TYPES = (Source, Quote, Plain, Image, Face)
+
 
 class MessageChain(AriadneBaseModel):
     """
@@ -76,7 +78,7 @@ class MessageChain(AriadneBaseModel):
                 element_list.append(Plain(i))
         if len(element_list) != 1:
             assert all(
-                isinstance(element, (Plain, Image, Face)) for element in element_list
+                isinstance(element, ORDINARY_ELEMENT_TYPES) for element in element_list
             ), "An MessageChain can only contain *one* special element"
         return element_list
 
@@ -127,7 +129,7 @@ class MessageChain(AriadneBaseModel):
                 element_list.extend(cls.build_chain(i))
         if len(element_list) != 1:
             assert all(
-                isinstance(element, (Plain, Image, Face)) for element in element_list
+                isinstance(element, ORDINARY_ELEMENT_TYPES) for element in element_list
             ), "An MessageChain can only contain *one* special element"
         return cls(__root__=element_list)
 

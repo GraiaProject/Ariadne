@@ -51,6 +51,7 @@ from .model import (
     Profile,
     Stranger,
 )
+from .model.util import AriadneOptions
 from .service import ElizabethService
 from .typing import SendMessageActionProtocol, SendMessageDict, SendMessageException, T
 from .util import app_ctx_manager
@@ -60,21 +61,97 @@ if TYPE_CHECKING:
 
 
 class Ariadne:
-    service: ClassVar[ElizabethService] = ElizabethService()
-    launch_manager: ClassVar[LaunchManager] = LaunchManager()
+    options: ClassVar[AriadneOptions] = {}
+    service: ClassVar[ElizabethService]
+    launch_manager: ClassVar[LaunchManager]
     instances: ClassVar[Dict[int, "Ariadne"]] = {}
-    default_account: ClassVar[Optional[int]] = None
     default_send_action: SendMessageActionProtocol
-    held_objects: ClassVar[Dict[type, Any]] = {
-        Broadcast: service.broadcast,
-        asyncio.AbstractEventLoop: service.loop,
-    }
+    held_objects: ClassVar[Dict[type, Any]] = {}
+
+    @classmethod
+    def _ensure_config(cls):
+        if not hasattr(cls, "service"):
+            cls.service = ElizabethService()
+        if not hasattr(cls, "launch_manager"):
+            cls.launch_manager = LaunchManager()
+        cls.held_objects.setdefault(Broadcast, cls.service.broadcast)
+        cls.held_objects.setdefault(asyncio.AbstractEventLoop, cls.service.loop)
+
+    @classmethod
+    def config(
+        cls,
+        *,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
+        broadcast: Optional[Broadcast] = None,
+        launch_manager: Optional[LaunchManager] = None,
+        default_account: Optional[int] = None,
+        install_log: bool = False,
+        inject_bypass_listener: bool = False,
+    ) -> None:
+        """配置 Ariadne 全局参数, 未提供的值会自动生成合理的默认值
+        注：请在实例化 Ariadne 前配置完成
+
+        Args:
+            loop (Optional[asyncio.AbstractEventLoop], optional): 异步事件循环, 与 `broadcast` 参数互斥
+            broadcast (Optional[Broadcast], optional): 事件系统, 与 `loop` 参数互斥
+            launch_manager (Optional[LaunchManager], optional): 启动管理器
+            default_account (Optional[int], optional): 默认账号
+            install_log (bool, optional): 是否安装 rich 日志, 默认为 False
+            inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
+        """
+        assert not cls.instances, "Please configure Ariadne class before instantiating"
+        if loop:
+            if broadcast:
+                assert broadcast.loop is loop, "Inconsistent event loop"
+            broadcast = broadcast or Broadcast(loop=loop)
+
+        if broadcast:
+            service = ElizabethService(broadcast)
+            assert getattr(cls, "service", service) is service, "Inconsistent broadcast instance"
+            cls.service = service
+
+        if launch_manager:
+            assert (
+                getattr(cls, "launch_manager", launch_manager) is launch_manager
+            ), "Inconsistent launch manager"
+            cls.launch_manager = launch_manager
+
+        if default_account:
+            if "default_account" not in cls.options:
+                cls.options["default_account"] = default_account
+            else:
+                assert cls.options["default_account"] == default_account, "Inconsistent default account"
+
+        if install_log and "installed_log" not in cls.options:
+            from graia.amnesia import log
+
+            log.install()
+            cls.options["installed_log"] = True
+
+        if inject_bypass_listener and "inject_bypass_listener" not in cls.options:
+            from .util import inject_bypass_listener as inject
+
+            if not hasattr(cls, "service"):
+                cls.service = ElizabethService()
+
+            inject(cls.service.broadcast)
 
     def __init__(
         self,
         connection: Iterable[U_Info] = (),
         log_config: Optional[LogConfig] = None,
     ) -> None:
+        """针对单个账号配置 Ariadne 实例.
+        若需全局配置, 请使用 `Ariadne.config()`
+
+        Args:
+            connection (Iterable[U_Info]): 连接信息, 通过 `graia.ariadne.connection.config` 生成
+            log_config (Optional[LogConfig], optional): 日志配置
+
+        Returns:
+            None: 无返回值
+        """
+        self._ensure_config()
         from .util.send import Strict
 
         self.default_send_action = Strict
@@ -176,11 +253,12 @@ class Ariadne:
 
         if ariadne_ctx.get(None):
             return ariadne_ctx.get()
-        if not cls.default_account:
+        if "default_account" not in cls.options:
             if len(cls.service.connections) != 1:
                 raise ValueError("Ambiguous account reference, set Ariadne.default_account")
-            cls.default_account = next(iter(cls.service.connections))
-        return Ariadne.instances[cls.default_account]
+            cls.options["default_account"] = next(iter(cls.service.connections))
+        assert "default_account" in cls.options
+        return Ariadne.instances[cls.options["default_account"]]
 
     def __getattr__(self, snake_case_name: str) -> Callable:
         # snake_case to camelCase

@@ -4,7 +4,6 @@ import re
 from typing import Optional, Union
 
 import devtools
-from graia.amnesia import log
 from graia.amnesia.builtins.aiohttp import AiohttpServerService
 from graia.broadcast import Broadcast
 from graia.broadcast.builtin.event import ExceptionThrowed
@@ -12,15 +11,12 @@ from loguru import logger
 
 from graia.ariadne.entry import *
 
-log.install()
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
         open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     )
     ALL_FLAG = True
-    Ariadne.service.loop.set_debug(True)
-
-    Ariadne.launch_manager.add_service(AiohttpServerService(port=23333))
+    Ariadne.config(inject_bypass_listener=True, install_log=True)
 
     app = Ariadne(
         config(
@@ -30,6 +26,10 @@ if __name__ == "__main__":
             HttpClientConfig(host=url),
         )
     )
+
+    Ariadne.service.loop.set_debug(True)
+
+    Ariadne.launch_manager.add_service(AiohttpServerService(port=23333))
 
     bcc = Ariadne.service.broadcast
 

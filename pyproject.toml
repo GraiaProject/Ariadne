@@ -69,6 +69,7 @@ mkdocs-gen-files = "^0.3.4"
 mkdocs-section-index = "^0.3.3"
 mkdocs-literate-nav = "^0.4.1"
 graia-amnesia = {git = "https://github.com/BlueGlassBlock/Amnesia.git"}
+ipykernel = "^6.13.0"
 
 [tool.isort]
 profile = "black"

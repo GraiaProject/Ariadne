@@ -3,7 +3,6 @@ import base64
 import aiohttp
 import pytest
 
-from graia.ariadne.context import adapter_ctx
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import (
     At,
@@ -169,12 +168,26 @@ def test_persistent():
 async def test_download():
     url = "https://avatars.githubusercontent.com/u/67151942?s=200&v=4"
     chain = MessageChain(["text", Image(url=url)])
-    async with aiohttp.ClientSession() as session:
-        adapter_ctx.set(Dummy(session=session))
+    from asyncio import Event, create_task
+
+    from graia.amnesia.builtins.aiohttp import AiohttpService
+    from graia.amnesia.launch.component import LaunchComponent
+
+    from graia.ariadne.app import Ariadne
+
+    Ariadne._ensure_config()
+    srv = AiohttpService()
+    Ariadne.launch_manager.add_service(srv)
+
+    async def mainline(_):
         await chain.download_binary()
         assert (
-            base64.b64decode(chain.get_first(Image).base64) == await (await session.get(url)).content.read()
+            base64.b64decode(chain.get_first(Image).base64)
+            == await (await srv.session.get(url)).content.read()
         )
+
+    Ariadne.launch_manager.new_launch_component("test", {"http.universal_client"}, mainline=mainline)
+    await Ariadne.launch_manager.launch()
 
 
 def test_presentation():

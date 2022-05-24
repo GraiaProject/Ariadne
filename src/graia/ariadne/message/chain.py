@@ -8,6 +8,7 @@ from typing import (
     Iterable,
     Iterator,
     List,
+    Literal,
     Tuple,
     Type,
     TypeVar,
@@ -18,7 +19,7 @@ from typing import (
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import AttrConvertMixin, gen_subclass
+from ..util import AttrConvertMixin, deprecated, gen_subclass
 from .element import (
     At,
     AtAll,
@@ -47,6 +48,8 @@ METADATA_ELEMENT_TYPES = (Source, Quote)
 
 ORDINARY_ELEMENT_TYPES = (Plain, Image, Face, At, AtAll)
 
+_Parsable = Union[str, dict, Element, Iterable["_Parsable"], "MessageChain"]
+
 
 class MessageChain(AriadneBaseModel, AttrConvertMixin):
     """
@@ -57,26 +60,30 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
     """底层元素列表"""
 
     @staticmethod
-    def build_chain(obj: Iterable[Union[dict, Element, str]]) -> List[Element]:
+    def build_chain(obj: _Parsable) -> List[Element]:
         """内部接口, 会自动反序列化对象并生成.
 
         Args:
-            obj (Iterable[Union[dict, Element, str]]): 需要反序列化的对象
+            obj (_Parsable): 需要反序列化的对象
 
         Returns:
             List[Element]: 内部承载有尽量有效的消息元素的列表
         """
         element_list: List[Element] = []
-        for i in obj:
-            if isinstance(i, Element):
-                element_list.append(i)
-            elif isinstance(i, dict) and "type" in i:
-                for element_cls in gen_subclass(Element):
-                    if element_cls.__name__ == i["type"]:
-                        element_list.append(element_cls.parse_obj(i))
-                        break
-            elif isinstance(i, str):
-                element_list.append(Plain(i))
+
+        if isinstance(obj, Element):
+            element_list.append(obj)
+        elif isinstance(obj, dict):
+            if obj.get("type") in ELEMENT_MAPPING:
+                element_list.append(ELEMENT_MAPPING[obj["type"]].parse_obj(obj))
+        elif isinstance(obj, str):
+            element_list.append(Plain(obj))
+        elif isinstance(obj, MessageChain):
+            element_list.extend(obj.__root__)
+        elif isinstance(obj, Iterable):  # needs to be last
+            for o in obj:
+                element_list.extend(MessageChain.build_chain(o))
+
         if len(element_list) != 1:
             assert all(
                 isinstance(element, ORDINARY_ELEMENT_TYPES)
@@ -97,21 +104,41 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         """
         return cls(__root__=cls.build_chain(obj))  # type: ignore
 
+    @overload
+    def __init__(self, __root__: Iterable[Element], *, inline: Literal[True]) -> None:
+        ...
+
+    @overload
+    def __init__(self, *elements: _Parsable, inline: Literal[False] = False) -> None:
+        ...
+
     def __init__(
         self,
-        __root__: Iterable[Union[Element, str]],
+        __root__: _Parsable,
+        *elements: _Parsable,
         inline: bool = False,
     ) -> None:
+        """
+        创建消息链.
+
+        Args:
+            *elements (Union[Iterable[Element], Element, str]): \
+            元素的容器, 为承载元素的可迭代对象/单元素实例, \
+            字符串会被自动不可逆的转换为 `Plain`
+
+        Returns:
+            MessageChain: 创建的消息链
+        """
         if not inline:
-            super().__init__(__root__=self.build_chain(__root__))  # type: ignore
+            super().__init__(__root__=MessageChain.build_chain((__root__, *elements)))  # type: ignore
         else:
             super().__init__(__root__=__root__)  # type: ignore
 
     @classmethod
+    @deprecated("0.8.0")
     def create(cls, *elements: Union[Iterable[Element], Element, str]) -> "MessageChain":
         """
         创建消息链.
-        比起直接实例化, 本方法拥有更丰富的输入实例类型支持.
 
         Args:
             *elements (Union[Iterable[Element], Element, str]): \
@@ -122,21 +149,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             MessageChain: 创建的消息链
         """
 
-        element_list = []
-        for i in elements:
-            if isinstance(i, Element):
-                element_list.append(i)
-            elif isinstance(i, str):
-                element_list.append(Plain(i))
-            else:
-                element_list.extend(cls.build_chain(i))
-        if len(element_list) != 1:
-            assert all(
-                isinstance(element, ORDINARY_ELEMENT_TYPES)
-                for element in element_list
-                if not isinstance(element, METADATA_ELEMENT_TYPES)
-            ), "An MessageChain can only contain *one* special element"
-        return cls(__root__=element_list)
+        return cls(*elements)
 
     def prepare(self, copy: bool = False) -> "MessageChain":
         """
@@ -291,7 +304,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             return MessageChain(self.__root__[item], inline=True)
         raise NotImplementedError(f"{item} is not allowed for item getting")
 
-    def find_sub_chain(self, subchain: Union["MessageChain", List[Element]]) -> List[int]:
+    def find_sub_chain(self, subchain: _Parsable) -> List[int]:
         """判断消息链是否含有子链. 使用 KMP 算法.
 
         Args:
@@ -301,9 +314,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             List[int]: 所有找到的下标.
         """
         pattern: List[Union[str, Element]] = (
-            subchain.unzip()
-            if isinstance(subchain, MessageChain)
-            else MessageChain(subchain, inline=True).unzip()
+            subchain.unzip() if isinstance(subchain, MessageChain) else MessageChain(subchain).unzip()
         )
 
         match_target: List[Union[str, Element]] = self.unzip()
@@ -558,10 +569,10 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         """
         return self.exclude(Source, Quote, File)
 
-    def __eq__(self, other: Union[List[Union[Element, str]], "MessageChain"]) -> bool:
-        if not isinstance(other, (list, MessageChain)):
+    def __eq__(self, other: Union[_Parsable, "MessageChain"]) -> bool:
+        if not isinstance(other, (MessageChain, list)):
             return False
-        if isinstance(other, list):
+        if not isinstance(other, MessageChain):
             other = MessageChain(other)
         return other.asSendable().__root__ == self.asSendable().__root__
 

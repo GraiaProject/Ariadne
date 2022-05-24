@@ -20,7 +20,6 @@ from ..message.element import Image as Image
 from ..message.element import ImageType as ImageType
 from ..message.element import MultimediaElement as MultimediaElement
 from ..message.element import MusicShare as MusicShare
-from ..message.element import NotSendableElement as NotSendableElement
 from ..message.element import Plain as Plain
 from ..message.element import Poke as Poke
 from ..message.element import PokeMethods as PokeMethods

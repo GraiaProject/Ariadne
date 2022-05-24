@@ -142,7 +142,6 @@ from .message import MentionMe as MentionMe
 from .message import MessageChain as MessageChain
 from .message import MultimediaElement as MultimediaElement
 from .message import MusicShare as MusicShare
-from .message import NotSendableElement as NotSendableElement
 from .message import Plain as Plain
 from .message import Poke as Poke
 from .message import PokeMethods as PokeMethods

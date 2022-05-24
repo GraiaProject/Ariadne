@@ -47,7 +47,6 @@ ELEMENT_MAPPING: Dict[str, Type[Element]] = {
 METADATA_ELEMENT_TYPES = (Source, Quote)
 
 ORDINARY_ELEMENT_TYPES = (Plain, Image, Face, At, AtAll)
-
 _Parsable = Union[str, dict, Element, Iterable["_Parsable"], "MessageChain"]
 
 
@@ -98,7 +97,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return element_list
 
     @classmethod
-    def parse_obj(cls: Type["MessageChain"], obj: List[Union[dict, Element]]) -> "MessageChain":
+    def parse_obj(cls: Type[Self], obj: List[Union[dict, Element]]) -> Self:
         """内部接口, 会自动将作为外部态的消息元素转为内部态.
 
         Args:
@@ -141,7 +140,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
 
     @classmethod
     @deprecated("0.8.0")
-    def create(cls, *elements: Union[Iterable[Element], Element, str]) -> "MessageChain":
+    def create(cls, *elements: Union[Iterable[Element], Element, str]) -> Self:
         """
         创建消息链.
 
@@ -157,7 +156,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return cls(*elements)
 
     @deprecated("0.8.0")
-    def prepare(self, copy: bool = False) -> "MessageChain":
+    def prepare(self, copy: bool = False) -> Self:
         """
         对消息链中所有元素进行处理.
 
@@ -180,12 +179,12 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
                 unzipped.append(e)
         return unzipped
 
-    def has(self, item: Union[Element, Type[Element], "MessageChain", str]) -> bool:
+    def has(self, item: Union[Element, Type[Element], Self, str]) -> bool:
         """
         判断消息链中是否含有特定的元素/元素类型/消息链/字符串.
 
         Args:
-            item (Union[Element_T, Type[Element_T], "MessageChain"]): 需要判断的元素/元素类型/消息链/字符串.
+            item (Union[Element_T, Type[Element_T], Self]): 需要判断的元素/元素类型/消息链/字符串.
 
         Returns:
             bool: 判断结果
@@ -230,7 +229,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return [(None, list(self.content))]
 
     # define as a method so pydantic won't complain
-    def __contains__(self, item: Union["MessageChain", Type[Element_T], Element_T, str]) -> bool:
+    def __contains__(self, item: Union[Self, Type[Element_T], Element_T, str]) -> bool:
         """
         是否包含特定对象
         """
@@ -249,12 +248,12 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         ...
 
     @overload
-    def __getitem__(self, item: slice) -> "MessageChain":
+    def __getitem__(self, item: slice) -> Self:
         ...
 
     def __getitem__(  # type: ignore
         self, item: Union[Tuple[Type[Element_T], int], Type[Element_T], int, slice]
-    ) -> Union[List[Element], Element, "MessageChain"]:
+    ) -> Union[List[Element_T], Element, Self]:
         """
         可通过切片取出子消息链, 或元素.
 
@@ -329,7 +328,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         """
         return self.only(*types)
 
-    def as_sendable(self) -> "MessageChain":
+    def as_sendable(self) -> Self:
         """将消息链转换为可发送形式 (去除 Source, Quote, File)
 
         Returns:
@@ -337,14 +336,14 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         """
         return self.exclude(Source, Quote, File)
 
-    def __eq__(self, other: Union[_Parsable, "MessageChain"]) -> bool:
+    def __eq__(self, other: Union[_Parsable, Self]) -> bool:
         if not isinstance(other, (MessageChain, list)):
             return False
         if not isinstance(other, MessageChain):
             other = MessageChain(other)
         return other.as_sendable().content == self.as_sendable().content
 
-    def __add__(self, content: Union["MessageChain", List[Element], Element, str]) -> "MessageChain":
+    def __add__(self, content: Union[Self, List[Element], Element, str]) -> Self:
         if isinstance(content, str):
             content = Plain(content)
         if isinstance(content, Element):
@@ -353,7 +352,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
             content = content.content
         return MessageChain(self.content + content, inline=True)
 
-    def __radd__(self, content: Union["MessageChain", List[Element], Element, str]) -> "MessageChain":
+    def __radd__(self, content: Union[Self, List[Element], Element, str]) -> Self:
         if isinstance(content, str):
             content = Plain(content)
         if isinstance(content, Element):
@@ -362,7 +361,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
             content = content.content
         return MessageChain(content + self.content, inline=True)
 
-    def __iadd__(self, content: Union["MessageChain", List[Element], Element, str]) -> "MessageChain":
+    def __iadd__(self, content: Union[Self, List[Element], Element, str]) -> Self:
         if isinstance(content, str):
             content = Plain(content)
         if isinstance(content, Element):
@@ -372,13 +371,13 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         self.content.extend(content)
         return self
 
-    def __mul__(self, time: int) -> "MessageChain":
+    def __mul__(self, time: int) -> Self:
         result = []
         for _ in range(time):
             result.extend(deepcopy(self.content))
         return MessageChain(result, inline=True)
 
-    def __imul__(self, time: int) -> "MessageChain":
+    def __imul__(self, time: int) -> Self:
         result = []
         for _ in range(time):
             result.extend(deepcopy(self.content))
@@ -436,7 +435,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return self
 
     @classmethod
-    def from_persistent_string(cls, string: str) -> "MessageChain":
+    def from_persistent_string(cls, string: str) -> Self:
         """从持久化字符串生成消息链.
 
         Returns:
@@ -493,7 +492,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return "".join(elem_str_list), elem_mapping
 
     @classmethod
-    def _from_mapping_string(cls, string: str, mapping: Dict[str, Element]) -> "MessageChain":
+    def _from_mapping_string(cls, string: str, mapping: Dict[str, Element]) -> Self:
         """从映射字符串与映射字典的元组还原消息链.
 
         Args:
@@ -515,7 +514,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
                     elements.append(Plain(x))
         return cls(elements, inline=True)
 
-    def removeprefix(self, prefix: str, *, copy: bool = True, skip_header: bool = True) -> "MessageChain":
+    def removeprefix(self, prefix: str, *, copy: bool = True, skip_header: bool = True) -> Self:
         """移除消息链前缀.
 
         Args:
@@ -549,7 +548,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         self.content.extend(header + elements)
         return self
 
-    def removesuffix(self, suffix: str, *, copy: bool = True) -> "MessageChain":
+    def removesuffix(self, suffix: str, *, copy: bool = True) -> Self:
         """移除消息链后缀.
 
         Args:
@@ -571,9 +570,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         self.content.extend(elements)
         return self
 
-    def join(
-        self, *chains: Union["MessageChain", Iterable["MessageChain"]], merge: bool = True
-    ) -> "MessageChain":
+    def join(self, *chains: Union[Self, Iterable[Self]], merge: bool = True) -> Self:
         """将多个消息链连接起来, 并在其中插入自身.
 
         Args:
@@ -599,9 +596,9 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
 
     def replace(
         self,
-        old: "MessageChain | Iterable[Element] | Element",
-        new: "MessageChain | Iterable[Element] | Element",
-    ) -> "MessageChain":
+        old: "Self | Iterable[Element] | Element",
+        new: "Self | Iterable[Element] | Element",
+    ) -> Self:
         """替换消息链中的一部分. (在副本上操作)
 
         Args:

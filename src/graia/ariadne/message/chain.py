@@ -43,8 +43,9 @@ Element_T = TypeVar("Element_T", bound=Element)
 ELEMENT_MAPPING: Dict[str, Type[Element]] = {
     i.__fields__["type"].default: i for i in gen_subclass(Element) if hasattr(i.__fields__["type"], "default")
 }
+METADATA_ELEMENT_TYPES = (Source, Quote)
 
-ORDINARY_ELEMENT_TYPES = (Source, Quote, Plain, Image, Face)
+ORDINARY_ELEMENT_TYPES = (Plain, Image, Face, At, AtAll)
 
 
 class MessageChain(AriadneBaseModel, AttrConvertMixin):
@@ -78,7 +79,9 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
                 element_list.append(Plain(i))
         if len(element_list) != 1:
             assert all(
-                isinstance(element, ORDINARY_ELEMENT_TYPES) for element in element_list
+                isinstance(element, ORDINARY_ELEMENT_TYPES)
+                for element in element_list
+                if not isinstance(element, METADATA_ELEMENT_TYPES)
             ), "An MessageChain can only contain *one* special element"
         return element_list
 
@@ -129,7 +132,9 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
                 element_list.extend(cls.build_chain(i))
         if len(element_list) != 1:
             assert all(
-                isinstance(element, ORDINARY_ELEMENT_TYPES) for element in element_list
+                isinstance(element, ORDINARY_ELEMENT_TYPES)
+                for element in element_list
+                if not isinstance(element, METADATA_ELEMENT_TYPES)
             ), "An MessageChain can only contain *one* special element"
         return cls(__root__=element_list)
 

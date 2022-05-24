@@ -373,6 +373,19 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
     return deco
 
 
+class AttrConvertMixin:
+    def __getattr__(self, name: str) -> Callable:
+        # camelCase to snake_case
+        if name.startswith("_"):
+            raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
+        import re
+
+        name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+        name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
+        name = name.replace("-", "_").lower()
+        return getattr(self, name)
+
+
 # Import layout
 from . import async_exec  # noqa: F401, E402
 from .async_exec import (  # noqa: F401, E402

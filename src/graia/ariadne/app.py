@@ -12,7 +12,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     AsyncGenerator,
-    Callable,
     ClassVar,
     Dict,
     Iterable,
@@ -54,19 +53,22 @@ from .model import (
 from .model.util import AriadneOptions
 from .service import ElizabethService
 from .typing import SendMessageActionProtocol, SendMessageDict, SendMessageException, T
-from .util import app_ctx_manager
+from .util import AttrConvertMixin, app_ctx_manager
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
 
 
-class Ariadne:
+class Ariadne(AttrConvertMixin):
     options: ClassVar[AriadneOptions] = {}
     service: ClassVar[ElizabethService]
     launch_manager: ClassVar[LaunchManager]
     instances: ClassVar[Dict[int, "Ariadne"]] = {}
     default_send_action: SendMessageActionProtocol
     held_objects: ClassVar[Dict[type, Any]] = {}
+    connection: ConnectionInterface
+    account: int
+    log_config: LogConfig
 
     @classmethod
     def _ensure_config(cls):
@@ -170,7 +172,7 @@ class Ariadne:
     async def _event_hook(self, event: MiraiEvent):
         with enter_context(self, event):
             sys.audit("AriadnePostRemoteEvent", event)
-            if isinstance(event, MessageEvent) and event.messageChain.onlyContains(Source):
+            if isinstance(event, MessageEvent) and event.messageChain.only_contains(Source):
                 event.messageChain.append("<! 不支持的消息类型 !>")
             if isinstance(event, FriendEvent):
                 with enter_message_send_context(UploadMethod.Friend):
@@ -260,14 +262,8 @@ class Ariadne:
         assert "default_account" in cls.options
         return Ariadne.instances[cls.options["default_account"]]
 
-    def __getattr__(self, snake_case_name: str) -> Callable:
-        # snake_case to camelCase
-        snake_segments = snake_case_name.split("_")
-        camel_case_name = snake_segments[0] + "".join(s.capitalize() for s in snake_segments[1:])
-        return self.__dict__[camel_case_name]
-
     @app_ctx_manager
-    async def getVersion(self) -> str:
+    async def get_version(self) -> str:
         """获取后端 Mirai HTTP API 版本.
 
         Returns:
@@ -276,7 +272,7 @@ class Ariadne:
         result = await self.connection._call("about", CallMethod.GET, {})
         return result["version"]
 
-    async def getFileIterator(
+    async def get_file_iterator(
         self,
         target: Union[Group, int],
         id: str = "",
@@ -304,13 +300,13 @@ class Ariadne:
         while True:
             for file_info in cache:
                 yield file_info
-            cache = await self.getFileList(target, id, current_offset, size, with_download_info)
+            cache = await self.get_file_list(target, id, current_offset, size, with_download_info)
             current_offset += len(cache)
             if not cache:
                 return
 
     @app_ctx_manager
-    async def getFileList(
+    async def get_file_list(
         self,
         target: Union[Group, int],
         id: str = "",
@@ -348,7 +344,7 @@ class Ariadne:
         return [FileInfo.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getFileInfo(
+    async def get_file_info(
         self,
         target: Union[Friend, Group, int],
         id: str = "",
@@ -385,7 +381,7 @@ class Ariadne:
         return FileInfo.parse_obj(result)
 
     @app_ctx_manager
-    async def makeDirectory(
+    async def make_directory(
         self,
         target: Union[Friend, Group, int],
         name: str,
@@ -422,7 +418,7 @@ class Ariadne:
         return FileInfo.parse_obj(result)
 
     @app_ctx_manager
-    async def deleteFile(
+    async def delete_file(
         self,
         target: Union[Friend, Group, int],
         id: str = "",
@@ -454,7 +450,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def moveFile(
+    async def move_file(
         self,
         target: Union[Friend, Group, int],
         id: str = "",
@@ -489,7 +485,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def renameFile(
+    async def rename_file(
         self,
         target: Union[Friend, Group, int],
         id: str = "",
@@ -524,7 +520,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def uploadFile(
+    async def upload_file(
         self,
         data: Union[bytes, io.IOBase, os.PathLike],
         method: Union[str, UploadMethod, None] = None,
@@ -572,7 +568,7 @@ class Ariadne:
         return FileInfo.parse_obj(result)
 
     @app_ctx_manager
-    async def uploadImage(
+    async def upload_image(
         self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
@@ -602,7 +598,7 @@ class Ariadne:
         return Image.parse_obj(result)
 
     @app_ctx_manager
-    async def uploadVoice(
+    async def upload_voice(
         self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Voice":
         """上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
@@ -631,7 +627,7 @@ class Ariadne:
 
         return Voice.parse_obj(result)
 
-    async def getAnnouncementIterator(
+    async def get_announcement_iterator(
         self,
         target: Union[Group, int],
         offset: int = 0,
@@ -654,13 +650,13 @@ class Ariadne:
         while True:
             for announcement in cache:
                 yield announcement
-            cache = await self.getAnnouncementList(target, current_offset, size)
+            cache = await self.get_announcement_list(target, current_offset, size)
             current_offset += len(cache)
             if not cache:
                 return
 
     @app_ctx_manager
-    async def getAnnouncementList(
+    async def get_announcement_list(
         self,
         target: Union[Group, int],
         offset: Optional[int] = 0,
@@ -691,7 +687,7 @@ class Ariadne:
         return [Announcement.parse_obj(announcement) for announcement in result]
 
     @app_ctx_manager
-    async def publishAnnouncement(
+    async def publish_announcement(
         self,
         target: Union[Group, int],
         content: str,
@@ -752,7 +748,7 @@ class Ariadne:
         return Announcement.parse_obj(result)
 
     @app_ctx_manager
-    async def deleteAnnouncement(self, target: Union[Group, int], anno: Union[Announcement, int]) -> None:
+    async def delete_announcement(self, target: Union[Group, int], anno: Union[Announcement, int]) -> None:
         """
         删除一条公告.
 
@@ -774,7 +770,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def deleteFriend(self, target: Union[Friend, int]) -> None:
+    async def delete_friend(self, target: Union[Friend, int]) -> None:
         """
         删除指定好友.
 
@@ -796,7 +792,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def muteMember(self, group: Union[Group, int], member: Union[Member, int], time: int) -> None:
+    async def mute_member(self, group: Union[Group, int], member: Union[Member, int], time: int) -> None:
         """
         在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
         当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -826,7 +822,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def unmuteMember(self, group: Union[Group, int], member: Union[Member, int]) -> None:
+    async def unmute_member(self, group: Union[Group, int], member: Union[Member, int]) -> None:
         """
         在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
 
@@ -850,7 +846,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def muteAll(self, group: Union[Group, int]) -> None:
+    async def mute_all(self, group: Union[Group, int]) -> None:
         """在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
 
         Args:
@@ -868,7 +864,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def unmuteAll(self, group: Union[Group, int]) -> None:
+    async def unmute_all(self, group: Union[Group, int]) -> None:
         """在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
 
         Args:
@@ -886,7 +882,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def kickMember(
+    async def kick_member(
         self, group: Union[Group, int], member: Union[Member, int], message: str = ""
     ) -> None:
         """
@@ -911,7 +907,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def quitGroup(self, group: Union[Group, int]) -> None:
+    async def quit_group(self, group: Union[Group, int]) -> None:
         """
         主动从指定群组退出
 
@@ -930,7 +926,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def setEssence(self, target: Union[Source, BotMessage, int]) -> None:
+    async def set_essence(self, target: Union[Source, BotMessage, int]) -> None:
         """
         添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
         请自行判断消息来源是否为群组.
@@ -954,7 +950,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def getGroupConfig(self, group: Union[Group, int]) -> GroupConfig:
+    async def get_group_config(self, group: Union[Group, int]) -> GroupConfig:
         """
         获取指定群组的群设置
 
@@ -975,7 +971,7 @@ class Ariadne:
         return GroupConfig.parse_obj(result)
 
     @app_ctx_manager
-    async def modifyGroupConfig(self, group: Union[Group, int], config: GroupConfig) -> None:
+    async def modify_group_config(self, group: Union[Group, int], config: GroupConfig) -> None:
         """修改指定群组的群设置; 需要具有相应权限(管理员/群主).
 
         Args:
@@ -995,7 +991,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def modifyMemberInfo(
+    async def modify_member_info(
         self,
         member: Union[Member, int],
         info: MemberInfo,
@@ -1033,7 +1029,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def modifyMemberAdmin(
+    async def modify_member_admin(
         self,
         assign: bool,
         member: Union[Member, int],
@@ -1072,7 +1068,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def registerCommand(
+    async def register_command(
         self, name: str, alias: Iterable[str] = (), usage: str = "", description: str = ""
     ) -> None:
         """注册一个 mirai-console 指令
@@ -1096,7 +1092,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def executeCommand(self, command: Union[str, Iterable[str]]) -> None:
+    async def execute_command(self, command: Union[str, Iterable[str]]) -> None:
         """执行一条 mirai-console 指令
 
         Args:
@@ -1114,7 +1110,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def getFriendList(self) -> List[Friend]:
+    async def get_friend_list(self) -> List[Friend]:
         """获取本实例账号添加的好友列表.
 
         Returns:
@@ -1128,15 +1124,15 @@ class Ariadne:
         return [Friend.parse_obj(i) for i in result]
 
     @overload
-    async def getFriend(self, friend_id: int, assertion: Literal[False] = False) -> Optional[Friend]:
+    async def get_friend(self, friend_id: int, assertion: Literal[False] = False) -> Optional[Friend]:
         ...
 
     @overload
-    async def getFriend(self, friend_id: int, assertion: Literal[True]) -> Friend:
+    async def get_friend(self, friend_id: int, assertion: Literal[True]) -> Friend:
         ...
 
     @app_ctx_manager
-    async def getFriend(self, friend_id: int, assertion: bool = False) -> Optional[Friend]:
+    async def get_friend(self, friend_id: int, assertion: bool = False) -> Optional[Friend]:
         """从已知的可能的好友 ID, 获取 Friend 实例.
 
         Args:
@@ -1146,7 +1142,7 @@ class Ariadne:
             Friend: 操作成功, 你得到了你应得的.
             None: 未能获取到.
         """
-        data = await self.getFriendList()
+        data = await self.get_friend_list()
         for i in data:
             if i.id == friend_id:
                 return i
@@ -1154,7 +1150,7 @@ class Ariadne:
             raise ValueError(f"Friend {friend_id} not found.")
 
     @app_ctx_manager
-    async def getGroupList(self) -> List[Group]:
+    async def get_group_list(self) -> List[Group]:
         """获取本实例账号加入的群组列表.
 
         Returns:
@@ -1168,15 +1164,15 @@ class Ariadne:
         return [Group.parse_obj(i) for i in result]
 
     @overload
-    async def getGroup(self, group_id: int, assertion: Literal[False] = False) -> Optional[Group]:
+    async def get_group(self, group_id: int, assertion: Literal[False] = False) -> Optional[Group]:
         ...
 
     @overload
-    async def getGroup(self, group_id: int, assertion: Literal[True]) -> Group:
+    async def get_group(self, group_id: int, assertion: Literal[True]) -> Group:
         ...
 
     @app_ctx_manager
-    async def getGroup(self, group_id: int, assertion: bool = False) -> Optional[Group]:
+    async def get_group(self, group_id: int, assertion: bool = False) -> Optional[Group]:
         """尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
 
         Args:
@@ -1187,7 +1183,7 @@ class Ariadne:
             Group: 操作成功, 你得到了你应得的.
             None: 未能获取到.
         """
-        data = await self.getGroupList()
+        data = await self.get_group_list()
         for i in data:
             if i.id == group_id:
                 return i
@@ -1195,7 +1191,7 @@ class Ariadne:
             raise ValueError(f"Group {group_id} not found.")
 
     @app_ctx_manager
-    async def getMemberList(self, group: Union[Group, int]) -> List[Member]:
+    async def get_member_list(self, group: Union[Group, int]) -> List[Member]:
         """尝试从已知的群组获取对应成员的列表.
 
         Args:
@@ -1214,7 +1210,7 @@ class Ariadne:
         return [Member.parse_obj(i) for i in result]
 
     @app_ctx_manager
-    async def getMember(self, group: Union[Group, int], member_id: int) -> Member:
+    async def get_member(self, group: Union[Group, int], member_id: int) -> Member:
         """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息.
 
         Args:
@@ -1236,7 +1232,7 @@ class Ariadne:
         return Member.parse_obj(result)
 
     @app_ctx_manager
-    async def getBotProfile(self) -> Profile:
+    async def get_bot_profile(self) -> Profile:
         """获取本实例绑定账号的 Profile.
 
         Returns:
@@ -1250,8 +1246,8 @@ class Ariadne:
         return Profile.parse_obj(result)
 
     @app_ctx_manager
-    async def getUserProfile(self, target: Union[int, Friend, Member, Stranger]) -> Profile:
-        """获取任意 QQ 用户的 Profile.
+    async def get_user_profile(self, target: Union[int, Friend, Member, Stranger]) -> Profile:
+        """获取任意 QQ 用户的 Profile. 需要 mirai-api-http 2.5.0+.
 
         Args:
             target (Union[int, Friend, Member, Stranger]): 任意 QQ 用户.
@@ -1269,7 +1265,7 @@ class Ariadne:
         return Profile.parse_obj(result)
 
     @app_ctx_manager
-    async def getFriendProfile(self, friend: Union[Friend, int]) -> Profile:
+    async def get_friend_profile(self, friend: Union[Friend, int]) -> Profile:
         """获取好友的 Profile.
 
         Args:
@@ -1288,7 +1284,7 @@ class Ariadne:
         return Profile.parse_obj(result)
 
     @app_ctx_manager
-    async def getMemberProfile(
+    async def get_member_profile(
         self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
     ) -> Profile:
         """获取群员的 Profile.
@@ -1319,7 +1315,7 @@ class Ariadne:
         return Profile.parse_obj(result)
 
     @app_ctx_manager
-    async def getMessageFromId(self, messageId: int) -> MessageEvent:
+    async def get_message_from_id(self, messageId: int) -> MessageEvent:
         """从 消息 ID 提取 消息事件.
 
         Args:
@@ -1338,7 +1334,7 @@ class Ariadne:
         return cast(MessageEvent, build_event(result))
 
     @app_ctx_manager
-    async def sendFriendMessage(
+    async def send_friend_message(
         self,
         target: Union[Friend, int],
         message: MessageChain,
@@ -1371,7 +1367,7 @@ class Ariadne:
             )
             event: ActiveFriendMessage = ActiveFriendMessage(
                 messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())]) + message,
-                subject=(await self.getFriend(int(target), assertion=True)),
+                subject=(await self.get_friend(int(target), assertion=True)),
             )
             with enter_context(self, event):
                 await self.log_config.log(self, event)
@@ -1381,7 +1377,7 @@ class Ariadne:
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
-    async def sendGroupMessage(
+    async def send_group_message(
         self,
         target: Union[Group, Member, int],
         message: MessageChain,
@@ -1417,7 +1413,7 @@ class Ariadne:
             )
             event: ActiveGroupMessage = ActiveGroupMessage(
                 messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())]) + message,
-                subject=(await self.getGroup(int(target), assertion=True)),
+                subject=(await self.get_group(int(target), assertion=True)),
             )
             with enter_context(self, event):
                 await self.log_config.log(self, event)
@@ -1427,7 +1423,7 @@ class Ariadne:
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
-    async def sendTempMessage(
+    async def send_temp_message(
         self,
         target: Union[Member, int],
         message: MessageChain,
@@ -1469,7 +1465,7 @@ class Ariadne:
             )
             event: ActiveTempMessage = ActiveTempMessage(
                 messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())]) + message,
-                subject=(await self.getMember(int(group), int(target))),
+                subject=(await self.get_member(int(group), int(target))),
             )
             with enter_context(self, event):
                 await self.log_config.log(self, event)
@@ -1479,7 +1475,7 @@ class Ariadne:
             return BotMessage(messageId=result["messageId"], origin=message)
 
     @app_ctx_manager
-    async def sendMessage(
+    async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
         message: MessageChain,
@@ -1507,11 +1503,11 @@ class Ariadne:
         data: Dict[Any, Any] = {"message": message}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
-            data["quote"] = target.messageChain.getFirst(Source)
+            data["quote"] = target.messageChain.get_first(Source)
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):
-            data["quote"] = quote.getFirst(Source)
+            data["quote"] = quote.get_first(Source)
         # target: MessageEvent
         if isinstance(target, GroupMessage):
             data["target"] = target.sender.group
@@ -1525,11 +1521,11 @@ class Ariadne:
 
         try:
             if isinstance(data["target"], Friend):
-                val = await self.sendFriendMessage(**data)
+                val = await self.send_friend_message(**data)
             elif isinstance(data["target"], Group):
-                val = await self.sendGroupMessage(**data)
+                val = await self.send_group_message(**data)
             elif isinstance(data["target"], Member):
-                val = await self.sendTempMessage(**data)
+                val = await self.send_temp_message(**data)
             else:
                 logger.warning(
                     f"Unable to send {data['message']} to {data['target']} of type {type(data['target'])}"
@@ -1542,7 +1538,7 @@ class Ariadne:
             return await action.result(val)
 
     @app_ctx_manager
-    async def sendNudge(
+    async def send_nudge(
         self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
     ) -> None:
         """
@@ -1572,7 +1568,7 @@ class Ariadne:
         )
 
     @app_ctx_manager
-    async def recallMessage(self, target: Union[MessageChain, Source, BotMessage, int]) -> None:
+    async def recall_message(self, target: Union[MessageChain, Source, BotMessage, int]) -> None:
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
@@ -1588,7 +1584,7 @@ class Ariadne:
         elif isinstance(target, Source):
             target = target.id
         elif isinstance(target, MessageChain):
-            target = target.getFirst(Source).id
+            target = target.get_first(Source).id
         await self.connection.call(
             "recall",
             CallMethod.POST,

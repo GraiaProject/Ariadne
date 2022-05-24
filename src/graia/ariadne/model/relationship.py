@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
 from pydantic import Field
 
-from ..util import internal_cls
+from ..util import AttrConvertMixin, internal_cls
 from .util import AriadneBaseModel
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ class MemberPerm(Enum):
 
 
 @internal_cls()
-class Group(AriadneBaseModel):
+class Group(AriadneBaseModel, AttrConvertMixin):
     """描述 Tencent QQ 中的群组."""
 
     id: int
@@ -71,9 +71,9 @@ class Group(AriadneBaseModel):
         """
         from ..app import Ariadne
 
-        return await Ariadne.current().getGroupConfig(self)
+        return await Ariadne.current().get_group_config(self)
 
-    async def modifyConfig(self, config: "GroupConfig") -> None:
+    async def modify_config(self, config: "GroupConfig") -> None:
         """修改该群组的 Config
 
         Args:
@@ -81,9 +81,9 @@ class Group(AriadneBaseModel):
         """
         from ..app import Ariadne
 
-        return await Ariadne.current().modifyGroupConfig(self, config)
+        return await Ariadne.current().modify_group_config(self, config)
 
-    async def getAvatar(self, cover: Optional[int] = None) -> bytes:
+    async def get_avatar(self, cover: Optional[int] = None) -> bytes:
         """获取该群组的头像
         Args:
             cover (Optional[int]): 群封面标号 (若为 None 则获取该群头像, 否则获取该群封面)
@@ -101,7 +101,7 @@ class Group(AriadneBaseModel):
 
 
 @internal_cls()
-class Member(AriadneBaseModel):
+class Member(AriadneBaseModel, AttrConvertMixin):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
 
     id: int
@@ -137,7 +137,7 @@ class Member(AriadneBaseModel):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, (Friend, Member, Stranger)) and self.id == other.id
 
-    async def getProfile(self) -> "Profile":
+    async def get_profile(self) -> "Profile":
         """获取该群成员的 Profile
 
         Returns:
@@ -145,9 +145,9 @@ class Member(AriadneBaseModel):
         """
         from ..app import Ariadne
 
-        return await Ariadne.current().getMemberProfile(self)
+        return await Ariadne.current().get_member_profile(self)
 
-    async def getInfo(self) -> "MemberInfo":
+    async def get_info(self) -> "MemberInfo":
         """获取该成员的可修改状态
 
         Returns:
@@ -155,7 +155,7 @@ class Member(AriadneBaseModel):
         """
         return MemberInfo(name=self.name, specialTitle=self.specialTitle)
 
-    async def modifyInfo(self, info: "MemberInfo") -> None:
+    async def modify_info(self, info: "MemberInfo") -> None:
         """
         修改群组成员的可修改状态; 需要具有相应权限(管理员/群主).
 
@@ -167,9 +167,9 @@ class Member(AriadneBaseModel):
         """
         from ..app import Ariadne
 
-        return await Ariadne.current().modifyMemberInfo(self, info)
+        return await Ariadne.current().modify_member_info(self, info)
 
-    async def modifyAdmin(self, assign: bool) -> None:
+    async def modify_admin(self, assign: bool) -> None:
         """
         修改一位群组成员管理员权限; 需要有相应权限(群主)
 
@@ -181,9 +181,9 @@ class Member(AriadneBaseModel):
         """
         from ..app import Ariadne
 
-        return await Ariadne.current().modifyMemberAdmin(assign, self)
+        return await Ariadne.current().modify_member_admin(assign, self)
 
-    async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
+    async def get_avatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该群成员的头像
 
         Args:
@@ -202,7 +202,7 @@ class Member(AriadneBaseModel):
 
 
 @internal_cls()
-class Friend(AriadneBaseModel):
+class Friend(AriadneBaseModel, AttrConvertMixin):
     """描述 Tencent QQ 中的好友."""
 
     id: int
@@ -223,7 +223,7 @@ class Friend(AriadneBaseModel):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, (Friend, Member, Stranger)) and self.id == other.id
 
-    async def getProfile(self) -> "Profile":
+    async def get_profile(self) -> "Profile":
         """获取该好友的 Profile
 
         Returns:
@@ -231,9 +231,9 @@ class Friend(AriadneBaseModel):
         """
         from ..app import Ariadne
 
-        return await Ariadne.current().getFriendProfile(self)
+        return await Ariadne.current().get_friend_profile(self)
 
-    async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
+    async def get_avatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该好友的头像
 
         Args:
@@ -252,7 +252,7 @@ class Friend(AriadneBaseModel):
 
 
 @internal_cls()
-class Stranger(AriadneBaseModel):
+class Stranger(AriadneBaseModel, AttrConvertMixin):
     """描述 Tencent QQ 中的陌生人."""
 
     id: int
@@ -273,7 +273,7 @@ class Stranger(AriadneBaseModel):
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, (Friend, Member, Stranger)) and self.id == other.id
 
-    async def getAvatar(self, size: Literal[640, 140] = 640) -> bytes:
+    async def get_avatar(self, size: Literal[640, 140] = 640) -> bytes:
         """获取该陌生人的头像
 
         Args:

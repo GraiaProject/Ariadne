@@ -40,8 +40,8 @@ class Formatter:
 
         for i in re.split("([\x02\x03][\\d\\w]+[\x02\x03])", result):
             if match := re.fullmatch("(?P<header>[\x02\x03])(?P<content>\\w+)(?P=header)", i):
-                header = match.group("header")
-                full: str = match.group(0)
+                header = match["header"]
+                full: str = match[0]
                 if header == "\x02":  # from args
                     chain_list.append(args_mapping[full])
                 else:  # \x03, from kwargs

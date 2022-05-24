@@ -15,7 +15,7 @@ from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger
-from ..util import internal_cls, wrap_bracket
+from ..util import AttrConvertMixin, internal_cls, wrap_bracket
 
 if TYPE_CHECKING:
     from ..typing import ReprArgs
@@ -28,7 +28,7 @@ class NotSendableElement(Exception):
     """
 
 
-class Element(AriadneBaseModel):
+class Element(AriadneBaseModel, AttrConvertMixin):
     """
     指示一个消息中的元素.
     type (str): 元素类型
@@ -44,7 +44,7 @@ class Element(AriadneBaseModel):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
     @staticmethod
-    def asDisplay() -> str:
+    def as_display() -> str:
         """返回该元素的 "显示" 形式字符串, 趋近于你见到的样子.
 
         Returns:
@@ -52,7 +52,7 @@ class Element(AriadneBaseModel):
         """
         return ""
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         """持久化字符串表示.
 
         Returns:
@@ -83,7 +83,7 @@ class Element(AriadneBaseModel):
         return list(self.dict(exclude={"type"}).items())
 
     def __str__(self) -> str:
-        return self.asDisplay()
+        return self.as_display()
 
     def __add__(self, content: Union["MessageChain", List["Element"], "Element", str]) -> "MessageChain":
         from .chain import MessageChain
@@ -124,10 +124,10 @@ class Plain(Element):
         """
         super().__init__(text=text, **kwargs)  # type: ignore
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return self.text
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return self.text
 
 
@@ -146,10 +146,10 @@ class Source(Element):
     def prepare(self) -> NoReturn:
         raise NotSendableElement
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
-    async def fetchOriginal(self) -> "MessageChain":
+    async def fetch_original(self) -> "MessageChain":
         """尝试从本元素恢复原本的消息链, 有可能失败.
 
         Returns:
@@ -157,7 +157,7 @@ class Source(Element):
         """
         from ..app import Ariadne
 
-        return (await Ariadne.current().getMessageFromId(self.id)).messageChain
+        return (await Ariadne.current().get_message_from_id(self.id)).messageChain
 
 
 @internal_cls()
@@ -190,7 +190,7 @@ class Quote(Element):
     def prepare(self) -> NoReturn:
         raise NotSendableElement
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
 
@@ -227,7 +227,7 @@ class At(Element):
                 f"you cannot use this element in this method: {upload_method_ctx.get().value}"
             )
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"@{self.display}" if self.display else f"@{self.target}"
 
 
@@ -239,7 +239,7 @@ class AtAll(Element):
     def __init__(self, *_, **__) -> None:
         super().__init__()
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "@全体成员"
 
     def prepare(self) -> None:
@@ -267,7 +267,7 @@ class Face(Element):
             data.update(name=name)
         super().__init__(**data)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[表情: {self.name or self.faceId}]"
 
     def __eq__(self, other) -> bool:
@@ -286,7 +286,7 @@ class MarketFace(Element):
     name: Optional[str] = None
     """QQ 表情名称"""
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[商城表情: {self.name or self.faceId}]"
 
     def __eq__(self, other) -> bool:
@@ -304,7 +304,7 @@ class Xml(Element):
     def __init__(self, xml: str, **_) -> None:
         super().__init__(xml=xml)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "[XML消息]"
 
 
@@ -324,7 +324,7 @@ class Json(Element):
     def dict(self, *args, **kwargs):
         return super().dict(*args, **({**kwargs, "by_alias": True}))
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "[JSON消息]"
 
 
@@ -339,7 +339,7 @@ class App(Element):
     def __init__(self, content: str, **_) -> None:
         super().__init__(content=content)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "[APP消息]"
 
 
@@ -406,7 +406,7 @@ class Poke(Element):
     def __init__(self, name: PokeMethods, *_, **__) -> None:
         super().__init__(name=name)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[戳一戳:{self.name}]"
 
 
@@ -421,7 +421,7 @@ class Dice(Element):
     def __init__(self, value: int, *_, **__) -> None:
         super().__init__(value=value)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[骰子:{self.value}]"
 
 
@@ -491,7 +491,7 @@ class MusicShare(Element):
             brief=brief,
         )
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[音乐分享:{self.title}, {self.brief}]"
 
 
@@ -562,10 +562,10 @@ class Forward(Element):
             data.update(nodeList=nodeList)
         super().__init__(**data)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[合并转发:共{len(self.nodeList)}条]"
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
 
@@ -584,10 +584,10 @@ class File(Element):
     size: int
     """文件大小"""
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return f"[文件:{self.name}]"
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
     def prepare(self) -> None:
@@ -693,7 +693,7 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data).decode("ascii")
             return data
 
-    def asNoBinaryPersistentString(self) -> str:
+    def as_no_binary_persistent_string(self) -> str:
         """生成不附带二进制数据的持久化字符串
 
         Returns:
@@ -746,7 +746,7 @@ class Image(MultimediaElement):
     ) -> None:
         super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
 
-    def toFlashImage(self) -> "FlashImage":
+    def to_flash_image(self) -> "FlashImage":
         """将 Image 转换为 FlashImage
 
         Returns:
@@ -755,7 +755,7 @@ class Image(MultimediaElement):
         return FlashImage.parse_obj({**self.dict(), "type": "FlashImage"})
 
     @classmethod
-    def fromFlashImage(cls, flash: "FlashImage") -> "Image":
+    def from_flash_image(cls, flash: "FlashImage") -> "Image":
         """从 FlashImage 构造 Image
 
         Returns:
@@ -763,7 +763,7 @@ class Image(MultimediaElement):
         """
         return cls.parse_obj({**flash.dict(), "type": "Image"})
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "[图片]"
 
 
@@ -784,7 +784,7 @@ class FlashImage(Image):
     ) -> None:
         super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
 
-    def toImage(self) -> "Image":
+    def to_image(self) -> "Image":
         """将 FlashImage 转换为 Image
 
         Returns:
@@ -793,7 +793,7 @@ class FlashImage(Image):
         return Image.parse_obj({**self.dict(), "type": "Image"})
 
     @classmethod
-    def fromImage(cls, image: "Image") -> "FlashImage":
+    def from_image(cls, image: "Image") -> "FlashImage":
         """从 Image 构造 FlashImage
 
         Returns:
@@ -801,7 +801,7 @@ class FlashImage(Image):
         """
         return cls.parse_obj({**image.dict(), "type": "FlashImage"})
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "[闪照]"
 
 
@@ -827,7 +827,7 @@ class Voice(MultimediaElement):
     length: Optional[int]
     """语音长度"""
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         return "[语音]"
 
 

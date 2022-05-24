@@ -9,7 +9,7 @@ app = Ariadne(config(123456789, "ServiceVerifyKey"))
 
 @app.broadcast.receiver("FriendMessage")
 async def friend_message_listener(app: Ariadne, friend: Friend):
-    await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
+    await app.send_message(friend, MessageChain.create([Plain("Hello, World!")]))
 
 
 app.launch_blocking()

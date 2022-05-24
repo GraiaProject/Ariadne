@@ -73,11 +73,11 @@ class Safe(SendMessageAction):
         def convert(msg_chain: MessageChain, type) -> None:
             for ind, elem in enumerate(msg_chain.__root__[:]):
                 if isinstance(elem, type):
-                    msg_chain.__root__[ind] = Plain(elem.asDisplay())
+                    msg_chain.__root__[ind] = Plain(elem.as_display())
 
         for type in [AtAll, At, Poke, Forward, MultimediaElement]:
             convert(chain, type)
-            val = await ariadne.sendMessage(**item.send_data, action=Ignore)  # type: ignore
+            val = await ariadne.send_message(**item.send_data, action=Ignore)  # type: ignore
             if val is not None:
                 return val
 

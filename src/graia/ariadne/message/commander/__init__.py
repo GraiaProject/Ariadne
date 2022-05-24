@@ -68,7 +68,7 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
         assert isinstance(value[0], field.type_)
         return value[0]
     if isinstance(value, MessageChain):
-        return value.asDisplay()
+        return value.as_display()
     if value is None:
         return field.default
     return value

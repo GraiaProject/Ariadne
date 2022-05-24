@@ -459,9 +459,9 @@ class NudgeEvent(MiraiEvent):
             ev = interface.event
             if isinstance(ev, NudgeEvent):
                 if generic_issubclass(Group, interface.annotation) and ev.group_id is not None:
-                    return await Ariadne.current().getGroup(ev.group_id)
+                    return await Ariadne.current().get_group(ev.group_id)
                 if generic_issubclass(Friend, interface.annotation) and ev.friend_id is not None:
-                    return await Ariadne.current().getFriend(ev.friend_id)
+                    return await Ariadne.current().get_friend(ev.friend_id)
 
 
 class GroupNameChangeEvent(GroupEvent):

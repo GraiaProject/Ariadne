@@ -85,12 +85,12 @@ def test_has():
     assert msg_chain.has(msg_chain)
     assert msg_chain.has(Plain)
     assert not msg_chain.has(Quote)
-    assert msg_chain.findSubChain(MessageChain(["Hello"])) == [0]
-    assert msg_chain.findSubChain(MessageChain(["Hello system"])) == []
-    assert msg_chain.findSubChain(MessageChain(["HeHeHe"])) == []
-    assert MessageChain(["HeHe"]).findSubChain(MessageChain(["HeHeHe"])) == []
-    assert MessageChain(["HeHeHeHe"]).findSubChain(MessageChain(["HeHeHe"])) == [0, 2]
-    assert MessageChain(["HeHeHaHaHoHo"]).findSubChain(MessageChain(["HeHeHoHo"])) == []
+    assert msg_chain.find_sub_chain(MessageChain(["Hello"])) == [0]
+    assert msg_chain.find_sub_chain(MessageChain(["Hello system"])) == []
+    assert msg_chain.find_sub_chain(MessageChain(["HeHeHe"])) == []
+    assert MessageChain(["HeHe"]).find_sub_chain(MessageChain(["HeHeHe"])) == []
+    assert MessageChain(["HeHeHeHe"]).find_sub_chain(MessageChain(["HeHeHe"])) == [0, 2]
+    assert MessageChain(["HeHeHaHaHoHo"]).find_sub_chain(MessageChain(["HeHeHoHo"])) == []
 
 
 def test_contain():
@@ -112,14 +112,14 @@ def test_get():
         msg_chain["trial"]
     assert msg_chain.get(Plain) == msg_chain[Plain]
     assert msg_chain.get(Plain, 1) == msg_chain[Plain, 1]
-    assert msg_chain.getOne(Plain, 0) == Plain("Hello World!")
-    assert msg_chain.getOne(Plain, 1) == Plain("Foo test!")
-    assert msg_chain.getFirst(Plain) == Plain("Hello World!")
+    assert msg_chain.get_one(Plain, 0) == Plain("Hello World!")
+    assert msg_chain.get_one(Plain, 1) == Plain("Foo test!")
+    assert msg_chain.get_first(Plain) == Plain("Hello World!")
 
 
 def test_onlycontains():
     msg_chain = MessageChain.create("Hello World!", At(target=12345), "Foo test!")
-    assert msg_chain.onlyContains(Plain, At)
+    assert msg_chain.only_contains(Plain, At)
 
 
 def test_prepare():
@@ -128,11 +128,11 @@ def test_prepare():
         Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
         "  hello!",
     )
-    assert not msg_chain.onlyContains(Plain)
+    assert not msg_chain.only_contains(Plain)
     assert msg_chain.asSendable().__root__ != msg_chain.__root__
     assert msg_chain.prepare(copy=True).__root__ != msg_chain.__root__
     msg_chain.prepare()
-    assert msg_chain.onlyContains(Plain)
+    assert msg_chain.only_contains(Plain)
     assert msg_chain.asSendable().__root__ == msg_chain.__root__
 
 
@@ -143,24 +143,24 @@ def test_persistent():
         "hello!",
         At(12345),
     )
-    assert msg_chain.asPersistentString() == 'hello![mirai:At:{"target":12345}]'
-    assert MessageChain.fromPersistentString('hello![_[mirai:At:{"target":12345}]') == MessageChain(
+    assert msg_chain.as_persistent_string() == 'hello![mirai:At:{"target":12345}]'
+    assert MessageChain.from_persistent_string('hello![_[mirai:At:{"target":12345}]') == MessageChain(
         ["hello![", At(12345)]
     )
-    assert msg_chain.asPersistentString(include=[At]) == '[mirai:At:{"target":12345}]'
-    assert msg_chain.asPersistentString(exclude=[At]) == "hello!"
+    assert msg_chain.as_persistent_string(include=[At]) == '[mirai:At:{"target":12345}]'
+    assert msg_chain.as_persistent_string(exclude=[At]) == "hello!"
     with pytest.raises(ValueError):
-        msg_chain.asPersistentString(include=[Plain], exclude=[Quote])
+        msg_chain.as_persistent_string(include=[Plain], exclude=[Quote])
     multimedia_msg_chain = MessageChain(
         ["image:", Image(url="https://foo.bar.com/img.png", data_bytes=b"abcdef2310123asd")]
     )
     b64 = base64.b64encode(b"abcdef2310123asd").decode()
     assert (
-        multimedia_msg_chain.asPersistentString()
+        multimedia_msg_chain.as_persistent_string()
         == f'image:[mirai:Image:{{"url":"https://foo.bar.com/img.png","base64":"{b64}"}}]'
     )
     assert (
-        multimedia_msg_chain.asPersistentString(binary=False)
+        multimedia_msg_chain.as_persistent_string(binary=False)
         == f'image:[mirai:Image:{{"url":"https://foo.bar.com/img.png"}}]'
     )
 
@@ -172,13 +172,15 @@ async def test_download():
     async with aiohttp.ClientSession() as session:
         adapter_ctx.set(Dummy(session=session))
         await chain.download_binary()
-        assert base64.b64decode(chain.getFirst(Image).base64) == await (await session.get(url)).content.read()
+        assert (
+            base64.b64decode(chain.get_first(Image).base64) == await (await session.get(url)).content.read()
+        )
 
 
 def test_presentation():
     msg_chain = MessageChain.create("Hello World!", At(target=12345), "Foo test!")
-    assert msg_chain.asDisplay() == "Hello World!@12345Foo test!"
-    assert str(msg_chain) == msg_chain.asDisplay()
+    assert msg_chain.as_display() == "Hello World!@12345Foo test!"
+    assert str(msg_chain) == msg_chain.as_display()
     print(repr(msg_chain))
     assert (
         repr(msg_chain)

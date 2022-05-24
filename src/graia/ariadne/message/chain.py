@@ -18,7 +18,7 @@ from typing import (
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import gen_subclass
+from ..util import AttrConvertMixin, gen_subclass
 from .element import (
     At,
     AtAll,
@@ -47,7 +47,7 @@ ELEMENT_MAPPING: Dict[str, Type[Element]] = {
 ORDINARY_ELEMENT_TYPES = (Source, Quote, Plain, Image, Face)
 
 
-class MessageChain(AriadneBaseModel):
+class MessageChain(AriadneBaseModel, AttrConvertMixin):
     """
     即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有元素实例.
     """
@@ -174,13 +174,13 @@ class MessageChain(AriadneBaseModel):
             bool: 判断结果
         """
         if isinstance(item, str):
-            return bool(self.findSubChain(MessageChain([Plain(item)], inline=True)))
+            return bool(self.find_sub_chain(MessageChain([Plain(item)], inline=True)))
         if isinstance(item, Element):
             return item in self.merge(copy=True).__root__
         if isinstance(item, type):
             return item in [type(i) for i in self.__root__]
         if isinstance(item, MessageChain):
-            return bool(self.findSubChain(item))
+            return bool(self.find_sub_chain(item))
         raise ValueError(f"{item} is not an acceptable argument!")
 
     def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
@@ -197,7 +197,7 @@ class MessageChain(AriadneBaseModel):
             count = len(self.__root__)
         return [i for i in self.__root__ if isinstance(i, element_class)][:count]
 
-    def getOne(self, element_class: Type[Element_T], index: int) -> Element_T:
+    def get_one(self, element_class: Type[Element_T], index: int) -> Element_T:
         """
         获取消息链中第 index + 1 个特定类型的消息元素
 
@@ -210,7 +210,7 @@ class MessageChain(AriadneBaseModel):
         """
         return self.get(element_class)[index]
 
-    def getFirst(self, element_class: Type[Element_T]) -> Element_T:
+    def get_first(self, element_class: Type[Element_T]) -> Element_T:
         """
         获取消息链中第 1 个特定类型的消息元素
 
@@ -220,19 +220,19 @@ class MessageChain(AriadneBaseModel):
         Returns:
             Element_T: 消息链第 1 个特定类型的消息元素
         """
-        return self.getOne(element_class, 0)
+        return self.get_one(element_class, 0)
 
-    def asDisplay(self) -> str:
+    def as_display(self) -> str:
         """
         获取以字符串形式表示的消息链, 且趋于通常你见到的样子.
 
         Returns:
             str: 以字符串形式表示的消息链
         """
-        return "".join(i.asDisplay() for i in self.__root__)
+        return "".join(i.as_display() for i in self.__root__)
 
     def __str__(self) -> str:
-        return self.asDisplay()
+        return self.as_display()
 
     def __repr_args__(self) -> "ReprArgs":
         return [(None, list(self.__root__))]
@@ -286,7 +286,7 @@ class MessageChain(AriadneBaseModel):
             return MessageChain(self.__root__[item], inline=True)
         raise NotImplementedError(f"{item} is not allowed for item getting")
 
-    def findSubChain(self, subchain: Union["MessageChain", List[Element]]) -> List[int]:
+    def find_sub_chain(self, subchain: Union["MessageChain", List[Element]]) -> List[int]:
         """判断消息链是否含有子链. 使用 KMP 算法.
 
         Args:
@@ -417,7 +417,7 @@ class MessageChain(AriadneBaseModel):
         last_element: Plain = self.__root__[-1]
         return last_element.text.endswith(string)
 
-    def onlyContains(self, *types: Type[Element]) -> bool:
+    def only_contains(self, *types: Type[Element]) -> bool:
         """判断消息链中是否只含有特定类型元素.
 
         Returns:
@@ -601,7 +601,7 @@ class MessageChain(AriadneBaseModel):
     def __len__(self) -> int:
         return len(self.__root__)
 
-    def asPersistentString(
+    def as_persistent_string(
         self,
         *,
         binary: bool = True,
@@ -633,11 +633,11 @@ class MessageChain(AriadneBaseModel):
                 or not (include or exclude)
             ):
                 if isinstance(i, Plain):
-                    string_list.append(i.asPersistentString().replace("[", "[_"))
+                    string_list.append(i.as_persistent_string().replace("[", "[_"))
                 elif not isinstance(i, MultimediaElement) or binary:
-                    string_list.append(i.asPersistentString())
+                    string_list.append(i.as_persistent_string())
                 else:
-                    string_list.append(i.asNoBinaryPersistentString())
+                    string_list.append(i.as_no_binary_persistent_string())
         return "".join(string_list)
 
     async def download_binary(self) -> Self:
@@ -648,7 +648,7 @@ class MessageChain(AriadneBaseModel):
         return self
 
     @classmethod
-    def fromPersistentString(cls, string: str) -> "MessageChain":
+    def from_persistent_string(cls, string: str) -> "MessageChain":
         """从持久化字符串生成消息链.
 
         Returns:
@@ -827,7 +827,7 @@ class MessageChain(AriadneBaseModel):
             old = MessageChain.create(old)
         if not isinstance(new, MessageChain):
             new = MessageChain.create(new)
-        index_list: List[int] = self.findSubChain(old)
+        index_list: List[int] = self.find_sub_chain(old)
         unzipped_new: List[Union[str, Element]] = new.unzip()
         unzipped_old: List[Union[str, Element]] = old.unzip()
         unzipped_self: List[Union[str, Element]] = self.unzip()

@@ -16,6 +16,7 @@ from typing import (
     overload,
 )
 
+from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
@@ -28,7 +29,6 @@ from .element import (
     File,
     Image,
     MultimediaElement,
-    NotSendableElement,
     Plain,
     Quote,
     Source,
@@ -51,13 +51,18 @@ ORDINARY_ELEMENT_TYPES = (Plain, Image, Face, At, AtAll)
 _Parsable = Union[str, dict, Element, Iterable["_Parsable"], "MessageChain"]
 
 
-class MessageChain(AriadneBaseModel, AttrConvertMixin):
+class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
     """
     即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有元素实例.
     """
 
     __root__: List[Element]
     """底层元素列表"""
+
+    @property
+    def content(self) -> List[Element]:
+        """Amnesia MessageChain 的内容代理"""
+        return self.content
 
     @staticmethod
     def build_chain(obj: _Parsable) -> List[Element]:
@@ -79,7 +84,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         elif isinstance(obj, str):
             element_list.append(Plain(obj))
         elif isinstance(obj, MessageChain):
-            element_list.extend(obj.__root__)
+            element_list.extend(obj.content)
         elif isinstance(obj, Iterable):  # needs to be last
             for o in obj:
                 element_list.extend(MessageChain.build_chain(o))
@@ -151,6 +156,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
 
         return cls(*elements)
 
+    @deprecated("0.8.0")
     def prepare(self, copy: bool = False) -> "MessageChain":
         """
         对消息链中所有元素进行处理.
@@ -158,14 +164,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         Returns:
             MessageChain: copy = True 时返回副本, 否则返回自己的引用.
         """
-        chain_ref = self.copy() if copy else self
-        chain_ref.merge()
-        for i in chain_ref.__root__[:]:
-            try:
-                i.prepare()
-            except NotSendableElement:
-                chain_ref.__root__.remove(i)
-        return chain_ref
+        return self.as_sendable()
 
     def unzip(self) -> List[Union[str, Element]]:
         """解压消息链为元素/单字符列表.
@@ -174,7 +173,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             List[Union[str, Element]]: 解压后的元素/字符列表.
         """
         unzipped: List[Union[str, Element]] = []
-        for e in self.__root__:
+        for e in self.content:
             if isinstance(e, Plain):
                 unzipped.extend(e.text)
             else:
@@ -194,9 +193,9 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         if isinstance(item, str):
             return bool(self.find_sub_chain(MessageChain([Plain(item)], inline=True)))
         if isinstance(item, Element):
-            return item in self.merge(copy=True).__root__
+            return item in self.merge().content
         if isinstance(item, type):
-            return item in [type(i) for i in self.__root__]
+            return item in [type(i) for i in self.content]
         if isinstance(item, MessageChain):
             return bool(self.find_sub_chain(item))
         raise ValueError(f"{item} is not an acceptable argument!")
@@ -212,33 +211,8 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             List[T]: 获取到的符合要求的所有消息元素; 另: 可能是空列表([]).
         """
         if count == -1:
-            count = len(self.__root__)
-        return [i for i in self.__root__ if isinstance(i, element_class)][:count]
-
-    def get_one(self, element_class: Type[Element_T], index: int) -> Element_T:
-        """
-        获取消息链中第 index + 1 个特定类型的消息元素
-
-        Args:
-            element_class (Type[Element_T]): 指定的消息元素的类型, 例如 "Plain", "At", "Image" 等.
-            index (int): 索引, 从 0 开始数
-
-        Returns:
-            Element_T: 消息链第 index + 1 个特定类型的消息元素
-        """
-        return self.get(element_class)[index]
-
-    def get_first(self, element_class: Type[Element_T]) -> Element_T:
-        """
-        获取消息链中第 1 个特定类型的消息元素
-
-        Args:
-            element_class (Type[Element_T]): 指定的消息元素的类型, 例如 "Plain", "At", "Image" 等.
-
-        Returns:
-            Element_T: 消息链第 1 个特定类型的消息元素
-        """
-        return self.get_one(element_class, 0)
+            count = len(self.content)
+        return [i for i in self.content if isinstance(i, element_class)][:count]
 
     def as_display(self) -> str:
         """
@@ -247,14 +221,15 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         Returns:
             str: 以字符串形式表示的消息链
         """
-        return "".join(i.as_display() for i in self.__root__)
+        return "".join(i.as_display() for i in self.content)
 
     def __str__(self) -> str:
-        return self.as_display()
+        return "".join(str(e) for e in self.content)
 
     def __repr_args__(self) -> "ReprArgs":
-        return [(None, list(self.__root__))]
+        return [(None, list(self.content))]
 
+    # define as a method so pydantic won't complain
     def __contains__(self, item: Union["MessageChain", Type[Element_T], Element_T, str]) -> bool:
         """
         是否包含特定对象
@@ -299,10 +274,13 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         if isinstance(item, tuple):
             return self.get(*item)
         if isinstance(item, int):
-            return self.__root__[item]
+            return self.content[item]
         if isinstance(item, slice):
-            return MessageChain(self.__root__[item], inline=True)
+            return MessageChain(self.content[item], inline=True)
         raise NotImplementedError(f"{item} is not allowed for item getting")
+
+    def __iter__(self) -> Iterator[Element]:
+        return iter(self.content)
 
     def find_sub_chain(self, subchain: _Parsable) -> List[int]:
         """判断消息链是否含有子链. 使用 KMP 算法.
@@ -343,225 +321,15 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
                 ptr = fallback[ptr - 1]
         return match_index
 
-    def exclude(self, *types: Type[Element]) -> "MessageChain":
-        """将除了在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
-
-        Args:
-            *types (Type[Element]): 将排除在外的消息元素类型
-
-        Returns:
-            MessageChain: 返回的消息链中不包含参数中给出的消息元素类型
-        """
-        return MessageChain([i for i in self.copy().__root__ if type(i) not in types], inline=True)
-
-    def include(self, *types: Type[Element]) -> "MessageChain":
-        """将只在给出的消息元素类型中符合的消息元素重新包装为一个新的消息链
-
-        Args:
-            *types (Type[Un]): 将只包含在内的消息元素类型
-
-        Returns:
-            MessageChain: 返回的消息链中只包含参数中给出的消息元素类型
-        """
-        return MessageChain([i for i in self.copy().__root__ if type(i) in types], inline=True)
-
-    def split(self, pattern: str = " ", raw_string: bool = False) -> List["MessageChain"]:
-        """和 `str.split` 差不多, 提供一个字符串, 然后返回分割结果.
-
-        Args:
-            pattern (str): 分隔符. 默认为单个空格.
-            raw_string (bool): 是否要包含 "空" 的文本元素.
-
-        Returns:
-            List["MessageChain"]: 分割结果, 行为和 `str.split` 差不多.
-        """
-
-        result: List["MessageChain"] = []
-        tmp = []
-        for element in self.__root__:
-            if isinstance(element, Plain):
-                split_result = element.text.split(pattern)
-                for index, split_str in enumerate(split_result):
-                    if tmp and index > 0:
-                        result.append(MessageChain(tmp, inline=True))
-                        tmp = []
-                    if split_str or raw_string:
-                        tmp.append(Plain(split_str))
-            else:
-                tmp.append(element)
-
-        if tmp:
-            result.append(MessageChain(tmp, inline=True))
-            tmp = []
-
-        return result
-
-    def __iter__(self) -> Iterator[Element]:
-        return iter(self.__root__)
-
-    def startswith(self, string: str, ignore_header: bool = True) -> bool:
-        """
-        判定消息链是否以相应字符串开头
-
-        Args:
-            string (str): 需要判断的字符串
-            ignore_header (bool, optional): 是否忽略元数据, 默认为 True
-
-        Returns:
-            bool: 是否以此字符串开头
-        """
-
-        ref_root = self.asSendable().__root__ if ignore_header else self.__root__
-
-        if not ref_root or not isinstance(ref_root[0], Plain):
-            return False
-        return ref_root[0].text.startswith(string)
-
-    def endswith(self, string: str) -> bool:
-        """
-        判定消息链是否以相应字符串结尾
-
-        Args:
-            string (str): 需要判断的字符串
-
-        Returns:
-            bool: 是否以此字符串结尾
-        """
-
-        if not self.__root__ or not isinstance(self.__root__[-1], Plain):
-            return False
-        last_element: Plain = self.__root__[-1]
-        return last_element.text.endswith(string)
-
     def only_contains(self, *types: Type[Element]) -> bool:
         """判断消息链中是否只含有特定类型元素.
 
         Returns:
             bool: 判断结果
         """
-        return all(isinstance(i, types) for i in self.__root__)
+        return self.only(*types)
 
-    def merge(self, copy: bool = False) -> "MessageChain":
-        """
-        在实例内合并相邻的 Plain 项
-
-        copy (bool): 是否要在副本上修改.
-        Returns:
-            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
-        """
-
-        result = []
-
-        plain = []
-        for i in self.__root__:
-            if not isinstance(i, Plain):
-                if plain:
-                    result.append(Plain("".join(plain)))
-                    plain.clear()  # 清空缓存
-                result.append(deepcopy(i) if copy else i)
-            else:
-                plain.append(i.text)
-
-        if plain:
-            result.append(Plain("".join(plain)))
-            plain.clear()
-
-        if not copy:
-            self.__root__ = result
-            return self
-        return MessageChain(result, inline=True)
-
-    def append(self, element: Union[Element, str], copy: bool = False) -> "MessageChain":
-        """
-        向消息链最后追加单个元素
-
-        Args:
-            element (Element): 要添加的元素
-            copy (bool): 是否要在副本上修改.
-
-        Returns:
-            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
-        """
-        chain_ref = self.copy() if copy else self
-        if isinstance(element, str):
-            element = Plain(element)
-        chain_ref.__root__.append(element)
-        return chain_ref
-
-    def extend(
-        self,
-        *content: Union["MessageChain", Element, List[Union[Element, str]]],
-        copy: bool = False,
-    ) -> "MessageChain":
-        """
-        向消息链最后添加元素/元素列表/消息链
-
-        Args:
-            *content (Union[MessageChain, Element, List[Element]]): 要添加的元素/元素容器.
-            copy (bool): 是否要在副本上修改.
-
-        Returns:
-            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
-        """
-        result = []
-        for i in content:
-            if isinstance(i, Element):
-                result.append(i)
-            elif isinstance(i, str):
-                result.append(Plain(i))
-            elif isinstance(i, MessageChain):
-                result.extend(i.__root__)
-            else:
-                for e in i:
-                    if isinstance(e, str):
-                        result.append(Plain(e))
-                    else:
-                        result.append(e)
-        if copy:
-            return MessageChain(deepcopy(self.__root__) + result, inline=True)
-        self.__root__.extend(result)
-        return self
-
-    def copy(self) -> "MessageChain":
-        """
-        拷贝本消息链.
-
-        Returns:
-            MessageChain: 拷贝的副本.
-        """
-        return MessageChain(deepcopy(self.__root__), inline=True)
-
-    def index(self, element_type: Type[Element_T]) -> Union[int, None]:
-        """
-        寻找第一个特定类型的元素, 并返回其下标.
-
-        Args:
-            element_type (Type[Element]): 元素或元素类型
-
-        Returns:
-            Optional[int]: 元素下标, 若未找到则为 None.
-
-        """
-        return next(
-            (i for i, e in enumerate(self.__root__) if isinstance(e, element_type)),
-            None,
-        )
-
-    def count(self, element: Union[Type[Element_T], Element_T]) -> int:
-        """
-        统计共有多少个指定的元素.
-
-        Args:
-            element (Type[Element] | Element): 元素或元素类型
-
-        Returns:
-            int: 元素数量
-        """
-        if isinstance(element, Element):
-            return sum(i == element for i in self.__root__)
-        return sum(isinstance(i, element) for i in self.__root__)
-
-    def asSendable(self) -> "MessageChain":
+    def as_sendable(self) -> "MessageChain":
         """将消息链转换为可发送形式 (去除 Source, Quote, File)
 
         Returns:
@@ -574,7 +342,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             return False
         if not isinstance(other, MessageChain):
             other = MessageChain(other)
-        return other.asSendable().__root__ == self.asSendable().__root__
+        return other.as_sendable().content == self.as_sendable().content
 
     def __add__(self, content: Union["MessageChain", List[Element], Element, str]) -> "MessageChain":
         if isinstance(content, str):
@@ -582,8 +350,8 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         if isinstance(content, Element):
             content = [content]
         if isinstance(content, MessageChain):
-            content = content.__root__
-        return MessageChain(self.__root__ + content, inline=True)
+            content = content.content
+        return MessageChain(self.content + content, inline=True)
 
     def __radd__(self, content: Union["MessageChain", List[Element], Element, str]) -> "MessageChain":
         if isinstance(content, str):
@@ -591,8 +359,8 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         if isinstance(content, Element):
             content = [content]
         if isinstance(content, MessageChain):
-            content = content.__root__
-        return MessageChain(content + self.__root__, inline=True)
+            content = content.content
+        return MessageChain(content + self.content, inline=True)
 
     def __iadd__(self, content: Union["MessageChain", List[Element], Element, str]) -> "MessageChain":
         if isinstance(content, str):
@@ -600,22 +368,26 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         if isinstance(content, Element):
             content = [content]
         if isinstance(content, MessageChain):
-            content = content.__root__
-        self.__root__.extend(content)
+            content = content.content
+        self.content.extend(content)
         return self
 
     def __mul__(self, time: int) -> "MessageChain":
         result = []
         for _ in range(time):
-            result.extend(deepcopy(self.__root__))
+            result.extend(deepcopy(self.content))
         return MessageChain(result, inline=True)
 
     def __imul__(self, time: int) -> "MessageChain":
-        self.__root__ = self.__mul__(time).__root__
+        result = []
+        for _ in range(time):
+            result.extend(deepcopy(self.content))
+        self.content.clear()
+        self.content.extend(result)
         return self
 
     def __len__(self) -> int:
-        return len(self.__root__)
+        return len(self.content)
 
     def as_persistent_string(
         self,
@@ -642,7 +414,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         exclude = tuple(exclude)
         if include and exclude:
             raise ValueError("Can not present include and exclude at same time!")
-        for i in self.__root__:
+        for i in self.content:
             if (
                 (include and isinstance(i, include))
                 or (exclude and not isinstance(i, exclude))
@@ -658,7 +430,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
 
     async def download_binary(self) -> Self:
         """下载消息中所有的二进制数据并保存在元素实例内"""
-        for elem in self.__root__:
+        for elem in self.content:
             if isinstance(elem, MultimediaElement):
                 await elem.get_bytes()
         return self
@@ -699,7 +471,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         """
         elem_mapping: Dict[str, Element] = {}
         elem_str_list: List[str] = []
-        for i, elem in enumerate(self.__root__):
+        for i, elem in enumerate(self.content):
             if not isinstance(elem, Plain):
                 if remove_quote and isinstance(elem, Quote):
                     continue
@@ -711,7 +483,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
                 remove_extra_space
                 and i  # not first element
                 and isinstance(
-                    self.__root__[i - 1], (Quote, At, AtAll)
+                    self.content[i - 1], (Quote, At, AtAll)
                 )  # following elements which have an dumb trailing space
                 and elem.text.startswith("  ")  # extra space (count >= 2)
             ):
@@ -741,9 +513,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
                     elements.append(mapping[index])
                 else:
                     elements.append(Plain(x))
-        chain = cls([], inline=True)
-        chain.__root__ = elements
-        return chain
+        return cls(elements, inline=True)
 
     def removeprefix(self, prefix: str, *, copy: bool = True, skip_header: bool = True) -> "MessageChain":
         """移除消息链前缀.
@@ -759,9 +529,9 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         header = []
         elements = []
         if not skip_header:
-            elements = self.__root__[:]
+            elements = self.content[:]
         else:
-            for element in self.__root__:
+            for element in self.content:
                 if isinstance(element, (Quote, Source)):
                     header.append(element)
                 else:
@@ -775,7 +545,8 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             elements[0].text = elements[0].text[len(prefix) :]
         if copy:
             return MessageChain(header + elements, inline=True)
-        self.__root__ = header + elements
+        self.content.clear()
+        self.content.extend(header + elements)
         return self
 
     def removesuffix(self, suffix: str, *, copy: bool = True) -> "MessageChain":
@@ -788,7 +559,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         Returns:
             MessageChain: 修改后的消息链, 若未移除则原样返回.
         """
-        elements = deepcopy(self.__root__) if copy else self.__root__
+        elements = deepcopy(self.content) if copy else self.content
         if not elements or not isinstance(elements[-1], Plain):
             return self.copy() if copy else self
         last_elem: Plain = elements[-1]
@@ -796,7 +567,8 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
             last_elem.text = last_elem.text[: -len(suffix)]
         if copy:
             return MessageChain(elements, inline=True)
-        self.__root__ = elements
+        self.content.clear()
+        self.content.extend(elements)
         return self
 
     def join(
@@ -821,8 +593,8 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
 
         for chain in list_chains:
             if chain is not chains[0]:
-                result.extend(deepcopy(self.__root__))
-            result.extend(deepcopy(chain.__root__))
+                result.extend(deepcopy(self.content))
+            result.extend(deepcopy(chain.content))
         return MessageChain(result, inline=True).merge() if merge else MessageChain(result, inline=True)
 
     def replace(
@@ -869,7 +641,7 @@ class MessageChain(AriadneBaseModel, AttrConvertMixin):
         return MessageChain(result_list, inline=True)
 
     @property
-    def safe_display(self) -> str:
+    def display(self) -> str:
         return repr(str(self))[1:-1]
 
 

@@ -121,7 +121,7 @@ class MentionMe(ChainDecorator):
         rest: MessageChain = chain.exclude(Quote, Source)
         first: Element = rest[0]
         result: Optional[MessageChain] = None
-        if rest and isinstance(first, Plain) and first.as_display().startswith(name):
+        if rest and isinstance(first, Plain) and str(first).startswith(name):
             result = header + rest.removeprefix(name).removeprefix(" ")
         if rest and isinstance(first, At) and first.target == ariadne.account:
             result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
@@ -147,7 +147,7 @@ class Mention(ChainDecorator):
             rest
             and isinstance(first, Plain)
             and isinstance(self.person, str)
-            and first.as_display().startswith(self.person)
+            and str(first).startswith(self.person)
         ):
             result = header + rest.removeprefix(self.person).removeprefix(" ")
         if rest and isinstance(first, At) and isinstance(self.person, int) and first.target == self.person:
@@ -180,7 +180,7 @@ class MatchContent(ChainDecorator):
         self.next: Optional[ChainDecorator] = None
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
-        if isinstance(self.content, str) and chain.as_display() != self.content:
+        if isinstance(self.content, str) and str(chain) != self.content:
             raise ExecutionStop
         if isinstance(self.content, MessageChain) and chain != self.content:
             raise ExecutionStop
@@ -202,7 +202,7 @@ class MatchRegex(ChainDecorator):
         self.flags: re.RegexFlag = flags
 
     async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
-        if not re.match(self.regex, chain.as_display(), self.flags):
+        if not re.match(self.regex, str(chain), self.flags):
             raise ExecutionStop
         if interface.annotation is MessageChain:
             return chain
@@ -227,7 +227,7 @@ class MatchTemplate(ChainDecorator):
 
     def match(self, chain: MessageChain):
         """匹配消息链"""
-        chain = chain.asSendable()
+        chain = chain.as_sendable()
         if len(self.template) != len(chain):
             return False
         for element, template in zip(chain, self.template):
@@ -265,7 +265,7 @@ class FuzzyMatch(ChainDecorator):
             if isinstance(element, Plain):
                 text_frags.append(element.text)
             else:
-                text_frags.append(element.as_display())
+                text_frags.append(str(element))
         text = "".join(text_frags)
         matcher = difflib.SequenceMatcher(a=text, b=self.template)
         # return false when **any** ratio calc falls undef the rate
@@ -301,7 +301,7 @@ class FuzzyDispatcher(BaseDispatcher):
                 if isinstance(element, Plain):
                     text_frags.append(element.text)
                 else:
-                    text_frags.append(element.as_display())
+                    text_frags.append(str(element))
             text = "".join(text_frags)
             matcher = difflib.SequenceMatcher()
             matcher.set_seq2(text)

@@ -37,7 +37,7 @@ def test_include_exclude():
 
 def test_safe_display():
     msg_chain = MessageChain.create("Hello", At(target=12345))
-    assert msg_chain.display == "Hello@12345"
+    assert msg_chain.safe_display == "Hello@12345"
     assert "{chain.safe_display}".format(chain=msg_chain) == "Hello@12345"
 
 

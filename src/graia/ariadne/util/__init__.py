@@ -15,6 +15,7 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
+    ClassVar,
     Coroutine,
     Deque,
     Dict,
@@ -23,6 +24,7 @@ from typing import (
     Iterable,
     List,
     Literal,
+    MutableSet,
     Optional,
     Set,
     Tuple,
@@ -251,12 +253,19 @@ def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
         Callable[[T_Callable], T_Callable]: 包装器.
     """
 
+    __warning_info: MutableSet[Tuple[str, int]] = set()
+
     def out_wrapper(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
-            logger.warning(f"Deprecated function: {func.__qualname__}")
-            logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
+            frame = inspect.stack()[1].frame
+            caller_file = frame.f_code.co_filename
+            caller_line = frame.f_lineno
+            if (caller_file, caller_line) not in __warning_info:
+                __warning_info.add((caller_file, caller_line))
+                warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
+                logger.warning(f"Deprecated function: {func.__qualname__}")
+                logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
             return func(*args, **kwargs)
 
         return wrapper
@@ -374,15 +383,27 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
 
 
 class AttrConvertMixin:
+    __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
+
     def __getattr__(self, name: str) -> Callable:
         # camelCase to snake_case
-        if name.startswith("_"):
-            raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
         import re
 
         name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
         name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
         name = name.replace("-", "_").lower()
+        if name not in self.__class__.__dict__:
+            raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
+        # extract caller's file and line number
+        frame = inspect.stack()[1].frame
+        caller_file = frame.f_code.co_filename
+        caller_line = frame.f_lineno
+        AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
+        if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
+            AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
+            if not name.startswith("_"):
+                logger.warning(f"At {caller_file}:{caller_line}")
+                logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
         return getattr(self, name)
 
 

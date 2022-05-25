@@ -22,14 +22,10 @@ if __name__ == "__main__":
         config(
             int(account),
             verify_key,
-            WebsocketServerConfig(path="/"),
-            HttpClientConfig(host=url),
         )
     )
 
     Ariadne.service.loop.set_debug(True)
-
-    Ariadne.launch_manager.add_service(AiohttpServerService(port=23333))
 
     bcc = Ariadne.service.broadcast
 

@@ -61,7 +61,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
     @property
     def content(self) -> List[Element]:
         """Amnesia MessageChain 的内容代理"""
-        return self.content
+        return self.__root__
 
     @staticmethod
     def build_chain(obj: _Parsable) -> List[Element]:
@@ -638,7 +638,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return MessageChain(result_list, inline=True)
 
     @property
-    def display(self) -> str:
+    def safe_display(self) -> str:
         return repr(str(self))[1:-1]
 
 

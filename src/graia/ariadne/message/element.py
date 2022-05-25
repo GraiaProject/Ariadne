@@ -108,7 +108,10 @@ class Plain(Element, BaseText):
         Args:
             text (str): 元素所包含的文字
         """
-        super().__init__(text=text, **kwargs)  # type: ignore
+        super().__init__(text=text)  # type: ignore
+
+    def __str__(self) -> str:
+        return self.text
 
     def as_persistent_string(self) -> str:
         return self.text

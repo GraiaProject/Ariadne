@@ -123,7 +123,7 @@ class Group(AriadneBaseModel, AttrConvertMixin):
 
     async def send_message(
         self, message: "_Parsable", *, quote: Union["Source", int, None] = None
-    ) -> BotMessage:
+    ) -> "BotMessage":
         from ..app import Ariadne
         from ..message.chain import MessageChain
 
@@ -310,7 +310,7 @@ class Member(AriadneBaseModel, AttrConvertMixin):
 
     async def send_temp_message(
         self, message: "_Parsable", *, quote: Union["Source", int, None] = None
-    ) -> BotMessage:
+    ) -> "BotMessage":
         from ..app import Ariadne
         from ..message.chain import MessageChain
 
@@ -374,7 +374,7 @@ class Friend(AriadneBaseModel, AttrConvertMixin):
 
     async def send_message(
         self, message: "_Parsable", *, quote: Union["Source", int, None] = None
-    ) -> BotMessage:
+    ) -> "BotMessage":
         from ..app import Ariadne
         from ..message.chain import MessageChain
 

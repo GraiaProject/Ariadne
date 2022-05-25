@@ -37,6 +37,7 @@ from ...typing import T, generic_isinstance, generic_issubclass
 from ...util import gen_subclass
 from ..chain import MessageChain
 from ..element import Element
+from .base import ChainDecorator
 from .util import (
     CommandToken,
     ElementType,
@@ -599,14 +600,18 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         self,
         *root: Union[Iterable[Match], Match],
         map_param: Optional[Dict[str, bool]] = None,
+        preprocessor: Optional[ChainDecorator] = None,
     ) -> None:
         """本魔法方法用于初始化本实例.
 
         Args:
             *root (Iterable[Match] | Match): 匹配规则.
-            map_param (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
+            map_param (Dict[str, bool], optional): 控制 MessageChain 转化的参数.
+            preprocessor (ChainDecorator, optional): 消息链预处理器. \
+            应该来自 `graia.ariadne.message.parser.base` 模块. Defaults to None.
         """
         self.map_param = map_param or {}
+        self.preprocessor = preprocessor
         self.help_data: Optional[_TwilightHelpArgs] = None
         self.help_id: str = TwilightHelpManager.AUTO_ID
         self.help_brief: str = TwilightHelpManager.AUTO_ID
@@ -629,7 +634,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         arguments: List[str] = split(mapping_str, keep_quote=True)
         res = self.matcher.match(arguments, elem_mapping)
         elem_mapping_ctx.reset(token)
-        return Sparkle(res)  # type: ignore
+        return cast(T_Sparkle, Sparkle(res))
 
     @classmethod
     def from_command(  # ANCHOR: Sparkle: From command
@@ -744,7 +749,12 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             ExecutionStop: 匹配以任意方式失败
         """
         local_storage = interface.local_storage
-        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
+        if self.preprocessor:
+            chain: MessageChain = await interface.lookup_by_directly(
+                DecoratorInterface(), "message_chain", MessageChain, self.preprocessor
+            )
+        else:
+            chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
         with contextlib.suppress(Exception):
             local_storage[f"{__name__}:result"] = self.generate(chain)
             local_storage[f"{__name__}:twilight"] = self

@@ -133,7 +133,7 @@ if __name__ == "__main__":
     async def accept(event: NewFriendRequestEvent):
         await event.accept("Welcome!")
 
-    @bcc.receiver(MessageEvent, dispatchers=[Twilight([FullMatch(".test")])])
+    @bcc.receiver(MessageEvent, dispatchers=[Twilight([FullMatch(".test")], preprocessor=MentionMe())])
     async def reply2(app: Ariadne, event: MessageEvent):
         await app.sendMessage(event, MessageChain.create("Auto reply to /test!"))
 

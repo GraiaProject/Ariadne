@@ -9,18 +9,6 @@ if TYPE_CHECKING:
     from ..typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 
 
-def datetime_encoder(v: datetime) -> float:
-    """编码 datetime 对象
-
-    Args:
-        v (datetime): datetime 对象
-
-    Returns:
-        float: 编码后的 datetime (时间戳)
-    """
-    return v.timestamp()
-
-
 class DatetimeEncoder(json.JSONEncoder):
     """可以编码 datetime 的 JSONEncoder"""
 
@@ -58,9 +46,6 @@ class AriadneBaseModel(BaseModel):
         """Ariadne BaseModel 设置"""
 
         extra = Extra.allow
-        json_encoders = {
-            datetime: datetime_encoder,
-        }
         arbitrary_types_allowed = True
 
 

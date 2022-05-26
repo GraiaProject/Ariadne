@@ -7,6 +7,7 @@ from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import (
     At,
     AtAll,
+    BaseText,
     Element,
     Image,
     Plain,
@@ -21,8 +22,7 @@ __name__ = "graia.test.message.chain"  # monkey patch to pass internal class che
 def test_create():
     chain = MessageChain([Plain("Hello World"), At(12345), Plain("1234567")])
     assert (
-        MessageChain.create("Hello World", [At(12345)], MessageChain([Plain("1234567")])).__root__
-        == chain.__root__
+        MessageChain("Hello World", [At(12345)], MessageChain([Plain("1234567")])).__root__ == chain.__root__
     )
     assert MessageChain.parse_obj(
         [{"type": "At", "target": 12345}, {"type": "Plain", "text": "hello"}, {"type": "Broken"}, 5]
@@ -30,19 +30,19 @@ def test_create():
 
 
 def test_include_exclude():
-    msg_chain = MessageChain.create("Hello", At(target=12345))
+    msg_chain = MessageChain("Hello", At(target=12345))
     assert msg_chain.include(Plain) == MessageChain([Plain(text="Hello")])
     assert msg_chain.exclude(Plain) == MessageChain([At(target=12345)])
 
 
 def test_safe_display():
-    msg_chain = MessageChain.create("Hello", At(target=12345))
+    msg_chain = MessageChain("Hello", At(target=12345))
     assert msg_chain.safe_display == "Hello@12345"
     assert "{chain.safe_display}".format(chain=msg_chain) == "Hello@12345"
 
 
 def test_split():
-    msg_chain = MessageChain.create("Hello world!", At(target=12345))
+    msg_chain = MessageChain("Hello world!", At(target=12345))
     assert msg_chain.split("world!", raw_string=True) == [
         MessageChain([Plain(text="Hello ")]),
         MessageChain([Plain(text=""), At(target=12345)]),
@@ -61,7 +61,7 @@ def test_split():
 
 
 def test_prefix_suffix():
-    msg_chain = MessageChain.create("Hello world!", At(target=12345))
+    msg_chain = MessageChain("Hello world!", At(target=12345))
     assert msg_chain.removeprefix("Hello") == MessageChain([Plain(text=" world!"), At(target=12345)])
     assert msg_chain.removesuffix("world!") == MessageChain([Plain(text="Hello world!"), At(target=12345)])
     assert MessageChain(["hello world"]).removesuffix("world") == MessageChain([Plain("hello ")])
@@ -75,7 +75,7 @@ def test_prefix_suffix():
 
 
 def test_has():
-    msg_chain = MessageChain.create("Hello", At(target=12345))
+    msg_chain = MessageChain("Hello", At(target=12345))
     assert msg_chain.has(MessageChain([Plain(text="Hello")]))
     assert not msg_chain.has(MessageChain([Plain(text="LOL")]))
     assert msg_chain.has(At(target=12345))
@@ -93,7 +93,7 @@ def test_has():
 
 
 def test_contain():
-    msg_chain = MessageChain.create("Hello", At(target=12345))
+    msg_chain = MessageChain("Hello", At(target=12345))
     assert MessageChain([Plain(text="Hello")]) in msg_chain
     assert At(target=12345) in msg_chain
     assert At(target=12152) not in msg_chain
@@ -102,7 +102,7 @@ def test_contain():
 
 
 def test_get():
-    msg_chain = MessageChain.create("Hello World!", At(target=12345), "Foo test!")
+    msg_chain = MessageChain("Hello World!", At(target=12345), "Foo test!")
     assert msg_chain[Plain] == [Plain("Hello World!"), Plain("Foo test!")]
     assert msg_chain[Plain, 1] == [Plain("Hello World!")]
     assert msg_chain[1] == At(target=12345)
@@ -117,26 +117,23 @@ def test_get():
 
 
 def test_onlycontains():
-    msg_chain = MessageChain.create("Hello World!", At(target=12345), "Foo test!")
+    msg_chain = MessageChain("Hello World!", At(target=12345), "Foo test!")
     assert msg_chain.only_contains(Plain, At)
 
 
 def test_prepare():
-    msg_chain = MessageChain.create(
+    msg_chain = MessageChain(
         Source(id=1, time=12433531),
         Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
         "  hello!",
     )
     assert not msg_chain.only_contains(Plain)
     assert msg_chain.as_sendable().__root__ != msg_chain.__root__
-    assert msg_chain.prepare(copy=True).__root__ != msg_chain.__root__
-    msg_chain.prepare()
-    assert msg_chain.only_contains(Plain)
-    assert msg_chain.as_sendable().__root__ == msg_chain.__root__
+    assert msg_chain.as_sendable().only_contains(Plain)
 
 
 def test_persistent():
-    msg_chain = MessageChain.create(
+    msg_chain = MessageChain(
         Source(id=1, time=12433531),
         Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
         "hello!",
@@ -191,24 +188,25 @@ async def test_download():
 
 
 def test_presentation():
-    msg_chain = MessageChain.create("Hello World!", At(target=12345), "Foo test!")
-    assert msg_chain.as_display() == "Hello World!@12345Foo test!"
-    assert str(msg_chain) == msg_chain.as_display()
+    msg_chain = MessageChain("Hello World!", At(target=12345), "Foo test!\n")
+    assert msg_chain.display == "Hello World!@12345Foo test!\n"
+    assert str(msg_chain) == msg_chain.display
     print(repr(msg_chain))
     assert (
         repr(msg_chain)
-        == "MessageChain([Plain(text='Hello World!'), At(target=12345), Plain(text='Foo test!')])"
+        == "MessageChain([Plain(text='Hello World!'), At(target=12345), Plain(text='Foo test!\\n')])"
     )
     assert eval(repr(msg_chain)) == msg_chain
+    assert msg_chain.safe_display == "Hello World!@12345Foo test!\\n"
 
 
 def test_magic():
-    msg_chain = MessageChain.create("Hello world!", At(target=12345))
+    msg_chain = MessageChain("Hello world!", At(target=12345))
     for e in msg_chain:
         assert isinstance(e, Element)
 
     assert MessageChain(["Hello"]) == ["Hello"]
-    assert MessageChain(["hello"]) == MessageChain.create("hello")
+    assert MessageChain(["hello"]) == MessageChain("hello")
 
     assert MessageChain(["Hello World!"]) + MessageChain(["Goodbye World!"]) == MessageChain(
         [Plain("Hello World!"), Plain("Goodbye World!")]
@@ -218,14 +216,14 @@ def test_magic():
     )
     assert MessageChain(["Hello World!"]) * 2 == MessageChain([Plain("Hello World!"), Plain("Hello World!")])
 
-    msg_chain = MessageChain.create("Hello World!")
+    msg_chain = MessageChain("Hello World!")
     msg_chain *= 2
     assert msg_chain == MessageChain([Plain("Hello World!"), Plain("Hello World!")])
     msg_chain += [Plain("How are you?")]
     assert msg_chain == MessageChain([Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?")])
     assert len(msg_chain) == 3
 
-    msg_chain = MessageChain.create("Hello World!")
+    msg_chain = MessageChain("Hello World!")
     msg_chain *= 2
     assert msg_chain == MessageChain([Plain("Hello World!"), Plain("Hello World!")])
     msg_chain += MessageChain([Plain("How are you?")])
@@ -234,12 +232,12 @@ def test_magic():
 
 
 def test_merge():
-    assert MessageChain([Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?")]).merge(
-        copy=True
-    ) == MessageChain([Plain("Hello World!Hello World!How are you?")])
+    assert MessageChain(
+        [Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?")]
+    ).merge() == MessageChain([Plain("Hello World!Hello World!How are you?")])
     assert MessageChain(
         [Plain("Hello World!"), Plain("Hello World!"), Plain("How are you?"), At(12345)]
-    ).merge(copy=True) == MessageChain([Plain("Hello World!Hello World!How are you?"), At(12345)])
+    ).merge() == MessageChain([Plain("Hello World!Hello World!How are you?"), At(12345)])
 
 
 def test_replace():
@@ -284,6 +282,7 @@ def test_list_method():
     # append
     msg_chain.append("yo")
     msg_chain.append(At(1))
+    assert BaseText("a") == Plain("a")
     assert msg_chain == MessageChain(
         [Plain("Hello World!"), Plain("How are you?"), At(12345), Plain("yo"), At(1)]
     )

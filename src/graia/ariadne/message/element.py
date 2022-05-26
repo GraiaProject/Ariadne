@@ -116,6 +116,9 @@ class Plain(Element, BaseText):
     def as_persistent_string(self) -> str:
         return self.text
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, (Plain, BaseText)) and self.text == other.text
+
 
 @internal_cls()
 class Source(Element):

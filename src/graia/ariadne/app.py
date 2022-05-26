@@ -1354,8 +1354,7 @@ class Ariadne(AttrConvertMixin):
         from .event.message import ActiveFriendMessage
 
         with enter_message_send_context(UploadMethod.Friend):
-            new_msg = message.copy()
-            new_msg.prepare()
+            new_msg = message.copy().as_sendable()
             result = await self.connection.call(
                 "sendFriendMessage",
                 CallMethod.POST,
@@ -1400,8 +1399,7 @@ class Ariadne(AttrConvertMixin):
             target = target.group
 
         with enter_message_send_context(UploadMethod.Group):
-            new_msg = message.copy()
-            new_msg.prepare()
+            new_msg = message.copy().as_sendable()
             result = await self.connection.call(
                 "sendGroupMessage",
                 CallMethod.POST,
@@ -1447,8 +1445,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveTempMessage
 
-        new_msg = message.copy()
-        new_msg.prepare()
+        new_msg = message.copy().as_sendable()
         group = target.group if (isinstance(target, Member) and not group) else group
         if not group:
             raise ValueError("Missing necessary argument: group")

@@ -570,6 +570,110 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         self.content.extend(elements)
         return self
 
+    def append(self, element: Union[Element, str], copy: bool = False) -> Self:
+        """
+        向消息链最后追加单个元素
+
+        Args:
+            element (Element): 要添加的元素
+            copy (bool): 是否要在副本上修改.
+
+        Returns:
+            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
+        """
+        chain_ref = self.copy() if copy else self
+        if isinstance(element, str):
+            element = Plain(element)
+        chain_ref.content.append(element)
+        return chain_ref
+
+    def extend(
+        self,
+        *content: Union[Self, Element, List[Union[Element, str]]],
+        copy: bool = False,
+    ) -> Self:
+        """
+        向消息链最后添加元素/元素列表/消息链
+
+        Args:
+            *content (Union[MessageChain, Element, List[Element]]): 要添加的元素/元素容器.
+            copy (bool): 是否要在副本上修改.
+
+        Returns:
+            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
+        """
+        result = []
+        for i in content:
+            if isinstance(i, Element):
+                result.append(i)
+            elif isinstance(i, str):
+                result.append(Plain(i))
+            elif isinstance(i, MessageChain):
+                result.extend(i.content)
+            else:
+                for e in i:
+                    if isinstance(e, str):
+                        result.append(Plain(e))
+                    else:
+                        result.append(e)
+        if copy:
+            return self.__class__(deepcopy(self.content) + result)
+        self.content.extend(result)
+        return self
+
+    def merge(self) -> Self:
+        """合并相邻的 Text 项, 并返回一个新的消息链实例
+        Returns:
+            MessageChain: 得到的新的消息链实例, 里面不应存在有任何的相邻的 Text 元素.
+        """
+        from .element import BaseText, Plain
+
+        result = []
+
+        texts = []
+        for i in self.content:
+            if not isinstance(i, BaseText):
+                if texts:
+                    result.append(Plain("".join(texts)))
+                    texts.clear()  # 清空缓存
+                result.append(i)
+            else:
+                texts.append(i.text)
+        if texts:
+            result.append(Plain("".join(texts)))
+            texts.clear()  # 清空缓存
+        return self.__class__(result)
+
+    def split(self, pattern: str = " ", raw_string: bool = False) -> List[Self]:
+        """和 `str.split` 差不多, 提供一个字符串, 然后返回分割结果.
+
+        Args:
+            pattern (str): 分隔符. 默认为单个空格.
+            raw_string (bool): 是否要包含 "空" 的文本元素.
+
+        Returns:
+            List[Self]: 分割结果, 行为和 `str.split` 差不多.
+        """
+        from .element import BaseText, Plain
+
+        result: List[Self] = []
+        tmp = []
+        for element in self.content:
+            if isinstance(element, BaseText):
+                split_result = element.text.split(pattern)
+                for index, split_str in enumerate(split_result):
+                    if tmp and index > 0:
+                        result.append(self.__class__(tmp))
+                        tmp = []
+                    if split_str or raw_string:
+                        tmp.append(Plain(split_str))
+            else:
+                tmp.append(element)
+        if tmp:
+            result.append(self.__class__(tmp))
+            tmp = []
+        return result
+
     def join(self, *chains: Union[Self, Iterable[Self]], merge: bool = True) -> Self:
         """将多个消息链连接起来, 并在其中插入自身.
 
@@ -638,7 +742,21 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         return MessageChain(result_list, inline=True)
 
     @property
+    def display(self) -> str:
+        """获取消息链的显示字符串.
+
+        Returns:
+            str: 消息链的显示字符串.
+        """
+        return str(self)
+
+    @property
     def safe_display(self) -> str:
+        """获取消息链的安全显示字符串. (对特殊字符进行转义了)
+
+        Returns:
+            str: 消息链的安全显示字符串.
+        """
         return repr(str(self))[1:-1]
 
 

@@ -5,8 +5,6 @@ from typing import Optional, Union
 
 import devtools
 from graia.amnesia.builtins.aiohttp import AiohttpServerService
-from graia.broadcast import Broadcast
-from graia.broadcast.builtin.event import ExceptionThrowed
 from loguru import logger
 
 from graia.ariadne.entry import *
@@ -36,7 +34,7 @@ if __name__ == "__main__":
         logger.debug(await app.getVersion())
 
     async def chk(msg: MessageChain):
-        return msg.asDisplay().endswith("override")
+        return msg.as_display().endswith("override")
 
     @bcc.receiver(CommandExecutedEvent)
     async def print_remote_cmd(event: CommandExecutedEvent):
@@ -53,7 +51,7 @@ if __name__ == "__main__":
         app: Ariadne,
         sender: Union[Friend, Member],
     ):
-        await app.sendMessage(
+        await app.send_message(
             ev,
             MessageChain(
                 [f"""rest: {res_time}s, from {getattr(sender, "name", getattr(sender, "nickname", None))}"""]
@@ -63,15 +61,15 @@ if __name__ == "__main__":
     @bcc.receiver(MessageEvent)
     async def send(app: Ariadne, ev: MessageEvent, chain: MessageChain = MentionMe()):
         logger.debug(repr(chain))
-        if chain.asDisplay().startswith(".wait"):
-            await app.sendMessage(ev, MessageChain.create("Wait for 5s!"))
+        if chain.as_display().startswith(".wait"):
+            await app.send_message(ev, MessageChain("Wait for 5s!"))
             await asyncio.sleep(5.0)
-            await app.sendMessage(ev, MessageChain.create("Complete!"))
+            await app.send_message(ev, MessageChain("Complete!"))
 
     @bcc.receiver(MessageEvent)
     async def check_multi(chain: MessageChain):
         if chain.has(MultimediaElement):
-            elem = chain.getFirst(MultimediaElement)
+            elem = chain.get_first(MultimediaElement)
             logger.info(elem.dict())
 
     @bcc.receiver(GroupEvent)
@@ -82,21 +80,21 @@ if __name__ == "__main__":
         GroupMessage, decorators=[CertainGroup(int(t_group))], dispatchers=[FuzzyDispatcher("github")]
     )
     async def reply_to_me(app: Ariadne, ev: MessageEvent, rate: float):
-        await app.sendMessage(ev, MessageChain.create(f"Git host! rate: {rate}"))
+        await app.send_message(ev, MessageChain(f"Git host! rate: {rate}"))
 
     @bcc.receiver(
         GroupMessage, decorators=[CertainGroup(int(t_group))], dispatchers=[FuzzyDispatcher("gayhub")]
     )
     async def reply_to_me(app: Ariadne, ev: MessageEvent, rate: float):
-        await app.sendMessage(ev, MessageChain.create(f"Gay host! rate: {rate}"))
+        await app.send_message(ev, MessageChain(f"Gay host! rate: {rate}"))
 
     @bcc.receiver(ExceptionThrowed)
     async def e(app: Ariadne, e: ExceptionThrowed):
-        await app.sendMessage(e.event, MessageChain.create(f"{e.exception}"))
+        await app.send_message(e.event, MessageChain(f"{e.exception}"))
 
     @bcc.receiver(MessageEvent, decorators=[MatchContent("!raise")])
     async def raise_(app: Ariadne, ev: MessageEvent):
-        await app.sendMessage(ev, MessageChain.create("Raise!"))
+        await app.send_message(ev, MessageChain("Raise!"))
         raise ValueError("Raised!")
 
     @bcc.receiver(
@@ -121,13 +119,11 @@ if __name__ == "__main__":
         verbose: ArgResult,
     ):
         if help.matched:
-            return await app.sendMessage(
-                event, MessageChain.create(twilight.get_help(description="Foo help!"))
-            )
+            return await app.send_message(event, MessageChain(twilight.get_help(description="Foo help!")))
         if verbose.matched:
-            await app.sendMessage(event, MessageChain.create("Auto reply to \n") + arg.result)
+            await app.send_message(event, MessageChain("Auto reply to \n") + arg.result)
         else:
-            await app.sendMessage(event, MessageChain.create("Result: ") + arg.result)
+            await app.send_message(event, MessageChain("Result: ") + arg.result)
 
     @bcc.receiver(NewFriendRequestEvent)
     async def accept(event: NewFriendRequestEvent):
@@ -135,32 +131,27 @@ if __name__ == "__main__":
 
     @bcc.receiver(MessageEvent, dispatchers=[Twilight([FullMatch(".test")], preprocessor=MentionMe())])
     async def reply2(app: Ariadne, event: MessageEvent):
-        await app.sendMessage(event, MessageChain.create("Auto reply to /test!"))
+        await app.send_message(event, MessageChain("Auto reply to /test!"))
 
     def unwind(fwd: Forward):
         for node in fwd.nodeList:
             if node.messageChain.has(Forward):
-                unwind(node.messageChain.getFirst(Forward))
+                unwind(node.messageChain.get_first(Forward))
             else:
-                logger.debug(node.messageChain.asDisplay())
+                logger.debug(node.messageChain.as_display())
 
     @bcc.receiver(MessageEvent)
     async def unwind_fwd(chain: MessageChain):
         if chain.has(Forward):
-            unwind(chain.getFirst(Forward))
+            unwind(chain.get_first(Forward))
 
     @bcc.receiver(GroupMessage)
     async def reply3(app: Ariadne, chain: MessageChain, group: Group, member: Member):
         if "Hi!" in chain and chain.has(At):
-            await app.sendGroupMessage(
+            await app.send_group_message(
                 group,
-                MessageChain.create([At(chain.getFirst(At).target), Plain("Hello World!")]),
+                MessageChain([At(chain.get_first(At).target), Plain("Hello World!")]),
             )  # WARNING: May raise UnknownTarget
-
-    @bcc.receiver(GroupRecallEvent)
-    async def anti_recall(app: Ariadne, event: GroupRecallEvent):
-        msg = await app.getMessageFromId(event.messageId)
-        await app.sendGroupMessage(event.group, msg.messageChain)
 
     @bcc.receiver(
         FriendMessage,
@@ -171,11 +162,11 @@ if __name__ == "__main__":
 
     @bcc.receiver(ApplicationLaunched)
     async def m(app: Ariadne):
-        await app.sendFriendMessage(target, MessageChain.create("Launched!"))
+        await app.send_friend_message(target, MessageChain("Launched!"))
 
     @bcc.receiver(ApplicationShutdowned)
     async def m(app: Ariadne):
-        await app.sendFriendMessage(target, MessageChain.create("Shutdown!"))
+        await app.send_friend_message(target, MessageChain("Shutdown!"))
 
     @bcc.receiver(CommandExecutedEvent)
     async def cmd_log(event: CommandExecutedEvent):
@@ -183,18 +174,18 @@ if __name__ == "__main__":
 
     @bcc.receiver(ApplicationLaunched)
     async def main():
-        logger.debug(await app.getVersion())
-        logger.debug(await app.getBotProfile())
+        logger.debug(await app.get_version())
+        logger.debug(await app.get_bot_profile())
         if ALL_FLAG:
-            group_list = await app.getGroupList()
-            await app.registerCommand("graia_cmd", ["graiax", "gx"], "graia_cmd <a> <b> <c>", "Test graia")
+            group_list = await app.get_group_list()
+            await app.register_command("graia_cmd", ["graiax", "gx"], "graia_cmd <a> <b> <c>", "Test graia")
             logger.debug(group_list)
-            friend_list = await app.getFriendList()
+            friend_list = await app.get_friend_list()
             logger.debug(friend_list)
-            member_list = await app.getMemberList(group_list[0])
+            member_list = await app.get_member_list(group_list[0])
             logger.debug(member_list)
-            logger.debug(await app.getFriendProfile(friend_list[0]))
-            logger.debug(await app.getMemberProfile(member_list[0], group_list[0]))
-            logger.debug(await app.getMemberProfile(member_list[0]))
+            logger.debug(await app.get_friend_profile(friend_list[0]))
+            logger.debug(await app.get_member_profile(member_list[0], group_list[0]))
+            logger.debug(await app.get_member_profile(member_list[0]))
 
     Ariadne.launch_blocking()

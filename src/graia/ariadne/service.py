@@ -13,10 +13,8 @@ from typing import (
 from weakref import WeakValueDictionary
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
-from graia.amnesia.launch.component import LaunchComponent
-from graia.amnesia.launch.manager import LaunchManager
-from graia.amnesia.launch.service import Service
 from graia.broadcast import Broadcast
+from launart import Launart, Service
 from loguru import logger
 from typing_extensions import Self
 
@@ -31,6 +29,7 @@ from .dispatcher import ContextDispatcher, NoneDispatcher
 
 
 class ElizabethService(Service):
+    id = "elizabeth.service"
     supported_interface_types = {ConnectionInterface}
     http_interface: AiohttpClientInterface
     connections: Dict[int, ConnectionMixin]
@@ -38,6 +37,7 @@ class ElizabethService(Service):
     connection_tasks: MutableMapping[int, asyncio.Task]
 
     def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
+        super().__init__()
         self.connections = {}
         self.connection_tasks = WeakValueDictionary()
         self.broadcast = broadcast or Broadcast(loop=asyncio.new_event_loop())
@@ -75,7 +75,7 @@ class ElizabethService(Service):
         else:
             raise ValueError(f"Connection {self.connections[account]} conflicts with {connection}")
 
-    async def connection_daemon(self, connection: ConnectionMixin[T_Info], mgr: LaunchManager) -> None:
+    async def connection_daemon(self, connection: ConnectionMixin[T_Info], mgr: Launart) -> None:
         from .app import Ariadne
         from .context import enter_context
         from .event.lifecycle import ApplicationLaunched
@@ -98,23 +98,19 @@ class ElizabethService(Service):
         with contextlib.suppress(asyncio.CancelledError):
             await conn_task
 
-    async def prepare(self, mgr: LaunchManager) -> None:
+    async def prepare(self, mgr: Launart) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)
         if self.broadcast:
             assert asyncio.get_running_loop() is self.loop, "Broadcast is attached to a different loop"
         else:
             self.broadcast = Broadcast(loop=asyncio.get_running_loop())
 
-    async def mainline(self, mgr: LaunchManager) -> None:
-        await asyncio.wait(
-            [asyncio.create_task(self.connection_daemon(conn, mgr)) for conn in self.connections.values()]
-        )
-
-    async def cleanup(self, mgr: LaunchManager) -> None:
+    async def cleanup(self) -> None:
         from .app import Ariadne
         from .context import enter_context
         from .event.lifecycle import ApplicationShutdowned
 
+        logger.info("Elizabeth Service cleaning up...", style="orange")
         for account in self.connections:
             app: Ariadne = Ariadne.current(account)
             task = self.connection_tasks.pop(account, None)
@@ -124,12 +120,36 @@ class ElizabethService(Service):
                 if not task.done():
                     task.cancel()
 
+    async def launch(self, manager: Launart):
+        while self.status.stage != "prepare":
+            await self.status.wait_for_update()
+        await self.prepare(manager)
+        tasks = [
+            asyncio.create_task(self.connection_daemon(conn, manager)) for conn in self.connections.values()
+        ]
+        self.status.set_blocking()
+        await manager.status.wait_for_completed()
+        self.status.set_cleanup()
+        await self.cleanup()
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        logger.success(f"Cancelled {len(tasks)} connection tasks", style="green")
+        self.status.set_finished()
+
     @property
-    def launch_component(self) -> LaunchComponent:
+    def required(self):
         requirements: MutableSet[str] = set()
         for connection in self.connections.values():
             requirements |= connection.dependencies
-        return LaunchComponent("elizabeth.service", requirements, self.mainline, self.prepare, self.cleanup)
+        return requirements
+
+    def on_require_prepared(self, _):
+        self.status.set_prepare()
+
+    @property
+    def stages(self):
+        return {"prepare", "blocking", "cleanup"}
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:

@@ -24,8 +24,8 @@ from typing import (
     overload,
 )
 
-from graia.amnesia.launch.manager import LaunchManager
 from graia.broadcast import Broadcast
+from launart import Launart
 from loguru import logger
 
 from .connection import ConnectionInterface
@@ -52,7 +52,13 @@ from .model import (
 )
 from .model.util import AriadneOptions
 from .service import ElizabethService
-from .typing import SendMessageActionProtocol, SendMessageDict, SendMessageException, T
+from .typing import (
+    SendMessageActionProtocol,
+    SendMessageDict,
+    SendMessageException,
+    Sentinel,
+    T,
+)
 from .util import AttrConvertMixin, app_ctx_manager
 
 if TYPE_CHECKING:
@@ -62,7 +68,7 @@ if TYPE_CHECKING:
 class Ariadne(AttrConvertMixin):
     options: ClassVar[AriadneOptions] = {}
     service: ClassVar[ElizabethService]
-    launch_manager: ClassVar[LaunchManager]
+    launch_manager: ClassVar[Launart]
     instances: ClassVar[Dict[int, "Ariadne"]] = {}
     default_send_action: SendMessageActionProtocol
     held_objects: ClassVar[Dict[type, Any]] = {}
@@ -75,7 +81,7 @@ class Ariadne(AttrConvertMixin):
         if not hasattr(cls, "service"):
             cls.service = ElizabethService()
         if not hasattr(cls, "launch_manager"):
-            cls.launch_manager = LaunchManager()
+            cls.launch_manager = Launart()
         cls.held_objects.setdefault(Broadcast, cls.service.broadcast)
         cls.held_objects.setdefault(asyncio.AbstractEventLoop, cls.service.loop)
 
@@ -85,7 +91,7 @@ class Ariadne(AttrConvertMixin):
         *,
         loop: Optional[asyncio.AbstractEventLoop] = None,
         broadcast: Optional[Broadcast] = None,
-        launch_manager: Optional[LaunchManager] = None,
+        launch_manager: Optional[Launart] = None,
         default_account: Optional[int] = None,
         install_log: bool = False,
         inject_bypass_listener: bool = False,
@@ -125,9 +131,9 @@ class Ariadne(AttrConvertMixin):
                 assert cls.options["default_account"] == default_account, "Inconsistent default account"
 
         if install_log and "installed_log" not in cls.options:
-            from graia.amnesia import log
+            import richuru
 
-            log.install()
+            richuru.install()
             cls.options["installed_log"] = True
 
         if inject_bypass_listener and "inject_bypass_listener" not in cls.options:
@@ -185,20 +191,20 @@ class Ariadne(AttrConvertMixin):
 
     @classmethod
     def _patch_launch_manager(cls) -> None:
-        if "http.universal_client" not in cls.launch_manager.launch_components:
+        if "http.universal_client" not in cls.launch_manager.launchables:
             from graia.amnesia.builtins.aiohttp import AiohttpService
 
             cls.launch_manager.add_service(AiohttpService())
 
         if (
-            "http.universal_server" in cls.service.launch_component.required
-            and "http.universal_server" not in cls.launch_manager.launch_components
+            "http.universal_server" in cls.service.required
+            and "http.universal_server" not in cls.launch_manager.launchables
         ):
             from graia.amnesia.builtins.aiohttp import AiohttpServerService
 
             cls.launch_manager.add_service(AiohttpServerService())
 
-        if "elizabeth.service" not in cls.launch_manager.launch_components:
+        if "elizabeth.service" not in cls.launch_manager.launchables:
             cls.launch_manager.add_service(cls.service)
 
     @classmethod
@@ -208,7 +214,7 @@ class Ariadne(AttrConvertMixin):
 
     @classmethod
     def stop(cls):
-        tsk = cls.launch_manager.maintask
+        tsk = cls.launch_manager.blocking_task
         if tsk:
             tsk.cancel()
 
@@ -1471,6 +1477,28 @@ class Ariadne(AttrConvertMixin):
                 logger.warning("Failed to send message, your account may be limited.")
             return BotMessage(messageId=result["messageId"], origin=message)
 
+    @overload
+    async def send_message(
+        self,
+        target: Union[MessageEvent, Group, Friend, Member],
+        message: MessageChain,
+        *,
+        quote: Union[bool, int, Source, MessageChain] = False,
+        action: SendMessageActionProtocol["T"],
+    ) -> "T":
+        ...
+
+    @overload
+    async def send_message(
+        self,
+        target: Union[MessageEvent, Group, Friend, Member],
+        message: MessageChain,
+        *,
+        quote: Union[bool, int, Source, MessageChain] = False,
+        action: Literal[Sentinel] = Sentinel,
+    ) -> BotMessage:
+        ...
+
     @app_ctx_manager
     async def send_message(
         self,
@@ -1478,7 +1506,7 @@ class Ariadne(AttrConvertMixin):
         message: MessageChain,
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
-        action: SendMessageActionProtocol["T"] = ...,
+        action: Union[SendMessageActionProtocol["T"], Literal[Sentinel]] = Sentinel,
     ) -> "T":
         """
         依据传入的 `target` 自动发送消息.
@@ -1496,7 +1524,7 @@ class Ariadne(AttrConvertMixin):
         Returns:
             Union[T, R]: 默认实现为 BotMessage
         """
-        action = action if action is not ... else self.default_send_action
+        action = action if action is not Sentinel else self.default_send_action
         data: Dict[Any, Any] = {"message": message}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):

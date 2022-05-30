@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type, Union, overload
 
 from graia.amnesia.builtins.aiohttp import AiohttpRouter
-from graia.amnesia.launch.manager import LaunchManager
+from launart import Launart
 from loguru import logger
 
 from ..exception import (
@@ -30,17 +30,17 @@ if TYPE_CHECKING:
 try:
     from graia.amnesia.builtins.starlette import StarletteRouter
 
-    def get_router(mgr: LaunchManager) -> Union[AiohttpRouter, StarletteRouter]:
-        if AiohttpRouter in mgr._service_interfaces:
+    def get_router(mgr: Launart) -> Union[AiohttpRouter, StarletteRouter]:
+        if AiohttpRouter in mgr._service_bind:
             return mgr.get_interface(AiohttpRouter)
-        if StarletteRouter in mgr._service_interfaces:
+        if StarletteRouter in mgr._service_bind:
             return mgr.get_interface(StarletteRouter)
         raise ValueError("No router found")
 
 except ImportError:
 
-    def get_router(mgr: LaunchManager) -> Union[AiohttpRouter, StarletteRouter]:
-        if AiohttpRouter in mgr._service_interfaces:
+    def get_router(mgr: Launart) -> Union[AiohttpRouter, StarletteRouter]:
+        if AiohttpRouter in mgr._service_bind:
             return mgr.get_interface(AiohttpRouter)
         raise ValueError("No router found")
 

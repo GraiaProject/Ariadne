@@ -15,6 +15,7 @@ from typing import (
     Generic,
     Iterable,
     List,
+    Literal,
     Optional,
     Type,
     TypedDict,
@@ -33,7 +34,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 from typing_extensions import Self
 
-from ...typing import T, generic_isinstance, generic_issubclass
+from ...typing import Sentinel, T, generic_isinstance, generic_issubclass
 from ...util import gen_subclass
 from ..chain import MessageChain
 from ..element import Element
@@ -314,12 +315,12 @@ class ArgumentMatch(Match, Generic[T]):
         def __init__(  # type: ignore
             self,
             *pattern: str,
-            action: Union[str, Type[Action]] = ...,
-            nargs: Union[int, str] = ...,
-            const: T = ...,
-            default: T = ...,
-            type: Callable[[str], T] = ...,
-            choices: Iterable[T] = ...,
+            action: Union[str, Type[Action], Literal[Sentinel]] = Sentinel,
+            nargs: Union[int, str, Literal[Sentinel]] = Sentinel,
+            const: Union[T, Literal[Sentinel]] = Sentinel,
+            default: Union[T, Literal[Sentinel]] = Sentinel,
+            type: Union[Callable[[str], T], Literal[Sentinel]] = Sentinel,
+            choices: Union[Iterable[T], Literal[Sentinel]] = Sentinel,
             optional: bool = True,
         ):
             """初始化 ArgumentMatch 对象.
@@ -552,7 +553,7 @@ class TwilightMatcher:
         formatter = formatter_class(prog="")
 
         if usage:
-            formatter.add_usage(None, self._parser._actions, [], prefix=usage + " ")
+            formatter.add_usage(None, self._parser._actions, [], prefix=f"{usage} ")
 
         formatter.add_text(description)
 

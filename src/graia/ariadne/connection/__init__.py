@@ -21,8 +21,6 @@ from weakref import WeakValueDictionary
 from aiohttp import FormData
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.json import Json
-from graia.amnesia.launch.interface import ExportInterface
-from graia.amnesia.launch.manager import LaunchManager
 from graia.amnesia.transport import Transport
 from graia.amnesia.transport.common.http import AbstractServerRequestIO, HttpEndpoint
 from graia.amnesia.transport.common.http.extra import HttpRequest
@@ -41,6 +39,7 @@ from graia.amnesia.transport.common.websocket import (
 )
 from graia.amnesia.transport.common.websocket.shortcut import data_type, json_require
 from graia.amnesia.transport.utilles import TransportRegistrar
+from launart import ExportInterface, Launart
 from loguru import logger
 from typing_extensions import Self
 from yarl import URL
@@ -117,7 +116,7 @@ class ConnectionMixin(Generic[T_Info]):
         self.status = ConnectionStatus()
 
     @abc.abstractmethod
-    async def mainline(self, mgr: LaunchManager) -> None:
+    async def mainline(self, mgr: Launart) -> None:
         ...
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
@@ -211,7 +210,7 @@ class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
         self.declares.append(WebsocketEndpoint(self.config.path))
         self.futures = WeakValueDictionary()
 
-    async def mainline(self, mgr: LaunchManager) -> None:
+    async def mainline(self, mgr: Launart) -> None:
         router = get_router(mgr)
         router.use(self)
 
@@ -284,7 +283,7 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
         await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         return {"command": "", "data": {}}
 
-    async def mainline(self, mgr: LaunchManager) -> None:
+    async def mainline(self, mgr: Launart) -> None:
         router = get_router(mgr)
         router.use(self)
 

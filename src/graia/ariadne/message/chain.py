@@ -424,10 +424,10 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
             ):
                 if isinstance(i, Plain):
                     string_list.append(i.as_persistent_string().replace("[", "[_"))
-                elif not isinstance(i, MultimediaElement) or binary:
+                elif not isinstance(i, MultimediaElement):
                     string_list.append(i.as_persistent_string())
                 else:
-                    string_list.append(i.as_no_binary_persistent_string())
+                    string_list.append(i.as_persistent_string(binary=binary))
         return "".join(string_list)
 
     async def download_binary(self) -> Self:

@@ -673,21 +673,19 @@ class MultimediaElement(Element):
             self.base64 = b64encode(data).decode("ascii")
             return data
 
-    def as_no_binary_persistent_string(self) -> str:
-        """生成不附带二进制数据的持久化字符串
-
-        Returns:
-            str: 持久化字符串
-        """
-        data: str = wrap_bracket(
-            j_dump(
-                self.dict(
-                    exclude={"type", "base64"},
-                ),
-                indent=None,
-                separators=(",", ":"),
+    def as_persistent_string(self, binary: bool = True) -> str:
+        if binary:
+            return super().as_persistent_string()
+        else:
+            data: str = wrap_bracket(
+                j_dump(
+                    self.dict(
+                        exclude={"type", "base64"},
+                    ),
+                    indent=None,
+                    separators=(",", ":"),
+                )
             )
-        )
         return f"[mirai:{self.type}:{data}]"
 
     @property

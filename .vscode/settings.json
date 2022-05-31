@@ -54,6 +54,7 @@
     "Throwed",
     "ujson",
     "unmatch",
+    "unsync",
     "uvicorn"
   ],
   "python.analysis.completeFunctionParens": true,
@@ -62,4 +63,5 @@
   "python.linting.flake8Enabled": true,
   "python.analysis.typeCheckingMode": "basic",
   "jupyter.jupyterServerType": "local",
+  "python.linting.enabled": false
 }

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import re
+import sys
 from typing import Optional, Union
 
 import devtools
@@ -118,6 +119,8 @@ if __name__ == "__main__":
         twilight: Twilight,
         verbose: ArgResult,
     ):
+        if arg.result.display == "cpu":
+            await app.send_message(event, MessageChain(f"{await pr()}"))
         if help.matched:
             return await app.send_message(event, MessageChain(twilight.get_help(description="Foo help!")))
         if verbose.matched:

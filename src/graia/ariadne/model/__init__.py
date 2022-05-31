@@ -26,7 +26,7 @@ from .util import AriadneBaseModel as AriadneBaseModel
 
 
 class LogConfig(Dict[Type["MiraiEvent"], str]):
-    def __init__(self, log_level: str = "INFO"):
+    def __init__(self, log_level: Union[str, Callable[["MiraiEvent"], str]] = "INFO"):
         from ..event.message import (
             ActiveMessage,
             FriendMessage,
@@ -36,7 +36,9 @@ class LogConfig(Dict[Type["MiraiEvent"], str]):
             TempMessage,
         )
 
-        self.log_level: str = log_level
+        self.log_level: Callable[["MiraiEvent"], str] = (
+            log_level if callable(log_level) else lambda _: log_level
+        )
 
         account_seg = "{ariadne.account}"
         msg_chain_seg = "{event.messageChain.safe_display}"
@@ -59,7 +61,7 @@ class LogConfig(Dict[Type["MiraiEvent"], str]):
     async def log(self, app: "Ariadne", event: "MiraiEvent") -> None:
         fmt = self.get(type(event))
         if fmt:
-            logger.log(self.log_level, fmt.format(event=event, ariadne=app))
+            logger.log(self.log_level(event), fmt.format(event=event, ariadne=app))
 
 
 @internal_cls()

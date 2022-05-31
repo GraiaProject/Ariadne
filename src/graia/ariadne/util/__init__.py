@@ -366,10 +366,10 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
         origin_init = cls.__init__
 
         @functools.wraps(origin_init)
-        def _wrapped_init_(self: object, *args, module_check: bool = True, **kwargs):
+        def _wrapped_init_(self: object, *args, **kwargs):
             frame = inspect.stack()[1].frame  # outer frame
             module_name: str = frame.f_globals["__name__"]
-            if not module_name.startswith(module) and module_check:
+            if not module_name.startswith(module):
                 raise NameError(
                     f"{self.__class__.__module__}.{self.__class__.__qualname__} is an internal class!",
                     hint,

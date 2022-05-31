@@ -1345,19 +1345,24 @@ class Ariadne(AttrConvertMixin):
         target: Union[Friend, int],
         message: MessageChain,
         *,
-        quote: Optional[Union[Source, int]] = None,
+        quote: Optional[Union[Source, int, MessageChain]] = None,
     ) -> BotMessage:
         """发送消息给好友, 可以指定回复的消息.
 
         Args:
             target (Union[Friend, int]): 指定的好友
             message (MessageChain): 有效的, 可发送的(Sendable)消息链.
-            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+            quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
         """
         from .event.message import ActiveFriendMessage
+
+        if isinstance(quote, MessageChain):
+            quote = quote.get_first(Source)
+        if isinstance(quote, Source):
+            quote = quote.id
 
         with enter_message_send_context(UploadMethod.Friend):
             new_msg = message.copy().as_sendable()
@@ -1367,7 +1372,7 @@ class Ariadne(AttrConvertMixin):
                 {
                     "target": int(target),
                     "messageChain": new_msg.dict()["__root__"],
-                    **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
+                    **({"quote": quote} if quote else {}),
                 },
             )
             event: ActiveFriendMessage = ActiveFriendMessage(
@@ -1387,14 +1392,14 @@ class Ariadne(AttrConvertMixin):
         target: Union[Group, Member, int],
         message: MessageChain,
         *,
-        quote: Optional[Union[Source, int]] = None,
+        quote: Optional[Union[Source, int, MessageChain]] = None,
     ) -> BotMessage:
         """发送消息到群组内, 可以指定回复的消息.
 
         Args:
             target (Union[Group, Member, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 或 Member 实例.
             message (MessageChain): 有效的, 可发送的(Sendable)消息链.
-            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+            quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
             BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
@@ -1404,6 +1409,11 @@ class Ariadne(AttrConvertMixin):
         if isinstance(target, Member):
             target = target.group
 
+        if isinstance(quote, MessageChain):
+            quote = quote.get_first(Source)
+        if isinstance(quote, Source):
+            quote = quote.id
+
         with enter_message_send_context(UploadMethod.Group):
             new_msg = message.copy().as_sendable()
             result = await self.connection.call(
@@ -1412,7 +1422,7 @@ class Ariadne(AttrConvertMixin):
                 {
                     "target": int(target),
                     "messageChain": new_msg.dict()["__root__"],
-                    **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
+                    **({"quote": quote} if quote else {}),
                 },
             )
             event: ActiveGroupMessage = ActiveGroupMessage(
@@ -1433,7 +1443,7 @@ class Ariadne(AttrConvertMixin):
         message: MessageChain,
         group: Optional[Union[Group, int]] = None,
         *,
-        quote: Optional[Union[Source, int]] = None,
+        quote: Optional[Union[Source, int, MessageChain]] = None,
     ) -> BotMessage:
         """发送临时会话给群组中的特定成员, 可指定回复的消息.
 
@@ -1451,6 +1461,11 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveTempMessage
 
+        if isinstance(quote, MessageChain):
+            quote = quote.get_first(Source)
+        if isinstance(quote, Source):
+            quote = quote.id
+
         new_msg = message.copy().as_sendable()
         group = target.group if (isinstance(target, Member) and not group) else group
         if not group:
@@ -1463,7 +1478,7 @@ class Ariadne(AttrConvertMixin):
                     "group": int(group),
                     "qq": int(target),
                     "messageChain": new_msg.dict()["__root__"],
-                    **({"quote": quote.id if isinstance(quote, Source) else quote} if quote else {}),
+                    **({"quote": quote} if quote else {}),
                 },
             )
             event: ActiveTempMessage = ActiveTempMessage(

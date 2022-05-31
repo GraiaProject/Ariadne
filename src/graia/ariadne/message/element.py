@@ -48,6 +48,15 @@ class Element(AriadneBaseModel, AttrConvertMixin, BaseElement):
         """
         return str(self)
 
+    @property
+    def display(self) -> str:
+        """该元素的 "显示" 形式字符串, 趋近于你见到的样子.
+
+        Returns:
+            str: "显示" 字符串.
+        """
+        return str(self)
+
     def as_persistent_string(self) -> str:
         """持久化字符串表示.
 
@@ -185,7 +194,7 @@ class At(Element):
     target: int
     """At 的目标 QQ 号"""
 
-    display: Optional[str] = None
+    representation: Optional[str] = Field(None, alias="display")
     """显示名称"""
 
     def __init__(self, target: Union[int, Member] = ..., **data) -> None:
@@ -211,7 +220,7 @@ class At(Element):
             )
 
     def __str__(self) -> str:
-        return f"@{self.display}" if self.display else f"@{self.target}"
+        return f"@{self.representation}" if self.representation else f"@{self.target}"
 
 
 class AtAll(Element):

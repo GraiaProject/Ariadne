@@ -1,4 +1,5 @@
 import argparse
+import difflib
 import pathlib
 from typing import Dict, Optional, Set
 
@@ -24,6 +25,7 @@ MAPPING: Dict[str, str] = {
     "merge(copy=True)": "merge()",
     "onlyContains": "only",
     "get_running(Ariadne)": "Ariadne.current()",
+    "get_running(Broadcast)": "Ariadne.broadcast",
     "deleteAnnouncement": "delete_announcement",
     "deleteFile": "delete_file",
     "deleteFriend": "delete_friend",
@@ -80,7 +82,7 @@ MAPPING: Dict[str, str] = {
     "asNoPersistentBinary()": "as_persistent_string(binary=False)",
 }
 
-WARNINGS: Set[str] = {"get_running", "Adapter", ".display"}
+WARNINGS: Set[str] = {"get_running", "Adapter"}
 
 console = rich.console.Console()
 
@@ -88,17 +90,19 @@ console = rich.console.Console()
 def analyze_file(file: pathlib.Path):
     if file.name.endswith(".modified.py"):
         return
-    original = file.read_text("utf-8")
-    changed = original
+    modified = file.parent / f"{file.stem}.modified.py"
+    origin = text = file.read_text("utf-8")
     console.print(f"[blue]Analyzing {file}")
     for key, value in MAPPING.items():
-        changed = changed.replace(key, value)
-    for entry in WARNINGS:
-        for line_cnt, line in enumerate(changed.split("\n"), 1):
-            if entry in line:
-                console.print(f"[red] Warning: found {entry} at {line_cnt}")
-    modified = file.parent / f"{file.stem}.modified.py"
-    modified.write_text(changed, "utf-8")
+        text = text.replace(key, value)
+    rich.print(
+        "\n".join(
+            difflib.unified_diff(
+                origin.splitlines(), text.splitlines(), fromfile=file.name, tofile=modified.name
+            )
+        )
+    )
+    modified.write_text(text, "utf-8")
 
 
 def analyze_dir(dir: pathlib.Path):
@@ -109,6 +113,8 @@ def analyze_dir(dir: pathlib.Path):
         if dir.is_dir():
             analyze_dir(dir)
 
+
+# TODO: a mode of copying everything to a new directory and modify in-place
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

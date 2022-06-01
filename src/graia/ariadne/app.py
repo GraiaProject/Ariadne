@@ -76,6 +76,24 @@ class Ariadne(AttrConvertMixin):
     account: int
     log_config: LogConfig
 
+    if TYPE_CHECKING:
+        broadcast: ClassVar[Broadcast]
+
+    else:
+
+        class ClassProperty:
+            def __init__(self, f):
+                self.f = f
+
+            def __get__(self, obj, cls=None):
+                if cls is None:
+                    cls = type(obj)
+                return self.f(cls)
+
+        @ClassProperty
+        def broadcast(self) -> Broadcast:
+            return self.service.broadcast
+
     @classmethod
     def _ensure_config(cls):
         if not hasattr(cls, "service"):

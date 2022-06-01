@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     Ariadne.service.loop.set_debug(True)
 
-    bcc = Ariadne.service.broadcast
+    bcc = Ariadne.broadcast
 
     sched = app.create(GraiaScheduler)
 

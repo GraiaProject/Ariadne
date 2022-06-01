@@ -119,7 +119,7 @@ def analyze_dir(dir: pathlib.Path):
     for file in dir.glob("*.py"):
         analyze_file(file)
     for dir in dir.glob("*"):
-        if dir.is_dir():
+        if dir.is_dir() and not dir.parts[-1].startswith("."):
             analyze_dir(dir)
 
 
@@ -127,10 +127,14 @@ def analyze_dir(dir: pathlib.Path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("target", help="The target to be analyzed")
-    parser.add_argument("-o", "--output", help="The log file")
+    parser.add_argument("target", help="分析目标，文件夹或 .py 文件")
+    parser.add_argument("-o", "--output", help="日志文件存放位置, 否则直接打印到控制台")
     parser.add_argument(
-        "-m", "--mode", help="The replacement mode", default="copy", choices=["copy", "diff", "modify"]
+        "-m",
+        "--mode",
+        default="copy",
+        choices=["copy", "diff", "modify"],
+        help="copy: 复制到新文件夹后原地修改, diff: 只输出 diff, modify: 在本地输出 .modified.py",
     )
     args = parser.parse_args()
     target: str = args.target

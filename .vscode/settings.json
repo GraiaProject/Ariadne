@@ -16,6 +16,7 @@
     "crontabify",
     "dataclass",
     "Disp",
+    "Dispatchable",
     "disqus",
     "docformat",
     "exectarget",
@@ -36,9 +37,11 @@
     "miraijvm",
     "MISRO",
     "mkdocstrings",
+    "Netease",
     "pycon",
     "pymdownx",
     "pypi",
+    "qualname",
     "quickstart",
     "RESTGET",
     "RESTPOST",
@@ -63,5 +66,4 @@
   "python.linting.flake8Enabled": true,
   "python.analysis.typeCheckingMode": "basic",
   "jupyter.jupyterServerType": "local",
-  "python.linting.enabled": false
 }

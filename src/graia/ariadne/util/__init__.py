@@ -2,8 +2,6 @@
 """
 
 # Utility Layout
-import asyncio
-import collections
 import functools
 import inspect
 import sys
@@ -13,20 +11,14 @@ from contextvars import ContextVar
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
     Callable,
     ClassVar,
-    Coroutine,
-    Deque,
     Dict,
     Generator,
-    Generic,
     Iterable,
     List,
-    Literal,
     MutableSet,
     Optional,
-    Set,
     Tuple,
     Type,
     TypeVar,
@@ -88,42 +80,6 @@ def inject_bypass_listener(broadcast: Broadcast):
         graia.saya.builtins.broadcast.schema.Listener = BypassListener  # type: ignore
     except ImportError:  # Saya not installed, pass.
         pass
-
-
-class AsyncSignal(Generic[T]):
-    """模拟 asyncio.Event, 但是支持 sig.wait(Hashable)"""
-
-    def __init__(self, value: T = None) -> None:
-        self._waiters: Dict[T, Deque[asyncio.Future]] = {}
-        self._value: T = value
-        self._special: Dict[str, asyncio.Future] = {}
-
-    def __repr__(self) -> str:
-        waiter_str = f", waiters: {len(self._waiters)}" if self._waiters else ""
-        return f"<AsyncSignal [value: {self._value}{waiter_str}]>"
-
-    def value(self) -> T:
-        return self._value
-
-    def set(self, value: T) -> None:
-        self._value = value
-
-        waiter_deque = self._waiters.setdefault(value, collections.deque())
-
-        for fut in waiter_deque:
-            if not fut.done():
-                fut.set_result(True)
-        waiter_deque.clear()
-
-    async def wait(self, value: T, wait_id: Optional[str] = None) -> Literal[True]:
-        if self._value == value:
-            return True
-
-        fut = asyncio.get_running_loop().create_future()
-        if wait_id:
-            self._special[wait_id] = fut
-        self._waiters.setdefault(value, collections.deque()).append(fut)
-        return await fut
 
 
 def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
@@ -204,45 +160,6 @@ def eval_ctx(
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -> None:
-    """异步阻塞至满足 predicate 为 True
-
-    Args:
-        predicate (Callable[[], bool]): 判断条件
-        interval (float, optional): 每次检查间隔. Defaults to 0.01.
-    """
-    while not predicate():
-        await asyncio.sleep(interval)
-
-
-async def yield_with_timeout(
-    getter_coro: Callable[[], Coroutine[None, None, T]],
-    predicate: Callable[[], bool],
-    await_length: float = 0.2,
-) -> AsyncIterator[T]:
-    """在满足 predicate 时返回 getter_coro() 的值
-
-    Args:
-        getter_coro (Callable[[], Coroutine[None, None, T]]): 要循环返回的协程函数.
-        predicate (Callable[[], bool]): 条件回调函数.
-        await_length (float, optional): 等待目前协程的时长. 默认 0.2s.
-
-    Yields:
-        T: getter_coro 的返回值
-    """
-    last_tsk: Optional[Set["asyncio.Task[T]"]] = None
-    while predicate():
-        last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
-        done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)
-        if not done:
-            continue
-        for t in done:
-            yield await t
-    if last_tsk:
-        for tsk in last_tsk:
-            tsk.cancel()
-
-
 def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """标注一个方法 / 函数已被弃用
 
@@ -315,35 +232,6 @@ class Dummy:
     def __await__(self):
         yield
         return self
-
-
-def signal_handler(callback: Callable[[], None], one_time: bool = True) -> None:
-    """注册信号处理器
-    Args:
-        callback (Callable[[], None]): 信号处理器
-        one_time (bool, optional): 是否只执行一次. 默认为 True.
-    Returns:
-        None
-    """
-    import signal
-    import threading
-
-    if not threading.main_thread().ident == threading.current_thread().ident:
-        return
-
-    HANDLED_SIGNAL = (signal.SIGINT, signal.SIGTERM)
-
-    for sig in HANDLED_SIGNAL:
-        handler = signal.getsignal(sig)
-
-        def handler_wrapper(sig_num, frame):
-            if callable(handler):
-                handler(sig_num, frame)
-            callback()
-            if one_time:
-                signal.signal(sig_num, handler)
-
-        signal.signal(sig, handler_wrapper)
 
 
 def get_cls(obj) -> Optional[type]:

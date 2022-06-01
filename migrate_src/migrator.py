@@ -1,7 +1,8 @@
 import argparse
 import difflib
 import pathlib
-from typing import Dict, Optional, Set
+import shutil
+from typing import Dict, Literal, Optional, Set
 
 import rich
 
@@ -24,6 +25,7 @@ MAPPING: Dict[str, str] = {
     "getOne": "get_one",
     "merge(copy=True)": "merge()",
     "onlyContains": "only",
+    "get_running()": "Ariadne.current()",
     "get_running(Ariadne)": "Ariadne.current()",
     "get_running(Broadcast)": "Ariadne.broadcast",
     "deleteAnnouncement": "delete_announcement",
@@ -39,14 +41,14 @@ MAPPING: Dict[str, str] = {
     "getFriend": "get_friend",
     "getFriendList": "get_friend_list",
     "getFriendProfile": "get_friend_profile",
-    "getGroup": "get_group",
-    "getGroupConfig": "get_group_config",
     "getGroupList": "get_group_list",
-    "getMember": "get_member",
+    "getGroupConfig": "get_group_config",
+    "getGroup": "get_group",
     "getMemberList": "get_member_list",
     "getMemberProfile": "get_member_profile",
     "getMessageFromId": "get_message_from_id",
     "getUserProfile": "get_user_profile",
+    "getMember": "get_member",
     "getVersion": "get_version",
     "kickMember": "kick_member",
     "makeDirectory": "make_directory",
@@ -86,6 +88,8 @@ WARNINGS: Set[str] = {"get_running", "Adapter"}
 
 console = rich.console.Console()
 
+mode: Literal["copy", "diff", "modify"] = "copy"
+
 
 def analyze_file(file: pathlib.Path):
     if file.name.endswith(".modified.py"):
@@ -95,14 +99,19 @@ def analyze_file(file: pathlib.Path):
     console.print(f"[blue]Analyzing {file}")
     for key, value in MAPPING.items():
         text = text.replace(key, value)
-    rich.print(
-        "\n".join(
-            difflib.unified_diff(
-                origin.splitlines(), text.splitlines(), fromfile=file.name, tofile=modified.name
-            )
-        )
+    diff = "\n".join(
+        difflib.unified_diff(origin.splitlines(), text.splitlines(), fromfile=file.name, tofile=modified.name)
     )
-    modified.write_text(text, "utf-8")
+    if mode == "diff":
+        diff_pth = file.parent / f"{file.stem}.diff"
+        diff_pth.touch()
+        diff_pth.write_text(diff, "utf-8")
+        return
+    if mode == "modify":
+        modified.write_text(text, "utf-8")
+    else:
+        file.write_text(text, "utf-8")
+    console.print(diff)
 
 
 def analyze_dir(dir: pathlib.Path):
@@ -120,13 +129,24 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("target", help="The target to be analyzed")
     parser.add_argument("-o", "--output", help="The log file")
+    parser.add_argument(
+        "-m", "--mode", help="The replacement mode", default="copy", choices=["copy", "diff", "modify"]
+    )
     args = parser.parse_args()
     target: str = args.target
     output: Optional[str] = args.output
     if output:
         console = rich.console.Console(file=open(output, "w"))
-    root_pth = pathlib.Path(target)
+    mode = args.mode
+    root_pth = pathlib.Path(target).absolute()
     if root_pth.is_dir():
+        if mode == "copy":
+            cp_path = root_pth.parent / f"{root_pth.parts[-1]}_modified"
+            cp_path.mkdir(exist_ok=True)
+            shutil.copytree(root_pth, cp_path, dirs_exist_ok=True)
+            root_pth = cp_path
         analyze_dir(root_pth)
     else:
+        if mode == "copy":
+            mode = "modify"
         analyze_file(root_pth)

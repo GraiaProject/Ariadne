@@ -772,7 +772,12 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         if interface.name in sparkle.res:
             result = sparkle.get(interface.name)
             if generic_isinstance(result.origin, interface.annotation):
-                return result.origin
+                from loguru import logger
+
+                logger.warning(
+                    f"Please use {interface.name}: {result.__class__.__qualname__} to get origin attribute!"
+                )
+                raise ExecutionStop
             if any(
                 generic_issubclass(res_cls, interface.annotation) for res_cls in gen_subclass(MatchResult)
             ):

@@ -1,5 +1,3 @@
-import json
-from datetime import datetime
 from typing import TYPE_CHECKING, Literal, Union
 
 from pydantic import BaseConfig, BaseModel, Extra
@@ -7,13 +5,6 @@ from typing_extensions import NotRequired, TypedDict
 
 if TYPE_CHECKING:
     from ..typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
-
-
-class DatetimeEncoder(json.JSONEncoder):
-    """可以编码 datetime 的 JSONEncoder"""
-
-    def default(self, o):
-        return int(o.timestamp()) if isinstance(o, datetime) else super().default(o)
 
 
 class AriadneBaseModel(BaseModel):

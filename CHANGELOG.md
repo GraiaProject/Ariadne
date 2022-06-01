@@ -1,5 +1,24 @@
 # 更改日志
 
+## Unreleased
+
+### 新增
+
+将大部分方法在 Model 上重现 (#169)
+
+支持给 `Twilight` 使用 `predicate` (#167)
+
+`DetectPrefix` 与 `DetectSuffix` 支持多个前后缀匹配 (#149) (@luoxhei)
+
+### 修改
+
+全面推荐使用 `snake_case` 的方法和事件属性，清除了一批无用方法函数.
+
+使用 `Amnesia` 作为后端. (#156)
+
+修复内置的 Waiter (#164)
+
+
 ## 0.6.16
 
 ### 新增

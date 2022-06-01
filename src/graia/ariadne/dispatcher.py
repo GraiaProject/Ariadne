@@ -24,7 +24,7 @@ class MessageChainDispatcher(AbstractDispatcher):
         if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
             MessageChain, interface.annotation
         ):
-            return interface.event.messageChain
+            return interface.event.message_chain
 
 
 class ContextDispatcher(AbstractDispatcher):
@@ -66,7 +66,7 @@ class SourceDispatcher(AbstractDispatcher):
         if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
             Source, interface.annotation
         ):
-            return interface.event.messageChain.get_first(Source)
+            return interface.event.message_chain.get_first(Source)
 
 
 class SenderDispatcher(AbstractDispatcher):

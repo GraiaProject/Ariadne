@@ -178,8 +178,8 @@ class Ariadne(AttrConvertMixin):
     async def _event_hook(self, event: MiraiEvent):
         with enter_context(self, event):
             sys.audit("AriadnePostRemoteEvent", event)
-            if isinstance(event, MessageEvent) and event.messageChain.only_contains(Source):
-                event.messageChain.append("<! 不支持的消息类型 !>")
+            if isinstance(event, MessageEvent) and event.message_chain.only_contains(Source):
+                event.message_chain.append("<! 不支持的消息类型 !>")
             if isinstance(event, FriendEvent):
                 with enter_message_send_context(UploadMethod.Friend):
                     self.service.broadcast.postEvent(event)
@@ -1543,7 +1543,7 @@ class Ariadne(AttrConvertMixin):
         data: Dict[Any, Any] = {"message": message}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
-            data["quote"] = target.messageChain.get_first(Source)
+            data["quote"] = target.message_chain.get_first(Source)
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):

@@ -5,6 +5,15 @@ from typing import Dict, Optional, Set
 import rich
 
 MAPPING: Dict[str, str] = {
+    "messageChain": "message_chain",
+    "durationSeconds": "duration",
+    "messageId": "message_id",
+    "authorId": "author_id",
+    "requestId": "request_id",
+    "sourceGroup": "source_group",
+    "groupName": "group_name",
+    "rejectAndBlock": "reject_and_block",
+    "ignoreAndBlock": "ignore_and_block",
     "MessageChain.create": "MessageChain",
     "asSendable": "as_sendable",
     "buildChain": "build_chain",
@@ -12,7 +21,8 @@ MAPPING: Dict[str, str] = {
     "findSubChain": "find_sub_chain",
     "getFirst": "get_first",
     "getOne": "get_one",
-    "onlyContains": "only_contains",
+    "merge(copy=True)": "merge()",
+    "onlyContains": "only",
     "get_running(Ariadne)": "Ariadne.current()",
     "deleteAnnouncement": "delete_announcement",
     "deleteFile": "delete_file",
@@ -70,7 +80,7 @@ MAPPING: Dict[str, str] = {
     "asNoPersistentBinary()": "as_persistent_string(binary=False)",
 }
 
-WARNINGS: Set[str] = {"get_running", "Adapter"}
+WARNINGS: Set[str] = {"get_running", "Adapter", ".display"}
 
 console = rich.console.Console()
 

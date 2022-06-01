@@ -152,7 +152,7 @@ class Source(Element):
         """
         from ..app import Ariadne
 
-        return (await Ariadne.current().get_message_from_id(self.id)).messageChain
+        return (await Ariadne.current().get_message_from_id(self.id)).message_chain
 
 
 @internal_cls()

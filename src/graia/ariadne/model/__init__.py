@@ -41,7 +41,7 @@ class LogConfig(Dict[Type["MiraiEvent"], str]):
         )
 
         account_seg = "{ariadne.account}"
-        msg_chain_seg = "{event.messageChain.safe_display}"
+        msg_chain_seg = "{event.message_chain.safe_display}"
         sender_seg = "{event.sender.name}({event.sender.id})"
         user_seg = "{event.sender.nickname}({event.sender.id})"
         group_seg = "{event.sender.group.name}({event.sender.group.id})"

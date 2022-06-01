@@ -273,7 +273,7 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
 class AttrConvertMixin:
     __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
 
-    def __getattr__(self, name: str) -> Callable:
+    def __getattr__(self, name: str) -> Any:
         # camelCase to snake_case
         import re
 

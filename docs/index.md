@@ -45,7 +45,7 @@
         await app.sendMessage(friend, MessageChain(["Hello, World!"]))
 
 
-    app.launch_blocking()
+    Ariadne.launch_blocking()
     ```
 
 === "模块化"
@@ -83,8 +83,8 @@ async def handler(
 
 ```py
 @broadcast.receiver(GroupMessage)
-async def reply1(app: Ariadne, msg: MessageChain, group: Group):
-    await app.sendMessage(group, MessageChain(["你好"])) # 回复 你好
+async def reply1(msg: MessageChain, group: Group):
+    await group.send_message(MessageChain(["你好"])) # 回复 你好
 ```
 
 ### 便于拓展

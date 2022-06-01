@@ -90,20 +90,6 @@ singleMode: false
 ## 历史消息的缓存大小
 ## 同时，也是 http adapter 的消息队列容量
 cacheSize: 4096
-
-## adapter 的单独配置，键名与 adapters 项配置相同
-adapterSettings:
-  ## 详情看 http adapter 使用说明 配置
-  http:
-    host: localhost
-    port: 8080
-    cors: ["*"]
-
-  ## 详情看 websocket adapter 使用说明 配置
-  ws:
-    host: localhost
-    port: 8080
-    reservedSyncId: -1
 ```
 
 将以下代码保存到文件 `bot.py` 内, 确保该文件位于你的工作区内:
@@ -123,9 +109,9 @@ app = Ariadne(
 )
 
 @app.broadcast.receiver("FriendMessage")
-async def friend_message_listener(app: Ariadne, friend: Friend):
-    await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
-    # 实际上 MessageChain.create(...) 有没有 "[]" 都没关系
+async def friend_message_listener(friend: Friend):
+    await friend.send_message(MessageChain([Plain("Hello, World!")]))
+    # 实际上 MessageChain(...) 有没有 "[]" 都没关系
 
 app.launch_blocking()
 

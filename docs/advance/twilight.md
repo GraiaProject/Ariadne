@@ -18,8 +18,8 @@ from graia.ariadne.message.parser.twilight import Twilight, FullMatch, ParamMatc
 twilight = Twilight([FullMatch("指令"), ParamMatch() @ "param"])
 
 @broadcast.receiver(GroupMessage, dispatchers=[twilight])
-async def twilight_handler(event: GroupMessage, app: Ariadne, param: RegexResult):
-    await app.sendMessage(event, "收到指令: " + param.result)
+async def twilight_handler(event: Group, app: Ariadne, param: RegexResult):
+    await group.send_message("收到指令: " + param.result)
 ```
 
 接下来, 让我们解析一下这段代码:
@@ -150,7 +150,7 @@ async def reply(..., arg: RegexResult):
     ...
 ```
 
-!!! note "使用 `Sparkle`, `Match`, `MatchResult` 的子类进行标注都是可以的."
+!!! note "使用 `Sparkle`, `MatchResult` 的子类进行标注都是可以的."
 
 一旦匹配失败 (`generate` 抛出异常), `Broadcast` 的本次执行就会被取消.
 

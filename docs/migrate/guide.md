@@ -36,6 +36,6 @@
 
 ## 与主实例交互
 
-统一所有方法为 谓词 + 名词 形式 (如 `kick` -> `kickMember`,`mute` -> `muteMember`...)
+统一所有方法为 谓词 + 名词 形式并且为 `snake_case` (如 `kick` -> `kick_member`,`mute` -> `mute_member`...)
 
 `launch_blocking()` 会自动捕获一个 `KeyboardInterrupt` 并主动停止实例.

@@ -1,31 +1,5 @@
 # 消息链: 进阶
 
-### subchain 方法
-
-`MessageChain.subchain` 是这样使用的:
-
-传入一个 `slice` 切片对象, 其 `start` 与 `stop` (可选) 均为 **二元组**, 为 `(int, Optional[int]` 格式.
-
-切片对象 `start` 与 `stop` 的第一个整数指示元素起止位置. (含义同在序列上切片)
-
-若有第二个整数, 则分别指示 **开头文本起始下标** 与 **末尾文本结束下标**. (含义同在字符串上切片)
-
-示例:
-
-```python
-assert (MessageChain.create("hello world"))[(0,3):(1,7)] == MessageChain([Plain(text='lo w')])
-```
-
-!!! warning "注意"
-
-    若提供第二个整数时 首/尾 元素不为文本则会引发 `ValueError`.
-
-???+ note "提示"
-
-    在消息链对象上使用 `[]` 符号并使用 `MessageChain[(a1, a2):(b1, b2)]`
-
-    相当于调用 `MessageChain.subchain(slice((a1, a2), (b1, b2)))`
-
 ### 筛选元素
 
 使用 `include` 与 `exclude` 方法可以筛选消息链中的元素.
@@ -80,7 +54,7 @@ assert not msg_chain.endswith("world!")
 在其表面下, `findSubChain` 承担了大部分工作, 找出所有符合 `old` 的部分, 之后由简单的循环完成替换.
 
 ```pycon
->>> MessageChain(["Hello World!Hello World!""How are you?", At(1), "yo"]).replace(
+>>> MessageChain(["Hello World!Hello World!How are you?", At(1), "yo"]).replace(
 ...     MessageChain(["Hello World!"]),
 ...     MessageChain(["No!"])
 ... )
@@ -147,5 +121,5 @@ MessageChain([Plain(text='test'), At(target=12345)])
 
 原因很简单, `Ariadne` 的 `MessageChain` 是支持链式调用的, 所以 **所有对消息链的操作都会返回一个消息链引用** .
 
-自 `0.5.1` 起, 所有消息链的修改操作都支持布尔参数 `copy` (可能为仅关键字参数), `copy = True` 时会返回消息链的 **副本** (相当于在 `chain.copy()` 上操作),
+自 `0.5.1` 起, 消息链的大部分修改操作都支持参数 `copy` (可能为仅关键字参数), `copy = True` 时会返回消息链的 **副本** (相当于在 `chain.copy()` 上操作),
 否则会返回自身的引用.

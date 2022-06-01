@@ -78,6 +78,7 @@ class Ariadne(AttrConvertMixin):
 
     if TYPE_CHECKING:
         broadcast: ClassVar[Broadcast]
+        default_account: ClassVar[int]
 
     else:
 
@@ -93,6 +94,10 @@ class Ariadne(AttrConvertMixin):
         @ClassProperty
         def broadcast(self) -> Broadcast:
             return self.service.broadcast
+
+        @ClassProperty
+        def default_account(self) -> int:
+            return self.options["default_account"]
 
     @classmethod
     def _ensure_config(cls):
@@ -225,6 +230,9 @@ class Ariadne(AttrConvertMixin):
         if "elizabeth.service" not in cls.launch_manager.launchables:
             cls.launch_manager.add_service(cls.service)
 
+        if "default_account" not in cls.options and len(cls.service.connections) == 1:
+            cls.options["default_account"] = next(iter(cls.service.connections))
+
     @classmethod
     def launch_blocking(cls):
         cls._patch_launch_manager()
@@ -280,10 +288,7 @@ class Ariadne(AttrConvertMixin):
         if ariadne_ctx.get(None):
             return ariadne_ctx.get()
         if "default_account" not in cls.options:
-            if len(cls.service.connections) != 1:
-                raise ValueError("Ambiguous account reference, set Ariadne.default_account")
-            cls.options["default_account"] = next(iter(cls.service.connections))
-        assert "default_account" in cls.options
+            raise ValueError("Ambiguous account reference, set Ariadne.default_account")
         return Ariadne.instances[cls.options["default_account"]]
 
     @app_ctx_manager

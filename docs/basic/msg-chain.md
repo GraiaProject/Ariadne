@@ -14,40 +14,40 @@ mirai 为了处理富文本消息, 采用了消息链 (Message Chain)这一方�
 
 ### 构造消息链
 
-构造消息链时, 建议采用 `MessageChain.create()`.
+构造消息链时, 建议采用 `MessageChain` 直接实例化.
 
 支持使用以下方法构造.
 
 === "基础"
 
     ```py
-    message_chain = MessageChain.create([AtAll(), Plain("Hello World!")])
+    message_chain = MessageChain([AtAll(), Plain("Hello World!")])
     ```
 
 === "使用 `str` 代替 `Plain`"
 
     ```py
-    message_chain = MessageChain.create([AtAll(), "Hello World!"])
+    message_chain = MessageChain([AtAll(), "Hello World!"])
     ```
 
 === "省略 `[ ]`"
 
     ```py
-    message_chain = MessageChain.create(AtAll(), "Hello World!")
+    message_chain = MessageChain(AtAll(), "Hello World!")
     ```
 
 ### 消息链的字符串表示
 
-使用 `message_chain.asDisplay()` 获取消息链的字符串表示.字符串表示的格式类似于手机 QQ 在通知栏消息中的格式, 例如图片会被转化为 `[图片]`, 等等.
+使用 `message_chain.display` 属性获取消息链的字符串表示.字符串表示的格式类似于手机 QQ 在通知栏消息中的格式, 例如图片会被转化为 `[图片]`, 等等.
 
 ### 消息链持久化
 
-使用 `message_chain.asPersistentString()` 和 `MessageChain.fromPersistentString()` 可以尽量无损地持久化与恢复消息链,
-使用 `binary=True` 可以保存图片等多媒体元素的二进制数据.
+使用 `message_chain.as_persistent_string()` 和 `MessageChain.as_persistent_string()` 可以尽量无损地持久化与恢复消息链,
+使用 `binary=False` 可以不包括图片等多媒体元素的二进制数据.
 
 !!! info "提示"
 
-    如果要持久化二进制数据, 可以先调用 `message_chain.download_binary()`.
+    如果要持久化二进制数据, 可以先 `await message_chain.download_binary()`.
 
 ### 遍历
 
@@ -87,12 +87,12 @@ MessageChain([AtAll(), "Hello World!"]) in message_chain
 
 消息链的 `has` 方法和 `in` 等价.
 
-你可以使用 `onlyContains` 方法检查消息链是否只有某些元素类型.
+你可以使用 `only` 方法检查消息链是否只有某些元素类型.
 
-还可以使用 `find_subchain` 方法寻找可能的消息链子链起始点.
+还可以使用 `find_sub_chain` 方法寻找可能的消息链子链起始点.
 
 ```py
-assert message_chain.findSubChain(MessageChain(["Hello"])) == [0]
+assert message_chain.find_sub_chain(MessageChain(["Hello"])) == [0]
 ```
 
 ### 索引与切片
@@ -115,11 +115,8 @@ assert message_chain[Plain, 1] == [Plain("Hello World!")]
 assert message_chain[0] == Plain("Hello World!")
 ```
 
-以 `切片对象` 为索引, 相当于调用 `message_chain.subchain()`.
+以 `切片对象` 为索引, 相当于调用 `MessageChain(message_chain.content[slice])`.
 
-!!! note "注意"
-
-    这个方法会在 [进阶](/advance/msg-chain/#subchain) 篇中细讲.
 
 消息链的 `get` 方法和索引操作等价.
 
@@ -137,9 +134,9 @@ assert message_chain.get(Plain, 1) == message_chain[Plain, 1]
 
 在 `MessageChain` 对象上, 有以下几种获取元素的方式:
 
-`getFirst(T_Element)` 获取第一个类型为 `T_Element` 的元素.
+`get_first(T_Element)` 获取第一个类型为 `T_Element` 的元素.
 `get(T_Element)` 获取所有类型为 `T_Element` 的元素, 聚合为列表.
-`getOne(T_Element, index)` 获取第 `index` 个类型为 `T_Element` 的元素。
+`get_one(T_Element, index)` 获取第 `index` 个类型为 `T_Element` 的元素。
 `get(T_Element, count)` 获取前 `count` 个类型为 `T_element` 的元素, 聚合为列表.
 
 ### 连接与复制
@@ -204,6 +201,19 @@ assert message_chain.count(Plain) == 1
     -   base64 (data_bytes)
     -   uuid (剔除了 "/" "{}" 等用于区分图片类型的符号后得到)
     -   url
+
+## 转发消息相关
+
+!!! warning "警告"
+
+    Graia Project 不对你随意构建转发消息造成的任何可能后果负责.
+
+使用 `Forward` 并传入一个 `ForwardNode` 的列表即可构建.
+
+`ForwardNode` 可以自定义单个消息的发出者名字与其 QQ 号, 通过传入 `name` 与 `target` 参数实现.
+
+同时, 直接向 `target` 传入 `Friend` `Member` 等对象可以从中提取出 `name` (`Member` 使用群名片, `Friend` 使用昵称)
+而不用单独传入.
 
 !!! graiax "社区文档相关章节"
 

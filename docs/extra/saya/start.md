@@ -83,7 +83,7 @@ saya = Saya(broadcast)
     ```py
     from graia.saya import Saya
     app = Ariadne(...)
-    saya = app.create(Saya)
+    saya = Ariadne.create(Saya)
     ```
 
     只要记得在启动 `Ariadne` 前这么做就好.
@@ -113,15 +113,6 @@ with saya.module_context():
     saya.require("modules.module_as_dir")
 ```
 
-因为 `Saya` 的 `Launch API` 尚未完成, 这里仅调试 `Broadcast`, 故直接使用 `loop.run_forever` 方法运行事件循环.
-
-```py
-try:
-    loop.run_forever()
-except KeyboardInterrupt:
-    exit()
-```
-
 !!! note "提示"
 
     要配合 Ariadne 使用, 可以直接这样做:
@@ -146,7 +137,7 @@ saya.install_behaviours(BroadcastBehaviour(broadcast))
 with saya.module_context():
     saya.require("modules.module_as_file")
     saya.require("modules.module_as_dir")
-try:
+try: # 仅用于调试
     loop.run_forever()
 except KeyboardInterrupt:
     exit()

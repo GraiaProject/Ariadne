@@ -16,29 +16,29 @@
 
 ## GraiaMiraiApplication
 
-`GraiaMiraiApplication.kick` -> `Ariadne.kickMember`
+`GraiaMiraiApplication.kick` -> `Ariadne.kick_member`
 
-`GraiaMiraiApplication.mute` -> `Ariadne.muteMember`
+`GraiaMiraiApplication.mute` -> `Ariadne.mute_member`
 
-`GraiaMiraiApplication.unmute` -> `Ariadne.unmuteMember`
+`GraiaMiraiApplication.unmute` -> `Ariadne.unmute_member`
 
-`GraiaMiraiApplication.nudge` -> `Ariadne.sendNudge`
+`GraiaMiraiApplication.nudge` -> `Ariadne.send_nudge`
 
 ## MessageChain
 
--   `MessageChain.create` 更强大了.
+-   `MessageChain` 实例化方式更丰富了.
 
 -   `MessageChain.plus` -> `MessageChain.extend`
 
 -   `MessageChain.plusWith` -> `MessageChain.__add__` 或 `MessageChain.extend(..., copy=True)`
 
--   `MessageChain.asSerializationString` -> `MessageChain.asPersistentString` (格式不同)
+-   `MessageChain.asSerializationString` -> `MessageChain.as_persistent_string` (格式不同)
 
--   `MessageChain.fromSerializationString` -> `MessageChain.fromPersistentString` (格式不同)
+-   `MessageChain.fromSerializationString` -> `MessageChain.from_persistent_string` (格式不同)
 
--   `MessageChain.asMerged` -> `MessageChain.merge(copy=True)`
+-   `MessageChain.asMerged` -> `MessageChain.merge()`
 
--   `MessageChain.onlyHas` -> `MessageChain.onlyContains`
+-   `MessageChain.onlyHas` -> `MessageChain.only`
 
 -   `MessageChain.hasText` -> `MessageChain.has` (接受多种形式)
 
@@ -94,10 +94,6 @@
 
 -   `MessageChain.removesuffix`
 
--   `MessageChain.asMappingString` 与 `MessageChain.fromMappingString`
-
--   `MessageChain.hasSubChain`
-
 -   `MessageChain.merge`
 
 -   `MessageChain.extend`
@@ -108,7 +104,6 @@
 
 -   `MessageChain.download_binary`
 
--   `MessageChain.prepare`
 -   支持以下魔术方法:
     -   `__add__` 与 `__iadd__`
 

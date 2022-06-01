@@ -8,6 +8,12 @@
 
 监听 `ApplicationShutdowned` , 利用这个清理你的后台任务.
 
+!!! note "提示"
+
+    如果你想要使用多个账号的话, 注意每个账号都会触发一次 `ApplicationLaunched` 和 `ApplicationShutdowned` 事件.
+
+    你可以通过 `app.account == Ariadne.default_account` 检查是否是默认的账号. (当然你要先设置)
+
 ```py
 bg_tsk: Optional[Task] = None
 
@@ -47,7 +53,7 @@ def add_background_task(app: Ariadne, async_func: Callable[[...], Awaitable], *a
             bg_tsk = None
 ```
 
-其实, 你在监听 `ApplicationLaunched` 事件时可以直接扔一个死循环, 通过判断 `Ariadne.status` 决定什么时候停止运行.
+其实, 你在监听 `ApplicationLaunched` 事件时可以直接扔一个死循环, 通过判断 `Ariadne.launch_manager.status` 决定什么时候停止运行.
 
 像这样:
 
@@ -56,9 +62,9 @@ from graia.ariadne.model import AriadneStatus
 
 @broadcast.receiver(ApplicationLaunched)
 async def background(app: Ariadne):
-    while app.status in (AriadneStatus.LAUNCH, AriadneStatus.RUNNING):
+    while Ariadne.launch_manager.status.stage in ("prepare", "blocking"):
         ...
-        await asyncio.sleep(0) # 循环里至少要有一个 async 操作
+        await asyncio.sleep(0.01) # 循环里至少要有一个 async 操作
 ```
 
 注意: 最好随着 `Ariadne` 生命周期一起清理后台任务, 否则我们无法担保你的事件循环会不会炸 (无法 Ctrl + C 退出等).

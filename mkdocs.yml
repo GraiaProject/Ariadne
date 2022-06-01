@@ -111,6 +111,7 @@ plugins:
         - src/graia
       handlers:
         python:
+          paths: [src]
           import:
             - https://docs.python.org/zh-cn/3/objects.inv
             - https://docs.aiohttp.org/en/stable/objects.inv

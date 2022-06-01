@@ -77,6 +77,8 @@ MAPPING: Dict[str, str] = {
     "fetchOriginal": "fetch_original",
     "toFlashImage": "to_flash_image",
     "toImage": "to_image",
+    "fromFlashImage": "from_flash_image",
+    "fromImage": "from_image",
     "getBytes": "get_bytes",
     "asDisplay()": "display",
     "asPersistentString": "as_persistent_string",

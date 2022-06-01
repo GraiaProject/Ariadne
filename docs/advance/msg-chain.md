@@ -51,7 +51,7 @@ assert not msg_chain.endswith("world!")
 
 `MessageChain` 的 `replace` 方法与 `str` 的 `replace` 方法有异曲同工之妙.
 
-在其表面下, `findSubChain` 承担了大部分工作, 找出所有符合 `old` 的部分, 之后由简单的循环完成替换.
+在其表面下, `find_sub_chain` 承担了大部分工作, 找出所有符合 `old` 的部分, 之后由简单的循环完成替换.
 
 ```pycon
 >>> MessageChain(["Hello World!Hello World!How are you?", At(1), "yo"]).replace(

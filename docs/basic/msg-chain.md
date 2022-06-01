@@ -190,7 +190,7 @@ assert message_chain.count(Plain) == 1
 
 ### 图片类型转换
 
-可以通过对 `FlashImage` 与 `Image` **实例** 使用 `toImage` `fromImage` `toFlashImage` `fromFlashImage` 方法进行两种图片类型转换.
+可以通过对 `FlashImage` 与 `Image` **实例** 使用 `to_image` `from_image` `to_flash_image` `from_flash_image` 方法进行两种图片类型转换.
 
 ### 等价性比较
 

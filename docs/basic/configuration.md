@@ -26,3 +26,28 @@
 如果你的 `Ariadne` 有多个账号, 那么在使用 `Scheduler` 等特性时你就需要提前通过 `Ariadne.config` 配置好默认账号.
 
 如果你的 `Ariadne` 只有一个账号, 那么 `Ariadne` 就会自动设置默认账号.
+
+## 配置连接
+
+`Ariadne` 并不只支持 `HTTP` 与 `WebSocket` 的正向连接，也不一定需要你的 `mirai-api-http` 在 `http://localhost:8080` 提供服务.
+
+从 [`graia.ariadne.connection.config`][graia.ariadne.connection.config] 导入对应的 `Config` 类, 实例化后
+将其作为尾随的位置参数填入 [`config`][graia.ariadne.connection.config.config] 函数即可配置.
+
+比如:
+
+```python
+from graia.ariadne.entry import HttpClientConfig, WebsocketClientConfig, Ariadne
+
+Ariadne(
+    12345678, # 账号
+    "VerifyKey", # 验证钥
+    HttpClientConfig("http://localhost:21476"), # HTTP 配置
+    WebsocketClientConfig # WebSocket 配置, 使用了默认的 `http://localhost:8080`
+)
+```
+
+!!! note "提示"
+
+    如果你添加了额外的参数则默认配置会被清除,
+    即仅传入 `HttpClientConfig` 时 `Ariadne` 仅会通过正向 HTTP 连接.

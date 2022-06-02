@@ -1,11 +1,10 @@
 version: 2
 updates:
-  - directory: "/"
-    package-ecosystem: "pip"
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
       interval: "weekly"
-      day: "saturday"
-    rebase-strategy: "auto"
     commit-message:
       include: scope
       prefix: ":arrow_up:"

@@ -36,7 +36,7 @@ from .event import MiraiEvent
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .event.mirai import FriendEvent, GroupEvent
 from .message.chain import MessageChain
-from .message.element import Source
+from .message.element import Element, Source
 from .model import (
     Announcement,
     BotMessage,
@@ -1372,6 +1372,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveFriendMessage
 
+        assert isinstance(message, MessageChain)
         if isinstance(quote, MessageChain):
             quote = quote.get_first(Source)
         if isinstance(quote, Source):
@@ -1419,6 +1420,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveGroupMessage
 
+        assert isinstance(message, MessageChain)
         if isinstance(target, Member):
             target = target.group
 
@@ -1474,6 +1476,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveTempMessage
 
+        assert isinstance(message, MessageChain)
         if isinstance(quote, MessageChain):
             quote = quote.get_first(Source)
         if isinstance(quote, Source):
@@ -1531,7 +1534,7 @@ class Ariadne(AttrConvertMixin):
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
-        message: MessageChain,
+        message: Union[MessageChain, List[Union[Element, str]], str],
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: Union[SendMessageActionProtocol["T"], Literal[Sentinel]] = Sentinel,
@@ -1542,7 +1545,7 @@ class Ariadne(AttrConvertMixin):
 
         Args:
             target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
-            message (MessageChain): 要发送的消息链.
+            message (Union[MessageChain, List[Union[Element, str]], str]): 要发送的消息链.
             quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息, \
             否则会视为 `messageId` 处理.
             action (SendMessageCaller[T], optional): 消息发送的处理 action, \
@@ -1553,7 +1556,7 @@ class Ariadne(AttrConvertMixin):
             Union[T, R]: 默认实现为 BotMessage
         """
         action = action if action is not Sentinel else self.default_send_action
-        data: Dict[Any, Any] = {"message": message}
+        data: Dict[Any, Any] = {"message": MessageChain(message)}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
             data["quote"] = target.message_chain.get_first(Source)

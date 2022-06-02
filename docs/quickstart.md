@@ -125,8 +125,8 @@ app = Ariadne(
 )
 
 @app.broadcast.receiver("FriendMessage")
-async def friend_message_listener(friend: Friend):
-    await friend.send_message(MessageChain([Plain("Hello, World!")]))
+async def friend_message_listener(app: Ariadne, friend: Friend):
+    await app.send_message(friend, MessageChain([Plain("Hello, World!")]))
     # 实际上 MessageChain(...) 有没有 "[]" 都没关系
 
 app.launch_blocking()

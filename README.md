@@ -47,8 +47,8 @@ app = Ariadne(config(verify_key="ServiceVerifyKey", account=123456789))
 
 
 @app.broadcast.receiver("FriendMessage")
-async def friend_message_listener(friend: Friend):
-    await friend.send_message("Hello, World!")
+async def friend_message_listener(app: Ariadne, friend: Friend):
+    await app.send_message("Hello, World!")
 
 
 Ariadne.launch_blocking()

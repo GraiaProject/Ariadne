@@ -42,7 +42,7 @@
 
     @app.broadcast.receiver("FriendMessage")
     async def friend_message_listener(app: Ariadne, friend: Friend):
-        await friend.send_message(MessageChain(["Hello, World!"]))
+        await app.send_message(friend, "Hello, World!")
 
 
     Ariadne.launch_blocking()
@@ -83,8 +83,8 @@ async def handler(
 
 ```py
 @broadcast.receiver(GroupMessage)
-async def reply1(msg: MessageChain, group: Group):
-    await group.send_message(MessageChain(["你好"])) # 回复 你好
+async def reply1(app: Ariadne, msg: MessageChain, group: Group):
+    await app.send_message(group, "你好") # 回复 你好
 ```
 
 ### 便于拓展

@@ -19,7 +19,7 @@ twilight = Twilight([FullMatch("指令"), ParamMatch() @ "param"])
 
 @broadcast.receiver(GroupMessage, dispatchers=[twilight])
 async def twilight_handler(event: Group, app: Ariadne, param: RegexResult):
-    await group.send_message("收到指令: " + param.result)
+    await app.send_message(group, "收到指令: " + param.result)
 ```
 
 接下来, 让我们解析一下这段代码:

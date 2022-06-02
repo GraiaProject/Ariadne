@@ -1,17 +1,6 @@
 import functools
-import io
-import os
 from enum import Enum
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    AsyncGenerator,
-    Dict,
-    List,
-    Literal,
-    Optional,
-    Union,
-)
+from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
 from pydantic import Field
 
@@ -19,8 +8,7 @@ from ..util import AttrConvertMixin, internal_cls
 from .util import AriadneBaseModel
 
 if TYPE_CHECKING:
-    from ..message.chain import Source, _Parsable
-    from . import Announcement, BotMessage, Profile
+    from . import Profile
 
 _MEMBER_PERM_LV_MAP: Dict[str, int] = {
     "MEMBER": 1,
@@ -110,87 +98,6 @@ class Group(AriadneBaseModel, AttrConvertMixin):
             "GET", f"http://p.qlogo.cn/gh/{self.id}/{self.id}_{cover}/"
         )
         return await rider.io().read()
-
-    async def get_member_list(self) -> List["Member"]:
-        from ..app import Ariadne
-
-        return await Ariadne.current().get_member_list(self)
-
-    async def get_member(self, id: int) -> Optional["Member"]:
-        from ..app import Ariadne
-
-        return await Ariadne.current().get_member(self, id)
-
-    async def send_message(
-        self, message: "_Parsable", *, quote: Union["Source", int, None] = None
-    ) -> "BotMessage":
-        from ..app import Ariadne
-        from ..message.chain import MessageChain
-
-        chain = MessageChain(message).as_sendable()
-        return await Ariadne.current().send_group_message(self, chain, quote=quote)
-
-    async def mute_all(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().mute_all(self)
-
-    async def unmute_all(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().unmute_all(self)
-
-    async def quit(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().quit_group(self)
-
-    async def set_essence(self, target: Union["Source", int, "BotMessage"]) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().set_essence(target)
-
-    async def nudge_member(self, member: Union["Member", int]) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().send_nudge(member, self)
-
-    def iter_announcement(self) -> AsyncGenerator["Announcement", None]:
-        from ..app import Ariadne
-
-        return Ariadne.current().get_announcement_iterator(self)
-
-    async def publish_announcement(
-        self,
-        content: str,
-        *,
-        send_to_new_member: bool = False,
-        pinned: bool = False,
-        show_edit_card: bool = False,
-        show_popup: bool = False,
-        require_confirmation: bool = False,
-        image: Optional[Union[str, bytes, os.PathLike, io.IOBase]] = None,
-    ) -> "Announcement":
-        from ..app import Ariadne
-
-        return await Ariadne.current().publish_announcement(
-            self,
-            content,
-            send_to_new_member=send_to_new_member,
-            pinned=pinned,
-            show_edit_card=show_edit_card,
-            show_popup=show_popup,
-            require_confirmation=require_confirmation,
-            image=image,
-        )
-
-    async def delete_announcement(self, announcement: Union["Announcement", int]) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().delete_announcement(self, announcement)
-
-    # I don't think we should support files here
-    # as file interaction API is **very** complex
 
 
 @internal_cls()
@@ -293,35 +200,6 @@ class Member(AriadneBaseModel, AttrConvertMixin):
 
         return await rider.io().read()
 
-    async def mute(self, duration: int) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().mute_member(self.group, self, duration)
-
-    async def unmute(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().unmute_member(self.group, self)
-
-    async def kick(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().kick_member(self.group, self)
-
-    async def send_temp_message(
-        self, message: "_Parsable", *, quote: Union["Source", int, None] = None
-    ) -> "BotMessage":
-        from ..app import Ariadne
-        from ..message.chain import MessageChain
-
-        chain = MessageChain(message).as_sendable()
-        return await Ariadne.current().send_temp_message(self, chain, quote=quote)
-
-    async def nudge(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().send_nudge(self)
-
 
 @internal_cls()
 class Friend(AriadneBaseModel, AttrConvertMixin):
@@ -371,20 +249,6 @@ class Friend(AriadneBaseModel, AttrConvertMixin):
         )
 
         return await rider.io().read()
-
-    async def send_message(
-        self, message: "_Parsable", *, quote: Union["Source", int, None] = None
-    ) -> "BotMessage":
-        from ..app import Ariadne
-        from ..message.chain import MessageChain
-
-        chain = MessageChain(message).as_sendable()
-        return await Ariadne.current().send_friend_message(self, chain, quote=quote)
-
-    async def nudge(self) -> None:
-        from ..app import Ariadne
-
-        return await Ariadne.current().send_nudge(self)
 
 
 @internal_cls()

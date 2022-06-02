@@ -1,8 +1,8 @@
-name: Build and deploy API Docs
+name: Preview Deployment to Cloudflare Pages
 on:
   push:
     branches:
-      - dev
+      - "!dev"
 jobs:
   deploy-docs:
     runs-on: ubuntu-latest
@@ -18,21 +18,16 @@ jobs:
       - name: Setup Document Dependencies
         run: |
           pip install -r ./docs/requirements.txt
+
       - name: Build with MKDocs
         run: |
           PYTHONPATH=src mkdocs build
-
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: site
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@1
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          projectName: graia-ariadne
+          projectName: graia-ariadne-preview
           directory: site
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

@@ -40,19 +40,18 @@ Ariadne 是 `Graia Project` 继承了 [`Application`](https://github.com/GraiaPr
 
 ```python
 from graia.ariadne.app import Ariadne
-from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import Plain
-from graia.ariadne.model import Friend, MiraiSession
+from graia.ariadne.connection.config import config
+from graia.ariadne.model import Friend
 
-app = Ariadne(MiraiSession(host="http://localhost:8080", verify_key="ServiceVerifyKey", account=123456789))
+app = Ariadne(config(verify_key="ServiceVerifyKey", account=123456789))
 
 
 @app.broadcast.receiver("FriendMessage")
-async def friend_message_listener(app: Ariadne, friend: Friend):
-    await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
+async def friend_message_listener(friend: Friend):
+    await friend.send_message("Hello, World!")
 
 
-app.launch_blocking()
+Ariadne.launch_blocking()
 ```
 
 更多信息请看

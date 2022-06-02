@@ -18,9 +18,10 @@ jobs:
       - name: Setup Document Dependencies
         run: |
           pip install -r ./docs/requirements.txt
+
       - name: Build with MKDocs
         run: |
-          PYTHONPATH=src mkdocs build
+          mkdocs build
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4

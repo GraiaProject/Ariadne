@@ -1,8 +1,11 @@
 """Ariadne 的类型标注"""
 
+import builtins
 import contextlib
 import enum
+import sys
 import typing
+from types import MethodType
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -178,3 +181,20 @@ class _SentinelClass(enum.Enum):
 
 
 Sentinel = _SentinelClass._Sentinel
+
+if sys.version_info >= (3, 9):
+    classmethod = builtins.classmethod
+else:
+
+    class classmethod:
+        "Emulate PyClassMethod_Type()"
+
+        def __init__(self, f):
+            self.f = f
+
+        def __get__(self, obj, cls=None):
+            if cls is None:
+                cls = type(obj)
+            if hasattr(type(self.f), "__get__"):
+                return self.f.__get__(cls, cls)
+            return MethodType(self.f, cls)

@@ -58,6 +58,7 @@ from .typing import (
     SendMessageException,
     Sentinel,
     T,
+    classmethod,
 )
 from .util import AttrConvertMixin, app_ctx_manager
 
@@ -76,28 +77,17 @@ class Ariadne(AttrConvertMixin):
     account: int
     log_config: LogConfig
 
-    if TYPE_CHECKING:
-        broadcast: ClassVar[Broadcast]
-        default_account: ClassVar[int]
+    @classmethod
+    @property
+    def broadcast(cls) -> Broadcast:
+        return cls.service.broadcast
 
-    else:
-
-        class ClassProperty:
-            def __init__(self, f):
-                self.f = f
-
-            def __get__(self, obj, cls=None):
-                if cls is None:
-                    cls = type(obj)
-                return self.f(cls)
-
-        @ClassProperty
-        def broadcast(self) -> Broadcast:
-            return self.service.broadcast
-
-        @ClassProperty
-        def default_account(self) -> int:
-            return self.options["default_account"]
+    @classmethod
+    @property
+    def default_account(cls) -> int:
+        if "default_account" in Ariadne.options:
+            return Ariadne.options["default_account"]
+        raise ValueError("No default account configured")
 
     @classmethod
     def _ensure_config(cls):

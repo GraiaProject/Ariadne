@@ -25,6 +25,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          projectName: graia-ariadne-preview
+          projectName: graia-ariadne
           directory: site
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

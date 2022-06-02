@@ -90,6 +90,22 @@ singleMode: false
 ## 历史消息的缓存大小
 ## 同时，也是 http adapter 的消息队列容量
 cacheSize: 4096
+
+## adapter 的单独配置，键名与 adapters 项配置相同
+## 注意: 如果 mirai 读取配置时出错可以尝试删除并重新写入
+adapterSettings:
+  ## HTTP 服务的主机, 端口和跨域设置
+  http:
+    host: localhost
+    port: 8080
+    cors: ["*"]
+
+  ## Websocket 服务的主机, 端口和事件同步ID设置
+  ws:
+    host: localhost
+    port: 8080
+    reservedSyncId: -1
+
 ```
 
 将以下代码保存到文件 `bot.py` 内, 确保该文件位于你的工作区内:

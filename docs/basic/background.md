@@ -10,9 +10,12 @@
 
 !!! note "提示"
 
-    如果你想要使用多个账号的话, 注意每个账号都会触发一次 `ApplicationLaunched` 和 `ApplicationShutdowned` 事件.
+    如果你想要使用多个账号的话, 注意 `ApplicationLaunched` 和 `ApplicationShutdowned` 事件绑定的是 **默认账号**.
 
-    你可以通过 `app.account == Ariadne.default_account` 检查是否是默认的账号. (当然你要先设置)
+    每个账号在 `Ariadne` 启动与停止时都会分发一次 `AccountLaunch` 和 `AccountShutdown` 事件.
+
+    使用 `Ariadne.current(special_id)` 可以获取指定账号的 `Ariadne` 实例.
+
 
 ```py
 bg_tsk: Optional[Task] = None

@@ -78,7 +78,7 @@ class ElizabethService(Service):
     async def connection_daemon(self, connection: ConnectionMixin[T_Info], mgr: Launart) -> None:
         from .app import Ariadne
         from .context import enter_context
-        from .event.lifecycle import ApplicationLaunched
+        from .event.lifecycle import AccountLaunch
 
         account = connection.config.account
 
@@ -91,10 +91,10 @@ class ElizabethService(Service):
             alt=f"[green]Establishing connection[/green] {connection}",
         )
         app: Ariadne = Ariadne.current(account)
-        with enter_context(app=app):
-            self.broadcast.postEvent(ApplicationLaunched(app))
         conn_task = asyncio.create_task(connection.mainline(mgr))
         self.connection_tasks[account] = conn_task
+        with enter_context(app=app):
+            self.broadcast.postEvent(AccountLaunch(app))
         with contextlib.suppress(asyncio.CancelledError):
             await conn_task
 
@@ -108,7 +108,7 @@ class ElizabethService(Service):
     async def cleanup(self) -> None:
         from .app import Ariadne
         from .context import enter_context
-        from .event.lifecycle import ApplicationShutdowned
+        from .event.lifecycle import AccountShutdown
 
         logger.info("Elizabeth Service cleaning up...", style="orange")
         for account in self.connections:
@@ -116,20 +116,27 @@ class ElizabethService(Service):
             task = self.connection_tasks.pop(account, None)
             if task:
                 with enter_context(app=app):
-                    await self.broadcast.postEvent(ApplicationShutdowned(app))
+                    await self.broadcast.postEvent(AccountShutdown(app))
                 if not task.done():
                     task.cancel()
 
     async def launch(self, manager: Launart):
+        from .app import Ariadne
+        from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+
         while self.status.stage != "prepare":
             await self.status.wait_for_update()
         await self.prepare(manager)
+        if "default_account" in Ariadne.options:
+            self.broadcast.postEvent(ApplicationLaunched(Ariadne.current()))
         tasks = [
             asyncio.create_task(self.connection_daemon(conn, manager)) for conn in self.connections.values()
         ]
         self.status.set_blocking()
         await manager.status.wait_for_completed()
         self.status.set_cleanup()
+        if "default_account" in Ariadne.options:
+            self.broadcast.postEvent(ApplicationShutdowned(Ariadne.current()))
         await self.cleanup()
         for task in tasks:
             if not task.done():

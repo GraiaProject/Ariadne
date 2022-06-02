@@ -42,3 +42,15 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
     """
     指示 Ariadne 关闭.
     """
+
+
+class AccountLaunch(ApplicationLifecycleEvent):
+    """
+    指示账号的链接已启动.
+    """
+
+
+class AccountShutdown(ApplicationLifecycleEvent):
+    """
+    指示账号的链接关闭.
+    """

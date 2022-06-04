@@ -110,7 +110,7 @@ class ElizabethService(Service):
         from .context import enter_context
         from .event.lifecycle import AccountShutdown
 
-        logger.info("Elizabeth Service cleaning up...", style="orange")
+        logger.info("Elizabeth Service cleaning up...", style="dark_orange")
         for account in self.connections:
             app: Ariadne = Ariadne.current(account)
             task = self.connection_tasks.pop(account, None)
@@ -124,35 +124,36 @@ class ElizabethService(Service):
         from .app import Ariadne
         from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
 
-        while self.status.stage != "prepare":
-            await self.status.wait_for_update()
-        await self.prepare(manager)
-        if "default_account" in Ariadne.options:
-            self.broadcast.postEvent(ApplicationLaunched(Ariadne.current()))
-        tasks = [
-            asyncio.create_task(self.connection_daemon(conn, manager)) for conn in self.connections.values()
-        ]
-        self.status.set_blocking()
-        await manager.status.wait_for_completed()
-        self.status.set_cleanup()
-        if "default_account" in Ariadne.options:
-            self.broadcast.postEvent(ApplicationShutdowned(Ariadne.current()))
-        await self.cleanup()
-        for task in tasks:
-            if not task.done():
-                task.cancel()
-        logger.success(f"Cancelled {len(tasks)} connection tasks", style="green")
-        self.status.set_finished()
+        async with self.stage("prepare"):
+            await self.wait_for("blocking", *self.required)
+            await self.prepare(manager)
+        async with self.stage("blocking"):
+            if "default_account" in Ariadne.options:
+                self.broadcast.postEvent(ApplicationLaunched(Ariadne.current()))
+            tasks = [
+                asyncio.create_task(self.connection_daemon(conn, manager))
+                for conn in self.connections.values()
+            ]
+
+        async with self.stage("cleanup"):
+            if "default_account" in Ariadne.options:
+                self.broadcast.postEvent(ApplicationShutdowned(Ariadne.current()))
+            await self.cleanup()
+            self.status.stage = "cleanup"
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            logger.success(f"Cancelled {len(tasks)} connection tasks", style="green")
 
     @property
     def required(self):
-        requirements: MutableSet[str] = set()
+        requirements: MutableSet[str] = {"http.universal_client"}
         for connection in self.connections.values():
             requirements |= connection.dependencies
         return requirements
 
     def on_require_prepared(self, _):
-        self.status.set_prepare()
+        self.status.stage = "prepare"
 
     @property
     def stages(self):

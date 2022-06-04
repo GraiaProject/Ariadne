@@ -27,31 +27,28 @@ graia-broadcast = "^0.16.1"
 aiohttp = "^3.7.4"
 pydantic = "^1.8.2"
 typing-extensions = "^4.0"
+richuru = { version = "^0.1.0", optional = true }
+graia-amnesia = "^0.5.0"
 arclet-alconna-graia = { version = "^0.0", optional = true }
 graia-scheduler = { version = "^0.0", optional = true }
 graia-saya = { version = "^0.0", optional = true }
 fastapi = { version = ">=0.74.1, <1.0.0", optional = true }
 uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
-prompt-toolkit = { version = "^3.0.24", optional = true }
-
 
 [tool.poetry.extras]
 alconna = ["arclet-alconna-graia"]
 graia = ["graia-saya", "graia-scheduler"]
-server = ["uvicorn", "fastapi"]
+fastapi = ["uvicorn", "fastapi"]
 standard = [
+    "richuru",
     "graia-saya",
     "graia-scheduler",
-    "arclet-alconna-graia",
-    "prompt-toolkit"
 ]
 full = [
     "graia-saya",
     "graia-scheduler",
     "arclet-alconna-graia",
-    "uvicorn",
-    "fastapi",
-    "prompt-toolkit"
+    "richuru",
 ]
 
 [tool.poetry.dev-dependencies]
@@ -63,15 +60,13 @@ flake8 = "^4.0"
 pytest-asyncio = "^0.18.3"
 devtools = ">= 0.8"
 pre-commit = "^2.19"
-mkdocstrings = { extras = ["python"], version = "^0.18.0" }
+mkdocstrings = {version = "^0.19.0", extras = ["python"]}
 mkdocs-material = "^8.2.13"
 mkdocs-gen-files = "^0.3.4"
 mkdocs-section-index = "^0.3.3"
 mkdocs-literate-nav = "^0.4.1"
 ipykernel = "^6.13.0"
-richuru = "^0.1.0"
-graia-amnesia = {path = "wheels/graia_amnesia-0.5.0-py3-none-any.whl"}
-launart = {path = "wheels/launart-0.1.0-py3-none-any.whl"}
+launart = {git = "https://github.com/GraiaProject/launart"}
 
 [tool.isort]
 profile = "black"

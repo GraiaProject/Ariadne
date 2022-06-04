@@ -9,12 +9,10 @@ from typing import (
     Dict,
     Generic,
     List,
-    Literal,
     MutableMapping,
     Optional,
     Set,
     Type,
-    Union,
 )
 from weakref import WeakValueDictionary
 
@@ -41,12 +39,12 @@ from graia.amnesia.transport.common.websocket.shortcut import data_type, json_re
 from graia.amnesia.transport.utilles import TransportRegistrar
 from launart import ExportInterface, Launart
 from loguru import logger
+from statv import Stats
 from typing_extensions import Self
 from yarl import URL
 
 from ..event import MiraiEvent
 from ..exception import InvalidSession
-from ..typing import Sentinel
 from ._info import (
     HttpClientInfo,
     HttpServerInfo,
@@ -62,27 +60,20 @@ if TYPE_CHECKING:
 
 
 class ConnectionStatus(BaseConnectionStatus):
-    def __init__(self) -> None:
-        self.session_key: Optional[str] = None
-        self.alive: bool = False
-        self.connected: bool = False
-        super().__init__("elizabeth.connection")
+    alive = Stats[bool]("alive", default=False)
 
-    def update(
-        self,
-        session_key: Union[str, None, Literal[Sentinel]] = Sentinel,
-        connected: Optional[bool] = None,
-        alive: Optional[bool] = None,
-    ):
-        past = self.frame
-        if session_key is not Sentinel:
-            self.session_key = session_key
-            self.connected = session_key is not None
-        if connected is not None:
-            self.connected = connected
-        if alive is not None:
-            self.alive = alive
-        self.notify(past)
+    def __init__(self) -> None:
+        self._session_key: Optional[str] = None
+        super().__init__()
+
+    @property
+    def session_key(self) -> Optional[str]:
+        return self._session_key
+
+    @session_key.setter
+    def session_key(self, value: Optional[str]) -> None:
+        self._session_key = value
+        self.connected = value is not None
 
     @property
     def available(self) -> bool:
@@ -152,13 +143,13 @@ class WebsocketConnectionMixin(Transport):
         data = raw.get("data", None)
         data = validate_response(data)
         if "session" in data:
-            self.status.update(session_key=data["session"])
+            self.status.session_key = data["session"]
             logger.success("Successfully got session key", style="green bold")
             return
         if sync_id in self.futures:
             self.futures[sync_id].set_result(data)
         elif "type" in data:
-            self.status.update(alive=True)
+            self.status.alive = True
             event = build_event(data)
             await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         else:
@@ -173,7 +164,8 @@ class WebsocketConnectionMixin(Transport):
 
     @t.on(WebsocketCloseEvent)
     async def _(self, _: AbstractWebsocketIO) -> None:
-        self.status.update(session_key=None, alive=False)
+        self.status.session_key = None
+        self.status.alive = False
         logger.info("Websocket connection closed", style="dark_orange")
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
@@ -259,7 +251,7 @@ class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
     @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:  # start authenticate
         self.ws_io = io
-        self.status.update(alive=True)
+        self.status.alive = True
 
 
 class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
@@ -278,7 +270,8 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
                 return "Authorization failed", {"status": 401}
         data = Json.deserialize((await io.read()).decode("utf-8"))
         assert isinstance(data, dict)
-        self.status.update(connected=True, alive=True)
+        self.status.connected = True
+        self.status.alive = True
         event = build_event(data)
         await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         return {"command": "", "data": {}}
@@ -324,7 +317,7 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
             self.config.get_url("bind"),
             json={"qq": self.config.account, "sessionKey": session_key},
         )
-        self.status.update(session_key=session_key)
+        self.status.session_key = session_key
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         params = params or {}
@@ -341,7 +334,7 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
             elif method == CallMethod.MULTIPART:
                 return await self.request("POST", self.config.get_url(command), data=params)
         except InvalidSession:
-            self.status.update(session_key=None)
+            self.status.session_key = None
             raise
 
     async def mainline(self, _) -> None:
@@ -356,10 +349,11 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
                     {"sessionKey": self.status.session_key, "count": 10},
                 )
             except Exception as e:
-                self.status.update(session_key=None, alive=False)
+                self.status.session_key = None
+                self.status.alive = False
                 logger.exception(e)
                 continue
-            self.status.update(alive=True)
+            self.status.alive = False
             assert isinstance(data, list)
             for event_data in data:
                 event = build_event(event_data)

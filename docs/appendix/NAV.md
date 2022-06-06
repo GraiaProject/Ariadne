@@ -1,3 +1,4 @@
+- [更改日志](./CHANGELOG.md)
 - [常见问题](./faq.md)
 - [异步教程](./asyncio-intro.md)
 - [Mirai API HTTP 安装](./mah-install.md)

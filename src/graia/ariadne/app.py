@@ -123,7 +123,7 @@ class Ariadne(AttrConvertMixin):
             install_log (bool, optional): 是否安装 rich 日志, 默认为 False
             inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
         """
-        if not cls.instances:
+        if cls.instances:
             raise AriadneConfigureError("Please configure Ariadne class before instantiating")
         if loop:
             if broadcast:

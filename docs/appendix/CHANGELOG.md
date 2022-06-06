@@ -4,11 +4,11 @@
 
 ### 新增
 
-将大部分方法在 Model 上重现 (#169)
-
-支持给 `Twilight` 使用 `predicate` (#167)
+支持 `Twilight` 使用 `predicate` 进行先行条件判定 (#167)
 
 `DetectPrefix` 与 `DetectSuffix` 支持多个前后缀匹配 (#149) (@luoxhei)
+
+提供 Broadcast 中 `Derive` 风格的消息链匹配器支持.
 
 ### 修改
 

@@ -323,3 +323,7 @@ class FuzzyDispatcher(BaseDispatcher):
         _, rate = self.event_ref[id(event)].get(self.scope, (self.template, 0.0))
         if generic_issubclass(float, i.annotation) and "rate" in i.name:
             return rate
+
+
+StartsWith = DetectPrefix
+EndsWith = DetectSuffix

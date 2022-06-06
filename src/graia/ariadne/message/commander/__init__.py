@@ -37,8 +37,8 @@ from ...model import AriadneBaseModel
 from ...util import (
     ConstantDispatcher,
     constant,
-    get_stack_namespace,
     gen_subclass,
+    get_stack_namespace,
     resolve_dispatchers_mixin,
 )
 from ..chain import MessageChain

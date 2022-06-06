@@ -17,7 +17,7 @@ from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger
-from ..util import AttrConvertMixin, deprecated, internal_cls, escape_bracket
+from ..util import AttrConvertMixin, deprecated, escape_bracket, internal_cls
 
 if TYPE_CHECKING:
     from ..typing import ReprArgs

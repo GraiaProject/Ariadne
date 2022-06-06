@@ -25,7 +25,6 @@ from typing import (
 )
 
 from graia.broadcast import Broadcast
-from graia.ariadne.exception import AriadneConfigureError
 from launart import Launart
 from loguru import logger
 

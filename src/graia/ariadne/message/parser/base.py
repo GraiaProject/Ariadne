@@ -16,6 +16,7 @@ from typing import (
     Union,
 )
 
+from graia.broadcast.builtin.derive import Derive
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
@@ -25,6 +26,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from ...app import Ariadne
 from ...event.message import GroupMessage
 from ...typing import generic_issubclass
+from ...util import deprecated
 from ..chain import MessageChain
 from ..element import At, Element, Plain, Quote, Source
 
@@ -32,13 +34,14 @@ from ..element import At, Element, Plain, Quote, Source
 class Compose(Decorator):
     """将多个基础 Decorator 串联起来"""
 
+    @deprecated("0.8.0")
     def __init__(self, *deco: "ChainDecorator") -> None:
         self.deco: List[ChainDecorator] = list(deco)
 
-    async def target(self, interface: DecoratorInterface):
-        chain = await interface.dispatcher_interface.lookup_param("message_chain", MessageChain, None)
+    async def target(self, interface: DispatcherInterface):
+        chain = await interface.lookup_param("message_chain", MessageChain, None)
         for deco in self.deco:
-            chain = await deco.decorate(chain, interface)
+            chain = await deco.__call__(chain, interface)
             if chain is None:
                 break
         if interface.annotation is MessageChain:
@@ -47,16 +50,17 @@ class Compose(Decorator):
             return chain
 
 
-class ChainDecorator(abc.ABC, Decorator):
+class ChainDecorator(abc.ABC, Decorator, Derive[MessageChain]):
     pre = True
 
     @abc.abstractmethod
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, interface: DispatcherInterface) -> Optional[MessageChain]:
         ...
 
     async def target(self, interface: DecoratorInterface):
-        return await self.decorate(
-            await interface.dispatcher_interface.lookup_param("message_chain", MessageChain, None), interface
+        return await self(
+            await interface.dispatcher_interface.lookup_param("message_chain", MessageChain, None),
+            interface.dispatcher_interface,
         )
 
 
@@ -71,7 +75,7 @@ class DetectPrefix(ChainDecorator):
         """
         self.prefix: List[str] = [prefix] if isinstance(prefix, str) else list(prefix)
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         for prefix in self.prefix:
@@ -80,8 +84,7 @@ class DetectPrefix(ChainDecorator):
                 break
         else:
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return header + result
+        return header + result
 
 
 class DetectSuffix(ChainDecorator):
@@ -95,7 +98,7 @@ class DetectSuffix(ChainDecorator):
         """
         self.suffix: List[str] = [suffix] if isinstance(suffix, str) else list(suffix)
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         for suffix in self.suffix:
@@ -104,14 +107,13 @@ class DetectSuffix(ChainDecorator):
                 break
         else:
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return header + result
+        return header + result
 
 
 class MentionMe(ChainDecorator):
     """At 账号或者提到账号群昵称"""
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, interface: DispatcherInterface) -> Optional[MessageChain]:
         ariadne = Ariadne.current()
         if isinstance(interface.event, GroupMessage):
             name = (await ariadne.get_member(interface.event.sender.group, ariadne.account)).name
@@ -128,8 +130,7 @@ class MentionMe(ChainDecorator):
 
         if result is None:
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return result
+        return result
 
 
 class Mention(ChainDecorator):
@@ -138,7 +139,7 @@ class Mention(ChainDecorator):
     def __init__(self, target: Union[int, str]) -> None:
         self.person: Union[int, str] = target
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         first: Element = rest[0]
@@ -155,8 +156,7 @@ class Mention(ChainDecorator):
 
         if result is None:
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return result
+        return result
 
 
 class ContainKeyword(ChainDecorator):
@@ -165,11 +165,10 @@ class ContainKeyword(ChainDecorator):
     def __init__(self, keyword: str) -> None:
         self.keyword: str = keyword
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         if self.keyword not in chain:
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return chain
+        return chain
 
 
 class MatchContent(ChainDecorator):
@@ -179,13 +178,12 @@ class MatchContent(ChainDecorator):
         self.content: Union[str, MessageChain] = content
         self.next: Optional[ChainDecorator] = None
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         if isinstance(self.content, str) and str(chain) != self.content:
             raise ExecutionStop
         if isinstance(self.content, MessageChain) and chain != self.content:
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return chain
+        return chain
 
 
 class MatchRegex(ChainDecorator):
@@ -201,11 +199,10 @@ class MatchRegex(ChainDecorator):
         self.regex: str = regex
         self.flags: re.RegexFlag = flags
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         if not re.match(self.regex, str(chain), self.flags):
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return chain
+        return chain
 
 
 class MatchTemplate(ChainDecorator):
@@ -240,11 +237,10 @@ class MatchTemplate(ChainDecorator):
                     return False
         return True
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         if not self.match(chain):
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return chain
+        return chain
 
 
 class FuzzyMatch(ChainDecorator):
@@ -275,11 +271,10 @@ class FuzzyMatch(ChainDecorator):
             return False
         return matcher.ratio() >= self.min_rate
 
-    async def decorate(self, chain: MessageChain, interface: DecoratorInterface) -> Optional[MessageChain]:
+    async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         if not self.match(chain):
             raise ExecutionStop
-        if interface.annotation is MessageChain:
-            return chain
+        return chain
 
 
 class FuzzyDispatcher(BaseDispatcher):

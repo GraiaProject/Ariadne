@@ -62,7 +62,7 @@ from .typing import (
     T,
     classmethod,
 )
-from .util import AttrConvertMixin, app_ctx_manager
+from .util import AttrConvertMixin, ariadne_api
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -290,7 +290,7 @@ class Ariadne(AttrConvertMixin):
             raise ValueError("Ambiguous account reference, set Ariadne.default_account")
         return Ariadne.instances[cls.options["default_account"]]
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_version(self) -> str:
         """获取后端 Mirai HTTP API 版本.
 
@@ -333,7 +333,7 @@ class Ariadne(AttrConvertMixin):
             if not cache:
                 return
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_file_list(
         self,
         target: Union[Group, int],
@@ -371,7 +371,7 @@ class Ariadne(AttrConvertMixin):
         )
         return [FileInfo.parse_obj(i) for i in result]
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_file_info(
         self,
         target: Union[Friend, Group, int],
@@ -408,7 +408,7 @@ class Ariadne(AttrConvertMixin):
 
         return FileInfo.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def make_directory(
         self,
         target: Union[Friend, Group, int],
@@ -445,7 +445,7 @@ class Ariadne(AttrConvertMixin):
 
         return FileInfo.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def delete_file(
         self,
         target: Union[Friend, Group, int],
@@ -477,7 +477,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def move_file(
         self,
         target: Union[Friend, Group, int],
@@ -512,7 +512,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def rename_file(
         self,
         target: Union[Friend, Group, int],
@@ -547,7 +547,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def upload_file(
         self,
         data: Union[bytes, io.IOBase, os.PathLike],
@@ -595,7 +595,7 @@ class Ariadne(AttrConvertMixin):
 
         return FileInfo.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def upload_image(
         self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Image":
@@ -625,7 +625,7 @@ class Ariadne(AttrConvertMixin):
 
         return Image.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def upload_voice(
         self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Voice":
@@ -683,7 +683,7 @@ class Ariadne(AttrConvertMixin):
             if not cache:
                 return
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_announcement_list(
         self,
         target: Union[Group, int],
@@ -714,7 +714,7 @@ class Ariadne(AttrConvertMixin):
 
         return [Announcement.parse_obj(announcement) for announcement in result]
 
-    @app_ctx_manager
+    @ariadne_api
     async def publish_announcement(
         self,
         target: Union[Group, int],
@@ -775,7 +775,7 @@ class Ariadne(AttrConvertMixin):
         )
         return Announcement.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def delete_announcement(self, target: Union[Group, int], anno: Union[Announcement, int]) -> None:
         """
         删除一条公告.
@@ -797,7 +797,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def delete_friend(self, target: Union[Friend, int]) -> None:
         """
         删除指定好友.
@@ -819,7 +819,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def mute_member(self, group: Union[Group, int], member: Union[Member, int], time: int) -> None:
         """
         在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
@@ -849,7 +849,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def unmute_member(self, group: Union[Group, int], member: Union[Member, int]) -> None:
         """
         在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
@@ -873,7 +873,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def mute_all(self, group: Union[Group, int]) -> None:
         """在指定群组开启全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
 
@@ -891,7 +891,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def unmute_all(self, group: Union[Group, int]) -> None:
         """在指定群组关闭全体禁言, 需要当前会话账号在指定群主有相应权限(管理员或者群主权限)
 
@@ -909,7 +909,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def kick_member(
         self, group: Union[Group, int], member: Union[Member, int], message: str = ""
     ) -> None:
@@ -934,7 +934,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def quit_group(self, group: Union[Group, int]) -> None:
         """
         主动从指定群组退出
@@ -953,7 +953,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def set_essence(self, target: Union[Source, BotMessage, int]) -> None:
         """
         添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
@@ -977,7 +977,7 @@ class Ariadne(AttrConvertMixin):
             {"target": target},
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_group_config(self, group: Union[Group, int]) -> GroupConfig:
         """
         获取指定群组的群设置
@@ -998,7 +998,7 @@ class Ariadne(AttrConvertMixin):
 
         return GroupConfig.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def modify_group_config(self, group: Union[Group, int], config: GroupConfig) -> None:
         """修改指定群组的群设置; 需要具有相应权限(管理员/群主).
 
@@ -1018,7 +1018,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def modify_member_info(
         self,
         member: Union[Member, int],
@@ -1056,7 +1056,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def modify_member_admin(
         self,
         assign: bool,
@@ -1095,7 +1095,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def register_command(
         self, name: str, alias: Iterable[str] = (), usage: str = "", description: str = ""
     ) -> None:
@@ -1119,7 +1119,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def execute_command(self, command: Union[str, Iterable[str]]) -> None:
         """执行一条 mirai-console 指令
 
@@ -1137,7 +1137,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_friend_list(self) -> List[Friend]:
         """获取本实例账号添加的好友列表.
 
@@ -1159,7 +1159,7 @@ class Ariadne(AttrConvertMixin):
     async def get_friend(self, friend_id: int, assertion: Literal[True]) -> Friend:
         ...
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_friend(self, friend_id: int, assertion: bool = False) -> Optional[Friend]:
         """从已知的可能的好友 ID, 获取 Friend 实例.
 
@@ -1177,7 +1177,7 @@ class Ariadne(AttrConvertMixin):
         if assertion:
             raise ValueError(f"Friend {friend_id} not found.")
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_group_list(self) -> List[Group]:
         """获取本实例账号加入的群组列表.
 
@@ -1199,7 +1199,7 @@ class Ariadne(AttrConvertMixin):
     async def get_group(self, group_id: int, assertion: Literal[True]) -> Group:
         ...
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_group(self, group_id: int, assertion: bool = False) -> Optional[Group]:
         """尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
 
@@ -1218,7 +1218,7 @@ class Ariadne(AttrConvertMixin):
         if assertion:
             raise ValueError(f"Group {group_id} not found.")
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_member_list(self, group: Union[Group, int]) -> List[Member]:
         """尝试从已知的群组获取对应成员的列表.
 
@@ -1237,7 +1237,7 @@ class Ariadne(AttrConvertMixin):
         )
         return [Member.parse_obj(i) for i in result]
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_member(self, group: Union[Group, int], member_id: int) -> Member:
         """尝试从已知的群组唯一 ID 和已知的群组成员的 ID, 获取对应成员的信息.
 
@@ -1259,7 +1259,7 @@ class Ariadne(AttrConvertMixin):
 
         return Member.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_bot_profile(self) -> Profile:
         """获取本实例绑定账号的 Profile.
 
@@ -1273,7 +1273,7 @@ class Ariadne(AttrConvertMixin):
         )
         return Profile.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_user_profile(self, target: Union[int, Friend, Member, Stranger]) -> Profile:
         """获取任意 QQ 用户的 Profile. 需要 mirai-api-http 2.5.0+.
 
@@ -1292,7 +1292,7 @@ class Ariadne(AttrConvertMixin):
         )
         return Profile.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_friend_profile(self, friend: Union[Friend, int]) -> Profile:
         """获取好友的 Profile.
 
@@ -1311,7 +1311,7 @@ class Ariadne(AttrConvertMixin):
         )
         return Profile.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_member_profile(
         self, member: Union[Member, int], group: Optional[Union[Group, int]] = None
     ) -> Profile:
@@ -1342,7 +1342,7 @@ class Ariadne(AttrConvertMixin):
         )
         return Profile.parse_obj(result)
 
-    @app_ctx_manager
+    @ariadne_api
     async def get_message_from_id(self, messageId: int) -> MessageEvent:
         """从 消息 ID 提取 消息事件.
 
@@ -1361,7 +1361,7 @@ class Ariadne(AttrConvertMixin):
         )
         return cast(MessageEvent, build_event(result))
 
-    @app_ctx_manager
+    @ariadne_api
     async def send_friend_message(
         self,
         target: Union[Friend, int],
@@ -1409,7 +1409,7 @@ class Ariadne(AttrConvertMixin):
                 logger.warning("Failed to send message, your account may be blocked.")
             return BotMessage(messageId=result["messageId"], origin=message)
 
-    @app_ctx_manager
+    @ariadne_api
     async def send_group_message(
         self,
         target: Union[Group, Member, int],
@@ -1460,7 +1460,7 @@ class Ariadne(AttrConvertMixin):
                 logger.warning("Failed to send message, your account may be blocked.")
             return BotMessage(messageId=result["messageId"], origin=message)
 
-    @app_ctx_manager
+    @ariadne_api
     async def send_temp_message(
         self,
         target: Union[Member, int],
@@ -1539,7 +1539,7 @@ class Ariadne(AttrConvertMixin):
     ) -> BotMessage:
         ...
 
-    @app_ctx_manager
+    @ariadne_api
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
@@ -1602,7 +1602,7 @@ class Ariadne(AttrConvertMixin):
         else:
             return await action.result(val)
 
-    @app_ctx_manager
+    @ariadne_api
     async def send_nudge(
         self, target: Union[Friend, Member, int], group: Optional[Union[Group, int]] = None
     ) -> None:
@@ -1632,7 +1632,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-    @app_ctx_manager
+    @ariadne_api
     async def recall_message(self, target: Union[MessageChain, Source, BotMessage, int]) -> None:
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 

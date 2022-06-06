@@ -36,8 +36,8 @@ from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
 from ...util import (
     ConstantDispatcher,
-    const_call,
-    eval_ctx,
+    constant,
+    get_stack_namespace,
     gen_subclass,
     resolve_dispatchers_mixin,
 )
@@ -120,7 +120,7 @@ class Slot(ParamDesc):
         if self.model or self.type is _raw:
             return
 
-        self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
+        self.default_factory = constant(self.default) if self.default is not ... else self.default_factory
 
         if self.type is ...:
             self.type = MessageChain
@@ -186,7 +186,7 @@ class Arg(ParamDesc):
                 self.default = False
         elif self.nargs == 1:
             self.type = self.type if self.type is not ... else MessageChain
-        self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
+        self.default_factory = constant(self.default) if self.default is not ... else self.default_factory
 
         if (
             isinstance(self.type, type)
@@ -422,8 +422,8 @@ class Commander:
                 placeholder_set.add(name)
                 parsed_slot = Slot(
                     name,
-                    eval(annotation or "...", *eval_ctx(1, {"raw": _raw})),
-                    eval(default or "...", *eval_ctx(1)),
+                    eval(annotation or "...", *get_stack_namespace(1, {"raw": _raw})),
+                    eval(default or "...", *get_stack_namespace(1)),
                 )
                 parsed_slot.param_name = name  # assuming that param_name is consistent
                 if name in slot_map:

@@ -17,7 +17,7 @@ from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger
-from ..util import AttrConvertMixin, deprecated, internal_cls, wrap_bracket
+from ..util import AttrConvertMixin, deprecated, internal_cls, escape_bracket
 
 if TYPE_CHECKING:
     from ..typing import ReprArgs
@@ -63,7 +63,7 @@ class Element(AriadneBaseModel, AttrConvertMixin, BaseElement):
         Returns:
             str: 持久化字符串.
         """
-        data: str = wrap_bracket(
+        data: str = escape_bracket(
             j_dump(
                 self.dict(
                     exclude={"type"},
@@ -686,7 +686,7 @@ class MultimediaElement(Element):
         if binary:
             return super().as_persistent_string()
         else:
-            data: str = wrap_bracket(
+            data: str = escape_bracket(
                 j_dump(
                     self.dict(
                         exclude={"type", "base64"},

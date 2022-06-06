@@ -82,7 +82,7 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
-def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
+def ariadne_api(func: Callable[P, R]) -> Callable[P, R]:
     """包装声明需要在 Ariadne Context 中执行的函数
 
     Args:
@@ -120,12 +120,12 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
         yield from gen_subclass(sub_cls)
 
 
-def wrap_bracket(string: str) -> str:
+def escape_bracket(string: str) -> str:
     """在字符串中转义中括号括号"""
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
-def const_call(val: T) -> Callable[[], T]:
+def constant(val: T) -> Callable[[], T]:
     """生成一个返回常量的 Callable
 
     Args:
@@ -137,7 +137,7 @@ def const_call(val: T) -> Callable[[], T]:
     return lambda: val
 
 
-def eval_ctx(
+def get_stack_namespace(
     layer: int = 0, globals_: Optional[DictStrAny] = None, locals_: Optional[DictStrAny] = None
 ) -> Tuple[DictStrAny, DictStrAny]:
     """获取一个上下文的全局和局部变量

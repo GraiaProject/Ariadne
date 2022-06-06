@@ -1,7 +1,7 @@
 """Ariadne 的异常定义"""
 
 
-class AriadneConfigureError(Exception):
+class AriadneConfigurationError(ValueError):
     """配置 Ariadne 时给出的参数包含有错误."""
 
 

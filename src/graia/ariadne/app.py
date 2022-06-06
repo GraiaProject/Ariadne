@@ -28,7 +28,7 @@ from graia.broadcast import Broadcast
 from launart import Launart
 from loguru import logger
 
-from graia.ariadne.exception import AriadneConfigureError
+from graia.ariadne.exception import AriadneConfigurationError
 
 from .connection import ConnectionInterface
 from .connection._info import U_Info
@@ -123,8 +123,6 @@ class Ariadne(AttrConvertMixin):
             install_log (bool, optional): 是否安装 rich 日志, 默认为 False
             inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
         """
-        if cls.instances:
-            raise AriadneConfigureError("Please configure Ariadne class before instantiating")
         if loop:
             if broadcast:
                 assert broadcast.loop is loop, "Inconsistent event loop"
@@ -133,20 +131,19 @@ class Ariadne(AttrConvertMixin):
         if broadcast:
             service = ElizabethService(broadcast)
             if getattr(cls, "service", service) is not service:
-                raise AriadneConfigureError("Inconsistent broadcast instance")
+                raise AriadneConfigurationError("Inconsistent broadcast instance")
             cls.service = service
 
         if launch_manager:
             if getattr(cls, "launch_manager", launch_manager) is not launch_manager:
-                raise AriadneConfigureError("Inconsistent launch manager")
+                raise AriadneConfigurationError("Inconsistent launch manager")
             cls.launch_manager = launch_manager
 
         if default_account:
             if "default_account" not in cls.options:
                 cls.options["default_account"] = default_account
-            else:
-                if cls.options["default_account"] != default_account:
-                    raise AriadneConfigureError("Inconsistent default account")
+            elif cls.options["default_account"] != default_account:
+                raise AriadneConfigurationError("Inconsistent default account")
 
         if install_log and "installed_log" not in cls.options:
             import richuru
@@ -185,11 +182,11 @@ class Ariadne(AttrConvertMixin):
         for conn in conns:
             Ariadne.launch_manager.add_launchable(conn)
         if account in Ariadne.instances:
-            raise AriadneConfigureError("You can't configure an account twice!")
+            raise AriadneConfigurationError("You can't configure an account twice!")
         Ariadne.instances[account] = self
         self.account: int = account
         if account not in Ariadne.service.connections:
-            raise AriadneConfigureError(f"{account} is not configured")
+            raise AriadneConfigurationError(f"{account} is not configured")
         self.connection: ConnectionInterface = Ariadne.service.get_interface(ConnectionInterface).bind(
             account
         )

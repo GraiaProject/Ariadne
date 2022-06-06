@@ -26,6 +26,7 @@ from typing import (
     overload,
 )
 
+from graia.broadcast.builtin.derive import DeriveDispatcher
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
@@ -34,7 +35,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 from typing_extensions import Self
 
-from ...typing import Sentinel, T, generic_isinstance, generic_issubclass
+from ...typing import AnnotatedType, Sentinel, T, generic_isinstance, generic_issubclass
 from ...util import gen_subclass
 from ..chain import MessageChain
 from ..element import Element
@@ -601,7 +602,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         self,
         *root: Union[Iterable[Match], Match],
         map_param: Optional[Dict[str, bool]] = None,
-        preprocessor: Optional[ChainDecorator] = None,
+        preprocessor: Union[ChainDecorator, AnnotatedType, None] = None,
     ) -> None:
         """本魔法方法用于初始化本实例.
 
@@ -750,12 +751,17 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             ExecutionStop: 匹配以任意方式失败
         """
         local_storage = interface.local_storage
-        if self.preprocessor:
-            chain: MessageChain = await interface.lookup_by_directly(
+        chain: MessageChain
+        if isinstance(self.preprocessor, ChainDecorator):
+            chain = await interface.lookup_by_directly(
                 DecoratorInterface(), "message_chain", MessageChain, self.preprocessor
             )
+        elif isinstance(self.preprocessor, AnnotatedType):
+            chain = await interface.lookup_by_directly(
+                DeriveDispatcher(), "twilight_derive", self.preprocessor, None
+            )
         else:
-            chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
+            chain = await interface.lookup_param("message_chain", MessageChain, None)
         with contextlib.suppress(Exception):
             local_storage[f"{__name__}:result"] = self.generate(chain)
             local_storage[f"{__name__}:twilight"] = self

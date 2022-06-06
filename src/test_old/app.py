@@ -2,7 +2,7 @@ import asyncio
 import os
 import re
 import sys
-from typing import Optional, Union
+from typing import Annotated, Optional, Union
 
 import devtools
 from graia.amnesia.builtins.aiohttp import AiohttpServerService
@@ -132,9 +132,17 @@ if __name__ == "__main__":
     async def accept(event: NewFriendRequestEvent):
         await event.accept("Welcome!")
 
-    @bcc.receiver(MessageEvent, dispatchers=[Twilight([FullMatch(".test")], preprocessor=MentionMe())])
+    @bcc.receiver(
+        MessageEvent,
+        dispatchers=[
+            Twilight(
+                [FullMatch(".test")],
+                preprocessor=Annotated[MessageChain, MentionMe(), DetectPrefix("prefix")],
+            )
+        ],
+    )
     async def reply2(app: Ariadne, event: MessageEvent):
-        await app.send_message(event, MessageChain("Auto reply to /test!"))
+        await app.send_message(event, MessageChain("Annotated reply!"))
 
     def unwind(fwd: Forward):
         for node in fwd.nodeList:

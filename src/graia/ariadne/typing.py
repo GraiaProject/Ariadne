@@ -21,7 +21,7 @@ from typing import (
     Union,
 )
 
-from typing_extensions import ParamSpec, Protocol, runtime_checkable
+from typing_extensions import Annotated, ParamSpec, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from .message.chain import MessageChain
@@ -181,6 +181,8 @@ class _SentinelClass(enum.Enum):
 
 
 Sentinel = _SentinelClass._Sentinel
+
+AnnotatedType = type(Annotated[int, lambda x: x > 0])
 
 if sys.version_info >= (3, 9):
     classmethod = builtins.classmethod

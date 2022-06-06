@@ -6,7 +6,7 @@ from graia.broadcast import Broadcast
 from launart import Service
 from loguru import logger
 
-from graia.ariadne.exception import AriadneConfigureError
+from graia.ariadne.exception import AriadneConfigurationError
 
 from .connection import (
     CONFIG_MAP,
@@ -41,13 +41,13 @@ class ElizabethService(Service):
     def add_configs(self, configs: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
         configs = list(configs)
         if not configs:
-            raise AriadneConfigureError("No configs provided")
+            raise AriadneConfigurationError("No configs provided")
 
         account: int = configs[0].account
         if account in self.connections:
-            raise AriadneConfigureError(f"Account {account} already exists")
+            raise AriadneConfigurationError(f"Account {account} already exists")
         if len({i.account for i in configs}) != 1:
-            raise AriadneConfigureError("All configs must be for the same account")
+            raise AriadneConfigurationError("All configs must be for the same account")
 
         configs.sort(key=lambda x: isinstance(x, HttpClientInfo))
         # make sure the http client is the last one
@@ -83,7 +83,7 @@ class ElizabethService(Service):
         async with self.stage("preparing"):
             if self.broadcast:
                 if asyncio.get_running_loop() is not self.loop:
-                    raise AriadneConfigureError("Broadcast is attached to a different loop")
+                    raise AriadneConfigurationError("Broadcast is attached to a different loop")
             else:
                 self.broadcast = Broadcast(loop=self.loop)
             if "default_account" in Ariadne.options:

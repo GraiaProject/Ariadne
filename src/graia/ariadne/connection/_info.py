@@ -35,6 +35,6 @@ class HttpServerInfo(NamedTuple):
     headers: Dict[str, str]
 
 
-T_Info = TypeVar("T_Info", HttpClientInfo, WebsocketClientInfo, WebsocketServerInfo, HttpServerInfo)
-
 U_Info = Union[HttpClientInfo, WebsocketClientInfo, WebsocketServerInfo, HttpServerInfo]
+
+T_Info = TypeVar("T_Info", bound=U_Info)

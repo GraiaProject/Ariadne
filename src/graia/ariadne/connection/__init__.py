@@ -1,4 +1,3 @@
-import abc
 import asyncio
 import secrets
 from typing import (
@@ -37,7 +36,8 @@ from graia.amnesia.transport.common.websocket import (
 )
 from graia.amnesia.transport.common.websocket.shortcut import data_type, json_require
 from graia.amnesia.transport.utilles import TransportRegistrar
-from launart import ExportInterface, Launart
+from launart import ExportInterface, Launart, Launchable, LaunchableStatus
+from launart.utilles import wait_fut
 from loguru import logger
 from statv import Stats
 from typing_extensions import Self
@@ -45,6 +45,7 @@ from yarl import URL
 
 from ..event import MiraiEvent
 from ..exception import InvalidSession
+from ..util import camel_to_snake
 from ._info import (
     HttpClientInfo,
     HttpServerInfo,
@@ -59,7 +60,7 @@ if TYPE_CHECKING:
     from ..service import ElizabethService
 
 
-class ConnectionStatus(BaseConnectionStatus):
+class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
     alive = Stats[bool]("alive", default=False)
 
     def __init__(self) -> None:
@@ -86,29 +87,41 @@ class ConnectionStatus(BaseConnectionStatus):
                     f"connected={self.connected}",
                     f"alive={self.alive}",
                     f"verified={self.session_key is not None}",
+                    f"stage={self.stage}",
                 ]
             )
         )
 
 
-class ConnectionMixin(Generic[T_Info]):
+class ConnectionMixin(Launchable, Generic[T_Info]):
     status: ConnectionStatus
     config: T_Info
     dependencies: Set[str]
 
     fallback: Optional["HttpClientConnection"]
-    http_interface: AiohttpClientInterface
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
+    @property
+    def required(self) -> Set[str]:
+        return self.dependencies
+
+    @property
+    def stages(self):
+        return {}
+
     def __init__(self, config: T_Info) -> None:
+        self.id = ".".join(
+            [
+                "elizabeth",
+                "connection",
+                str(config.account),
+                camel_to_snake(self.__class__.__qualname__),
+            ]
+        )
         self.config = config
         self.fallback = None
         self.event_callbacks = []
         self.status = ConnectionStatus()
-
-    @abc.abstractmethod
-    async def mainline(self, mgr: Launart) -> None:
-        ...
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
         if self.fallback:
@@ -202,7 +215,7 @@ class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
         self.declares.append(WebsocketEndpoint(self.config.path))
         self.futures = WeakValueDictionary()
 
-    async def mainline(self, mgr: Launart) -> None:
+    async def launch(self, mgr: Launart) -> None:
         router = get_router(mgr)
         router.use(self)
 
@@ -237,16 +250,31 @@ t = TransportRegistrar()
 @t.apply
 class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketClientInfo]):
     dependencies = {"http.universal_client"}
+    http_interface: AiohttpClientInterface
+
+    @property
+    def stages(self):
+        return {"blocking"}
 
     def __init__(self, config: WebsocketClientInfo) -> None:
         ConnectionMixin.__init__(self, config)
         self.futures = WeakValueDictionary()
 
-    async def mainline(self, _) -> None:
+    async def launch(self, mgr: Launart) -> None:
+        self.http_interface = mgr.get_interface(AiohttpClientInterface)
         config = self.config
-        await self.http_interface.websocket(
-            str((URL(config.host) / "all").with_query({"qq": config.account, "verifyKey": config.verify_key}))
-        ).use(self)
+        async with self.stage("blocking"):
+            rider = self.http_interface.websocket(
+                str(
+                    (URL(config.host) / "all").with_query(
+                        {"qq": config.account, "verifyKey": config.verify_key}
+                    )
+                )
+            )
+            await wait_fut(
+                [rider.use(self), self.wait_for("finished", "elizabeth.service")],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
 
     @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:  # start authenticate
@@ -276,16 +304,18 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
         await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         return {"command": "", "data": {}}
 
-    async def mainline(self, mgr: Launart) -> None:
+    async def launch(self, mgr: Launart) -> None:
         router = get_router(mgr)
         router.use(self)
 
 
 class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
     dependencies = {"http.universal_client"}
+    http_interface: AiohttpClientInterface
 
     def __init__(self, config: HttpClientInfo) -> None:
         super().__init__(config)
+        self.is_hook: bool = False
 
     async def request(
         self,
@@ -337,28 +367,39 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
             self.status.session_key = None
             raise
 
-    async def mainline(self, _) -> None:
-        while True:
-            try:
-                if not self.status.session_key:
-                    logger.info("HttpClient: authenticate", style="dark_orange")
-                    await self.http_auth()
-                data = await self.request(
-                    "GET",
-                    self.config.get_url("fetchMessage"),
-                    {"sessionKey": self.status.session_key, "count": 10},
+    @property
+    def stages(self):
+        return {} if self.is_hook else {"blocking"}
+
+    async def launch(self, mgr: Launart) -> None:
+        self.http_interface = mgr.get_interface(AiohttpClientInterface)
+        if self.is_hook:
+            return
+        async with self.stage("blocking"):
+            while not mgr.launchables["elizabeth.service"].status.finished:
+                try:
+                    if not self.status.session_key:
+                        logger.info("HttpClient: authenticate", style="dark_orange")
+                        await self.http_auth()
+                    data = await self.request(
+                        "GET",
+                        self.config.get_url("fetchMessage"),
+                        {"sessionKey": self.status.session_key, "count": 10},
+                    )
+                    self.status.alive = True
+                except Exception as e:
+                    self.status.session_key = None
+                    self.status.alive = False
+                    logger.exception(e)
+                    continue
+                assert isinstance(data, list)
+                for event_data in data:
+                    event = build_event(event_data)
+                    await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
+                await wait_fut(
+                    [asyncio.sleep(0.5), self.wait_for("finished", "elizabeth.service")],
+                    return_when=asyncio.FIRST_COMPLETED,
                 )
-            except Exception as e:
-                self.status.session_key = None
-                self.status.alive = False
-                logger.exception(e)
-                continue
-            self.status.alive = False
-            assert isinstance(data, list)
-            for event_data in data:
-                event = build_event(event_data)
-                await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
-            await asyncio.sleep(0.5)
 
 
 CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {

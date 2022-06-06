@@ -1,22 +1,10 @@
 import asyncio
-import contextlib
-from typing import (
-    Dict,
-    Iterable,
-    MutableMapping,
-    MutableSet,
-    Optional,
-    Tuple,
-    Type,
-    overload,
-)
-from weakref import WeakValueDictionary
+from typing import Dict, Iterable, List, Optional, Tuple, Type, overload
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.broadcast import Broadcast
-from launart import Launart, Service
+from launart import Service
 from loguru import logger
-from typing_extensions import Self
 
 from .connection import (
     CONFIG_MAP,
@@ -24,7 +12,7 @@ from .connection import (
     ConnectionMixin,
     HttpClientConnection,
 )
-from .connection._info import HttpClientInfo, T_Info, U_Info
+from .connection._info import HttpClientInfo, U_Info
 from .dispatcher import ContextDispatcher, NoneDispatcher
 
 
@@ -32,14 +20,12 @@ class ElizabethService(Service):
     id = "elizabeth.service"
     supported_interface_types = {ConnectionInterface}
     http_interface: AiohttpClientInterface
-    connections: Dict[int, ConnectionMixin]
+    connections: Dict[int, ConnectionMixin[U_Info]]
     broadcast: Broadcast
-    connection_tasks: MutableMapping[int, asyncio.Task]
 
     def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
         super().__init__()
         self.connections = {}
-        self.connection_tasks = WeakValueDictionary()
         self.broadcast = broadcast or Broadcast(loop=asyncio.new_event_loop())
         asyncio.set_event_loop(self.broadcast.loop)
         if ContextDispatcher not in self.broadcast.prelude_dispatchers:
@@ -47,7 +33,7 @@ class ElizabethService(Service):
         if NoneDispatcher not in self.broadcast.finale_dispatchers:
             self.broadcast.finale_dispatchers.append(NoneDispatcher)
 
-    def add_configs(self, configs: Iterable[U_Info]) -> Tuple[Self, int]:
+    def add_configs(self, configs: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
         configs = list(configs)
         assert configs
         account: int = configs[0].account
@@ -57,11 +43,10 @@ class ElizabethService(Service):
         ), f"All configs must be for the account {account}"
         configs.sort(key=lambda x: isinstance(x, HttpClientInfo))
         # make sure the http client is the last one
-        for conf in configs:
-            self.update_from_config(conf)
-        return self, account
+        conns: List[ConnectionMixin] = [self.add_info(conf) for conf in configs]
+        return conns, account
 
-    def update_from_config(self, config: U_Info) -> None:
+    def add_info(self, config: U_Info) -> ConnectionMixin:
         account: int = config.account
         connection = CONFIG_MAP[config.__class__](config)
         if account not in self.connections:
@@ -71,94 +56,58 @@ class ElizabethService(Service):
             if upstream_conn.fallback:
                 raise ValueError(f"{upstream_conn} already has fallback connection")
             connection.status = upstream_conn.status
+            connection.is_hook = True
             upstream_conn.fallback = connection
         else:
             raise ValueError(f"Connection {self.connections[account]} conflicts with {connection}")
+        return connection
 
-    async def connection_daemon(self, connection: ConnectionMixin[T_Info], mgr: Launart) -> None:
-        from .app import Ariadne
-        from .context import enter_context
-        from .event.lifecycle import AccountLaunch
-
-        account = connection.config.account
-
-        connection.http_interface = self.http_interface
-        if connection.fallback:
-            connection.fallback.http_interface = self.http_interface
-            connection.fallback.status = connection.status
-        logger.info(
-            f"Establishing connection {connection}",
-            alt=f"[green]Establishing connection[/green] {connection}",
-        )
-        app: Ariadne = Ariadne.current(account)
-        conn_task = asyncio.create_task(connection.mainline(mgr))
-        self.connection_tasks[account] = conn_task
-        with enter_context(app=app):
-            self.broadcast.postEvent(AccountLaunch(app))
-        with contextlib.suppress(asyncio.CancelledError):
-            await conn_task
-
-    async def prepare(self, mgr: Launart) -> None:
-        self.http_interface = mgr.get_interface(AiohttpClientInterface)
+    async def prepare(self) -> None:
         if self.broadcast:
             assert asyncio.get_running_loop() is self.loop, "Broadcast is attached to a different loop"
         else:
             self.broadcast = Broadcast(loop=asyncio.get_running_loop())
 
-    async def cleanup(self) -> None:
+    async def launch(self, _):
         from .app import Ariadne
         from .context import enter_context
-        from .event.lifecycle import AccountShutdown
-
-        logger.info("Elizabeth Service cleaning up...", style="dark_orange")
-        for account in self.connections:
-            app: Ariadne = Ariadne.current(account)
-            task = self.connection_tasks.pop(account, None)
-            if task:
-                with enter_context(app=app):
-                    await self.broadcast.postEvent(AccountShutdown(app))
-                if not task.done():
-                    task.cancel()
-
-    async def launch(self, manager: Launart):
-        from .app import Ariadne
-        from .context import enter_context
-        from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+        from .event.lifecycle import (
+            AccountLaunch,
+            AccountShutdown,
+            ApplicationLaunched,
+            ApplicationShutdowned,
+        )
 
         async with self.stage("preparing"):
-            await self.prepare(manager)
-
-        async with self.stage("blocking"):
+            await self.prepare()
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
                 with enter_context(app=app):
                     self.broadcast.postEvent(ApplicationLaunched(app))
-            tasks = [
-                asyncio.create_task(self.connection_daemon(conn, manager))
-                for conn in self.connections.values()
-            ]
+            for conn in self.connections.values():
+                app = Ariadne.current(conn.config.account)
+                with enter_context(app=app):
+                    self.broadcast.postEvent(AccountLaunch(app))
 
         async with self.stage("cleanup"):
+            logger.info("Elizabeth Service cleaning up...", style="dark_orange")
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
                 with enter_context(app=app):
                     await self.broadcast.postEvent(ApplicationShutdowned(app))
-            await self.cleanup()
-            for task in tasks:
-                if not task.done():
-                    task.cancel()
-            logger.success(f"Cancelled {len(tasks)} connection tasks", style="green")
+            for conn in self.connections.values():
+                if conn.status.available:
+                    app = Ariadne.current(conn.config.account)
+                    with enter_context(app=app):
+                        await self.broadcast.postEvent(AccountShutdown(app))
 
     @property
     def required(self):
-        requirements: MutableSet[str] = {"http.universal_client"}
-        for connection in self.connections.values():
-            requirements |= connection.dependencies
-        return requirements
+        return {conn.id for conn in self.connections.values()}
 
     @property
     def stages(self):
-        return {"preparing", "blocking", "cleanup"}
+        return {"preparing", "cleanup"}
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:

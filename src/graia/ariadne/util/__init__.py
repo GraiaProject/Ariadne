@@ -270,16 +270,21 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
     return deco
 
 
+def camel_to_snake(name: str) -> str:
+    import re
+
+    name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+    name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
+    name = name.replace("-", "_").lower()
+    return name
+
+
 class AttrConvertMixin:
     __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
 
     def __getattr__(self, name: str) -> Any:
         # camelCase to snake_case
-        import re
-
-        name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
-        name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
-        name = name.replace("-", "_").lower()
+        name = camel_to_snake(name)
         if name not in self.__class__.__dict__:
             raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
         # extract caller's file and line number

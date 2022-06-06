@@ -176,7 +176,9 @@ class Ariadne(AttrConvertMixin):
         from .util.send import Strict
 
         self.default_send_action = Strict
-        account = Ariadne.service.add_configs(connection)[1]
+        conns, account = Ariadne.service.add_configs(connection)
+        for conn in conns:
+            Ariadne.launch_manager.add_launchable(conn)
         assert account not in Ariadne.instances, "You can't configure an account twice!"
         Ariadne.instances[account] = self
         self.account: int = account

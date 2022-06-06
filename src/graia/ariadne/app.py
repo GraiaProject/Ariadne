@@ -73,10 +73,11 @@ class Ariadne(AttrConvertMixin):
     service: ClassVar[ElizabethService]
     launch_manager: ClassVar[Launart]
     instances: ClassVar[Dict[int, "Ariadne"]] = {}
-    default_send_action: SendMessageActionProtocol
     held_objects: ClassVar[Dict[type, Any]] = {}
-    connection: ConnectionInterface
+
     account: int
+    connection: ConnectionInterface
+    default_send_action: SendMessageActionProtocol
     log_config: LogConfig
 
     @classmethod

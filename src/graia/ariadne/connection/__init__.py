@@ -108,8 +108,8 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
         return f"<{self.__class__.__name__} {self.status} with {len(self.event_callbacks)} callbacks>"
 
 
-from .http import HttpClientConnection, HttpServerConnection
-from .ws import WebsocketClientConnection, WebsocketServerConnection
+from .http import HttpClientConnection, HttpServerConnection  # noqa: E402
+from .ws import WebsocketClientConnection, WebsocketServerConnection  # noqa: E402
 
 CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {
     HttpClientInfo: HttpClientConnection,

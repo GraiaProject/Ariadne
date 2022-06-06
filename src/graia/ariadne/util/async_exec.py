@@ -208,7 +208,6 @@ def cpu_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
         mod = func.__module__
         loop = asyncio.get_running_loop()
         executor = ParallelExecutor.get(loop)
-        print(ParallelExecutor.func_mapping)
         return await loop.run_in_executor(
             executor.proc_exec,
             ParallelExecutor.run_func,

@@ -298,13 +298,3 @@ class AttrConvertMixin:
                 logger.warning(f"At {caller_file}:{caller_line}")
                 logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
         return getattr(self, name)
-
-
-# Import layout
-from . import async_exec  # noqa: F401, E402
-from .async_exec import (  # noqa: F401, E402
-    IS_MAIN_PROCESS,
-    ParallelExecutor,
-    cpu_bound,
-    io_bound,
-)

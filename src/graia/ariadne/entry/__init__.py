@@ -28,8 +28,8 @@ from ..exception import UnknownError as UnknownError
 from ..exception import UnknownTarget as UnknownTarget
 from ..exception import UnVerifiedSession as UnVerifiedSession
 from ..model import *
-from ..util import cpu_bound as cpu_bound
-from ..util import io_bound as io_bound
+from ..util.async_exec import cpu_bound as cpu_bound
+from ..util.async_exec import io_bound as io_bound
 from ..util.cooldown import CoolDown as CoolDown
 from ..util.send import Bypass as Bypass
 from ..util.send import Ignore as Ignore

@@ -56,18 +56,22 @@ python-versions = "*"
 
 [[package]]
 name = "arclet-alconna"
-version = "0.9.3.4"
+version = "0.9.4"
 description = "A Fast Command Analyser based on Dict"
 category = "main"
 optional = true
 python-versions = ">=3.8"
 
+[package.dependencies]
+typing-extensions = "*"
+
 [package.extras]
+cli = ["arclet-alconna-cli"]
 graia = ["arclet-alconna-graia"]
 
 [[package]]
 name = "arclet-alconna-graia"
-version = "0.0.13.1"
+version = "0.0.14"
 description = "Support Alconna to GraiaProject"
 category = "main"
 optional = true
@@ -75,6 +79,7 @@ python-versions = ">=3.8"
 
 [package.dependencies]
 arclet-alconna = "*"
+graia-amnesia = "*"
 graia-ariadne = "*"
 graia-broadcast = "*"
 
@@ -367,21 +372,25 @@ dev = ["twine", "markdown", "flake8", "wheel"]
 
 [[package]]
 name = "graia-amnesia"
-version = "0.5.0"
+version = "0.5.2"
 description = "a collection of shared components for graia"
 category = "main"
 optional = false
 python-versions = ">=3.8,<4.0"
 
 [package.dependencies]
-launart = ">=0.1.0,<0.2.0"
-loguru = ">=0.6.0,<0.7.0"
-statv = ">=0.1.0,<0.2.0"
+launart = ">=0.3.3"
+loguru = ">=0.6.0,<1.0.0"
+statv = ">=0.2.2"
 yarl = ">=1.7.2,<2.0.0"
 
 [package.extras]
-ujson = ["ujson (>=5.2.0,<6.0.0)"]
+aiohttp = ["aiohttp (>=3.8.1,<4.0.0)"]
+colorful = ["richuru (>=0.1.0,<1.0.0)"]
 orjson = ["orjson (>=3.6.7,<4.0.0)"]
+starlette = ["starlette (>=0.19.0,<1.0.0)"]
+ujson = ["ujson (>=5.2.0,<6.0.0)"]
+uvicorn = ["uvicorn (>=0.17.6,<1.0.0)"]
 
 [[package]]
 name = "graia-broadcast"
@@ -591,7 +600,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jupyter-client"
-version = "7.3.1"
+version = "7.3.2"
 description = "Jupyter protocol implementation and client libraries"
 category = "dev"
 optional = false
@@ -602,12 +611,12 @@ entrypoints = "*"
 jupyter-core = ">=4.9.2"
 nest-asyncio = ">=1.5.4"
 python-dateutil = ">=2.8.2"
-pyzmq = ">=22.3"
+pyzmq = ">=23.0"
 tornado = ">=6.0"
 traitlets = "*"
 
 [package.extras]
-doc = ["ipykernel", "myst-parser", "sphinx (>=1.3.6)", "sphinx-rtd-theme", "sphinxcontrib-github-alt"]
+doc = ["ipykernel", "myst-parser", "sphinx-rtd-theme", "sphinx (>=1.3.6)", "sphinxcontrib-github-alt"]
 test = ["codecov", "coverage", "ipykernel (>=6.5)", "ipython", "mypy", "pre-commit", "pytest", "pytest-asyncio (>=0.18)", "pytest-cov", "pytest-timeout"]
 
 [[package]]
@@ -627,22 +636,15 @@ test = ["ipykernel", "pre-commit", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
 name = "launart"
-version = "0.1.0"
+version = "0.3.3"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.8"
-develop = false
 
 [package.dependencies]
 loguru = ">=0.6.0"
-statv = ">=0.1.0"
-
-[package.source]
-type = "git"
-url = "https://github.com/GraiaProject/launart"
-reference = "master"
-resolved_reference = "beb337ee532837945a6abd4eb345ed61a8569128"
+statv = ">=0.2.2"
 
 [[package]]
 name = "loguru"
@@ -767,14 +769,14 @@ mkdocs = ">=1.0.3,<2.0.0"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.3.0"
+version = "8.3.2"
 description = "Documentation that simply works"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-jinja2 = ">=2.11.1"
+jinja2 = ">=3.0.2"
 markdown = ">=3.2"
 mkdocs = ">=1.3.0"
 mkdocs-material-extensions = ">=1.0.3"
@@ -1188,7 +1190,7 @@ jupyter = ["ipywidgets (>=7.5.1,<8.0.0)"]
 
 [[package]]
 name = "richuru"
-version = "0.1.0"
+version = "0.1.1"
 description = "a bridge between loguru & rich, rich's powerful render in loguru!"
 category = "main"
 optional = true
@@ -1247,7 +1249,7 @@ full = ["itsdangerous", "jinja2", "python-multipart", "pyyaml", "requests"]
 
 [[package]]
 name = "statv"
-version = "0.1.0"
+version = "0.2.2"
 description = "a uniform status implementation for graia project"
 category = "main"
 optional = false
@@ -1433,7 +1435,7 @@ standard = ["richuru", "graia-saya", "graia-scheduler"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "20d3b46066d4915776c14a9b8ac0042ea974fcac3b365ec4b45fe7d98d0aba34"
+content-hash = "1c5e0ed0b24d7bb04c887d1534b223a25f0281221f4819a2286d277fa9628b0b"
 
 [metadata.files]
 aiohttp = [
@@ -1523,10 +1525,10 @@ appnope = [
     {file = "appnope-0.1.3.tar.gz", hash = "sha256:02bd91c4de869fbb1e1c50aafc4098827a7a54ab2f39d9dcba6c9547ed920e24"},
 ]
 arclet-alconna = [
-    {file = "arclet_alconna-0.9.3.4-py3-none-any.whl", hash = "sha256:4eb9a2523c6d38bc774e81c4a9a041ecf941c99eb1f594a5cae8ec9d44242cd3"},
+    {file = "arclet_alconna-0.9.4-py3-none-any.whl", hash = "sha256:8e079133aa72c072f477d028fb043bdfdf246ccf52a4b231b804851bfaacb4bb"},
 ]
 arclet-alconna-graia = [
-    {file = "arclet_alconna_graia-0.0.13.1-py3-none-any.whl", hash = "sha256:df698262b741ca10d003f42b43e9af0652369c40b386bcc014a387c869703e8b"},
+    {file = "arclet_alconna_graia-0.0.14-py3-none-any.whl", hash = "sha256:7ab646fb745acd9c226051807a373cc9180390edfb369bfbe9770d6ac1f421e4"},
 ]
 asgiref = [
     {file = "asgiref-3.5.2-py3-none-any.whl", hash = "sha256:1d2880b792ae8757289136f1db2b7b99100ce959b2aa57fd69dab783d05afac4"},
@@ -1814,8 +1816,8 @@ ghp-import = [
     {file = "ghp_import-2.1.0-py3-none-any.whl", hash = "sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619"},
 ]
 graia-amnesia = [
-    {file = "graia-amnesia-0.5.0.tar.gz", hash = "sha256:623d3292becaf32da370d5bd7b8029fff4fdc0e264baf5334b79d771f860cee0"},
-    {file = "graia_amnesia-0.5.0-py3-none-any.whl", hash = "sha256:c91ed75d99723634eeec0a3a8a6fa05451c577b22f74278b16f545bc19130ff3"},
+    {file = "graia-amnesia-0.5.2.tar.gz", hash = "sha256:3721d91c55feee1db2dd9ccade4801492b779f8164be172e7a9fad7cf6f80108"},
+    {file = "graia_amnesia-0.5.2-py3-none-any.whl", hash = "sha256:8f5c3fa216cdc198a17b93c420ec339f007e5b44dec6a434a5276bcaf9aeca0f"},
 ]
 graia-broadcast = [
     {file = "graia-broadcast-0.16.1.tar.gz", hash = "sha256:40d532672b35d26ae0779e13f50593d5c505d8765c8545ed5bb5648bd3f7c6c2"},
@@ -1910,14 +1912,17 @@ jinja2 = [
     {file = "Jinja2-3.1.2.tar.gz", hash = "sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852"},
 ]
 jupyter-client = [
-    {file = "jupyter_client-7.3.1-py3-none-any.whl", hash = "sha256:404abe552540aff3527e66e16beb114b6b4ff58479d51a301f4eb9701e4f52ef"},
-    {file = "jupyter_client-7.3.1.tar.gz", hash = "sha256:05d4ff6a0ade25138c6bb0fbeac7ddc26b5fe835e7dd816b64b4a45b931bdc0b"},
+    {file = "jupyter_client-7.3.2-py3-none-any.whl", hash = "sha256:be7dff1c6792a951169b514b9b66e9d7ffaba811575cf49d24b73a1ca28f014a"},
+    {file = "jupyter_client-7.3.2.tar.gz", hash = "sha256:8f92691bf2d8c670e108813a0290d93a3dc84f74fb844e915b7e587ef2fcbf44"},
 ]
 jupyter-core = [
     {file = "jupyter_core-4.10.0-py3-none-any.whl", hash = "sha256:e7f5212177af7ab34179690140f188aa9bf3d322d8155ed972cbded19f55b6f3"},
     {file = "jupyter_core-4.10.0.tar.gz", hash = "sha256:a6de44b16b7b31d7271130c71a6792c4040f077011961138afed5e5e73181aec"},
 ]
-launart = []
+launart = [
+    {file = "launart-0.3.3-py3-none-any.whl", hash = "sha256:d2a58d2304373a818552ac9ae0469e9cc295d4b094cebf86b73c3793cf6c834a"},
+    {file = "launart-0.3.3.tar.gz", hash = "sha256:e82576dbce969f383134fc91f3fa0826e35c6c027b973e8582040134d5f680e0"},
+]
 loguru = [
     {file = "loguru-0.6.0-py3-none-any.whl", hash = "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"},
     {file = "loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},
@@ -1997,8 +2002,8 @@ mkdocs-literate-nav = [
     {file = "mkdocs_literate_nav-0.4.1-py3-none-any.whl", hash = "sha256:a4b761792ba21defbe2dfd5e0de6ba451639e1ca0f0661c37eda83cc6261e4f9"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.3.0.tar.gz", hash = "sha256:4cad98c47c49a86591ed16a790c07d59402901fc5345f575a3b7329403f5c66e"},
-    {file = "mkdocs_material-8.3.0-py2.py3-none-any.whl", hash = "sha256:e37e7da1c5923c5b9f0bb8c4ad90bc694fee8f966b43b302a7ff61cb2c35c2e0"},
+    {file = "mkdocs-material-8.3.2.tar.gz", hash = "sha256:d203ba166063ccd0ff83893a54f46d98e2fb3961babd7c0176cb3f95ac62df20"},
+    {file = "mkdocs_material-8.3.2-py2.py3-none-any.whl", hash = "sha256:57d910ccb6d98d0d1281cbb34a9c8ae6d820b2f5caad1d1246d8ed49eec10a50"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
@@ -2368,8 +2373,8 @@ rich = [
     {file = "rich-12.4.4.tar.gz", hash = "sha256:4c586de507202505346f3e32d1363eb9ed6932f0c2f63184dea88983ff4971e2"},
 ]
 richuru = [
-    {file = "richuru-0.1.0-py3-none-any.whl", hash = "sha256:327e0fec4246f6df73c52e10e25da413d52e698862860f68096f2c0ea2d1b48c"},
-    {file = "richuru-0.1.0.tar.gz", hash = "sha256:f655a0f91e967c98277accce6a6f575a5faeb0d6e2e9ed612cadf2b7ca6fc44f"},
+    {file = "richuru-0.1.1-py3-none-any.whl", hash = "sha256:e73d43913a372d741ff61106001b5e6adfa24c6d0665dd390328a33e34cd210d"},
+    {file = "richuru-0.1.1.tar.gz", hash = "sha256:815816f3a0142b67c53bd424fcced0821aa1104b5386301cff47fc7bbb6d90ea"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
@@ -2388,8 +2393,8 @@ starlette = [
     {file = "starlette-0.19.1.tar.gz", hash = "sha256:c6d21096774ecb9639acad41b86b7706e52ba3bf1dc13ea4ed9ad593d47e24c7"},
 ]
 statv = [
-    {file = "statv-0.1.0-py3-none-any.whl", hash = "sha256:7aa6fa41f86457fb1b8103c46a4cc3282b33034d26ea3d80499288c5c63a559d"},
-    {file = "statv-0.1.0.tar.gz", hash = "sha256:a01d0761fb8668891f797b833abfcd5c85b8aed1aafe660c79780c31e7457c69"},
+    {file = "statv-0.2.2-py3-none-any.whl", hash = "sha256:24e3c37df0db49dbb02d252ae45043342fd0862ddf4442d7f484684ad0994b34"},
+    {file = "statv-0.2.2.tar.gz", hash = "sha256:a0e3be14e8a416d3b39bff18c498672abbed4bbe9648613c5bfeb45cba05cca7"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},

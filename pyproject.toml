@@ -28,7 +28,7 @@ aiohttp = "^3.7.4"
 pydantic = "^1.8.2"
 typing-extensions = "^4.0"
 richuru = { version = "^0.1.0", optional = true }
-graia-amnesia = "^0.5.0"
+graia-amnesia = "^0.5.2"
 arclet-alconna-graia = { version = "^0.0", optional = true }
 graia-scheduler = { version = "^0.0", optional = true }
 graia-saya = { version = "^0.0", optional = true }
@@ -66,7 +66,6 @@ mkdocs-gen-files = "^0.3.4"
 mkdocs-section-index = "^0.3.3"
 mkdocs-literate-nav = "^0.4.1"
 ipykernel = "^6.13.0"
-launart = {git = "https://github.com/GraiaProject/launart"}
 
 [tool.isort]
 profile = "black"

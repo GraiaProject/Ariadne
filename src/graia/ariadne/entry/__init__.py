@@ -43,6 +43,8 @@ from ..util.validator import Quoting as Quoting
 from . import event as event
 from . import message as message
 from .broadcast import *
+from .event import AccountLaunch as AccountLaunch
+from .event import AccountShutdown as AccountShutdown
 from .event import ActiveFriendMessage as ActiveFriendMessage
 from .event import ActiveGroupMessage as ActiveGroupMessage
 from .event import ActiveMessage as ActiveMessage

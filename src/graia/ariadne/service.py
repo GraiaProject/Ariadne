@@ -122,14 +122,17 @@ class ElizabethService(Service):
 
     async def launch(self, manager: Launart):
         from .app import Ariadne
+        from .context import enter_context
         from .event.lifecycle import ApplicationLaunched, ApplicationShutdowned
 
-        async with self.stage("prepare"):
-            await self.wait_for("blocking", *self.required)
+        async with self.stage("preparing"):
             await self.prepare(manager)
+
         async with self.stage("blocking"):
             if "default_account" in Ariadne.options:
-                self.broadcast.postEvent(ApplicationLaunched(Ariadne.current()))
+                app = Ariadne.current()
+                with enter_context(app=app):
+                    self.broadcast.postEvent(ApplicationLaunched(app))
             tasks = [
                 asyncio.create_task(self.connection_daemon(conn, manager))
                 for conn in self.connections.values()
@@ -137,9 +140,10 @@ class ElizabethService(Service):
 
         async with self.stage("cleanup"):
             if "default_account" in Ariadne.options:
-                self.broadcast.postEvent(ApplicationShutdowned(Ariadne.current()))
+                app = Ariadne.current()
+                with enter_context(app=app):
+                    await self.broadcast.postEvent(ApplicationShutdowned(app))
             await self.cleanup()
-            self.status.stage = "cleanup"
             for task in tasks:
                 if not task.done():
                     task.cancel()
@@ -152,12 +156,9 @@ class ElizabethService(Service):
             requirements |= connection.dependencies
         return requirements
 
-    def on_require_prepared(self, _):
-        self.status.stage = "prepare"
-
     @property
     def stages(self):
-        return {"prepare", "blocking", "cleanup"}
+        return {"preparing", "blocking", "cleanup"}
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:

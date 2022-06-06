@@ -6,6 +6,8 @@ from graia.broadcast import Broadcast
 from launart import Service
 from loguru import logger
 
+from graia.ariadne.exception import AriadneConfigureError
+
 from .connection import (
     CONFIG_MAP,
     ConnectionInterface,
@@ -24,23 +26,29 @@ class ElizabethService(Service):
     broadcast: Broadcast
 
     def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
-        super().__init__()
         self.connections = {}
         self.broadcast = broadcast or Broadcast(loop=asyncio.new_event_loop())
+
         asyncio.set_event_loop(self.broadcast.loop)
+
         if ContextDispatcher not in self.broadcast.prelude_dispatchers:
             self.broadcast.prelude_dispatchers.append(ContextDispatcher)
         if NoneDispatcher not in self.broadcast.finale_dispatchers:
             self.broadcast.finale_dispatchers.append(NoneDispatcher)
 
+        super().__init__()
+
     def add_configs(self, configs: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
         configs = list(configs)
-        assert configs
+        if not configs:
+            raise AriadneConfigureError("No configs provided")
+
         account: int = configs[0].account
-        assert account not in self.connections, f"Account {account} already exists"
-        assert all(
-            conf.account == account for conf in configs
-        ), f"All configs must be for the account {account}"
+        if account in self.connections:
+            raise AriadneConfigureError(f"Account {account} already exists")
+        if len({i.account for i in configs}) != 1:
+            raise AriadneConfigureError("All configs must be for the same account")
+
         configs.sort(key=lambda x: isinstance(x, HttpClientInfo))
         # make sure the http client is the last one
         conns: List[ConnectionMixin] = [self.add_info(conf) for conf in configs]
@@ -62,12 +70,6 @@ class ElizabethService(Service):
             raise ValueError(f"Connection {self.connections[account]} conflicts with {connection}")
         return connection
 
-    async def prepare(self) -> None:
-        if self.broadcast:
-            assert asyncio.get_running_loop() is self.loop, "Broadcast is attached to a different loop"
-        else:
-            self.broadcast = Broadcast(loop=asyncio.get_running_loop())
-
     async def launch(self, _):
         from .app import Ariadne
         from .context import enter_context
@@ -79,7 +81,11 @@ class ElizabethService(Service):
         )
 
         async with self.stage("preparing"):
-            await self.prepare()
+            if self.broadcast:
+                if asyncio.get_running_loop() is not self.loop:
+                    raise AriadneConfigureError("Broadcast is attached to a different loop")
+            else:
+                self.broadcast = Broadcast(loop=self.loop)
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
                 with enter_context(app=app):

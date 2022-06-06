@@ -1,6 +1,9 @@
 """Ariadne 的异常定义"""
 
 
+class AriadneConfigureError(Exception):
+    """配置 Ariadne 时给出的参数包含有错误."""
+
 class InvalidEventTypeDefinition(Exception):
     """不合法的事件类型定义."""
 

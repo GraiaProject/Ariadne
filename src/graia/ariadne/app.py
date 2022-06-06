@@ -29,6 +29,8 @@ from graia.ariadne.exception import AriadneConfigureError
 from launart import Launart
 from loguru import logger
 
+from graia.ariadne.exception import AriadneConfigureError
+
 from .connection import ConnectionInterface
 from .connection._info import U_Info
 from .connection.util import CallMethod, UploadMethod, build_event

@@ -134,3 +134,5 @@ dmypy.json
 tmp/
 *.tmp
 *.temp
+
+release-notes.md

@@ -1,0 +1,67 @@
+name: Publish to PyPI
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # make release
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2.1.4
+        with:
+          poetry-version: 1.1.11
+
+      - run: |
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Poetry build
+        run: |
+          poetry build
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: dist/
+
+      - name: Poetry Publish
+        run: |
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry publish
+
+      - name: Make Release Draft
+        run: |
+          python ./extract-release-notes.py ${{ env.TAG_NAME }}
+          gh release create ${{ env.TAG_NAME }} --draft --notes-file ./release-notes.md --title "✨ ${{ env.TAG_NAME }}"
+
+      - name: Upload Artifacts to Release
+        run: |
+          gh release upload ${{ env.TAG_NAME }} --clobber dist/*.tar.gz dist/*.whl
+
+      - name: Commit and Push
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add .
+          git diff-index --quiet HEAD || git commit -m ":memo: Update changelog"
+          git push
+
+
+      - name: Merge to master
+        run: |
+          git checkout master
+          git merge dev --ff-only
+          git push origin master

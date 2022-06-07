@@ -81,10 +81,9 @@ QQ 交流群: [邀请链接](https://jq.qq.com/?_wv=1027&k=VXp6plBD)
 [![Documentation Status](https://readthedocs.org/projects/graia-ariadne/badge/?version=latest)](https://graia.readthedocs.io/projects/ariadne/)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/GraiaProject/Ariadne/master.svg)](https://results.pre-commit.ci/latest/github/GraiaProject/Ariadne/master)
 
-[![Build and deploy API Docs](https://github.com/GraiaProject/Ariadne/actions/workflows/api-docs.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/api-docs.yml)
-[![Publish to PyPI](https://github.com/GraiaProject/Ariadne/actions/workflows/release-to-pypi.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/release-to-pypi.yml)
-## 开发版资源 / 参与开发
+[![文档构建](https://github.com/GraiaProject/Ariadne/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/deploy-docs.yml)
+[![发布](https://github.com/GraiaProject/Ariadne/actions/workflows/release.yml/badge.svg)](https://github.com/GraiaProject/Ariadne/actions/workflows/release.yml)
 
-[![开发分支文档](https://img.shields.io/badge/开发分支文档-here-000099)](https://graia-dev.rtfd.io/)
-[![开发分支](https://img.shields.io/badge/开发分支-here-green)](https://github.com/GraiaProject/Ariadne/tree/dev)
-[![开始开发](https://img.shields.io/badge/开始开发-here-003399)](./CONTRIBUTING.md)
+## 参与开发
+
+[贡献指南](./CONTRIBUTING.md)

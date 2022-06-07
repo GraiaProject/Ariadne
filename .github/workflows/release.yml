@@ -52,6 +52,8 @@ jobs:
       - name: Upload Artifacts to Release
         run: |
           gh release upload ${{ env.TAG_NAME }} --clobber dist/*.tar.gz dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit and Push
         run: |

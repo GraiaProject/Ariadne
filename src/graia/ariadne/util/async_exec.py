@@ -1,4 +1,6 @@
 """本模块提供并行执行器, 及方便函数 `io_bound`, `cpu_bound`.
+
+提示: 若需要代替, 建议使用 `unsync` 库.
 """
 import asyncio
 import functools
@@ -198,17 +200,19 @@ def cpu_bound(func: Callable[P, R]) -> Callable[P, Awaitable[R]]:
     Returns:
         Callable[P, Awaitable[R]]: 包装后的函数
     """
-    ParallelExecutor.func_mapping[func.__module__, func.__qualname__] = func
+    mod = func.__module__
+    ParallelExecutor.func_mapping["__main__" if mod == "__mp_main__" else mod, func.__qualname__] = func
 
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        mod = func.__module__
         loop = asyncio.get_running_loop()
         executor = ParallelExecutor.get(loop)
         return await loop.run_in_executor(
             executor.proc_exec,
             ParallelExecutor.run_func,
             func.__qualname__,
-            func.__module__,
+            "__main__" if mod == "__mp_main__" else mod,
             args,
             kwargs,
         )

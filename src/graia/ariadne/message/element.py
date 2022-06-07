@@ -5,28 +5,26 @@ from enum import Enum
 from io import BytesIO
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, List, NoReturn, Optional, Union
+from typing import TYPE_CHECKING, Iterable, List, Optional, Union
 
+from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
+from graia.amnesia.message import Element as BaseElement
+from graia.amnesia.message import Text as BaseText
 from pydantic import validator
 from pydantic.fields import Field
 
+from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
-from ..model import AriadneBaseModel, Friend, Member, Stranger, UploadMethod
-from ..util import wrap_bracket
+from ..model import AriadneBaseModel, Friend, Member, Stranger
+from ..util import AttrConvertMixin, deprecated, escape_bracket, internal_cls
 
 if TYPE_CHECKING:
     from ..typing import ReprArgs
     from .chain import MessageChain
 
 
-class NotSendableElement(Exception):
-    """
-    指示一个元素是不可发送的.
-    """
-
-
-class Element(AriadneBaseModel):
+class Element(AriadneBaseModel, AttrConvertMixin, BaseElement):
     """
     指示一个消息中的元素.
     type (str): 元素类型
@@ -41,22 +39,31 @@ class Element(AriadneBaseModel):
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
-    @staticmethod
-    def asDisplay() -> str:
+    @deprecated("0.8.0")
+    def as_display(self) -> str:
         """返回该元素的 "显示" 形式字符串, 趋近于你见到的样子.
 
         Returns:
             str: "显示" 字符串.
         """
-        return ""
+        return str(self)
 
-    def asPersistentString(self) -> str:
+    @property
+    def display(self) -> str:
+        """该元素的 "显示" 形式字符串, 趋近于你见到的样子.
+
+        Returns:
+            str: "显示" 字符串.
+        """
+        return str(self)
+
+    def as_persistent_string(self) -> str:
         """持久化字符串表示.
 
         Returns:
             str: 持久化字符串.
         """
-        data: str = wrap_bracket(
+        data: str = escape_bracket(
             j_dump(
                 self.dict(
                     exclude={"type"},
@@ -67,21 +74,11 @@ class Element(AriadneBaseModel):
         )
         return f"[mirai:{self.type}:{data}]"
 
-    def prepare(self) -> None:
-        """
-        为元素被发送进行准备,
-        若无异常被引发, 则完成本方法后元素应可被发送.
-
-        保留空实现以允许不需要 `prepare`的元素类型存在.
-
-        若本元素设计时便不可被发送, 请引发 `NotSendableElement` 异常.
-        """
-
     def __repr_args__(self) -> "ReprArgs":
         return list(self.dict(exclude={"type"}).items())
 
     def __str__(self) -> str:
-        return self.asDisplay()
+        return ""
 
     def __add__(self, content: Union["MessageChain", List["Element"], "Element", str]) -> "MessageChain":
         from .chain import MessageChain
@@ -106,7 +103,7 @@ class Element(AriadneBaseModel):
         return MessageChain([self] + content, inline=True)
 
 
-class Plain(Element):
+class Plain(Element, BaseText):
     """代表消息中的文本元素"""
 
     type: str = "Plain"
@@ -120,15 +117,19 @@ class Plain(Element):
         Args:
             text (str): 元素所包含的文字
         """
-        super().__init__(text=text, **kwargs)  # type: ignore
+        super().__init__(text=text)  # type: ignore
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return self.text
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return self.text
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, (Plain, BaseText)) and self.text == other.text
 
+
+@internal_cls()
 class Source(Element):
     """表示消息在一个特定聊天区域内的唯一标识"""
 
@@ -140,26 +141,21 @@ class Source(Element):
     time: datetime
     """发送时间"""
 
-    def prepare(self) -> NoReturn:
-        raise NotSendableElement
-
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
-    async def fetchOriginal(self) -> "MessageChain":
+    async def fetch_original(self) -> "MessageChain":
         """尝试从本元素恢复原本的消息链, 有可能失败.
 
         Returns:
             MessageChain: 原来的消息链.
         """
-        from .. import get_running
         from ..app import Ariadne
 
-        ariadne = get_running(Ariadne)
-
-        return (await ariadne.getMessageFromId(self.id)).messageChain
+        return (await Ariadne.current().get_message_from_id(self.id)).message_chain
 
 
+@internal_cls()
 class Quote(Element):
     """表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"""
 
@@ -186,10 +182,7 @@ class Quote(Element):
 
         return MessageChain(v)  # no need to parse objects, they are universal!
 
-    def prepare(self) -> NoReturn:
-        raise NotSendableElement
-
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
 
@@ -201,7 +194,7 @@ class At(Element):
     target: int
     """At 的目标 QQ 号"""
 
-    display: Optional[str] = None
+    representation: Optional[str] = Field(None, alias="display")
     """显示名称"""
 
     def __init__(self, target: Union[int, Member] = ..., **data) -> None:
@@ -226,8 +219,8 @@ class At(Element):
                 f"you cannot use this element in this method: {upload_method_ctx.get().value}"
             )
 
-    def asDisplay(self) -> str:
-        return f"@{self.display}" if self.display else f"@{self.target}"
+    def __str__(self) -> str:
+        return f"@{self.representation}" if self.representation else f"@{self.target}"
 
 
 class AtAll(Element):
@@ -238,7 +231,7 @@ class AtAll(Element):
     def __init__(self, *_, **__) -> None:
         super().__init__()
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "@全体成员"
 
     def prepare(self) -> None:
@@ -266,18 +259,16 @@ class Face(Element):
             data.update(name=name)
         super().__init__(**data)
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[表情: {self.name or self.faceId}]"
 
     def __eq__(self, other) -> bool:
         return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
 
 
+@internal_cls()
 class MarketFace(Element):
-    """表示消息中的商城表情.
-
-    注意: 本类型不支持用户发送
-    """
+    """表示消息中的商城表情."""
 
     type: str = "MarketFace"
 
@@ -287,7 +278,7 @@ class MarketFace(Element):
     name: Optional[str] = None
     """QQ 表情名称"""
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[商城表情: {self.name or self.faceId}]"
 
     def __eq__(self, other) -> bool:
@@ -305,7 +296,7 @@ class Xml(Element):
     def __init__(self, xml: str, **_) -> None:
         super().__init__(xml=xml)
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "[XML消息]"
 
 
@@ -325,7 +316,7 @@ class Json(Element):
     def dict(self, *args, **kwargs):
         return super().dict(*args, **({**kwargs, "by_alias": True}))
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "[JSON消息]"
 
 
@@ -340,7 +331,7 @@ class App(Element):
     def __init__(self, content: str, **_) -> None:
         super().__init__(content=content)
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "[APP消息]"
 
 
@@ -407,7 +398,7 @@ class Poke(Element):
     def __init__(self, name: PokeMethods, *_, **__) -> None:
         super().__init__(name=name)
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[戳一戳:{self.name}]"
 
 
@@ -422,7 +413,7 @@ class Dice(Element):
     def __init__(self, value: int, *_, **__) -> None:
         super().__init__(value=value)
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[骰子:{self.value}]"
 
 
@@ -492,7 +483,7 @@ class MusicShare(Element):
             brief=brief,
         )
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[音乐分享:{self.title}, {self.brief}]"
 
 
@@ -563,13 +554,14 @@ class Forward(Element):
             data.update(nodeList=nodeList)
         super().__init__(**data)
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[合并转发:共{len(self.nodeList)}条]"
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
 
 
+@internal_cls()
 class File(Element):
     """指示一个文件信息元素"""
 
@@ -584,14 +576,11 @@ class File(Element):
     size: int
     """文件大小"""
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return f"[文件:{self.name}]"
 
-    def asPersistentString(self) -> str:
+    def as_persistent_string(self) -> str:
         return ""
-
-    def prepare(self) -> None:
-        raise NotSendableElement
 
 
 class MiraiCode(Element):
@@ -680,37 +669,32 @@ class MultimediaElement(Element):
         Returns:
             bytes: 元素原始数据
         """
-        from .. import get_running
-        from ..adapter import Adapter
+        from ..app import Ariadne
 
         if self.base64:
             return b64decode(self.base64)
         if not self.url:
             raise ValueError("you should offer a url.")
-        session = get_running(Adapter).session
-        if not session:
-            raise RuntimeError("Unable to get session!")
+        session = Ariadne.launch_manager.get_interface(AiohttpClientInterface).service.session
         async with session.get(self.url) as response:
             response.raise_for_status()
             data = await response.read()
             self.base64 = b64encode(data).decode("ascii")
             return data
 
-    def asNoBinaryPersistentString(self) -> str:
-        """生成不附带二进制数据的持久化字符串
-
-        Returns:
-            str: 持久化字符串
-        """
-        data: str = wrap_bracket(
-            j_dump(
-                self.dict(
-                    exclude={"type", "base64"},
-                ),
-                indent=None,
-                separators=(",", ":"),
+    def as_persistent_string(self, binary: bool = True) -> str:
+        if binary:
+            return super().as_persistent_string()
+        else:
+            data: str = escape_bracket(
+                j_dump(
+                    self.dict(
+                        exclude={"type", "base64"},
+                    ),
+                    indent=None,
+                    separators=(",", ":"),
+                )
             )
-        )
         return f"[mirai:{self.type}:{data}]"
 
     @property
@@ -749,7 +733,7 @@ class Image(MultimediaElement):
     ) -> None:
         super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
 
-    def toFlashImage(self) -> "FlashImage":
+    def to_flash_image(self) -> "FlashImage":
         """将 Image 转换为 FlashImage
 
         Returns:
@@ -758,7 +742,7 @@ class Image(MultimediaElement):
         return FlashImage.parse_obj({**self.dict(), "type": "FlashImage"})
 
     @classmethod
-    def fromFlashImage(cls, flash: "FlashImage") -> "Image":
+    def from_flash_image(cls, flash: "FlashImage") -> "Image":
         """从 FlashImage 构造 Image
 
         Returns:
@@ -766,7 +750,7 @@ class Image(MultimediaElement):
         """
         return cls.parse_obj({**flash.dict(), "type": "Image"})
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "[图片]"
 
 
@@ -787,7 +771,7 @@ class FlashImage(Image):
     ) -> None:
         super().__init__(id=id, url=url, path=path, base64=base64, data_bytes=data_bytes, **kwargs)
 
-    def toImage(self) -> "Image":
+    def to_image(self) -> "Image":
         """将 FlashImage 转换为 Image
 
         Returns:
@@ -796,7 +780,7 @@ class FlashImage(Image):
         return Image.parse_obj({**self.dict(), "type": "Image"})
 
     @classmethod
-    def fromImage(cls, image: "Image") -> "FlashImage":
+    def from_image(cls, image: "Image") -> "FlashImage":
         """从 Image 构造 FlashImage
 
         Returns:
@@ -804,7 +788,7 @@ class FlashImage(Image):
         """
         return cls.parse_obj({**image.dict(), "type": "FlashImage"})
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "[闪照]"
 
 
@@ -830,7 +814,7 @@ class Voice(MultimediaElement):
     length: Optional[int]
     """语音长度"""
 
-    def asDisplay(self) -> str:
+    def __str__(self) -> str:
         return "[语音]"
 
 

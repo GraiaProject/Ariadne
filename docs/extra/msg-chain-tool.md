@@ -14,10 +14,10 @@
 
     ```py
     Formatter("{name} {type} {version} {0}").format(
-        MessageChain.create(Plain("bars"), At(111111)),
+        MessageChain(Plain("bars"), At(111111)),
         name="pog",
         type=Plain("coroutine"),
-        version=MessageChain.create(Plain("3.2.1"), At(87654321)),
+        version=MessageChain(Plain("3.2.1"), At(87654321)),
     )
     ```
 
@@ -28,7 +28,8 @@
         [
             Plain(text='pog coroutine 3.2.1',),
             At(target=87654321,),
-            Plain(text=' bars',),At(target=111111,),
+            Plain(text=' bars',),
+            At(target=111111,),
         ],
     )
     # <MessageChain> len=4

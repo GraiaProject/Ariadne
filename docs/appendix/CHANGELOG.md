@@ -1,5 +1,28 @@
 # 更改日志
 
+## Unreleased
+
+### 新增
+
+支持 `Twilight` 使用 `predicate` 进行先行条件判定 (#167)
+
+`DetectPrefix` 与 `DetectSuffix` 支持多个前后缀匹配 (#149) (@luoxhei)
+
+`MentionMe` 支持多种匹配方式.
+
+提供 Broadcast 中 `Derive` 风格的消息链匹配器支持.
+
+添加了 `py.typed` 文件.
+
+### 修改
+
+全面推荐使用 `snake_case` 的方法和事件属性，清除了一批无用方法函数.
+
+使用 `Amnesia` 作为后端. (#156)
+
+修复内置的 Waiter (#164)
+
+
 ## 0.6.16
 
 ### 新增

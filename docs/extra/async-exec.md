@@ -71,7 +71,7 @@ def foo(n: int) -> int:
 
 !!! warning "提示"
 
-    注意其签名为 `(func: Callable[P, R], *args, *kwargs) -> Awaitable[R]`. 也就是说, 不用传入元组作为打包的参数了.
+    注意其签名为 `(func: Callable[P, R], *args, **kwargs) -> Awaitable[R]`. 也就是说, 不用传入元组作为打包的参数了.
 
 ## 进一步控制
 

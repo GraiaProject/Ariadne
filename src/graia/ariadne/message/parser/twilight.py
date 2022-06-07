@@ -15,6 +15,7 @@ from typing import (
     Generic,
     Iterable,
     List,
+    Literal,
     Optional,
     Type,
     TypedDict,
@@ -25,6 +26,7 @@ from typing import (
     overload,
 )
 
+from graia.broadcast.builtin.derive import DeriveDispatcher
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
@@ -33,10 +35,11 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 from typing_extensions import Self
 
-from ...typing import T, generic_isinstance, generic_issubclass
+from ...typing import AnnotatedType, Sentinel, T, generic_isinstance, generic_issubclass
 from ...util import gen_subclass
 from ..chain import MessageChain
 from ..element import Element
+from .base import ChainDecorator
 from .util import (
     CommandToken,
     ElementType,
@@ -313,12 +316,12 @@ class ArgumentMatch(Match, Generic[T]):
         def __init__(  # type: ignore
             self,
             *pattern: str,
-            action: Union[str, Type[Action]] = ...,
-            nargs: Union[int, str] = ...,
-            const: T = ...,
-            default: T = ...,
-            type: Callable[[str], T] = ...,
-            choices: Iterable[T] = ...,
+            action: Union[str, Type[Action], Literal[Sentinel]] = Sentinel,
+            nargs: Union[int, str, Literal[Sentinel]] = Sentinel,
+            const: Union[T, Literal[Sentinel]] = Sentinel,
+            default: Union[T, Literal[Sentinel]] = Sentinel,
+            type: Union[Callable[[str], T], Literal[Sentinel]] = Sentinel,
+            choices: Union[Iterable[T], Literal[Sentinel]] = Sentinel,
             optional: bool = True,
         ):
             """初始化 ArgumentMatch 对象.
@@ -551,7 +554,7 @@ class TwilightMatcher:
         formatter = formatter_class(prog="")
 
         if usage:
-            formatter.add_usage(None, self._parser._actions, [], prefix=usage + " ")
+            formatter.add_usage(None, self._parser._actions, [], prefix=f"{usage} ")
 
         formatter.add_text(description)
 
@@ -599,14 +602,18 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         self,
         *root: Union[Iterable[Match], Match],
         map_param: Optional[Dict[str, bool]] = None,
+        preprocessor: Union[ChainDecorator, AnnotatedType, None] = None,
     ) -> None:
         """本魔法方法用于初始化本实例.
 
         Args:
             *root (Iterable[Match] | Match): 匹配规则.
-            map_param (Dict[str, bool], optional): 向 MessageChain.asMappingString 传入的参数.
+            map_param (Dict[str, bool], optional): 控制 MessageChain 转化的参数.
+            preprocessor (ChainDecorator, optional): 消息链预处理器. \
+            应该来自 `graia.ariadne.message.parser.base` 模块. Defaults to None.
         """
         self.map_param = map_param or {}
+        self.preprocessor = preprocessor
         self.help_data: Optional[_TwilightHelpArgs] = None
         self.help_id: str = TwilightHelpManager.AUTO_ID
         self.help_brief: str = TwilightHelpManager.AUTO_ID
@@ -629,7 +636,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         arguments: List[str] = split(mapping_str, keep_quote=True)
         res = self.matcher.match(arguments, elem_mapping)
         elem_mapping_ctx.reset(token)
-        return Sparkle(res)  # type: ignore
+        return cast(T_Sparkle, Sparkle(res))
 
     @classmethod
     def from_command(  # ANCHOR: Sparkle: From command
@@ -744,7 +751,17 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             ExecutionStop: 匹配以任意方式失败
         """
         local_storage = interface.local_storage
-        chain: MessageChain = await interface.lookup_param("message_chain", MessageChain, None)
+        chain: MessageChain
+        if isinstance(self.preprocessor, ChainDecorator):
+            chain = await interface.lookup_by_directly(
+                DecoratorInterface(), "message_chain", MessageChain, self.preprocessor
+            )
+        elif isinstance(self.preprocessor, AnnotatedType):
+            chain = await interface.lookup_by_directly(
+                DeriveDispatcher(), "twilight_derive", self.preprocessor, None
+            )
+        else:
+            chain = await interface.lookup_param("message_chain", MessageChain, None)
         with contextlib.suppress(Exception):
             local_storage[f"{__name__}:result"] = self.generate(chain)
             local_storage[f"{__name__}:twilight"] = self
@@ -761,7 +778,12 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         if interface.name in sparkle.res:
             result = sparkle.get(interface.name)
             if generic_isinstance(result.origin, interface.annotation):
-                return result.origin
+                from loguru import logger
+
+                logger.warning(
+                    f"Please use {interface.name}: {result.__class__.__qualname__} to get origin attribute!"
+                )
+                raise ExecutionStop
             if any(
                 generic_issubclass(res_cls, interface.annotation) for res_cls in gen_subclass(MatchResult)
             ):

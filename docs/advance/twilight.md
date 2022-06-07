@@ -18,8 +18,8 @@ from graia.ariadne.message.parser.twilight import Twilight, FullMatch, ParamMatc
 twilight = Twilight([FullMatch("指令"), ParamMatch() @ "param"])
 
 @broadcast.receiver(GroupMessage, dispatchers=[twilight])
-async def twilight_handler(event: GroupMessage, app: Ariadne, param: RegexResult):
-    await app.sendMessage(event, "收到指令: " + param.result)
+async def twilight_handler(event: Group, app: Ariadne, param: RegexResult):
+    await app.send_message(group, "收到指令: " + param.result)
 ```
 
 接下来, 让我们解析一下这段代码:
@@ -150,7 +150,7 @@ async def reply(..., arg: RegexResult):
     ...
 ```
 
-!!! note "使用 `Sparkle`, `Match`, `MatchResult` 的子类进行标注都是可以的."
+!!! note "使用 `Sparkle`, `MatchResult` 的子类进行标注都是可以的."
 
 一旦匹配失败 (`generate` 抛出异常), `Broadcast` 的本次执行就会被取消.
 
@@ -165,6 +165,20 @@ async def reply(..., arg: RegexResult):
 - `MatchResult.matched`: 对应的 `Match` 对象是否匹配.
 - `MatchResult.origin`: 原始 `Match` 对象.
 - `MatchResult.result`: 匹配结果.
+
+### 使用 preprocessor
+
+`0.7.0` 以后, `Twilight` 支持使用 `preprocessor` 关键字参数进行预修饰.
+
+`preprocessor` 内应放置 [基础消息链处理器](./../basic/base-parser.md) 或者使用了 [`Derive`](./broadcast/derive.md) 特性的 [`Annotated`][typing.Annotated] 对象.
+
+例如:
+
+```py
+Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=MentionMe())
+
+Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=Annotated[MessageChain, MentionMe()])
+```
 
 ### ResultValue 装饰器
 

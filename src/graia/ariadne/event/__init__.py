@@ -5,9 +5,10 @@ from pydantic import validator
 from ..dispatcher import BaseDispatcher
 from ..exception import InvalidEventTypeDefinition
 from ..model import AriadneBaseModel
+from ..util import AttrConvertMixin
 
 
-class MiraiEvent(Dispatchable, AriadneBaseModel):
+class MiraiEvent(Dispatchable, AriadneBaseModel, AttrConvertMixin):
     """Ariadne 的事件基类"""
 
     type: str
@@ -23,3 +24,8 @@ class MiraiEvent(Dispatchable, AriadneBaseModel):
         return v
 
     Dispatcher = BaseDispatcher
+
+
+from . import lifecycle as lifecycle  # noqa: F401, E402
+from . import message as message  # noqa: F401, E402
+from . import mirai as mirai  # noqa: F401, E402

@@ -224,7 +224,7 @@ Arg("--option {value}", default=MessageChain(["default"])) # 默认 type 为 Mes
 ```py title="示例"
 def cast_to_list(value: MessageChain, field: ModelField):
     if field.outer_type_ is List[str]:
-        return value.asDisplay().split(".")
+        return value.display.split(".")
     if field.outer_type_ is List[MessageChain]:
         return value.split(".")
     return value

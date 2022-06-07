@@ -10,19 +10,16 @@ if TYPE_CHECKING:
     from graia.broadcast import Broadcast
     from graia.broadcast.entities.event import Dispatchable
 
-    from .adapter import Adapter
-    from .app import AriadneMixin
-    from .model import UploadMethod
+    from .app import Ariadne
+    from .connection.util import UploadMethod
 
-    ariadne_ctx: ContextVar[AriadneMixin] = ContextVar("ariadne")
-    adapter_ctx: ContextVar[Adapter] = ContextVar("adapter")
+    ariadne_ctx: ContextVar[Ariadne] = ContextVar("ariadne")
     event_ctx: ContextVar[Dispatchable] = ContextVar("event")
     event_loop_ctx: ContextVar[AbstractEventLoop] = ContextVar("event_loop")
     broadcast_ctx: ContextVar[Broadcast] = ContextVar("broadcast")
     upload_method_ctx: ContextVar[UploadMethod] = ContextVar("upload_method")
 else:  # for not crashing pdoc
     ariadne_ctx = ContextVar("ariadne")
-    adapter_ctx = ContextVar("adapter")
     event_ctx = ContextVar("event")
     event_loop_ctx = ContextVar("event_loop")
     broadcast_ctx = ContextVar("broadcast")
@@ -30,7 +27,6 @@ else:  # for not crashing pdoc
 
 context_map: Dict[str, ContextVar] = {
     "Ariadne": ariadne_ctx,
-    "Adapter": adapter_ctx,
     "Dispatchable": event_ctx,
     "AbstractEventLoop": event_loop_ctx,
     "Broadcast": broadcast_ctx,
@@ -51,7 +47,7 @@ def enter_message_send_context(method: "UploadMethod"):
 
 
 @contextmanager
-def enter_context(app: Optional["AriadneMixin"] = None, event: Optional["Dispatchable"] = None):
+def enter_context(app: Optional["Ariadne"] = None, event: Optional["Dispatchable"] = None):
     """进入事件上下文
 
     Args:
@@ -60,22 +56,17 @@ def enter_context(app: Optional["AriadneMixin"] = None, event: Optional["Dispatc
     """
     token_loop = None
     token_bcc = None
-    token_adapter = None
-
     token_app = None
     if app:
         token_app = ariadne_ctx.set(app)
-        token_loop = event_loop_ctx.set(app.broadcast.loop)
-        token_bcc = broadcast_ctx.set(app.broadcast)
-        token_adapter = adapter_ctx.set(app.adapter)
+        token_loop = event_loop_ctx.set(app.service.loop)
+        token_bcc = broadcast_ctx.set(app.service.broadcast)
     token_event = event_ctx.set(event) if event else None
     yield
 
     with suppress(ValueError):
         if token_app:
             ariadne_ctx.reset(token_app)
-        if token_adapter:
-            adapter_ctx.reset(token_adapter)
         if token_event:
             event_ctx.reset(token_event)
         if token_loop:

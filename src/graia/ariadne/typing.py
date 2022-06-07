@@ -1,7 +1,11 @@
 """Ariadne 的类型标注"""
 
+import builtins
 import contextlib
+import enum
+import sys
 import typing
+from types import MethodType
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -17,7 +21,7 @@ from typing import (
     Union,
 )
 
-from typing_extensions import ParamSpec, Protocol, runtime_checkable
+from typing_extensions import Annotated, ParamSpec, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from .message.chain import MessageChain
@@ -170,3 +174,29 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
             if par.__bound__:
                 return generic_isinstance(obj, par.__bound__)
     return False
+
+
+class _SentinelClass(enum.Enum):
+    _Sentinel = object()
+
+
+Sentinel = _SentinelClass._Sentinel
+
+AnnotatedType = type(Annotated[int, lambda x: x > 0])
+
+if sys.version_info >= (3, 9):
+    classmethod = builtins.classmethod
+else:
+
+    class classmethod:
+        "Emulate PyClassMethod_Type()"
+
+        def __init__(self, f):
+            self.f = f
+
+        def __get__(self, obj, cls=None):
+            if cls is None:
+                cls = type(obj)
+            if hasattr(type(self.f), "__get__"):
+                return self.f.__get__(cls, cls)
+            return MethodType(self.f, cls)

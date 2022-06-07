@@ -26,9 +26,10 @@ class ApplicationLifecycleEvent(Dispatchable):
         async def catch(interface: "DispatcherInterface"):
             from ..app import Ariadne
 
-            if isinstance(interface.event, ApplicationLifecycleEvent):
-                if generic_issubclass(Ariadne, interface.annotation):
-                    return interface.event.app
+            if isinstance(interface.event, ApplicationLifecycleEvent) and generic_issubclass(
+                Ariadne, interface.annotation
+            ):
+                return interface.event.app
 
 
 class ApplicationLaunched(ApplicationLifecycleEvent):
@@ -43,13 +44,13 @@ class ApplicationShutdowned(ApplicationLifecycleEvent):
     """
 
 
-class AdapterLaunched(ApplicationLifecycleEvent):
+class AccountLaunch(ApplicationLifecycleEvent):
     """
-    指示远程适配器启动了.
+    指示账号的链接已启动.
     """
 
 
-class AdapterShutdowned(ApplicationLifecycleEvent):
+class AccountShutdown(ApplicationLifecycleEvent):
     """
-    指示远程适配器关闭了.
+    指示账号的链接关闭.
     """

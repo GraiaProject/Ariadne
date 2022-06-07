@@ -4,6 +4,10 @@
 
     `Console` 的底层 `prompt-toolkit` 并不完备...... <span class="curtain">所以别拿着 prompt-toolkit 的 bug 来找我</span>
 
+!!! error "注意"
+
+    `0.7.0` 后 `Console` 与 `richuru` 同时使用并不理想.
+
 `Console` 是可以与 `Ariadne` 分离的, 不过它默认会与 `Ariadne` 一起启动与停止,
 你可以通过在实例化时传入 `listen_launch`, `listen_shutdown` 来控制这个行为.
 

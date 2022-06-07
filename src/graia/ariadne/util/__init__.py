@@ -2,35 +2,23 @@
 """
 
 # Utility Layout
-import asyncio
-import collections
-import contextlib
 import functools
 import inspect
-import logging
 import sys
-import traceback
-import types
 import typing
 import warnings
-from asyncio.events import AbstractEventLoop
 from contextvars import ContextVar
-from types import TracebackType
 from typing import (
     TYPE_CHECKING,
     Any,
-    AsyncIterator,
     Callable,
-    Coroutine,
-    Deque,
+    ClassVar,
     Dict,
     Generator,
-    Generic,
     Iterable,
     List,
-    Literal,
+    MutableSet,
     Optional,
-    Set,
     Tuple,
     Type,
     TypeVar,
@@ -42,97 +30,12 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
-from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
 
 from ..typing import DictStrAny, P, R, T
-
-
-def type_repr(obj: Any) -> str:
-    if isinstance(obj, types.GenericAlias):
-        return repr(obj)
-    if isinstance(obj, type):
-        if obj.__module__ == "builtins":
-            return obj.__qualname__
-        return f"{obj.__module__}.{obj.__qualname__}"
-    if obj is ...:
-        return "..."
-    if isinstance(obj, types.FunctionType):
-        return obj.__name__
-    return repr(obj)
-
-
-def loguru_excepthook(cls: Type[BaseException], val: BaseException, tb: TracebackType, *_, **__):
-    """loguru 异常回调
-
-    Args:
-        cls (Type[Exception]): 异常类
-        val (Exception): 异常的实际值
-        tb (TracebackType): 回溯消息
-    """
-    exec_module_name = tb.tb_frame.f_globals.get("__name__", "")
-    if issubclass(cls, ExecutionStop) and exec_module_name.startswith("graia"):
-        return
-    elif isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
-        with contextlib.suppress(Exception):
-            local_dict = tb.tb_frame.f_locals
-            _, param_name, param_anno, param_default = val.args
-            if isinstance(param_anno, type):
-                param_anno = param_anno.__qualname__
-            param_repr = "".join(
-                [
-                    param_name,
-                    f": {type_repr(param_anno)}" if param_anno else "",
-                    f" = {param_default}" if param_default else "",
-                ]
-            )
-            val = RequirementCrashed(
-                "Unable to lookup parameter " f"({param_repr})",
-                local_dict["dispatchers"],
-            )
-
-    logger.opt(exception=(cls, val, tb)).error("Exception:")
-
-
-def loguru_async_handler(_, ctx: dict):
-    """loguru 异步异常回调
-
-    Args:
-        _ (AbstractEventLoop): 异常发生的事件循环
-        ctx (dict): 异常上下文
-    """
-    if "exception" in ctx:
-        logger.opt(exception=ctx["exception"]).error("Exception:")
-    else:
-        logger.error(f"Exception: {ctx}")
-
-
-class LoguruHandler(logging.Handler):
-    def emit(self, record):
-        # Get corresponding Loguru level if it exists
-        try:
-            level = logger.level(record.levelname).name
-        except ValueError:
-            level = record.levelno
-
-        # Find caller from where originated the logged message
-        frame, depth = logging.currentframe(), 2
-        while frame and frame.f_code.co_filename == logging.__file__:
-            frame = frame.f_back
-            depth += 1
-
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-
-
-def inject_loguru_traceback(loop: Optional[AbstractEventLoop] = None):
-    """使用 loguru 模块替换默认的 traceback.print_exception 与 sys.excepthook"""
-    traceback.print_exception = loguru_excepthook
-    sys.excepthook = loguru_excepthook
-    if loop:
-        loop.set_exception_handler(loguru_async_handler)
 
 
 def inject_bypass_listener(broadcast: Broadcast):
@@ -179,43 +82,7 @@ def inject_bypass_listener(broadcast: Broadcast):
         pass
 
 
-class AsyncSignal(Generic[T]):
-    """模拟 asyncio.Event, 但是支持 sig.wait(Hashable)"""
-
-    def __init__(self, value: T = None) -> None:
-        self._waiters: Dict[T, Deque[asyncio.Future]] = {}
-        self._value: T = value
-        self._special: Dict[str, asyncio.Future] = {}
-
-    def __repr__(self) -> str:
-        waiter_str = f", waiters: {len(self._waiters)}" if self._waiters else ""
-        return f"<AsyncSignal [value: {self._value}{waiter_str}]>"
-
-    def value(self) -> T:
-        return self._value
-
-    def set(self, value: T) -> None:
-        self._value = value
-
-        waiter_deque = self._waiters.setdefault(value, collections.deque())
-
-        for fut in waiter_deque:
-            if not fut.done():
-                fut.set_result(True)
-        waiter_deque.clear()
-
-    async def wait(self, value: T, wait_id: Optional[str] = None) -> Literal[True]:
-        if self._value == value:
-            return True
-
-        fut = asyncio.get_running_loop().create_future()
-        if wait_id:
-            self._special[wait_id] = fut
-        self._waiters.setdefault(value, collections.deque()).append(fut)
-        return await fut
-
-
-def app_ctx_manager(func: Callable[P, R]) -> Callable[P, R]:
+def ariadne_api(func: Callable[P, R]) -> Callable[P, R]:
     """包装声明需要在 Ariadne Context 中执行的函数
 
     Args:
@@ -253,12 +120,12 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
         yield from gen_subclass(sub_cls)
 
 
-def wrap_bracket(string: str) -> str:
+def escape_bracket(string: str) -> str:
     """在字符串中转义中括号括号"""
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
-def const_call(val: T) -> Callable[[], T]:
+def constant(val: T) -> Callable[[], T]:
     """生成一个返回常量的 Callable
 
     Args:
@@ -270,7 +137,7 @@ def const_call(val: T) -> Callable[[], T]:
     return lambda: val
 
 
-def eval_ctx(
+def get_stack_namespace(
     layer: int = 0, globals_: Optional[DictStrAny] = None, locals_: Optional[DictStrAny] = None
 ) -> Tuple[DictStrAny, DictStrAny]:
     """获取一个上下文的全局和局部变量
@@ -293,45 +160,6 @@ def eval_ctx(
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-async def await_predicate(predicate: Callable[[], bool], interval: float = 0.01) -> None:
-    """异步阻塞至满足 predicate 为 True
-
-    Args:
-        predicate (Callable[[], bool]): 判断条件
-        interval (float, optional): 每次检查间隔. Defaults to 0.01.
-    """
-    while not predicate():
-        await asyncio.sleep(interval)
-
-
-async def yield_with_timeout(
-    getter_coro: Callable[[], Coroutine[None, None, T]],
-    predicate: Callable[[], bool],
-    await_length: float = 0.2,
-) -> AsyncIterator[T]:
-    """在满足 predicate 时返回 getter_coro() 的值
-
-    Args:
-        getter_coro (Callable[[], Coroutine[None, None, T]]): 要循环返回的协程函数.
-        predicate (Callable[[], bool]): 条件回调函数.
-        await_length (float, optional): 等待目前协程的时长. 默认 0.2s.
-
-    Yields:
-        T: getter_coro 的返回值
-    """
-    last_tsk: Optional[Set["asyncio.Task[T]"]] = None
-    while predicate():
-        last_tsk = last_tsk or {asyncio.create_task(getter_coro())}
-        done, last_tsk = await asyncio.wait(last_tsk, timeout=await_length)
-        if not done:
-            continue
-        for t in done:
-            yield await t
-    if last_tsk:
-        for tsk in last_tsk:
-            tsk.cancel()
-
-
 def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """标注一个方法 / 函数已被弃用
 
@@ -342,12 +170,19 @@ def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
         Callable[[T_Callable], T_Callable]: 包装器.
     """
 
+    __warning_info: MutableSet[Tuple[str, int]] = set()
+
     def out_wrapper(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
-            logger.warning(f"Deprecated function: {func.__qualname__}")
-            logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
+            frame = inspect.stack()[1].frame
+            caller_file = frame.f_code.co_filename
+            caller_line = frame.f_lineno
+            if (caller_file, caller_line) not in __warning_info:
+                __warning_info.add((caller_file, caller_line))
+                warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
+                logger.warning(f"Deprecated function: {func.__qualname__}")
+                logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
             return func(*args, **kwargs)
 
         return wrapper
@@ -399,35 +234,6 @@ class Dummy:
         return self
 
 
-def signal_handler(callback: Callable[[], None], one_time: bool = True) -> None:
-    """注册信号处理器
-    Args:
-        callback (Callable[[], None]): 信号处理器
-        one_time (bool, optional): 是否只执行一次. 默认为 True.
-    Returns:
-        None
-    """
-    import signal
-    import threading
-
-    if not threading.main_thread().ident == threading.current_thread().ident:
-        return
-
-    HANDLED_SIGNAL = (signal.SIGINT, signal.SIGTERM)
-
-    for sig in HANDLED_SIGNAL:
-        handler = signal.getsignal(sig)
-
-        def handler_wrapper(sig_num, frame):
-            if callable(handler):
-                handler(sig_num, frame)
-            callback()
-            if one_time:
-                signal.signal(sig_num, handler)
-
-        signal.signal(sig, handler_wrapper)
-
-
 def get_cls(obj) -> Optional[type]:
     if cls := typing.get_origin(obj):
         return cls
@@ -435,11 +241,60 @@ def get_cls(obj) -> Optional[type]:
         return obj
 
 
-# Import layout
-from . import async_exec  # noqa: F401, E402
-from .async_exec import (  # noqa: F401, E402
-    IS_MAIN_PROCESS,
-    ParallelExecutor,
-    cpu_bound,
-    io_bound,
-)
+_T_cls = TypeVar("_T_cls", bound=type)
+
+
+def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Callable[[_T_cls], _T_cls]:
+    if alt:
+        hint = f"Use {alt.__module__}.{alt.__qualname__}!"
+    else:
+        hint = f"Only modules start with {module} can initialize it!"
+
+    def deco(cls: _T_cls) -> _T_cls:
+        origin_init = cls.__init__
+
+        @functools.wraps(origin_init)
+        def _wrapped_init_(self: object, *args, **kwargs):
+            frame = inspect.stack()[1].frame  # outer frame
+            module_name: str = frame.f_globals["__name__"]
+            if not module_name.startswith(module):
+                raise NameError(
+                    f"{self.__class__.__module__}.{self.__class__.__qualname__} is an internal class!",
+                    hint,
+                )
+            return origin_init(self, *args, **kwargs)
+
+        cls.__init__ = _wrapped_init_
+        return cls
+
+    return deco
+
+
+def camel_to_snake(name: str) -> str:
+    import re
+
+    name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
+    name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
+    name = name.replace("-", "_").lower()
+    return name
+
+
+class AttrConvertMixin:
+    __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
+
+    def __getattr__(self, name: str) -> Any:
+        # camelCase to snake_case
+        name = camel_to_snake(name)
+        if name not in self.__class__.__dict__:
+            raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
+        # extract caller's file and line number
+        frame = inspect.stack()[1].frame
+        caller_file = frame.f_code.co_filename
+        caller_line = frame.f_lineno
+        AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
+        if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
+            AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
+            if not name.startswith("_"):
+                logger.warning(f"At {caller_file}:{caller_line}")
+                logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
+        return getattr(self, name)

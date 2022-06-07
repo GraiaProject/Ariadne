@@ -92,53 +92,45 @@ singleMode: false
 cacheSize: 4096
 
 ## adapter 的单独配置，键名与 adapters 项配置相同
+## 注意: 如果 mirai 读取配置时出错可以尝试删除并重新写入
 adapterSettings:
-  ## 详情看 http adapter 使用说明 配置
+  ## HTTP 服务的主机, 端口和跨域设置
   http:
     host: localhost
     port: 8080
     cors: ["*"]
 
-  ## 详情看 websocket adapter 使用说明 配置
+  ## Websocket 服务的主机, 端口和事件同步ID设置
   ws:
     host: localhost
     port: 8080
     reservedSyncId: -1
-    # 建议确保为负数，否则可能出 bug
+
 ```
 
 将以下代码保存到文件 `bot.py` 内, 确保该文件位于你的工作区内:
 
 ```python
-import asyncio
-
-from graia.broadcast import Broadcast
-
 from graia.ariadne.app import Ariadne
+from graia.ariadne.entry import config
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import Plain
-from graia.ariadne.model import Friend, MiraiSession
+from graia.ariadne.model import Friend
 
-loop = asyncio.new_event_loop()
-
-broadcast = Broadcast(loop=loop)
 app = Ariadne(
-    broadcast=broadcast,
-    connect_info=MiraiSession(
-        host="http://localhost:8080",  # 填入 HTTP API 服务运行的地址
-        verify_key="ServiceVerifyKey",  # 填入 verifyKey
+    config(
+        verify_key="ServiceVerifyKey",  # 填入 VerifyKey
         account=123456789,  # 你的机器人的 qq 号
-    )
+    ),
 )
 
-
-@broadcast.receiver("FriendMessage")
+@app.broadcast.receiver("FriendMessage")
 async def friend_message_listener(app: Ariadne, friend: Friend):
-    await app.sendMessage(friend, MessageChain.create([Plain("Hello, World!")]))
-    # 实际上 MessageChain.create(...) 有没有 "[]" 都没关系
+    await app.send_message(friend, MessageChain([Plain("Hello, World!")]))
+    # 实际上 MessageChain(...) 有没有 "[]" 都没关系
 
+app.launch_blocking()
 
-loop.run_until_complete(app.lifecycle())
 ```
 
 !!! graiax "社区文档相关章节: [链接](https://graiax.cn/guide/hello_ero.html)"
@@ -146,8 +138,3 @@ loop.run_until_complete(app.lifecycle())
     你知道吗? `Graia Framework` 有一个活跃的社区文档: [`GraiaX`](https://graiax.cn/).
 
     那里的教程会更加<ruby>通俗易懂<rt><span class="curtain">但是在不适宜场合阅读可能导致社死</span></rt></ruby>, 你随时可以回来这里获得更详细的解释.
-
-
-!!! info "提示"
-
-    将 `CombinedAdapter` 换为 `DebugAdapter` 可以输出所有接收到的事件, 但在生产环境下并不推荐.

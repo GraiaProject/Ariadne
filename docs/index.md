@@ -29,24 +29,23 @@
 === "单文件"
 
     ```py
-    from graia.ariadne.app import Ariadne, Friend, MessageChain
+    from graia.ariadne.entry import Ariadne, Friend, MessageChain, config
 
 
     app = Ariadne(
-    connect_info=MiraiSession(
-        host="http://localhost:8080",
-        verify_key="ServiceVerifyKey",
-        account=123456789,
+        config(
+            verify_key="ServiceVerifyKey",
+            account=123456789,
         )
     )
 
 
     @app.broadcast.receiver("FriendMessage")
     async def friend_message_listener(app: Ariadne, friend: Friend):
-        await app.sendMessage(friend, MessageChain(["Hello, World!"]))
+        await app.send_message(friend, "Hello, World!")
 
 
-    app.launch_blocking()
+    Ariadne.launch_blocking()
     ```
 
 === "模块化"
@@ -85,7 +84,7 @@ async def handler(
 ```py
 @broadcast.receiver(GroupMessage)
 async def reply1(app: Ariadne, msg: MessageChain, group: Group):
-    await app.sendMessage(group, MessageChain(["你好"])) # 回复 你好
+    await app.send_message(group, "你好") # 回复 你好
 ```
 
 ### 便于拓展

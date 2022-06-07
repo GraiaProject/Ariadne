@@ -1,22 +1,18 @@
 # Ariadne 总览
 
-!!! note "引言"
-
-    `Ariadne` 的实例方法大多继承自 `Mixin`.
-    这允许 `Ariadne` 方便的拓展各种方法.
-    当你不知道 `Ariadne` 为什么可以做到这些事时, 看看这些 `Mixin` 吧.
-
 ## 关于使用 "模型" 的提示
 
 `Group` `Friend` `Member` `Stranger` 四个类型支持 `__int__` 协议获取其 `id` 属性.
 
 也就是说, `int(group)` 等价于 `group.id` .
 
-`Group` `Friend` `Member` 上还有 `getInfo` `modifyInfo` `getProfile` `modifyAdmin` `getConfig` `modifyConfig` 等方便方法.
+`Group` `Friend` `Member` 上还有 `get_info` `modify_info` `get_profile` `modify_admin` `get_config` `modify_config` `send_message` 等方便方法.
+
+!!! tip "Member.send_temp_message 名字的不同是刻意为之的, 因为贸然使用临时消息非常容易导致风控. 谨慎使用."
 
 `MemberPerm` 支持富比较操作, 也就是说你可以通过 `Member.permission >= MemberPerm.Administrator` 判断成员是否有管理权限.
 
-!!! error "你 **永远不应该** 自行实例化 `Group` `Friend` `Member` `Stranger` 类型."
+!!! error "你 **不应该也不被允许** 自行实例化 `Group` `Friend` `Member` `Stranger` 类型."
 
 ## 某些事件的额外方法
 
@@ -25,23 +21,13 @@
 
 ## 生命周期管理
 
-`launch()` 用于启动 `Ariadne` 实例, `stop()` 用于停止 `Ariadne` 实例.
-
-`lifecycle()` 通过 `await self.daemon_task`, 即等待 `Adapter` 的守护任务, 达到封装 `launch()` 与 `wait_for_stop()` 的目的.
-
-如果你不需要额外的 `asyncio` 操作, 那么 `app.launch_blocking()` 应该足以满足你的需要, 因为它封装了 `launch()`, 并在捕获 `KeyboardInterrupt` 时自动 `wait_for_stop()`.
-
-!!! note "提示"
-
-    其实 `Ariadne` 也可以作为 `async context manager` 使用.
-
-    在 `__aenter__` 中执行 `launch()`, 在 `__aexit__` 中执行 `wait_for_stop()`.
+`launch_blocking()` 用于启动 `Ariadne` 实例, `stop()` 用于停止 `Ariadne` 实例.
 
 ## 交互方法
 
 `Ariadne` 与 QQ 进行交互的方法遵循以下原则:
 
-- 使用 `camelCase` 驼峰命名.
+- 使用 `snake_case` 小写 + 下划线的函数名.
 - 使用 `谓词 + 名词` 命名.
 - 注: 获取数据的方法统一以 `get` 开头.
 - 为 `async` 异步函数.
@@ -58,15 +44,11 @@
 account = app.account
 ```
 
-## 停止实例
+## 方便的消息发送方法 - send_message
 
-现在你通过在监听器中 `await app.stop()` 并在主函数中 `await app.join()` 应该可以安全的关闭 `Ariadne`.
+!!! note "这个方法其实不如直接在 `Group` `Friend` `Member` 上使用 `send_message` 更方便, 但是你可以使用 `action`."
 
-当然, 在主函数中使用 `await app.lifecycle()` 或 `app.launch_blocking()` 永远是最佳实践.
-
-## 方便的消息发送方法 - sendMessage
-
-`sendMessage` 有一个限制: 只能从传入对象推断 (不能直接传入 `int` 格式的 `target`)
+`send_message` 有一个限制: 只能从传入对象推断 (不能直接传入 `int` 格式的 `target`)
 
 但是它可以智能地从传入对象推断: `Friend` `Group` `Member` `MessageEvent` 这四个都是合适的传入对象.
 
@@ -76,9 +58,9 @@ account = app.account
 
 同时, 在向 `target` 传入消息事件时, `quote` 可以简单地传入 `True` 以达到引用回复的效果.
 
-`quote` 也接受 `Source` 元素.
+`quote` 也接受 `Source` 与 `MessageChain` 对象.
 
-### sendMessage 的 action
+### send_message 的 action
 
 `sendMessage` 可以携带一个 `action` 参数,
 它是一个 `graia.ariadne.typing.SendMessageAction` 对象, 需要实现以下方法:
@@ -108,7 +90,7 @@ from graia.ariadne.util.send import Strict, Bypass, Ignore, Safe
 
 act = Strict or Bypass or Ignore or Safe or Safe(ignore=False) or Safe(ignore=True) # 看你怎么选择
 
-await app.sendMessage(origin, message_chain, action=act)
+await app.send_message(origin, message_chain, action=act)
 ```
 
 ### 设置默认 action

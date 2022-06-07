@@ -1,83 +1,58 @@
 # 配置相关
 
-这里是 `Ariadne` 的 `__init__()` 签名:
+## 配置顺序
 
-```python hl_lines="8-13"
-def __init__(
-    self,
-    connect_info: Union[Adapter, MiraiSession],
-    *,
-    loop: Optional[AbstractEventLoop] = None,
-    broadcast: Optional[Broadcast] = None,
-    max_retry: int = -1,
-    chat_log_config: Optional[Union[ChatLogConfig, Literal[False]]] = None,
-    use_loguru_traceback: Optional[bool] = True,
-    use_bypass_listener: Optional[bool] = False,
-    await_task: bool = False,
-    disable_telemetry: bool = False,
-    disable_logo: bool = False,
-):
-```
+`Ariadne` 作为一个类可以通过 `config` 类方法进行全局定制, 包括默认账号, `Broadcast`, 事件循环, 安装富文本日志等.
 
-### chat_log_config
+参见 [`Ariadne.config`][graia.ariadne.app.Ariadne.config] 了解更多.
 
-这个部分是用于控制 Ariadne 的 聊天日志的.
+在创建任何 `Ariadne` 实例之后, 便不能再调用 `Ariadne.config` 了.
 
-设置为 `False` 即可禁用聊天日志输出.
+所以请在实例化之前配置好日志和默认账号等.
 
-你可以从 `graia.ariadne.model` 导入 `ChatLogConfig`, 进行更细致的控制.
+## 配置日志
 
-通过对 `ChatLogConfig` 传入 `log_level` `*_message_log_format` 可以控制聊天日志的记录级别与日志的格式.
+从 `graia.ariadne.model` 导入 `LogConfig`.
 
-!!! info "如果你想控制总体日志输出, 请看 [这里](../../suite/log/)"
+`LogConfig` 是字典的子类, 里面的键都是 [`MiraiEvent`][graia.ariadne.event.MiraiEvent] 的子类,
+值为对应的 **字符串**.
 
-### use_loguru_traceback
+如果想要动态的改变日志级别, 可以传入一个签名为 `(MiraiEvent) -> str` 的方法.
 
-`Graia Framework` 默认使用 [`traceback`](https://docs.python.org/zh-cn/3/library/traceback.html) 中的
-[`traceback.print_exc()`](https://docs.python.org/zh-cn/3/library/traceback.html#traceback.print_exc) 函数输出执行中的异常追踪.
+如果想要彻底关闭日志, 直接调用 `app.log_config.clear()` 即可.
 
-但是其无法直接记录异常至日志中, 且异常回溯有时候并不直观, 导致难以调试.
+## 默认账号
 
-设置 `use_loguru_traceback` 后, `Ariadne` 会调用 `util.inject_loguru_traceback()` 替换
-[`traceback.print_exception()`](https://docs.python.org/zh-cn/3/library/traceback.html#traceback.print_exception) 与
-[`sys.excepthook()`](https://docs.python.org/zh-cn/3/library/sys.html#sys.excepthook) 从而获得对异常输出的完全控制权.
+如果你的 `Ariadne` 有多个账号, 那么在使用 `Scheduler` 等特性时你就需要提前通过 `Ariadne.config` 配置好默认账号.
 
-### use_bypass_listener
+如果你的 `Ariadne` 只有一个账号, 那么 `Ariadne` 就会自动设置默认账号.
 
-以下代码在 `Graia Broadcast` 的正常流程中不能正常运作,
-因为其默认事件分发器只支持原事件 (`listening_event is posted_event`:
+## 配置连接
+
+`Ariadne` 并不只支持 `HTTP` 与 `WebSocket` 的正向连接，也不一定需要你的 `mirai-api-http` 在 `http://localhost:8080` 提供服务.
+
+从 [`graia.ariadne.connection.config`][graia.ariadne.connection.config] 导入对应的 `Config` 类, 实例化后
+将其作为尾随的位置参数填入 [`config`][graia.ariadne.connection.config.config] 函数即可配置.
+
+比如:
 
 ```python
-@broadcast.receiver(MessageEvent)
-async def reply(app: Ariadne, event: MessageEvent):
-    await app.sendMessage(event, MessageChain.create("Hello!"))
+from graia.ariadne.entry import HttpClientConfig, WebsocketClientConfig, Ariadne
+
+Ariadne(
+    12345678, # 账号
+    "VerifyKey", # 验证钥
+    HttpClientConfig("http://localhost:21476"), # HTTP 配置
+    WebsocketClientConfig # WebSocket 配置, 使用了默认的 `http://localhost:8080`
+)
 ```
 
-设置 `use_bypass_listener` 后, `Ariadne` 会通过 `inject_bypass_listener` 支持子事件解析 (事件透传).
+!!! note "提示"
 
-### max_retry
+    如果你添加了额外的参数则默认配置会被清除,
+    即仅传入 `HttpClientConfig` 时 `Ariadne` 仅会通过正向 HTTP 连接.
 
-`Ariadne` 默认会尝试无限重启 `Adapter`,
-设置 `max_retry` 可以确保在 **连续至少** `max_retry` 次连接失败后自动退出 `daemon` (前提是你使用 `Ariadne.lifecycle()`)
+!!! example "又及"
 
-### disable_telemetry
-
-设置为 `True` 后即会禁用启动时的版本检测.
-
-!!! example "默认会检查来自 `graia` 与 `graiax` 的包."
-
-### disable_logo
-
-设置为 `True` 后即会禁用启动时的 logo 打印.
-
-???+ "Logo"
-
-    ```text
-                    _           _
-         /\        (_)         | |
-        /  \   _ __ _  __ _  __| |_ __   ___
-       / /\ \ | '__| |/ _` |/ _` | '_ \ / _ \
-      / ____ \| |  | | (_| | (_| | | | |  __/
-     /_/    \_\_|  |_|\__,_|\__,_|_| |_|\___|
-
-    ```
+    默认情况下 [`HttpServerConfig`][graia.ariadne.connection.HttpServerConfig] 和 [`WebsocketServerConfig`][graia.ariadne.connection.WebsocketServerConfig]
+    使用的是 `aiohttp` 的实现, 如果你在 `Launart` 上安装了 `StarletteService` 和 `UvicornService` 则会自动切换.

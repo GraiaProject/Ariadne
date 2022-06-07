@@ -2,6 +2,7 @@
 from typing import Union
 
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from pydantic import Field
 
 from ..dispatcher import (
     BaseDispatcher,
@@ -21,7 +22,8 @@ class MessageEvent(MiraiEvent):
     """Ariadne 消息事件基类"""
 
     type: str = "MessageEvent"
-    messageChain: MessageChain
+
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     sender: Union[Friend, Member, Client, Stranger]
@@ -36,7 +38,7 @@ class FriendMessage(MessageEvent, FriendEvent):
 
     type: str = "FriendMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     sender: Friend
@@ -51,7 +53,7 @@ class GroupMessage(MessageEvent, GroupEvent):
 
     type: str = "GroupMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     sender: Member
@@ -62,9 +64,8 @@ class GroupMessage(MessageEvent, GroupEvent):
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupMessage):
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.sender.group
+            if isinstance(interface.event, GroupMessage) and generic_issubclass(Group, interface.annotation):
+                return interface.event.sender.group
 
 
 class TempMessage(MessageEvent):
@@ -72,7 +73,7 @@ class TempMessage(MessageEvent):
 
     type: str = "TempMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     sender: Member
@@ -83,9 +84,8 @@ class TempMessage(MessageEvent):
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, TempMessage):
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.sender.group
+            if isinstance(interface.event, TempMessage) and generic_issubclass(Group, interface.annotation):
+                return interface.event.sender.group
 
 
 class OtherClientMessage(MessageEvent):
@@ -93,7 +93,7 @@ class OtherClientMessage(MessageEvent):
 
     type: str = "OtherClientMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     sender: Client
@@ -108,7 +108,7 @@ class StrangerMessage(MessageEvent):
 
     type: str = "StrangerMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     sender: Stranger
@@ -123,7 +123,7 @@ class ActiveMessage(MiraiEvent):
 
     type: str
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     subject: Union[Friend, Group, Member, Stranger]
@@ -138,7 +138,7 @@ class ActiveFriendMessage(ActiveMessage):
 
     type: str = "ActiveFriendMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     subject: Friend
@@ -153,7 +153,7 @@ class ActiveGroupMessage(ActiveMessage):
 
     type: str = "ActiveGroupMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     subject: Group
@@ -168,7 +168,7 @@ class ActiveTempMessage(ActiveMessage):
 
     type: str = "ActiveTempMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     subject: Member
@@ -179,9 +179,8 @@ class ActiveTempMessage(ActiveMessage):
 
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, ActiveTempMessage):
-                if interface.annotation is Group:
-                    return interface.event.subject.group
+            if isinstance(interface.event, ActiveTempMessage) and interface.annotation is Group:
+                return interface.event.subject.group
 
 
 class ActiveStrangerMessage(ActiveMessage):
@@ -189,7 +188,7 @@ class ActiveStrangerMessage(ActiveMessage):
 
     type: str = "ActiveStrangerMessage"
 
-    messageChain: MessageChain
+    message_chain: MessageChain = Field(..., alias="messageChain")
     """消息链"""
 
     subject: Stranger
@@ -199,33 +198,31 @@ class ActiveStrangerMessage(ActiveMessage):
         mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
-class FriendSyncMessage(ActiveFriendMessage):
+class SyncMessage(MiraiEvent):
+    """同步消息: 从其他客户端同步的主动消息"""
+
+    sync = True
+
+
+class FriendSyncMessage(SyncMessage, ActiveFriendMessage):
     """好友同步消息"""
 
     type: str = "FriendSyncMessage"
 
-    sync = True
 
-
-class GroupSyncMessage(ActiveGroupMessage):
+class GroupSyncMessage(SyncMessage, ActiveGroupMessage):
     """群组同步消息"""
 
     type: str = "GroupSyncMessage"
 
-    sync = True
 
-
-class TempSyncMessage(ActiveTempMessage):
+class TempSyncMessage(SyncMessage, ActiveTempMessage):
     """临时会话同步消息"""
 
     type: str = "TempSyncMessage"
 
-    sync = True
 
-
-class StrangerSyncMessage(ActiveStrangerMessage):
+class StrangerSyncMessage(SyncMessage, ActiveStrangerMessage):
     """陌生人同步消息"""
 
     type: str = "StrangerSyncMessage"
-
-    sync = True

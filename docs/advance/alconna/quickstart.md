@@ -19,9 +19,9 @@ music = AlconnaString(
 )
 @app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=music, help_flag='reply')])
 async def friend_message_listener(app: Ariadne, friend: Friend, result: Arpamar):
-    await app.sendFriendMessage(friend, MessageChain.create("歌名是 ", result.song_name))
+    await app.send_message(friend, f"歌名是 {result.song_name}")
     if result.singer_name:
-        await app.sendFriendMessage(friend, MessageChain.create("歌手是 ", result.singer_name))
+        await app.send_message(friend, f"歌名是 {result.singer_name}")
 ```
 
 执行这段代码后，向你的 bot 发送 `!点歌 大地 -s Beyond` 试试.
@@ -188,7 +188,7 @@ alc = Alconna("test", Args.foo[int]) + Option("my_option", Args.bar[str])
 @app.broadcast.receiver(FriendMessage, dispatchers=[AlconnaDispatcher(alconna=alc)])
 async def friend_message_listener(app: Ariadne, friend: Friend, dup: Test):
     print(dup.my_args.first_arg)
-    await app.sendFriendMessage(friend, MessageChain.create(dup.my_option.name))
+    await app.send_message(friend, dup.my_option.name)
     ...
 ```
 
@@ -197,7 +197,7 @@ async def friend_message_listener(app: Ariadne, friend: Friend, dup: Test):
 ...
 async def friend_message_listener(app: Ariadne, friend: Friend, my_args: ArgsStub, my_option: OptionStub):
     print(my_args.first_arg)
-    await app.sendFriendMessage(friend, MessageChain.create(my_option.name))
+    await app.send_message(friend, my_option.name)
     ...
 ```
 

@@ -99,7 +99,7 @@ class Quoting(Decorator):
             if isinstance(msg, BotMessage):
                 self.msg_ids.add(msg.messageId)
             elif isinstance(msg, MessageChain):
-                self.msg_ids.add(msg.getFirst(Quote).id)
+                self.msg_ids.add(msg.get_first(Quote).id)
             elif isinstance(msg, Source):
                 self.msg_ids.add(msg.id)
             else:

@@ -1,9 +1,12 @@
 """Ariadne 内置的 Dispatcher"""
 
 
+import asyncio
 import contextlib
 
+from graia.broadcast import Broadcast
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
+from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
@@ -18,9 +21,10 @@ class MessageChainDispatcher(AbstractDispatcher):
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage, MessageEvent
 
-        if isinstance(interface.event, (MessageEvent, ActiveMessage)):
-            if generic_issubclass(MessageChain, interface.annotation):
-                return interface.event.messageChain
+        if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
+            MessageChain, interface.annotation
+        ):
+            return interface.event.message_chain
 
 
 class ContextDispatcher(AbstractDispatcher):
@@ -28,12 +32,28 @@ class ContextDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        from . import get_running
+        from .app import Ariadne
 
         if generic_isinstance(interface.event, interface.annotation):
             return interface.event
 
-        return get_running(interface.annotation, fail_err=False)
+        if generic_issubclass(Broadcast, interface.annotation):
+            return Ariadne.service.broadcast
+
+        if generic_issubclass(asyncio.AbstractEventLoop, interface.annotation):
+            return Ariadne.service.broadcast.loop
+
+        if generic_issubclass(Ariadne, interface.annotation):
+            return Ariadne.current()
+
+
+class NoneDispatcher(AbstractDispatcher):
+    """给 Optional[...] 提供 None 的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if generic_isinstance(type(None), interface.annotation):
+            return Force(None)
 
 
 class SourceDispatcher(AbstractDispatcher):
@@ -43,9 +63,10 @@ class SourceDispatcher(AbstractDispatcher):
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage, MessageEvent
 
-        if isinstance(interface.event, (MessageEvent, ActiveMessage)):
-            if generic_issubclass(Source, interface.annotation):
-                return interface.event.messageChain.getFirst(Source)
+        if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
+            Source, interface.annotation
+        ):
+            return interface.event.message_chain.get_first(Source)
 
 
 class SenderDispatcher(AbstractDispatcher):
@@ -70,9 +91,10 @@ class SubjectDispatcher(AbstractDispatcher):
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage
 
-        if isinstance(interface.event, ActiveMessage):
-            if generic_issubclass(interface.annotation, interface.event.subject):
-                return interface.event.subject
+        if isinstance(interface.event, ActiveMessage) and generic_issubclass(
+            interface.annotation, interface.event.subject
+        ):
+            return interface.event.subject
 
 
 class BaseDispatcher(AbstractDispatcher):

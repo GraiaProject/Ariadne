@@ -36,9 +36,9 @@ from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
 from ...util import (
     ConstantDispatcher,
-    const_call,
-    eval_ctx,
+    constant,
     gen_subclass,
+    get_stack_namespace,
     resolve_dispatchers_mixin,
 )
 from ..chain import MessageChain
@@ -68,7 +68,7 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
         assert isinstance(value[0], field.type_)
         return value[0]
     if isinstance(value, MessageChain):
-        return value.asDisplay()
+        return str(value)
     if value is None:
         return field.default
     return value
@@ -120,7 +120,7 @@ class Slot(ParamDesc):
         if self.model or self.type is _raw:
             return
 
-        self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
+        self.default_factory = constant(self.default) if self.default is not ... else self.default_factory
 
         if self.type is ...:
             self.type = MessageChain
@@ -186,7 +186,7 @@ class Arg(ParamDesc):
                 self.default = False
         elif self.nargs == 1:
             self.type = self.type if self.type is not ... else MessageChain
-        self.default_factory = const_call(self.default) if self.default is not ... else self.default_factory
+        self.default_factory = constant(self.default) if self.default is not ... else self.default_factory
 
         if (
             isinstance(self.type, type)
@@ -317,13 +317,12 @@ class CommandHandler(ExecTarget):
             if slot.param_name != self.pattern.wildcard:
                 value = slot_data.get(ind, None) or slot.default_factory()
                 param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
+            elif slot.type is _raw:
+                param_result[slot.param_name] = MessageChain([" "]).join(wildcard_list)
             else:
-                if slot.type is _raw:
-                    param_result[slot.param_name] = MessageChain([" "]).join(wildcard_list, merge=True)
-                else:
-                    param_result[slot.param_name] = tuple(
-                        slot.model(val=chain).__dict__["val"] for chain in wildcard_list
-                    )
+                param_result[slot.param_name] = tuple(
+                    slot.model(val=chain).__dict__["val"] for chain in wildcard_list
+                )
         return param_result
 
 
@@ -423,8 +422,8 @@ class Commander:
                 placeholder_set.add(name)
                 parsed_slot = Slot(
                     name,
-                    eval(annotation or "...", *eval_ctx(1, {"raw": _raw})),
-                    eval(default or "...", *eval_ctx(1)),
+                    eval(annotation or "...", *get_stack_namespace(1, {"raw": _raw})),
+                    eval(default or "...", *get_stack_namespace(1)),
                 )
                 parsed_slot.param_name = name  # assuming that param_name is consistent
                 if name in slot_map:

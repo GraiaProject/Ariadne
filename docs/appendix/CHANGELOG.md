@@ -8,7 +8,11 @@
 
 `DetectPrefix` 与 `DetectSuffix` 支持多个前后缀匹配 (#149) (@luoxhei)
 
+`MentionMe` 支持多种匹配方式.
+
 提供 Broadcast 中 `Derive` 风格的消息链匹配器支持.
+
+添加了 `py.typed` 文件.
 
 ### 修改
 

@@ -113,17 +113,27 @@ class DetectSuffix(ChainDecorator):
 class MentionMe(ChainDecorator):
     """At 账号或者提到账号群昵称"""
 
+    def __init__(self, name: Union[bool, str] = True) -> None:
+        """
+        Args:
+            name (Union[bool, str]): 是否提取昵称, 如果为 True, 则自动提取昵称, \
+            如果为 False 则禁用昵称, 为 str 则将参数作为昵称
+        """
+        self.name = name
+
     async def __call__(self, chain: MessageChain, interface: DispatcherInterface) -> Optional[MessageChain]:
         ariadne = Ariadne.current()
-        if isinstance(interface.event, GroupMessage):
-            name = (await ariadne.get_member(interface.event.sender.group, ariadne.account)).name
-        else:
-            name = (await ariadne.get_bot_profile()).nickname
+        name: Optional[str] = self.name if isinstance(self.name, str) else None
+        if self.name is True:
+            if isinstance(interface.event, GroupMessage):
+                name = (await ariadne.get_member(interface.event.sender.group, ariadne.account)).name
+            else:
+                name = (await ariadne.get_bot_profile()).nickname
         header = chain.include(Quote, Source)
         rest: MessageChain = chain.exclude(Quote, Source)
         first: Element = rest[0]
         result: Optional[MessageChain] = None
-        if rest and isinstance(first, Plain) and str(first).startswith(name):
+        if isinstance(name, str) and rest and isinstance(first, Plain) and str(first).startswith(name):
             result = header + rest.removeprefix(name).removeprefix(" ")
         if rest and isinstance(first, At) and first.target == ariadne.account:
             result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
@@ -134,9 +144,14 @@ class MentionMe(ChainDecorator):
 
 
 class Mention(ChainDecorator):
-    """At 或提到指定人"""
+    """At 或提到指定账号/名称"""
 
     def __init__(self, target: Union[int, str]) -> None:
+        """
+        Args:
+            target (Union[int, str]): 要提到的账号或者名称, \
+            如果是 int 则是账号, 如果是 str 则是名称
+        """
         self.person: Union[int, str] = target
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
@@ -176,7 +191,6 @@ class MatchContent(ChainDecorator):
 
     def __init__(self, content: Union[str, MessageChain]) -> None:
         self.content: Union[str, MessageChain] = content
-        self.next: Optional[ChainDecorator] = None
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
         if isinstance(self.content, str) and str(chain) != self.content:

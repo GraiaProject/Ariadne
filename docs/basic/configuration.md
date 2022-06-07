@@ -51,3 +51,8 @@ Ariadne(
 
     如果你添加了额外的参数则默认配置会被清除,
     即仅传入 `HttpClientConfig` 时 `Ariadne` 仅会通过正向 HTTP 连接.
+
+!!! example "又及"
+
+    默认情况下 [`HttpServerConfig`][graia.ariadne.connection.HttpServerConfig] 和 [`WebsocketServerConfig`][graia.ariadne.connection.WebsocketServerConfig]
+    使用的是 `aiohttp` 的实现, 如果你在 `Launart` 上安装了 `StarletteService` 和 `UvicornService` 则会自动切换.

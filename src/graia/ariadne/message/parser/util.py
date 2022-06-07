@@ -122,7 +122,7 @@ def tokenize_command(string: str) -> List[CommandTokenTuple]:
                         piece,
                     )
                     if match and any(s in piece for s in ".:="):
-                        token.append(  # type: List[str]
+                        token.append(
                             (
                                 CommandToken.ANNOTATED,
                                 list(

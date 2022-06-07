@@ -1,5 +1,4 @@
 """Ariadne 消息链的实现"""
-import json
 import re
 from copy import deepcopy
 from typing import (
@@ -16,6 +15,7 @@ from typing import (
     overload,
 )
 
+from graia.amnesia.json import Json
 from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
@@ -447,9 +447,9 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
         result = []
         for match in re.split(r"(\[mirai:.+?\])", string):
             if mirai := re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match):
-                j_string = mirai.group(3)
-                element_cls = ELEMENT_MAPPING[mirai.group(1)]
-                result.append(element_cls.parse_obj(json.loads(j_string)))
+                j_string = mirai[3]
+                element_cls = ELEMENT_MAPPING[mirai[1]]
+                result.append(element_cls.parse_obj(Json.deserialize(j_string)))
             elif match:
                 result.append(Plain(match.replace("[_", "[")))
         return MessageChain.create(result)

@@ -55,8 +55,10 @@ def on_message(chain: MessageChain): # chain 必定以 "启动" 结尾
 或者也可以这样:
 
 ```py
-async def foo_func(chain: MessageChain = DetectSuffix("Suffix")): # 以这种形式使用, 发送的消息以 "suffix" 结尾, 但收到时会被去除
+async def foo_func(chain: MessageChain = DetectSuffix("suffix")): # 以这种形式使用, 发送的消息以 "suffix" 结尾, 但收到时会被去除
     ... # "TestSuffix" -> "Test"
+
+async def foo_func(chain: Annotated[MessageChain, DetectSuffix("suffix")]): ... # 等价于上面的写法
 ```
 
 这会自动去掉后缀. 但是不会改动 `Quote` 与 `Source` 等元数据元素.
@@ -75,6 +77,16 @@ async def on_mention_me(chain: MessageChain): # 不会改动消息链
     ...
 ```
 
+或者:
+
+```py
+async def foo_func(chain: MessageChain = MentionMe(target=...)):
+    ... # 自动去除前面的 At 或名字
+
+
+async def foo_func(chain: Annotated[MessageChain, MentionMe(target=...)]): ...# 等价于上面的写法
+```
+
 ## Mention
 
 检测在聊天中提到指定的人 (At 指定的人 或以 指定的人 群昵称/名称打头).
@@ -90,6 +102,16 @@ async def on_mention_me(chain: MessageChain): # 不会改动消息链
 # int: 用户 QQ 号, str: 用户的名字
 async def on_mention(chain: MessageChain): # 不会改动消息链
     ...
+```
+
+或者:
+
+```py
+async def foo_func(chain: MessageChain = Mention(target=...)):
+    ... # 自动去除前面的 At 或名字
+
+
+async def foo_func(chain: Annotated[MessageChain, Mention(target=...)]): ...# 等价于上面的写法
 ```
 
 ## ContainKeyword

@@ -166,6 +166,20 @@ async def reply(..., arg: RegexResult):
 - `MatchResult.origin`: 原始 `Match` 对象.
 - `MatchResult.result`: 匹配结果.
 
+### 使用 preprocessor
+
+`0.7.0` 以后, `Twilight` 支持使用 `preprocessor` 关键字参数进行预修饰.
+
+`preprocessor` 内应放置 [基础消息链处理器](./../basic/base-parser.md) 或者使用了 [`Derive`](./broadcast/derive.md) 特性的 [`Annotated`][typing.Annotated] 对象.
+
+例如:
+
+```py
+Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=MentionMe())
+
+Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=Annotated[MessageChain, MentionMe()])
+```
+
 ### ResultValue 装饰器
 
 `ResultValue` 作为装饰器使用, 可以直接获取匹配结果而不需要从 `Match.result` 提取.

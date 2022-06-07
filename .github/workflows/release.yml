@@ -46,6 +46,8 @@ jobs:
         run: |
           python ./extract-release-notes.py ${{ env.TAG_NAME }}
           gh release create ${{ env.TAG_NAME }} --draft --notes-file ./release-notes.md --title "✨ ${{ env.TAG_NAME }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Artifacts to Release
         run: |

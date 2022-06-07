@@ -5,17 +5,19 @@ import contextlib
 import enum
 import sys
 import typing
-from types import MethodType
+from types import MethodType, TracebackType
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
     Any,
+    Callable,
     Dict,
     Generic,
     Mapping,
     Optional,
     Sequence,
     Tuple,
+    Type,
     TypedDict,
     TypeVar,
     Union,
@@ -183,6 +185,8 @@ class _SentinelClass(enum.Enum):
 Sentinel = _SentinelClass._Sentinel
 
 AnnotatedType = type(Annotated[int, lambda x: x > 0])
+
+ExceptionHook = Callable[[Type[BaseException], BaseException, Optional[TracebackType]], Any]
 
 if sys.version_info >= (3, 9):
     classmethod = builtins.classmethod

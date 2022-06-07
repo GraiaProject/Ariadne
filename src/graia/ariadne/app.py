@@ -7,6 +7,7 @@ import inspect
 import io
 import os
 import sys
+import traceback
 from datetime import datetime
 from typing import (
     TYPE_CHECKING,
@@ -62,7 +63,13 @@ from .typing import (
     T,
     classmethod,
 )
-from .util import AttrConvertMixin, ariadne_api
+from .util import (
+    AttrConvertMixin,
+    RichLogInstallOptions,
+    ariadne_api,
+    loguru_exc_callback,
+    loguru_exc_callback_async,
+)
 
 if TYPE_CHECKING:
     from .message.element import Image, Voice
@@ -100,6 +107,10 @@ class Ariadne(AttrConvertMixin):
             cls.launch_manager = Launart()
         cls.held_objects.setdefault(Broadcast, cls.service.broadcast)
         cls.held_objects.setdefault(asyncio.AbstractEventLoop, cls.service.loop)
+        if "install_log" not in cls.options:
+            sys.excepthook = loguru_exc_callback
+        traceback.print_exception = loguru_exc_callback
+        cls.service.loop.set_exception_handler(loguru_exc_callback_async)
 
     @classmethod
     def config(
@@ -109,7 +120,7 @@ class Ariadne(AttrConvertMixin):
         broadcast: Optional[Broadcast] = None,
         launch_manager: Optional[Launart] = None,
         default_account: Optional[int] = None,
-        install_log: bool = False,
+        install_log: Union[bool, RichLogInstallOptions] = False,
         inject_bypass_listener: bool = False,
     ) -> None:
         """配置 Ariadne 全局参数, 未提供的值会自动生成合理的默认值
@@ -120,7 +131,7 @@ class Ariadne(AttrConvertMixin):
             broadcast (Optional[Broadcast], optional): 事件系统, 与 `loop` 参数互斥
             launch_manager (Optional[LaunchManager], optional): 启动管理器
             default_account (Optional[int], optional): 默认账号
-            install_log (bool, optional): 是否安装 rich 日志, 默认为 False
+            install_log (Union[bool, RichLogInstallOptions], optional): 是否安装 rich 日志, 默认为 False
             inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
         """
         if loop:
@@ -148,7 +159,11 @@ class Ariadne(AttrConvertMixin):
         if install_log and "installed_log" not in cls.options:
             import richuru
 
-            richuru.install()
+            option = (
+                install_log if isinstance(install_log, RichLogInstallOptions) else RichLogInstallOptions()
+            )
+
+            richuru.install(**option._asdict())
             cls.options["installed_log"] = True
 
         if inject_bypass_listener and "inject_bypass_listener" not in cls.options:

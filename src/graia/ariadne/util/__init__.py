@@ -1,13 +1,17 @@
 """本模块提供 Ariadne 内部使用的小工具, 以及方便的 `async_exec` 模块.
 """
 
+import contextlib
+
 # Utility Layout
 import functools
 import inspect
 import sys
+import types
 import typing
 import warnings
 from contextvars import ContextVar
+from types import TracebackType
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -18,10 +22,12 @@ from typing import (
     Iterable,
     List,
     MutableSet,
+    NamedTuple,
     Optional,
     Tuple,
     Type,
     TypeVar,
+    Union,
 )
 
 from graia.broadcast import Broadcast
@@ -30,12 +36,77 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
+from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
 
-from ..typing import DictStrAny, P, R, T
+from ..typing import DictStrAny, ExceptionHook, P, R, T
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from rich.console import Console
+    from rich.text import Text
+
+
+def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Optional[TracebackType], *_, **__):
+    """loguru 异常回调
+
+    Args:
+        cls (Type[Exception]): 异常类
+        val (Exception): 异常的实际值
+        tb (TracebackType): 回溯消息
+    """
+    if tb:
+        exec_module_name = tb.tb_frame.f_globals.get("__name__", "")
+        if issubclass(cls, ExecutionStop) and exec_module_name.startswith("graia"):
+            return
+        elif isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
+            with contextlib.suppress(Exception):
+                local_dict = tb.tb_frame.f_locals
+                _, param_name, param_anno, param_default = val.args
+                if isinstance(param_anno, type):
+                    param_anno = param_anno.__qualname__
+                param_repr = "".join(
+                    [
+                        param_name,
+                        f": {param_anno}" if param_anno else "",
+                        f" = {param_default}" if param_default else "",
+                    ]
+                )
+                val = RequirementCrashed(
+                    f"Unable to lookup parameter ({param_repr})",
+                    local_dict["dispatchers"],
+                )
+
+    logger.opt(exception=(cls, val, tb)).error("Exception:")
+
+
+def loguru_exc_callback_async(_, ctx: dict):
+    """loguru 异步异常回调
+
+    Args:
+        _ (AbstractEventLoop): 异常发生的事件循环
+        ctx (dict): 异常上下文
+    """
+    if "exception" in ctx:
+        logger.opt(exception=ctx["exception"]).error("Exception:")
+    else:
+        logger.error(f"Exception: {ctx}")
+
+
+class RichLogInstallOptions(NamedTuple):
+    rich_console: Optional["Console"] = None
+    exc_hook: Union[ExceptionHook, None] = loguru_exc_callback
+    rich_traceback: bool = False
+    tb_ctx_lines: int = 3
+    tb_theme: Optional[str] = None
+    tb_suppress: Iterable[Union[str, types.ModuleType]] = ()
+    time_format: Union[str, Callable[["datetime"], "Text"]] = "[%x %X]"
+    keywords: Optional[List[str]] = None
+    level: Union[int, str] = 20
 
 
 def inject_bypass_listener(broadcast: Broadcast):

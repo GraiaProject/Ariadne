@@ -116,20 +116,20 @@ def test_get():
     assert msg_chain.get_first(Plain) == Plain("Hello World!")
 
 
-def test_onlycontains():
+def test_only_contains():
     msg_chain = MessageChain("Hello World!", At(target=12345), "Foo test!")
-    assert msg_chain.only_contains(Plain, At)
+    assert msg_chain.only(Plain, At)
 
 
-def test_prepare():
+def test_as_sendable():
     msg_chain = MessageChain(
         Source(id=1, time=12433531),
         Quote(id=41342, groupId=1234, senderId=123421, targetId=123422, origin=MessageChain("Hello")),
         "  hello!",
     )
-    assert not msg_chain.only_contains(Plain)
+    assert not msg_chain.only(Plain)
     assert msg_chain.as_sendable().__root__ != msg_chain.__root__
-    assert msg_chain.as_sendable().only_contains(Plain)
+    assert msg_chain.as_sendable().only(Plain)
 
 
 def test_persistent():
@@ -168,7 +168,7 @@ async def test_download():
     from asyncio import Event, create_task
 
     from graia.amnesia.builtins.aiohttp import AiohttpService
-    from graia.amnesia.launch.component import LaunchComponent
+    from launart import Launchable
 
     from graia.ariadne.app import Ariadne
 
@@ -176,14 +176,26 @@ async def test_download():
     srv = AiohttpService()
     Ariadne.launch_manager.add_service(srv)
 
-    async def mainline(_):
-        await chain.download_binary()
-        assert (
-            base64.b64decode(chain.get_first(Image).base64)
-            == await (await srv.session.get(url)).content.read()
-        )
+    class L(Launchable):
+        id = "test_download"
 
-    Ariadne.launch_manager.new_launch_component("test", {"http.universal_client"}, mainline=mainline)
+        @property
+        def stages(self):
+            return {"blocking"}
+
+        @property
+        def required(self):
+            return {"http.universal_client"}
+
+        async def launch(self, _):
+            async with self.stage("blocking"):
+                await chain.download_binary()
+                assert (
+                    base64.b64decode(chain.get_first(Image).base64)
+                    == await (await srv.session.get(url)).content.read()
+                )
+
+    Ariadne.launch_manager.add_launchable(L())
     await Ariadne.launch_manager.launch()
 
 

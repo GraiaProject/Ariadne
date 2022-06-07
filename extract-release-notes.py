@@ -15,4 +15,4 @@ with open("./release-notes.md", encoding="utf-8", mode="w") as f:
         print(line, file=f)
 
 with open("./docs/appendix/CHANGELOG.md", encoding="utf-8", mode="w") as f:
-    f.write(changelog_text.replace("## 未发布的更新", f"## {tag_name}"))
+    f.write(changelog_text.replace("## 未发布的更新", f"## 未发布的更新\n## {tag_name}"))

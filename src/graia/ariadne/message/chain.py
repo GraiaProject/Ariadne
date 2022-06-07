@@ -50,7 +50,7 @@ ORDINARY_ELEMENT_TYPES = (Plain, Image, Face, At, AtAll)
 _Parsable = Union[str, dict, Element, Iterable["_Parsable"], "MessageChain"]
 
 
-class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
+class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
     """
     即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有元素实例.
     """
@@ -58,7 +58,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
     __root__: List[Element]
     """底层元素列表"""
 
-    __text__ = Plain
+    __text_element_class__ = Plain
 
     @property
     def content(self) -> List[Element]:
@@ -136,9 +136,12 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
             MessageChain: 创建的消息链
         """
         if not inline:
-            super().__init__(__root__=MessageChain.build_chain((__root__, *elements)))  # type: ignore
+            AriadneBaseModel.__init__(
+                self,
+                __root__=MessageChain.build_chain((__root__, *elements)),  # type: ignore
+            )
         else:
-            super().__init__(__root__=__root__)  # type: ignore
+            AriadneBaseModel.__init__(self, __root__=__root__)  # type: ignore
 
     @classmethod
     @deprecated("0.8.0")
@@ -320,6 +323,7 @@ class MessageChain(AriadneBaseModel, BaseMessageChain, AttrConvertMixin):
                 ptr = fallback[ptr - 1]
         return match_index
 
+    @deprecated("0.8.0")
     def only_contains(self, *types: Type[Element]) -> bool:
         """判断消息链中是否只含有特定类型元素.
 

@@ -54,5 +54,5 @@ Ariadne(
 
 !!! example "又及"
 
-    默认情况下 [`HttpServerConfig`][graia.ariadne.connection.HttpServerConfig] 和 [`WebsocketServerConfig`][graia.ariadne.connection.WebsocketServerConfig]
+    默认情况下 [`HttpServerConfig`][graia.ariadne.connection.config.HttpServerConfig] 和 [`WebsocketServerConfig`][graia.ariadne.connection.config.WebsocketServerConfig]
     使用的是 `aiohttp` 的实现, 如果你在 `Launart` 上安装了 `StarletteService` 和 `UvicornService` 则会自动切换.

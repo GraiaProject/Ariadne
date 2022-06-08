@@ -1,6 +1,7 @@
 - Broadcast 介绍
     - [中断](./broadcast/interrupt.md)
     - [依赖注入](./broadcast/depend.md)
+    - [派生修饰 - Derive](./broadcast/derive.md)
 - [消息链](./msg-chain.md)
 - [Commander](./commander.md)
 - [Twilight](./twilight.md)

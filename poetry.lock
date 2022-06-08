@@ -639,7 +639,7 @@ test = ["ipykernel", "pre-commit", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
 name = "launart"
-version = "0.3.3"
+version = "0.4.1"
 description = ""
 category = "main"
 optional = false
@@ -648,6 +648,9 @@ python-versions = ">=3.8"
 [package.dependencies]
 loguru = ">=0.6.0"
 statv = ">=0.2.2"
+
+[package.extras]
+saya = ["graia-saya (>=0.0.15)"]
 
 [[package]]
 name = "loguru"
@@ -772,7 +775,7 @@ mkdocs = ">=1.0.3,<2.0.0"
 
 [[package]]
 name = "mkdocs-material"
-version = "8.3.2"
+version = "8.3.3"
 description = "Documentation that simply works"
 category = "dev"
 optional = false
@@ -1923,8 +1926,8 @@ jupyter-core = [
     {file = "jupyter_core-4.10.0.tar.gz", hash = "sha256:a6de44b16b7b31d7271130c71a6792c4040f077011961138afed5e5e73181aec"},
 ]
 launart = [
-    {file = "launart-0.3.3-py3-none-any.whl", hash = "sha256:d2a58d2304373a818552ac9ae0469e9cc295d4b094cebf86b73c3793cf6c834a"},
-    {file = "launart-0.3.3.tar.gz", hash = "sha256:e82576dbce969f383134fc91f3fa0826e35c6c027b973e8582040134d5f680e0"},
+    {file = "launart-0.4.1-py3-none-any.whl", hash = "sha256:9b5d29c7c834c0b0276f17d21686696e79171380772dce8a18ba5a166b63fef2"},
+    {file = "launart-0.4.1.tar.gz", hash = "sha256:89386641b083e388ac1f31b0341692794755c3ce2c450dd9b6b02faa2f20afd2"},
 ]
 loguru = [
     {file = "loguru-0.6.0-py3-none-any.whl", hash = "sha256:4e2414d534a2ab57573365b3e6d0234dfb1d84b68b7f3b948e6fb743860a77c3"},
@@ -2005,8 +2008,8 @@ mkdocs-literate-nav = [
     {file = "mkdocs_literate_nav-0.4.1-py3-none-any.whl", hash = "sha256:a4b761792ba21defbe2dfd5e0de6ba451639e1ca0f0661c37eda83cc6261e4f9"},
 ]
 mkdocs-material = [
-    {file = "mkdocs-material-8.3.2.tar.gz", hash = "sha256:d203ba166063ccd0ff83893a54f46d98e2fb3961babd7c0176cb3f95ac62df20"},
-    {file = "mkdocs_material-8.3.2-py2.py3-none-any.whl", hash = "sha256:57d910ccb6d98d0d1281cbb34a9c8ae6d820b2f5caad1d1246d8ed49eec10a50"},
+    {file = "mkdocs-material-8.3.3.tar.gz", hash = "sha256:3dd30af894f6d5da3d8a2f8ffc04c90c4d0f1be013e654ec45f608373c131542"},
+    {file = "mkdocs_material-8.3.3-py2.py3-none-any.whl", hash = "sha256:4f9564af58f9c96f25c263cb705a40a82c833cb10c2626d6db6ddadedaa5b6c3"},
 ]
 mkdocs-material-extensions = [
     {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},

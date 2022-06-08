@@ -307,7 +307,7 @@ class Json(Element):
 
     type = "Json"
 
-    json: str
+    Json: str = Field(None, alias="json")
     """JSON 文本"""
 
     def __init__(self, json: Union[dict, list, str], **kwargs) -> None:

@@ -115,16 +115,16 @@ class Member(AriadneBaseModel, AttrConvertMixin):
     permission: MemberPerm
     """群权限"""
 
-    special_title: Optional[str] = Field(..., alias="specialTitle")
+    special_title: Optional[str] = Field(None, alias="specialTitle")
     """特殊头衔"""
 
-    join_timestamp: Optional[int] = Field(..., alias="joinTimestamp")
+    join_timestamp: Optional[int] = Field(None, alias="joinTimestamp")
     """加入的时间"""
 
-    last_speak_timestamp: Optional[int] = Field(..., alias="lastSpeakTimestamp")
+    last_speak_timestamp: Optional[int] = Field(None, alias="lastSpeakTimestamp")
     """最后发言时间"""
 
-    mute_time: Optional[int] = Field(..., alias="mutetimeRemaining")
+    mute_time: Optional[int] = Field(None, alias="mutetimeRemaining")
     """禁言剩余时间"""
 
     group: Group

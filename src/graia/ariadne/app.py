@@ -110,8 +110,9 @@ class Ariadne(AttrConvertMixin):
         cls.held_objects.setdefault(asyncio.AbstractEventLoop, cls.service.loop)
         if "install_log" not in cls.options:
             sys.excepthook = loguru_exc_callback
-        traceback.print_exception = loguru_exc_callback
+            traceback.print_exception = loguru_exc_callback
         cls.service.loop.set_exception_handler(loguru_exc_callback_async)
+        cls.options["installed_log"] = True
 
     @classmethod
     def config(
@@ -165,6 +166,7 @@ class Ariadne(AttrConvertMixin):
             )
 
             richuru.install(**option._asdict())
+            traceback.print_exception = option.exc_hook
             cls.options["installed_log"] = True
 
         if inject_bypass_listener and "inject_bypass_listener" not in cls.options:
@@ -252,9 +254,13 @@ class Ariadne(AttrConvertMixin):
 
     @classmethod
     def stop(cls):
-        tsk = cls.launch_manager.blocking_task
-        if tsk:
-            tsk.cancel()
+        mgr = cls.launch_manager
+        mgr.status.exiting = True
+        if mgr.taskgroup is not None:
+            mgr.taskgroup.stop = True
+            task = mgr.taskgroup.blocking_task
+            if task and not task.done():
+                task.cancel()
 
     @classmethod
     def create(cls, typ: Type[T], reuse: bool = True) -> T:

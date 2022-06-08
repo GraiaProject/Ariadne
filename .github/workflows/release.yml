@@ -41,7 +41,7 @@ jobs:
 
       - name: Extract Release Notes
         run: |
-          python ./extract-release-notes.py v${{ inputs.version }}
+          python ./extract-release-notes.py v${{ github.event.inputs.version }}
 
       - name: Config Git Username
         run: |
@@ -49,27 +49,27 @@ jobs:
           git config user.email github-actions@github.com
 
       - name: Update Changelog
-        if: ${{ inputs.changelog }}
+        if: ${{ github.event.inputs.changelog == 'true' }}
         run: |
           git add .
           git diff-index --quiet HEAD || git commit -m ":memo: update changelog"
           git push
 
       - name: Release to Public
-        if: ${{ inputs.release }}
+        if: ${{ github.event.inputs.release == 'true' }}
         run: |
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          poetry version ${{ inputs.version }}
+          poetry version ${{ github.event.inputs.version }}
           poetry publish --build
           git add .
-          git diff-index --quiet HEAD || git commit -m ":sparkles: ${{ inputs.version }}"
+          git diff-index --quiet HEAD || git commit -m ":sparkles: ${{ github.event.inputs.version }}"
           git push
-          gh release create "v${{ inputs.version }}" dist/* --notes-file ./release-notes.md --title "✨ v${{ inputs.version }}"
+          gh release create "v${{ github.event.inputs.version }}" dist/* --notes-file ./release-notes.md --title "✨ v${{ github.event.inputs.version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Build Artifacts
-        if: ${{ inputs.release }}
+        if: ${{ github.event.inputs.release == 'true' }}
         uses: actions/upload-artifact@v3
         with:
           name: artifacts

@@ -49,14 +49,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit and Push
+      - name: Update Changelog
         run: |
+          git checkout dev
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           git add .
-          git diff-index --quiet HEAD || git commit -m ":memo: Update changelog"
-          git push
-
+          git diff-index --quiet HEAD || git commit -m ":memo: update changelog"
+          git push origin dev
 
       - name: Merge to master
         run: |

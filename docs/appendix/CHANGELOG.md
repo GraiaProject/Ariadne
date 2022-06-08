@@ -2,6 +2,12 @@
 
 ## 未发布的更新
 
+### 更改
+
+在 `Ariadne` 清理时自动停止所有 `Scheduler` 和 `Broadcast` 任务.
+
+修复了 `MemberInfo` 的签名.
+
 ## 0.7.5
 
 ### 修复

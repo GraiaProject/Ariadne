@@ -1,5 +1,5 @@
 import asyncio
-from typing import Dict, Iterable, List, Optional, Tuple, Type, overload
+from typing import Coroutine, Dict, Iterable, List, Optional, Tuple, Type, overload
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.broadcast import Broadcast
@@ -106,6 +106,17 @@ class ElizabethService(Service):
                     app = Ariadne.current(conn.config.account)
                     with enter_context(app=app):
                         await self.broadcast.postEvent(AccountShutdown(app))
+
+            for task in asyncio.all_tasks():
+                if task.done():
+                    continue
+                coro: Coroutine = task.get_coro()  # type: ignore
+                if coro.__qualname__ == "Broadcast.Executor":
+                    task.cancel()
+                    logger.debug(f"Cancelling {task.get_name()} (Broadcast.Executor)")
+                elif coro.cr_frame.f_globals["__name__"].startswith("graia.scheduler"):
+                    task.cancel()
+                    logger.debug(f"Cancelling {task.get_name()} (Scheduler Task)")
 
     @property
     def required(self):

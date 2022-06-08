@@ -5,7 +5,7 @@ import re
 import shutil
 from typing import Dict, Literal, Match, Optional, Set
 
-import rich
+from rich.console import Console
 
 MAPPING: Dict[str, str] = {
     "messageChain": "message_chain",
@@ -100,7 +100,7 @@ MAPPING: Dict[str, str] = {
 
 WARNINGS: Set[str] = {"get_running", "Adapter"}
 
-console = rich.console.Console()
+console = Console()
 
 mode: Literal["copy", "diff", "modify"] = "copy"
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     target: str = args.target
     output: Optional[str] = args.output
     if output:
-        console = rich.console.Console(file=open(output, "w"))
+        console = Console(file=open(output, "w"))
     mode = args.mode
     root_pth = pathlib.Path(target).absolute()
     if root_pth.is_dir():

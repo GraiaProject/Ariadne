@@ -344,7 +344,7 @@ class MemberInfo(AriadneBaseModel):
     name: str = ""
     """昵称, 与 nickname不同"""
 
-    special_title: Optional[str] = Field("", alias="specialTitle")
+    special_title: Optional[str] = Field(default="", alias="specialTitle")
     """特殊头衔"""
 
 

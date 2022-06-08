@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 新增
+
+添加 `twilight.ForceResult`，让 `twilight.ResultValue` 支持 `Derive`.
+
 ## 0.7.3
 
 ### 修复

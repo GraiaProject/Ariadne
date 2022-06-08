@@ -407,6 +407,12 @@ class ElementResult(MatchResult[Element, ElementMatch]):
     ...
 
 
+class ForceResult(MatchResult[T, Match]):
+    result: T
+    matched: Literal[True]
+    ...
+
+
 class Sparkle(Representation):
     """Sparkle: Twilight 的匹配容器"""
 
@@ -598,11 +604,13 @@ class _TwilightHelpArgs(TypedDict):
 class Twilight(Generic[T_Sparkle], BaseDispatcher):
     """暮光"""
 
+    preprocessor: Union[ChainDecorator, AnnotatedType, None] = None
+
     def __init__(
         self,
         *root: Union[Iterable[Match], Match],
         map_param: Optional[Dict[str, bool]] = None,
-        preprocessor: Union[ChainDecorator, AnnotatedType, None] = None,
+        preprocessor: Union[ChainDecorator, AnnotatedType, None, Literal[Sentinel]] = Sentinel,
     ) -> None:
         """本魔法方法用于初始化本实例.
 
@@ -613,7 +621,8 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             应该来自 `graia.ariadne.message.parser.base` 模块. Defaults to None.
         """
         self.map_param = map_param or {}
-        self.preprocessor = preprocessor
+        if preprocessor is not Sentinel:
+            self.preprocessor = preprocessor
         self.help_data: Optional[_TwilightHelpArgs] = None
         self.help_id: str = TwilightHelpManager.AUTO_ID
         self.help_brief: str = TwilightHelpManager.AUTO_ID
@@ -766,7 +775,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
             local_storage[f"{__name__}:result"] = self.generate(chain)
             local_storage[f"{__name__}:twilight"] = self
             return
-        raise ExecutionStop
+        interface.stop()
 
     async def catch(self, interface: DispatcherInterface):
         local_storage = interface.local_storage
@@ -783,7 +792,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
                 logger.warning(
                     f"Please use {interface.name}: {result.__class__.__qualname__} to get origin attribute!"
                 )
-                raise ExecutionStop
+                interface.stop()
             if any(
                 generic_issubclass(res_cls, interface.annotation) for res_cls in gen_subclass(MatchResult)
             ):
@@ -796,6 +805,13 @@ class ResultValue(Decorator):
     """返回 Match 结果值的装饰器"""
 
     pre = True
+
+    def __call__(self, _: Any, i: DispatcherInterface) -> Any:
+        sparkle: Sparkle = i.local_storage[f"{__name__}:result"]
+        res = sparkle.res.get(i.name, None)
+        if generic_isinstance(res, i.annotation):
+            return res
+        i.stop()
 
     @staticmethod
     async def target(i: DecoratorInterface):

@@ -166,6 +166,14 @@ async def reply(..., arg: RegexResult):
 - `MatchResult.origin`: 原始 `Match` 对象.
 - `MatchResult.result`: 匹配结果.
 
+!!! tips "提示"
+
+    如果你的匹配项必定匹配, 可以考虑使用 `ForceResult` 来向类型检查器表明这一点.
+
+    这会让 `MatchResult.result` 结果从 `Optional[T]` 收缩至 `T`
+
+    比如: `arg: RegexResult` 改为 `arg: ForceResult[MessageChain]`
+
 ### 使用 preprocessor
 
 `0.7.0` 以后, `Twilight` 支持使用 `preprocessor` 关键字参数进行预修饰.
@@ -179,6 +187,12 @@ Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=Mention
 
 Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=Annotated[MessageChain, MentionMe()])
 ```
+
+!!! tips "提示"
+
+    你可以使用 `Twilight.preprocessor = ...` 全局指定预处理器（会自动被实例上的覆盖）
+
+    可以通过显式传入 `preprocessor=None` 来清除全局预处理器.
 
 ### ResultValue 装饰器
 
@@ -197,6 +211,12 @@ Twilight(RegexMatch(".command"), RegexMatch("\d+") @ "num", preprocessor=Annotat
 async def reply(..., arg: MessageChain = ResultValue()): # 保证不会被正常的流程覆盖
     ...
 ```
+
+!!! example "提示"
+
+    `ResultValue` 已经支持 [`Derive`](./broadcast/derive.md) , 但是只能用于 result 本来就能分发的类型.
+
+    比如: `arg: Annotated[MessageChain, ResultValue()]`
 
 ## int 类型的参数名
 

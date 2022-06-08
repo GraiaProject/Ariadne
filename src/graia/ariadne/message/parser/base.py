@@ -34,7 +34,7 @@ from ..element import At, Element, Plain, Quote, Source
 class Compose(Decorator):
     """将多个基础 Decorator 串联起来"""
 
-    @deprecated("0.8.0")
+    @deprecated("0.8.0", "Use `Derive` feature instead")
     def __init__(self, *deco: "ChainDecorator") -> None:
         self.deco: List[ChainDecorator] = list(deco)
 

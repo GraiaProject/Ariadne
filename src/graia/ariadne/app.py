@@ -212,7 +212,7 @@ class Ariadne(AttrConvertMixin):
     async def _event_hook(self, event: MiraiEvent):
         with enter_context(self, event):
             sys.audit("AriadnePostRemoteEvent", event)
-            if isinstance(event, MessageEvent) and event.message_chain.only_contains(Source):
+            if isinstance(event, MessageEvent) and event.message_chain.only(Source):
                 event.message_chain.append("<! 不支持的消息类型 !>")
             if isinstance(event, FriendEvent):
                 with enter_message_send_context(UploadMethod.Friend):

@@ -191,7 +191,7 @@ class Console:
                     if isinstance(result, str):
                         logger.info(result)
                     elif isinstance(result, MessageChain):
-                        logger.info(result.as_display())
+                        logger.info(result.display)
 
     def start(self):
         """启动 Console, 幂等"""

@@ -1,7 +1,7 @@
 """Mirai 的各种事件"""
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
@@ -228,10 +228,12 @@ class BotMuteEvent(GroupEvent, BotEvent):
     operator: Member
     """执行禁言操作的管理员/群主"""
 
-    @property
-    @deprecated("0.8.0")
-    def duration_seconds(self) -> int:
-        return self.duration
+    if not TYPE_CHECKING:
+
+        @property
+        @deprecated("0.8.0", "Use `duration` instead")
+        def duration_seconds(self) -> int:
+            return self.duration
 
     class Dispatcher(BaseDispatcher):
         @staticmethod
@@ -906,10 +908,12 @@ class MemberMuteEvent(GroupEvent):
     duration: int = Field(..., alias="durationSeconds")
     """禁言时长, 单位为秒"""
 
-    @property
-    @deprecated("0.8.0")
-    def duration_seconds(self):
-        return self.duration
+    if not TYPE_CHECKING:
+
+        @property
+        @deprecated("0.8.0", "Use `duration` instead")
+        def duration_seconds(self):
+            return self.duration
 
     member: Member
     """被禁言的成员"""

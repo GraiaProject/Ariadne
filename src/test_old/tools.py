@@ -11,9 +11,9 @@ from graia.ariadne.message.formatter import Formatter
 
 debug(
     Formatter("{name} {type} {version} {0}").format(
-        MessageChain.create(Plain("bars"), At(111111)),
+        MessageChain(Plain("bars"), At(111111)),
         name="pog",
         type=Plain("coroutine"),
-        version=MessageChain.create(Plain("3.2.1"), At(87654321)),
+        version=MessageChain(Plain("3.2.1"), At(87654321)),
     )
 )

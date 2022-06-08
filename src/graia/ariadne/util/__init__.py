@@ -231,11 +231,14 @@ def get_stack_namespace(
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
+def deprecated(
+    remove_ver: str, suggestion: Optional[str] = None
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """标注一个方法 / 函数已被弃用
 
     Args:
         remove_ver (str): 将被移除的版本.
+        suggestion (Optional[str], optional): 建议的替代方案. Defaults to None.
 
     Returns:
         Callable[[T_Callable], T_Callable]: 包装器.
@@ -254,6 +257,8 @@ def deprecated(remove_ver: str) -> Callable[[Callable[P, R]], Callable[P, R]]:
                 warnings.warn(DeprecationWarning(f"{func.__qualname__} will be removed in {remove_ver}!"))
                 logger.warning(f"Deprecated function: {func.__qualname__}")
                 logger.warning(f"{func.__qualname__} will be removed in {remove_ver}!")
+                if suggestion:
+                    logger.warning(f"{suggestion}", style="dark_orange bold")
             return func(*args, **kwargs)
 
         return wrapper
@@ -353,19 +358,21 @@ def camel_to_snake(name: str) -> str:
 class AttrConvertMixin:
     __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
 
-    def __getattr__(self, name: str) -> Any:
-        # camelCase to snake_case
-        name = camel_to_snake(name)
-        if name not in self.__class__.__dict__:
-            raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
-        # extract caller's file and line number
-        frame = inspect.stack()[1].frame
-        caller_file = frame.f_code.co_filename
-        caller_line = frame.f_lineno
-        AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
-        if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
-            AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
-            if not name.startswith("_"):
-                logger.warning(f"At {caller_file}:{caller_line}")
-                logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
-        return getattr(self, name)
+    if not TYPE_CHECKING:  # Runtime Only
+
+        def __getattr__(self, name: str) -> Any:
+            # camelCase to snake_case
+            name = camel_to_snake(name)
+            if name not in self.__class__.__dict__:
+                raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
+            # extract caller's file and line number
+            frame = inspect.stack()[1].frame
+            caller_file = frame.f_code.co_filename
+            caller_line = frame.f_lineno
+            AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
+            if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
+                AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
+                if not name.startswith("_"):
+                    logger.warning(f"At {caller_file}:{caller_line}")
+                    logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
+            return getattr(self, name)

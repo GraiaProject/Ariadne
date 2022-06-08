@@ -39,14 +39,16 @@ class Element(AriadneBaseModel, AttrConvertMixin, BaseElement):
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
 
-    @deprecated("0.8.0")
-    def as_display(self) -> str:
-        """返回该元素的 "显示" 形式字符串, 趋近于你见到的样子.
+    if not TYPE_CHECKING:
 
-        Returns:
-            str: "显示" 字符串.
-        """
-        return str(self)
+        @deprecated("0.8.0", "Use `display` instead.")
+        def as_display(self) -> str:
+            """返回该元素的 "显示" 形式字符串, 趋近于你见到的样子.
+
+            Returns:
+                str: "显示" 字符串.
+            """
+            return str(self)
 
     @property
     def display(self) -> str:

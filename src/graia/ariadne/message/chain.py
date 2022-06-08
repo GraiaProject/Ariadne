@@ -143,33 +143,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         else:
             AriadneBaseModel.__init__(self, __root__=__root__)  # type: ignore
 
-    @classmethod
-    @deprecated("0.8.0")
-    def create(cls, *elements: Union[Iterable[Element], Element, str]) -> Self:
-        """
-        创建消息链.
-
-        Args:
-            *elements (Union[Iterable[Element], Element, str]): \
-            元素的容器, 为承载元素的可迭代对象/单元素实例, \
-            字符串会被自动不可逆的转换为 `Plain`
-
-        Returns:
-            MessageChain: 创建的消息链
-        """
-
-        return cls(*elements)
-
-    @deprecated("0.8.0")
-    def prepare(self, copy: bool = False) -> Self:
-        """
-        对消息链中所有元素进行处理.
-
-        Returns:
-            MessageChain: copy = True 时返回副本, 否则返回自己的引用.
-        """
-        return self.as_sendable()
-
     def unzip(self) -> List[Union[str, Element]]:
         """解压消息链为元素/单字符列表.
 
@@ -217,16 +190,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         if count == -1:
             count = len(self.content)
         return [i for i in self.content if isinstance(i, element_class)][:count]
-
-    @deprecated("0.8.0")
-    def as_display(self) -> str:
-        """
-        获取以字符串形式表示的消息链, 且趋于通常你见到的样子.
-
-        Returns:
-            str: 以字符串形式表示的消息链
-        """
-        return "".join(i.as_display() for i in self.content)
 
     def __str__(self) -> str:
         return "".join(str(e) for e in self.content)
@@ -322,15 +285,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
                 match_index.append(i - ptr + 1)
                 ptr = fallback[ptr - 1]
         return match_index
-
-    @deprecated("0.8.0")
-    def only_contains(self, *types: Type[Element]) -> bool:
-        """判断消息链中是否只含有特定类型元素.
-
-        Returns:
-            bool: 判断结果
-        """
-        return self.only(*types)
 
     def as_sendable(self) -> Self:
         """将消息链转换为可发送形式 (去除 Source, Quote, File)
@@ -448,7 +402,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         Returns:
             MessageChain: 还原的消息链.
         """
-        result = []
+        result: List[Element] = []
         for match in re.split(r"(\[mirai:.+?\])", string):
             if mirai := re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match):
                 j_string = mirai[3]
@@ -456,7 +410,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
                 result.append(element_cls.parse_obj(Json.deserialize(j_string)))
             elif match:
                 result.append(Plain(match.replace("[_", "[")))
-        return MessageChain.create(result)
+        return MessageChain(result, inline=True)
 
     def _to_mapping_str(
         self,
@@ -592,9 +546,9 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             MessageChain: 修改后的消息链, 若未替换则原样返回.
         """
         if not isinstance(old, MessageChain):
-            old = MessageChain.create(old)
+            old = MessageChain(old)
         if not isinstance(new, MessageChain):
-            new = MessageChain.create(new)
+            new = MessageChain(new)
         index_list: List[int] = self.find_sub_chain(old)
         unzipped_new: List[Union[str, Element]] = new.unzip()
         unzipped_old: List[Union[str, Element]] = old.unzip()
@@ -637,6 +591,54 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             str: 消息链的安全显示字符串.
         """
         return repr(str(self))[1:-1]
+
+    if not TYPE_CHECKING:
+
+        @classmethod
+        @deprecated("0.8.0", "Instantiate `MessageChain` directly instead.")
+        def create(cls, *elements: Union[Iterable[Element], Element, str]) -> Self:
+            """
+            创建消息链.
+
+            Args:
+                *elements (Union[Iterable[Element], Element, str]): \
+                元素的容器, 为承载元素的可迭代对象/单元素实例, \
+                字符串会被自动不可逆的转换为 `Plain`
+
+            Returns:
+                MessageChain: 创建的消息链
+            """
+
+            return cls(*elements)
+
+        @deprecated("0.8.0", "Use `as_sendable` instead.")
+        def prepare(self, copy: bool = False) -> Self:
+            """
+            对消息链中所有元素进行处理.
+
+            Returns:
+                MessageChain: copy = True 时返回副本, 否则返回自己的引用.
+            """
+            return self.as_sendable()
+
+        @deprecated("0.8.0", "Use `display` instead.")
+        def as_display(self) -> str:
+            """
+            获取以字符串形式表示的消息链, 且趋于通常你见到的样子.
+
+            Returns:
+                str: 以字符串形式表示的消息链
+            """
+            return "".join(i.display for i in self.content)
+
+        @deprecated("0.8.0", "Use `only` instead.")
+        def only_contains(self, *types: Type[Element]) -> bool:
+            """判断消息链中是否只含有特定类型元素.
+
+            Returns:
+                bool: 判断结果
+            """
+            return self.only(*types)
 
 
 _update_forward_refs()

@@ -73,7 +73,7 @@ class Safe(SendMessageAction):
         def convert(msg_chain: MessageChain, type) -> None:
             for ind, elem in enumerate(msg_chain.__root__[:]):
                 if isinstance(elem, type):
-                    msg_chain.__root__[ind] = Plain(elem.as_display())
+                    msg_chain.__root__[ind] = Plain(elem.display)
 
         for type in [AtAll, At, Poke, Forward, MultimediaElement]:
             convert(chain, type)

@@ -25,7 +25,7 @@ RUN = 20000
 if __name__ == "__main__":
     print("Run 1:")
     twi = Twilight([FullMatch(".test"), "foo" @ ArgumentMatch("--foo", "-f")])
-    msg = MessageChain.create(".test", " --foo ", At(123))
+    msg = MessageChain(".test", " --foo ", At(123))
 
     debug(twi.generate(msg))
     print(repr(twi.generate(msg)))

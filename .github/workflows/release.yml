@@ -51,15 +51,15 @@ jobs:
 
       - name: Update Changelog
         run: |
-          git checkout dev
+          git checkout origin/dev -b dev
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
           git add .
           git diff-index --quiet HEAD || git commit -m ":memo: update changelog"
-          git push origin dev
+          git push --set-upstream origin dev
 
       - name: Merge to master
         run: |
-          git checkout master
+          git checkout origin/master -b master
           git merge dev --ff-only
-          git push origin master
+          git push --set-upstream origin master

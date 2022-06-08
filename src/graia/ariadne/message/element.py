@@ -307,16 +307,13 @@ class Json(Element):
 
     type = "Json"
 
-    Json: str = Field(..., alias="json")
-    """XML文本"""
+    json: str
+    """JSON 文本"""
 
-    def __init__(self, json: Union[dict, str], **kwargs) -> None:
-        if isinstance(json, dict):
+    def __init__(self, json: Union[dict, list, str], **kwargs) -> None:
+        if isinstance(json, (dict, list)):
             json = j_dump(json)
         super().__init__(json=json, **kwargs)
-
-    def dict(self, *args, **kwargs):
-        return super().dict(*args, **({**kwargs, "by_alias": True}))
 
     def __str__(self) -> str:
         return "[JSON消息]"

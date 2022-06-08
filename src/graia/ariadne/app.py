@@ -67,6 +67,7 @@ from .util import (
     AttrConvertMixin,
     RichLogInstallOptions,
     ariadne_api,
+    camel_to_snake,
     loguru_exc_callback,
     loguru_exc_callback_async,
 )
@@ -1008,7 +1009,7 @@ class Ariadne(AttrConvertMixin):
             },
         )
 
-        return GroupConfig.parse_obj(result)
+        return GroupConfig.parse_obj({camel_to_snake(k): v for k, v in result.items()})
 
     @ariadne_api
     async def modify_group_config(self, group: Union[Group, int], config: GroupConfig) -> None:
@@ -1026,7 +1027,7 @@ class Ariadne(AttrConvertMixin):
             CallMethod.RESTPOST,
             {
                 "target": group.id if isinstance(group, Group) else group,
-                "config": config.dict(exclude_unset=True, exclude_none=True),
+                "config": config.dict(exclude_unset=True, exclude_none=True, to_camel=True),
             },
         )
 
@@ -1064,7 +1065,7 @@ class Ariadne(AttrConvertMixin):
             {
                 "target": group.id if isinstance(group, Group) else group,
                 "memberId": member.id if isinstance(member, Member) else member,
-                "info": info.dict(exclude_none=True, exclude_unset=True, by_alias=True),
+                "info": info.dict(exclude_none=True, exclude_unset=True),
             },
         )
 

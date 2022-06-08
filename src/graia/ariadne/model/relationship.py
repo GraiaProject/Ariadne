@@ -1,10 +1,12 @@
 import functools
+import inspect
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
+from loguru import logger
 from pydantic import Field
 
-from ..util import AttrConvertMixin, internal_cls
+from ..util import AttrConvertMixin, camel_to_snake, deprecated, internal_cls
 from .util import AriadneBaseModel
 
 if TYPE_CHECKING:
@@ -51,7 +53,7 @@ class Group(AriadneBaseModel, AttrConvertMixin):
     name: str
     """群名"""
 
-    accountPerm: MemberPerm = Field(..., alias="permission")
+    account_perm: MemberPerm = Field(..., alias="permission")
     """你在群中的权限"""
 
     def __int__(self):
@@ -113,20 +115,27 @@ class Member(AriadneBaseModel, AttrConvertMixin):
     permission: MemberPerm
     """群权限"""
 
-    specialTitle: Optional[str] = None
+    special_title: Optional[str] = Field(..., alias="specialTitle")
     """特殊头衔"""
 
-    joinTimestamp: Optional[int] = None
+    join_timestamp: Optional[int] = Field(..., alias="joinTimestamp")
     """加入的时间"""
 
-    lastSpeakTimestamp: Optional[int] = None
+    last_speak_timestamp: Optional[int] = Field(..., alias="lastSpeakTimestamp")
     """最后发言时间"""
 
-    mutetimeRemaining: Optional[int] = None
+    mute_time: Optional[int] = Field(..., alias="mutetimeRemaining")
     """禁言剩余时间"""
 
     group: Group
     """所在群组"""
+
+    if not TYPE_CHECKING:
+
+        @property
+        @deprecated("0.8.0", "use `mute_time` instead")
+        def mutetime_remaining(self) -> Optional[int]:
+            return self.mute_time
 
     def __str__(self) -> str:
         return f"{self.name}({self.id} @ {self.group})"
@@ -153,7 +162,7 @@ class Member(AriadneBaseModel, AttrConvertMixin):
         Returns:
             MemberInfo: 群组成员的可修改状态
         """
-        return MemberInfo(name=self.name, specialTitle=self.specialTitle)
+        return MemberInfo(name=self.name, specialTitle=self.special_title)
 
     async def modify_info(self, info: "MemberInfo") -> None:
         """
@@ -291,7 +300,7 @@ class Stranger(AriadneBaseModel, AttrConvertMixin):
         return await rider.io().read()
 
 
-class GroupConfig(AriadneBaseModel):
+class GroupConfig(AriadneBaseModel, AttrConvertMixin):
     """描述群组各项功能的设置."""
 
     name: str = ""
@@ -300,17 +309,33 @@ class GroupConfig(AriadneBaseModel):
     announcement: str = ""
     """群公告"""
 
-    confessTalk: bool = False
+    confess_talk: bool = False
     """开启坦白说"""
 
-    allowMemberInvite: bool = False
+    allow_member_invite: bool = False
     """允许群成员直接邀请入群"""
 
-    autoApprove: bool = False
+    auto_approve: bool = False
     """自动通过加群申请"""
 
-    anonymousChat: bool = False
+    anonymous_chat: bool = False
     """允许匿名聊天"""
+
+    if not TYPE_CHECKING:
+
+        def __setattr__(self, o_name: str, value: Any) -> None:
+            name = camel_to_snake(o_name)
+            super().__setattr__(name, value)
+            if o_name == name:
+                return
+            frame = inspect.stack()[1].frame
+            caller_file = frame.f_code.co_filename
+            caller_line = frame.f_lineno
+            AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
+            if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
+                AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
+                logger.warning(f"At {caller_file}:{caller_line}")
+                logger.warning(f"Found deprecated attribute set: {self.__class__.__qualname__}.{name}!")
 
 
 class MemberInfo(AriadneBaseModel):
@@ -319,7 +344,7 @@ class MemberInfo(AriadneBaseModel):
     name: str = ""
     """昵称, 与 nickname不同"""
 
-    specialTitle: Optional[str] = ""
+    special_title: Optional[str] = Field("", alias="specialTitle")
     """特殊头衔"""
 
 

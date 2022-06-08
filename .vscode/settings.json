@@ -42,6 +42,7 @@
     "miraijvm",
     "MISRO",
     "mkdocstrings",
+    "mutetime",
     "Netease",
     "noreply",
     "pycon",
@@ -75,4 +76,11 @@
   "python.linting.flake8Enabled": true,
   "python.analysis.typeCheckingMode": "basic",
   "jupyter.jupyterServerType": "local",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    },
+  }
 }

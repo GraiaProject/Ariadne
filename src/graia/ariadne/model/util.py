@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Literal, Union
 from pydantic import BaseConfig, BaseModel, Extra
 from typing_extensions import NotRequired, TypedDict
 
+from graia.ariadne.util import snake_to_camel
+
 if TYPE_CHECKING:
     from ..typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny
 
@@ -22,9 +24,10 @@ class AriadneBaseModel(BaseModel):
         exclude_unset: bool = False,
         exclude_defaults: bool = False,
         exclude_none: bool = False,
+        to_camel: bool = False,
     ) -> "DictStrAny":
         _, *_ = by_alias, exclude_none, skip_defaults
-        return super().dict(
+        data = super().dict(
             include=include,  # type: ignore
             exclude=exclude,  # type: ignore
             by_alias=True,
@@ -32,6 +35,9 @@ class AriadneBaseModel(BaseModel):
             exclude_defaults=exclude_defaults,
             exclude_none=True,
         )
+        if to_camel:
+            data = {snake_to_camel(k): v for k, v in data.items()}
+        return data
 
     class Config(BaseConfig):
         """Ariadne BaseModel 设置"""

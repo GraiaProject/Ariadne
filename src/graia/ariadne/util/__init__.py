@@ -347,11 +347,20 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
 
 
 def camel_to_snake(name: str) -> str:
+    if "_" in name:
+        return name
     import re
 
     name = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", name)
     name = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", name)
     name = name.replace("-", "_").lower()
+    return name
+
+
+def snake_to_camel(name: str, capital: bool = False) -> str:
+    name = "".join(seg.capitalize() for seg in name.split("_"))
+    if not capital:
+        name = name[0].lower() + name[1:]
     return name
 
 
@@ -372,7 +381,6 @@ class AttrConvertMixin:
             AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
             if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
                 AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
-                if not name.startswith("_"):
-                    logger.warning(f"At {caller_file}:{caller_line}")
-                    logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
+                logger.warning(f"At {caller_file}:{caller_line}")
+                logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
             return getattr(self, name)

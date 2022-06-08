@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.7.6
+
 ### 更改
 
 在 `Ariadne` 清理时自动停止所有 `Scheduler` 和 `Broadcast` 任务.

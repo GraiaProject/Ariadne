@@ -1,19 +1,19 @@
 name: Release
 
-on: [workflow_dispatch]
-
-inputs:
-  version:
-    description: Version Number
-    required: true
-  release:
-    description: Make Release
-    required: false
-    default: false
-  changelog:
-    description: Update Changelog
-    required: false
-    default: false
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version Number
+        required: true
+      release:
+        description: Make Release
+        required: true
+        type: boolean
+      changelog:
+        description: Update Changelog
+        required: true
+        type: boolean
 
 jobs:
   release:

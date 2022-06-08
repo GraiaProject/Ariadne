@@ -42,16 +42,10 @@ jobs:
           poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry publish
 
-      - name: Make Release Draft
+      - name: Make GitHub Release
         run: |
           python ./extract-release-notes.py ${{ env.TAG_NAME }}
-          gh release create ${{ env.TAG_NAME }} --draft --notes-file ./release-notes.md --title "✨ ${{ env.TAG_NAME }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Artifacts to Release
-        run: |
-          gh release upload ${{ env.TAG_NAME }} --clobber dist/*.tar.gz dist/*.whl
+          gh release create ${{ env.TAG_NAME }} dist/* --notes-file ./release-notes.md --title "✨ ${{ env.TAG_NAME }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

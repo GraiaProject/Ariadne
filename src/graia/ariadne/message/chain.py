@@ -44,9 +44,7 @@ Element_T = TypeVar("Element_T", bound=Element)
 ELEMENT_MAPPING: Dict[str, Type[Element]] = {
     i.__fields__["type"].default: i for i in gen_subclass(Element) if hasattr(i.__fields__["type"], "default")
 }
-METADATA_ELEMENT_TYPES = (Source, Quote)
-
-ORDINARY_ELEMENT_TYPES = (Plain, Image, Face, At, AtAll)
+ORDINARY_ELEMENT_TYPES = frozenset([Plain, Image, Face, At, AtAll, Source, Quote])
 _Parsable = Union[str, dict, Element, Iterable["_Parsable"], "MessageChain"]
 
 
@@ -90,12 +88,10 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             for o in obj:
                 element_list.extend(MessageChain.build_chain(o))
 
-        if len(element_list) != 1:
-            assert all(
-                isinstance(element, ORDINARY_ELEMENT_TYPES)
-                for element in element_list
-                if not isinstance(element, METADATA_ELEMENT_TYPES)
-            ), "An MessageChain can only contain *one* special element"
+        special_cnt: int = sum(element.__class__ not in ORDINARY_ELEMENT_TYPES for element in element_list)
+
+        if special_cnt > 1:
+            raise ValueError("An MessageChain can only contain *one* special element")
         return element_list
 
     @classmethod

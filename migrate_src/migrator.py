@@ -1,8 +1,9 @@
 import argparse
 import difflib
 import pathlib
+import re
 import shutil
-from typing import Dict, Literal, Optional, Set
+from typing import Dict, Literal, Match, Optional, Set
 
 import rich
 
@@ -84,6 +85,8 @@ MAPPING: Dict[str, str] = {
     "asPersistentString": "as_persistent_string",
     "fromPersistentString": "from_persistent_string",
     "asNoPersistentBinary()": "as_persistent_string(binary=False)",
+    "from graia.ariadne import get_running": "",
+    "from graia.ariadne.model import UploadMethod": "from graia.ariadne.connection.util import UploadMethod",
 }
 
 WARNINGS: Set[str] = {"get_running", "Adapter"}
@@ -101,6 +104,28 @@ def analyze_file(file: pathlib.Path):
     console.print(f"[blue]Analyzing {file}")
     for key, value in MAPPING.items():
         text = text.replace(key, value)
+
+    add_upload_method_import: bool = False
+
+    def gen_import_repl(res: Match[str]) -> str:
+        fwd: str = res.groupdict()["fwd_import"] or ""
+        back: str = res.groupdict()["back_import"] or ""
+        nonlocal add_upload_method_import
+        add_upload_method_import = True
+        return f"from graia.ariadne.model import {fwd}{back}"
+
+    text = "\n".join(
+        re.sub(
+            r"^from graia\.ariadne\.model import (?P<fwd_import>.+?)?(, ?)?UploadMethod(?P<back_import>.+)?$",
+            gen_import_repl,
+            t,
+        )
+        for t in text.splitlines()
+    )
+
+    if add_upload_method_import:
+        text = f"from graia.ariadne.connection.util import UploadMethod\n{text}"
+
     diff = "\n".join(
         difflib.unified_diff(origin.splitlines(), text.splitlines(), fromfile=file.name, tofile=modified.name)
     )

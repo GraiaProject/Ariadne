@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 修复
+
+`Broadcast` 内部运行产生的正常异常不会被记录.
+
 ### 新增
 
 添加 `twilight.ForceResult`，让 `twilight.ResultValue` 支持 `Derive`.

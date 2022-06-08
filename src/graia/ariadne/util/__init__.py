@@ -36,7 +36,11 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
-from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
+from graia.broadcast.exceptions import (
+    ExecutionStop,
+    PropagationCancelled,
+    RequirementCrashed,
+)
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
@@ -59,11 +63,11 @@ def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Option
         val (Exception): 异常的实际值
         tb (TracebackType): 回溯消息
     """
+    if issubclass(cls, (ExecutionStop, PropagationCancelled)):
+        return
     if tb:
         exec_module_name = tb.tb_frame.f_globals.get("__name__", "")
-        if issubclass(cls, ExecutionStop) and exec_module_name.startswith("graia"):
-            return
-        elif isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
+        if isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
             with contextlib.suppress(Exception):
                 local_dict = tb.tb_frame.f_locals
                 _, param_name, param_anno, param_default = val.args
@@ -92,6 +96,8 @@ def loguru_exc_callback_async(_, ctx: dict):
         ctx (dict): 异常上下文
     """
     if "exception" in ctx:
+        if isinstance(ctx["exception"], (ExecutionStop, PropagationCancelled, RequirementCrashed)):
+            return
         logger.opt(exception=ctx["exception"]).error("Exception:")
     else:
         logger.error(f"Exception: {ctx}")

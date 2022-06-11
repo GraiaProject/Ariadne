@@ -2,9 +2,17 @@
 
 ## 未发布的更新
 
+### 改进
+
+更好的事件循环异常处理器实现.
+
 ### 修复
 
 修复了 `twilight.ResultValue`.
+
+修复 `Ariadne.upload_xxx`
+
+修复 `internal_cls` 过于严格的 bug
 
 ## 0.7.6
 

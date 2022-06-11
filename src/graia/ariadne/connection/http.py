@@ -63,8 +63,8 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
     ) -> Any:
         if data and isinstance(data, dict):
             form = FormData(quote_fields=False)
-            for k, v in data.values():
-                form.add_field(k, **v)
+            for k, v in data.items():
+                form.add_field(k, **v) if isinstance(v, dict) else form.add_field(k, v)
             data = form
         rider = await self.http_interface.request(method, url, params=params, data=data, json=json)
         byte_data = await rider.io().read()

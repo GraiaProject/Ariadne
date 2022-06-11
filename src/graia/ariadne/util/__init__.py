@@ -7,6 +7,7 @@ import contextlib
 import functools
 import inspect
 import sys
+import traceback
 import types
 import typing
 import warnings
@@ -88,19 +89,47 @@ def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Option
     logger.opt(exception=(cls, val, tb)).error("Exception:")
 
 
-def loguru_exc_callback_async(_, ctx: dict):
+def loguru_exc_callback_async(loop, context: dict):
     """loguru 异步异常回调
 
     Args:
-        _ (AbstractEventLoop): 异常发生的事件循环
+        loop (AbstractEventLoop): 异常发生的事件循环
         ctx (dict): 异常上下文
     """
-    if "exception" in ctx:
-        if isinstance(ctx["exception"], (ExecutionStop, PropagationCancelled, RequirementCrashed)):
-            return
-        logger.opt(exception=ctx["exception"]).error("Exception:")
+    message = context.get("message")
+    if not message:
+        message = "Unhandled exception in event loop"
+
+    exception = context.get("exception")
+    if exception is None:
+        exc_info = False
+    elif isinstance(exception, (ExecutionStop, PropagationCancelled, RequirementCrashed)):
+        return
     else:
-        logger.error(f"Exception: {ctx}")
+        exc_info = (type(exception), exception, exception.__traceback__)
+    if (
+        "source_traceback" not in context
+        and loop._current_handle is not None
+        and loop._current_handle._source_traceback
+    ):
+        context["handle_traceback"] = loop._current_handle._source_traceback
+
+    log_lines = [message]
+    for key in sorted(context):
+        if key in {"message", "exception"}:
+            continue
+        value = context[key]
+        if key == "handle_traceback":
+            tb = "".join(traceback.format_list(value))
+            value = "Handle created at (most recent call last):\n" + tb.rstrip()
+        elif key == "source_traceback":
+            tb = "".join(traceback.format_list(value))
+            value = "Object created at (most recent call last):\n" + tb.rstrip()
+        else:
+            value = repr(value)
+        log_lines.append(f"{key}: {value}")
+
+    logger.opt(exception=exc_info).error("\n".join(log_lines))
 
 
 class RichLogInstallOptions(NamedTuple):
@@ -332,6 +361,8 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
     else:
         hint = f"Only modules start with {module} can initialize it!"
 
+    SAFE_MODULES = (module, "launart", "statv", "pydantic", "aiohttp", "avilla")
+
     def deco(cls: _T_cls) -> _T_cls:
         origin_init = cls.__init__
 
@@ -339,7 +370,7 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
         def _wrapped_init_(self: object, *args, **kwargs):
             frame = inspect.stack()[1].frame  # outer frame
             module_name: str = frame.f_globals["__name__"]
-            if not module_name.startswith(module):
+            if not module_name.startswith(SAFE_MODULES):
                 raise NameError(
                     f"{self.__class__.__module__}.{self.__class__.__qualname__} is an internal class!",
                     hint,

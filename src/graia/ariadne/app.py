@@ -608,7 +608,7 @@ class Ariadne(AttrConvertMixin):
                 "type": method,
                 "target": str(target),
                 "path": path,
-                "file": (data, {"filename": name} if name else {}),
+                "file": {"value": data, **({"filename": name} if name else {})},
             },
         )
 

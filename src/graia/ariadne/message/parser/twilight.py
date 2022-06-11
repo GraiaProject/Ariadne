@@ -810,7 +810,7 @@ class ResultValue(Decorator):
         sparkle: Sparkle = i.local_storage[f"{__name__}:result"]
         res = sparkle.res.get(i.name, None)
         if generic_isinstance(res, i.annotation):
-            return res
+            return res.result if res else None
         i.stop()
 
     @staticmethod
@@ -818,7 +818,7 @@ class ResultValue(Decorator):
         sparkle: Sparkle = i.local_storage[f"{__name__}:result"]
         res = sparkle.res.get(i.name, None)
         if generic_isinstance(res, i.annotation):
-            return res
+            return res.result if res else None
         raise ExecutionStop
 
 

@@ -62,7 +62,7 @@ class WebsocketConnectionMixin(Transport):
             event = build_event(data)
             await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
         else:
-            logger.warning(f"Got unknown data: {data}")
+            logger.warning(f"Got unknown data: {raw}")
 
     @t.handle(WebsocketReconnect)
     async def _(self, _) -> bool:

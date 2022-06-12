@@ -1540,7 +1540,7 @@ class Ariadne(AttrConvertMixin):
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
-        message: MessageChain,
+        message: Union[MessageChain, List[Union[Element, str]], str],
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: SendMessageActionProtocol["T"],
@@ -1551,7 +1551,7 @@ class Ariadne(AttrConvertMixin):
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
-        message: MessageChain,
+        message: Union[MessageChain, List[Union[Element, str]], str],
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: Literal[Sentinel] = Sentinel,

@@ -25,8 +25,13 @@ from .relationship import Stranger as Stranger
 from .util import AriadneBaseModel as AriadneBaseModel
 
 
-class LogConfig(Dict[Type["MiraiEvent"], str]):
-    def __init__(self, log_level: Union[str, Callable[["MiraiEvent"], str]] = "INFO"):
+class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
+    def __init__(
+        self,
+        log_level: Union[str, Callable[["MiraiEvent"], str]] = "INFO",
+        extra: Optional[Dict[Union[Type["MiraiEvent"], str], Optional[str]]] = None,
+    ):
+        extra = extra or {}
         from ..event.message import (
             ActiveMessage,
             FriendMessage,
@@ -54,6 +59,7 @@ class LogConfig(Dict[Type["MiraiEvent"], str]):
         for active_msg_cls in gen_subclass(ActiveMessage):
             sync_label: str = "[SYNC] " if active_msg_cls.__fields__["sync"].default else ""
             self[active_msg_cls] = f"{account_seg}: {sync_label}[{{event.subject}}] <- {msg_chain_seg}"
+        self.update({sub: extra[sub.__name__] for sub in gen_subclass(MiraiEvent) if sub.__name__ in extra})
 
     def event_hook(self, app: "Ariadne") -> Callable[["MiraiEvent"], Awaitable[None]]:
         return functools.partial(self.log, app)

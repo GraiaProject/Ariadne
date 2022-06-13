@@ -1,5 +1,8 @@
 name: Deploy Documentation
-on: [push]
+on:
+  push:
+    branches:
+      - "!dependabot/**"
 jobs:
   deploy-docs:
     runs-on: ubuntu-latest
@@ -23,7 +26,7 @@ jobs:
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          apiToken: ${{ secrets.CF_PAGES_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           projectName: graia-ariadne
           directory: site

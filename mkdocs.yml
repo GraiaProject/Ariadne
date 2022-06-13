@@ -47,6 +47,12 @@ copyright: Copyright &copy; Graia Project 2021-2022.
 
 extra:
   social:
+    - icon: fontawesome/brands/cloudflare
+      link: https://graia-ariadne.pages.dev/
+      name: CloudFlare 镜像
+    - icon: fontawesome/solid/book-open-reader
+      link: https://graia.readthedocs.io/projects/ariadne/
+      name: ReadTheDocs 镜像
     - icon: fontawesome/brands/qq
       link: https://jq.qq.com/?_wv=1027&k=VXp6plBD
       name: QQ 群

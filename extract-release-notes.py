@@ -3,7 +3,7 @@ from itertools import dropwhile
 
 tag_name = sys.argv[1].removeprefix("v")
 
-with open("./docs/appendix/CHANGELOG.md", encoding="utf-8") as f:
+with open("./CHANGELOG.md", encoding="utf-8") as f:
     changelog_text = f.read()
 
 with open("./release-notes.md", encoding="utf-8", mode="w") as f:
@@ -14,5 +14,5 @@ with open("./release-notes.md", encoding="utf-8", mode="w") as f:
             break
         print(line, file=f)
 
-with open("./docs/appendix/CHANGELOG.md", encoding="utf-8", mode="w") as f:
+with open("./CHANGELOG.md", encoding="utf-8", mode="w") as f:
     f.write(changelog_text.replace("## 未发布的更新", f"## 未发布的更新\n\n## {tag_name}"))

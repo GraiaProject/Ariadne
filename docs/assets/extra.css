@@ -1,8 +1,17 @@
 html .md-social a[title="QQ 群"] {
     color: #00acee;
 }
+
 html .md-social a[title="Graiax 社区"] {
     color: #ffc0cb;
+}
+
+html .md-social a[title="CloudFlare 镜像"] {
+    color: #f78100;
+}
+
+html .md-social a[title="ReadTheDocs 镜像"] {
+    color: #8ca1af;
 }
 
 .md-social__link {
@@ -26,31 +35,34 @@ ul.clear-list {
     padding: 0;
 }
 
-.mdx-switch button> code {
+.mdx-switch button>code {
     cursor: pointer;
     transition: opacity 250ms;
     display: block;
     color: var(--md-primary-bg-color);
     background-color: var(--md-primary-fg-color);
-  }
+}
 
 :root {
     --md-admonition-icon--graiax: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.19 14.19 6 18l3.81-8.19L18 6m-6-4A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 8.9a1.1 1.1 0 0 0-1.1 1.1 1.1 1.1 0 0 0 1.1 1.1 1.1 1.1 0 0 0 1.1-1.1 1.1 1.1 0 0 0-1.1-1.1z"/></svg>')
 }
+
 .md-typeset .admonition.graiax,
 .md-typeset details.graiax {
     border-color: #fd9bac;
 }
-.md-typeset .graiax > .admonition-title,
-.md-typeset .graiax > summary {
+
+.md-typeset .graiax>.admonition-title,
+.md-typeset .graiax>summary {
     background-color: #fd9bac0f;
     border-color: #fd9bac;
 }
-.md-typeset .graiax > .admonition-title::before,
-.md-typeset .graiax > summary::before {
+
+.md-typeset .graiax>.admonition-title::before,
+.md-typeset .graiax>summary::before {
     background-color: #fd9bac;
     -webkit-mask-image: var(--md-admonition-icon--graiax);
-        mask-image: var(--md-admonition-icon--graiax);
+    mask-image: var(--md-admonition-icon--graiax);
 }
 
 /* Indentation. */
@@ -58,43 +70,11 @@ div.doc-contents:not(.first) {
     padding-left: 25px;
     border-left: .05rem solid var(--md-default-fg-color--lightest);
     margin-bottom: 80px;
-  }
-
-
-.highlight .gp, .highlight .go { /* Generic.Prompt, Generic.Output */
-    user-select: none;
 }
 
-/* Indentation. */
-div.doc-contents:not(.first) {
-    padding-left: 25px;
-    border-left: 4px solid rgba(230, 230, 230);
-    margin-bottom: 80px;
-  }
 
-  /* Don't capitalize names. */
-  h5.doc-heading {
-    text-transform: none !important;
-  }
-
-  /* Don't use vertical space on hidden ToC entries. */
-  .hidden-toc::before {
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-
-  /* Don't show permalink of hidden ToC entries. */
-  .hidden-toc a.headerlink {
-    display: none;
-  }
-
-  /* Avoid breaking parameters name, etc. in table cells. */
-  td code {
-    word-break: normal !important;
-  }
-
-  /* For pieces of Markdown rendered in table cells. */
-  td p {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-  }
+.highlight .gp,
+.highlight .go {
+    /* Generic.Prompt, Generic.Output */
+    user-select: none;
+}

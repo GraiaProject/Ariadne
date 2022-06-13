@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - "!dependabot/**"
+      - "*"
 jobs:
   deploy-docs:
     runs-on: ubuntu-latest

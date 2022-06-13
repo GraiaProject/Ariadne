@@ -30,7 +30,7 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
 

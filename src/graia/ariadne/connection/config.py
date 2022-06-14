@@ -1,5 +1,17 @@
-from typing import Dict, List, NamedTuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Dict,
+    List,
+    NamedTuple,
+    Sequence,
+    Type,
+    Union,
+    overload,
+)
 
+from typing_extensions import NotRequired, Required, TypedDict
+
+from ..typing import DictStrAny
 from ._info import (
     HttpClientInfo,
     HttpServerInfo,
@@ -7,6 +19,9 @@ from ._info import (
     WebsocketClientInfo,
     WebsocketServerInfo,
 )
+
+if TYPE_CHECKING:
+    from ..app import Ariadne
 
 
 class WebsocketClientConfig(NamedTuple):
@@ -76,3 +91,38 @@ def config(account: int, verify_key: str, *configs: Union[Type[U_Config], U_Conf
             cfg = cfg()
         infos.append(_CFG_INFO_MAP[type(cfg)](account, verify_key, *cfg))
     return infos
+
+
+class ConfigTypedDict(TypedDict):
+    account: Required[int]
+    verify_key: Required[str]
+    http_client: NotRequired[DictStrAny]
+    websocket_client: NotRequired[DictStrAny]
+    http_server: NotRequired[DictStrAny]
+    websocket_server: NotRequired[DictStrAny]
+
+
+@overload
+def from_obj(obj: Sequence[ConfigTypedDict]) -> List["Ariadne"]:
+    ...
+
+
+@overload
+def from_obj(obj: ConfigTypedDict) -> "Ariadne":
+    ...
+
+
+def from_obj(obj: Union[ConfigTypedDict, Sequence[ConfigTypedDict]]) -> Union[List["Ariadne"], "Ariadne"]:
+    if isinstance(obj, Sequence):
+        return [from_obj(o) for o in obj]
+    if isinstance(obj, dict):
+        extras: List[U_Config] = []
+        if "http_client" in obj:
+            extras.append(HttpClientConfig(**obj["http_client"]))
+        if "websocket_client" in obj:
+            extras.append(WebsocketClientConfig(**obj["websocket_client"]))
+        if "http_server" in obj:
+            extras.append(HttpServerConfig(**obj["http_server"]))
+        if "websocket_server" in obj:
+            extras.append(WebsocketServerConfig(**obj["websocket_server"]))
+        return Ariadne(config(obj["account"], obj["verify_key"], *extras))

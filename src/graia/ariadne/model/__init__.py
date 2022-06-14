@@ -28,12 +28,17 @@ from .util import AriadneBaseModel as AriadneBaseModel
 class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
     def __init__(
         self,
-        log_level: Union[str, Callable[["MiraiEvent"], str]] = "INFO",
+        log_level: Union[str, Callable[["MiraiEvent"], Optional[str]]] = "INFO",
         extra: Optional[Dict[Union[Type["MiraiEvent"], str], Optional[str]]] = None,
     ):
+        """
+        Args:
+            log_level (Union[str, Callable[["MiraiEvent"], str]]): 日志级别, \
+            可以是字符串或者一个函数, 函数的参数是 MiraiEvent 对象, 返回字符串
+            extra (Optional[Dict[Type["MiraiEvent"], str], Optional[str]]]): \
+            额外的事件日志格式, 键为事件类型或事件名, 值为日志格式, None 则禁用该事件日志
+        """
         from ..event import MiraiEvent
-
-        extra = extra or {}
         from ..event.message import (
             ActiveMessage,
             FriendMessage,
@@ -43,7 +48,9 @@ class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
             TempMessage,
         )
 
-        self.log_level: Callable[[MiraiEvent], str] = (
+        extra = extra or {}
+
+        self.log_level: Callable[[MiraiEvent], Optional[str]] = (
             log_level if callable(log_level) else lambda _: log_level
         )
 
@@ -53,23 +60,28 @@ class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
         user_seg = "{event.sender.nickname}({event.sender.id})"
         group_seg = "{event.sender.group.name}({event.sender.group.id})"
         client_seg = "{event.sender.platform}({event.sender.id})"
-        self[GroupMessage] = f"{account_seg}: [{group_seg}] {sender_seg} -> {msg_chain_seg}"
-        self[TempMessage] = f"{account_seg}: [{group_seg}.{sender_seg}] -> {msg_chain_seg}"
-        self[FriendMessage] = f"{account_seg}: [{user_seg}] -> {msg_chain_seg}"
-        self[StrangerMessage] = f"{account_seg}: [{user_seg}] -> {msg_chain_seg}"
-        self[OtherClientMessage] = f"{account_seg}: [{client_seg}] -> {msg_chain_seg}"
+        self.update(
+            {
+                GroupMessage: f"{account_seg}: [RECV][{group_seg}] {sender_seg} -> {msg_chain_seg}",
+                TempMessage: f"{account_seg}: [RECV][{group_seg}:{sender_seg}] -> {msg_chain_seg}",
+                FriendMessage: f"{account_seg}: [RECV][{user_seg}] -> {msg_chain_seg}",
+                StrangerMessage: f"{account_seg}: [RECV][{user_seg}] -> {msg_chain_seg}",
+                OtherClientMessage: f"{account_seg}: [RECV][{client_seg}] -> {msg_chain_seg}",
+            }
+        )
         for active_msg_cls in gen_subclass(ActiveMessage):
-            sync_label: str = "[SYNC] " if active_msg_cls.__fields__["sync"].default else ""
-            self[active_msg_cls] = f"{account_seg}: {sync_label}[{{event.subject}}] <- {msg_chain_seg}"
+            label: str = "[SYNC] " if active_msg_cls.__fields__["sync"].default else "[SEND]"
+            self[active_msg_cls] = f"{account_seg}: {label}[{{event.subject}}] <- {msg_chain_seg}"
         self.update({sub: extra[sub.__name__] for sub in gen_subclass(MiraiEvent) if sub.__name__ in extra})
 
     def event_hook(self, app: "Ariadne") -> Callable[["MiraiEvent"], Awaitable[None]]:
         return functools.partial(self.log, app)
 
     async def log(self, app: "Ariadne", event: "MiraiEvent") -> None:
-        fmt = self.get(type(event))
-        if fmt:
-            logger.log(self.log_level(event), fmt.format(event=event, ariadne=app))
+        log_level: Optional[str] = self.log_level(event)
+        fmt: Optional[str] = self.get(type(event))
+        if log_level and fmt:
+            logger.log(log_level, fmt.format(event=event, ariadne=app))
 
 
 @internal_cls()

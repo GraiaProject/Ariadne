@@ -2,6 +2,24 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `graia-application-mirai` 可以和 `graia-ariadne` 同时存在的 bug.
+
+### 改进
+
+更好的 `MessageChain` 初始化实现.
+
+`send_friend_message` `send_group_message` `send_temp_message` 现在都直接支持 `MessageContainer` 类型.
+
+允许通过 `extra` 参数方便地自定义 `LogConfig` 的事件捕获类型.
+
+优化了默认日志格式.
+
+### 增加
+
+`graia.ariadne.connection.config.from_obj` 支持使用两种方式直接从配置构造 `Ariadne` 对象.
+
 ## 0.7.7
 
 ### 改进

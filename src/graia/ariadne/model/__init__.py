@@ -31,6 +31,8 @@ class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
         log_level: Union[str, Callable[["MiraiEvent"], str]] = "INFO",
         extra: Optional[Dict[Union[Type["MiraiEvent"], str], Optional[str]]] = None,
     ):
+        from ..event import MiraiEvent
+
         extra = extra or {}
         from ..event.message import (
             ActiveMessage,
@@ -41,7 +43,7 @@ class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
             TempMessage,
         )
 
-        self.log_level: Callable[["MiraiEvent"], str] = (
+        self.log_level: Callable[[MiraiEvent], str] = (
             log_level if callable(log_level) else lambda _: log_level
         )
 

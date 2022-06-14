@@ -35,6 +35,8 @@ if TYPE_CHECKING:
 
 
 class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
+    """连接状态"""
+
     alive = Stats[bool]("alive", default=False)
 
     def __init__(self) -> None:
@@ -120,6 +122,8 @@ CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {
 
 
 class ConnectionInterface(ExportInterface["ElizabethService"]):
+    """Elizabeth 连接接口"""
+
     service: "ElizabethService"
     connection: Optional[ConnectionMixin]
 
@@ -132,6 +136,14 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
             self.connection = service.connections[account]
 
     def bind(self, account: int) -> Self:
+        """绑定账号, 返回一个新实例
+
+        Args:
+            account (int): 账号
+
+        Returns:
+            ConnectionInterface: 新实例
+        """
         return ConnectionInterface(self.service, account)
 
     async def _call(
@@ -153,6 +165,18 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         account: Optional[int] = None,
         in_session: bool = True,
     ) -> Any:
+        """发起一个调用
+
+        Args:
+            command (str): 调用命令
+            method (CallMethod): 调用方法
+            params (dict): 调用参数
+            account (Optional[int], optional): 账号. Defaults to None.
+            in_session (bool, optional): 是否在会话中. Defaults to True.
+
+        Returns:
+            Any: 调用结果
+        """
         if in_session:
             await self.status.wait_for_available()  # wait until session_key is present
             session_key = self.status.session_key
@@ -160,12 +184,18 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         return await self._call(command, method, params, account=account)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:
+        """添加事件回调
+
+        Args:
+            callback (Callable[[MiraiEvent], Awaitable[Any]]): 回调函数
+        """
         if self.connection is None:
             raise ValueError("Unable to find connection to add callback")
         self.connection.event_callbacks.append(callback)
 
     @property
     def status(self) -> ConnectionStatus:
+        """获取连接状态"""
         if self.connection:
             return self.connection.status
         raise ValueError(f"{self} is not bound to an account")

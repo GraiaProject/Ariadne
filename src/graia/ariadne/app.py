@@ -38,8 +38,8 @@ from .context import enter_context, enter_message_send_context
 from .event import MiraiEvent
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .event.mirai import FriendEvent, GroupEvent
-from .message.chain import MessageChain
-from .message.element import Element, Source
+from .message.chain import MessageChain, MessageContainer
+from .message.element import Source
 from .model import (
     Announcement,
     BotMessage,
@@ -1384,7 +1384,7 @@ class Ariadne(AttrConvertMixin):
     async def send_friend_message(
         self,
         target: Union[Friend, int],
-        message: MessageChain,
+        message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
     ) -> BotMessage:
@@ -1392,7 +1392,7 @@ class Ariadne(AttrConvertMixin):
 
         Args:
             target (Union[Friend, int]): 指定的好友
-            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            message (MessageContainer): 有效的消息容器.
             quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
@@ -1400,7 +1400,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveFriendMessage
 
-        assert isinstance(message, MessageChain)
+        message = MessageChain(message)
         if isinstance(quote, MessageChain):
             quote = quote.get_first(Source)
         if isinstance(quote, Source):
@@ -1432,7 +1432,7 @@ class Ariadne(AttrConvertMixin):
     async def send_group_message(
         self,
         target: Union[Group, Member, int],
-        message: MessageChain,
+        message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
     ) -> BotMessage:
@@ -1440,7 +1440,7 @@ class Ariadne(AttrConvertMixin):
 
         Args:
             target (Union[Group, Member, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 或 Member 实例.
-            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            message (MessageContainer): 有效的消息容器.
             quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
@@ -1448,7 +1448,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveGroupMessage
 
-        assert isinstance(message, MessageChain)
+        message = MessageChain(message)
         if isinstance(target, Member):
             target = target.group
 
@@ -1483,7 +1483,7 @@ class Ariadne(AttrConvertMixin):
     async def send_temp_message(
         self,
         target: Union[Member, int],
-        message: MessageChain,
+        message: MessageContainer,
         group: Optional[Union[Group, int]] = None,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
@@ -1496,7 +1496,7 @@ class Ariadne(AttrConvertMixin):
         Args:
             group (Union[Group, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 实例.
             target (Union[Member, int]): 指定的群组成员, 可以是成员的 ID 也可以是 Member 实例.
-            message (MessageChain): 有效的, 可发送的(Sendable)消息链.
+            message (MessageContainer): 有效的消息容器.
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
@@ -1504,7 +1504,7 @@ class Ariadne(AttrConvertMixin):
         """
         from .event.message import ActiveTempMessage
 
-        assert isinstance(message, MessageChain)
+        message = MessageChain(message)
         if isinstance(quote, MessageChain):
             quote = quote.get_first(Source)
         if isinstance(quote, Source):
@@ -1540,7 +1540,7 @@ class Ariadne(AttrConvertMixin):
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
-        message: Union[MessageChain, List[Union[Element, str]], str],
+        message: MessageContainer,
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: SendMessageActionProtocol["T"],
@@ -1551,7 +1551,7 @@ class Ariadne(AttrConvertMixin):
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
-        message: Union[MessageChain, List[Union[Element, str]], str],
+        message: MessageContainer,
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: Literal[Sentinel] = Sentinel,
@@ -1562,7 +1562,7 @@ class Ariadne(AttrConvertMixin):
     async def send_message(
         self,
         target: Union[MessageEvent, Group, Friend, Member],
-        message: Union[MessageChain, List[Union[Element, str]], str],
+        message: MessageContainer,
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: Union[SendMessageActionProtocol["T"], Literal[Sentinel]] = Sentinel,

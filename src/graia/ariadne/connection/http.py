@@ -19,6 +19,8 @@ from .util import CallMethod, build_event, get_router, validate_response
 
 
 class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
+    """HTTP 服务器连接"""
+
     dependencies = {"http.universal_server"}
 
     def __init__(self, config: HttpServerInfo) -> None:
@@ -46,6 +48,8 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
 
 
 class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
+    """HTTP 客户端连接"""
+
     dependencies = {"http.universal_client"}
     http_interface: AiohttpClientInterface
 

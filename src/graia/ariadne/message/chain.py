@@ -8,6 +8,7 @@ from typing import (
     Iterator,
     List,
     Literal,
+    Sequence,
     Tuple,
     Type,
     TypeVar,
@@ -45,7 +46,10 @@ ELEMENT_MAPPING: Dict[str, Type[Element]] = {
     i.__fields__["type"].default: i for i in gen_subclass(Element) if hasattr(i.__fields__["type"], "default")
 }
 ORDINARY_ELEMENT_TYPES = frozenset([Plain, Image, Face, At, AtAll, Source, Quote])
-_Parsable = Union[str, dict, Element, Iterable["_Parsable"], "MessageChain"]
+
+MessageOrigin = Union[str, dict, Element]
+
+MessageContainer = Union[MessageOrigin, Sequence["MessageContainer"], "MessageChain"]
 
 
 class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
@@ -64,7 +68,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         return self.__root__
 
     @staticmethod
-    def build_chain(obj: _Parsable) -> List[Element]:
+    def build_chain(obj: MessageContainer) -> List[Element]:
         """内部接口, 会自动反序列化对象并生成.
 
         Args:
@@ -73,20 +77,22 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         Returns:
             List[Element]: 内部承载有尽量有效的消息元素的列表
         """
-        element_list: List[Element] = []
 
+        # single object
+        if isinstance(obj, MessageChain):
+            return deepcopy(obj.content)
         if isinstance(obj, Element):
-            element_list.append(obj)
-        elif isinstance(obj, dict):
-            if obj.get("type") in ELEMENT_MAPPING:
-                element_list.append(ELEMENT_MAPPING[obj["type"]].parse_obj(obj))
-        elif isinstance(obj, str):
-            element_list.append(Plain(obj))
-        elif isinstance(obj, MessageChain):
-            element_list.extend(obj.content)
-        elif isinstance(obj, Iterable):  # needs to be last
-            for o in obj:
-                element_list.extend(MessageChain.build_chain(o))
+            return [obj]
+        if isinstance(obj, dict):
+            if obj.get("type") not in ELEMENT_MAPPING:
+                return []
+            return [ELEMENT_MAPPING[obj["type"]].parse_obj(obj)]
+        if isinstance(obj, str):
+            return [Plain(obj)]
+
+        element_list: List[Element] = []
+        for o in obj:
+            element_list.extend(MessageChain.build_chain(o))
 
         special_cnt: int = sum(element.__class__ not in ORDINARY_ELEMENT_TYPES for element in element_list)
 
@@ -104,20 +110,20 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         Returns:
             MessageChain: 内部承载有尽量有效的消息元素的消息链
         """
-        return cls(__root__=cls.build_chain(obj))  # type: ignore
+        return cls(cls.build_chain(obj), inline=True)
 
     @overload
-    def __init__(self, __root__: Iterable[Element], *, inline: Literal[True]) -> None:
+    def __init__(self, __root__: Sequence[Element], *, inline: Literal[True]) -> None:
         ...
 
     @overload
-    def __init__(self, *elements: _Parsable, inline: Literal[False] = False) -> None:
+    def __init__(self, *elements: MessageContainer, inline: Literal[False] = False) -> None:
         ...
 
     def __init__(
         self,
-        __root__: _Parsable,
-        *elements: _Parsable,
+        __root__: MessageContainer,
+        *elements: Union[str, Element, Sequence[Union[str, Element]]],
         inline: bool = False,
     ) -> None:
         """
@@ -134,10 +140,10 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         if not inline:
             AriadneBaseModel.__init__(
                 self,
-                __root__=MessageChain.build_chain((__root__, *elements)),  # type: ignore
+                __root__=self.build_chain((__root__, *elements)),
             )
         else:
-            AriadneBaseModel.__init__(self, __root__=__root__)  # type: ignore
+            AriadneBaseModel.__init__(self, __root__=__root__)
 
     def unzip(self) -> List[Union[str, Element]]:
         """解压消息链为元素/单字符列表.
@@ -217,8 +223,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         ...
 
     def __getitem__(  # type: ignore
-        self, item: Union[Tuple[Type[Element_T], int], Type[Element_T], int, slice]
-    ) -> Union[List[Element_T], Element, Self]:
+        self, item: Union[Tuple[Type[Element], int], Type[Element], int, slice]
+    ) -> Union[List[Element], Element, Self]:
         """
         可通过切片取出子消息链, 或元素.
 
@@ -243,7 +249,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             return MessageChain(self.content[item], inline=True)
         raise NotImplementedError(f"{item} is not allowed for item getting")
 
-    def find_sub_chain(self, subchain: _Parsable) -> List[int]:
+    def find_sub_chain(self, subchain: MessageContainer) -> List[int]:
         """判断消息链是否含有子链. 使用 KMP 算法.
 
         Args:
@@ -290,7 +296,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         """
         return self.exclude(Source, Quote, File)
 
-    def __eq__(self, other: Union[_Parsable, Self]) -> bool:
+    def __eq__(self, other: Union[MessageContainer, Self]) -> bool:
         if not isinstance(other, (MessageChain, list)):
             return False
         if not isinstance(other, MessageChain):
@@ -529,8 +535,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
 
     def replace(
         self,
-        old: "Self | Iterable[Element] | Element",
-        new: "Self | Iterable[Element] | Element",
+        old: MessageContainer,
+        new: MessageContainer,
     ) -> Self:
         """替换消息链中的一部分. (在副本上操作)
 

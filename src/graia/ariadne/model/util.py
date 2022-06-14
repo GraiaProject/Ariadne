@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Literal, Union
+from typing import TYPE_CHECKING, Any, Literal, Union
 
 from pydantic import BaseConfig, BaseModel, Extra
 from typing_extensions import NotRequired, TypedDict
@@ -13,6 +13,9 @@ class AriadneBaseModel(BaseModel):
     """
     Ariadne 一切数据模型的基类.
     """
+
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
 
     def dict(
         self,

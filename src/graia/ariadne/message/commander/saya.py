@@ -42,10 +42,12 @@ class CommanderBehaviour(Behaviour):
         cube.metaclass.register(cube.content, self.commander)
         return True
 
-    def uninstall(self, cube: Cube[CommandSchema]):
+    def release(self, cube: Cube[CommandSchema]):
         if not isinstance(cube.metaclass, CommandSchema):
             return
         for val in self.commander.command_handlers[:]:
             if cube.content is val.callable:
                 self.commander.command_handlers.remove(val)
         return True
+
+    uninstall = release  # FIXME: backward compatibility

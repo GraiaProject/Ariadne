@@ -40,10 +40,12 @@ class ConsoleBehaviour(Behaviour):
         cube.metaclass.register(cube.content, self.console)
         return True
 
-    def uninstall(self, cube: Cube[ConsoleSchema]):
+    def release(self, cube: Cube[ConsoleSchema]):
         if not isinstance(cube.metaclass, ConsoleSchema):
             return
         for val in self.console.registry[:]:
             if cube.content is val[0]:
                 self.console.registry.remove(val)
         return True
+
+    uninstall = release  # FIXME: backward compatibility

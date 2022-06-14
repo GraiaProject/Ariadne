@@ -6,6 +6,8 @@
 
 修复了 `graia-application-mirai` 可以和 `graia-ariadne` 同时存在的 bug.
 
+`CommanderBehaviour` 和 `ConsoleBehaviour` 适配新的 `Saya`.
+
 ### 改进
 
 更好的 `MessageChain` 初始化实现.

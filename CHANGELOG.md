@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.7.8
+
 ### 修复
 
 修复了 `graia-application-mirai` 可以和 `graia-ariadne` 同时存在的 bug.

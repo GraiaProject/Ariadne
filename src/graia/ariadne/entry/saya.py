@@ -13,6 +13,10 @@ with contextlib.suppress(ImportError):
     )
     from graia.saya.builtins.broadcast.schema import ListenerSchema as ListenerSchema
 
+    from ..util.saya import decorate as decorate
+    from ..util.saya import dispatch as dispatch
+    from ..util.saya import listen as listen
+
     __all__ = [
         "Saya",
         "SayaModuleInstalled",
@@ -20,4 +24,7 @@ with contextlib.suppress(ImportError):
         "SayaModuleUninstalled",
         "BroadcastBehaviour",
         "ListenerSchema",
+        "decorate",
+        "dispatch",
+        "listen",
     ]

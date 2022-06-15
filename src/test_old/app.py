@@ -6,6 +6,7 @@ from typing import Annotated, Optional, Union
 
 import devtools
 from graia.amnesia.builtins.aiohttp import AiohttpServerService
+from graia.saya.context import channel_instance
 from loguru import logger
 
 from graia.ariadne.entry import *
@@ -29,6 +30,20 @@ if __name__ == "__main__":
     bcc = Ariadne.broadcast
 
     sched = app.create(GraiaScheduler)
+    sy = app.create(Saya)
+    sy.install_behaviours(app.create(BroadcastBehaviour), app.create(GraiaSchedulerBehaviour))
+
+    channel = sy.create_main_channel()
+    channel_instance.set(channel)
+
+    @listen(GroupMessage)
+    @decorate("la", DetectPrefix("high-level"))
+    async def test_pref(target: Group, la: MessageChain):
+        await app.send_group_message(target, la)
+
+    with sy.behaviour_interface.require_context("__main__") as interface:
+        for cube in channel.content:
+            interface.allocate_cube(cube)
 
     @sched.schedule(every_custom_seconds(30))
     async def print_ver(app: Ariadne):

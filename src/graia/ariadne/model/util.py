@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, Literal, Union
 
 from pydantic import BaseConfig, BaseModel, Extra
@@ -47,6 +48,9 @@ class AriadneBaseModel(BaseModel):
 
         extra = Extra.allow
         arbitrary_types_allowed = True
+        json_encoders = {
+            datetime: lambda dt: dt.timestamp(),
+        }
 
 
 class AriadneOptions(TypedDict):

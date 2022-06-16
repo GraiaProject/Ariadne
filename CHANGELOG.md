@@ -6,6 +6,10 @@
 
 增加了 `graia.ariadne.util.saya` 模块。
 
+### 修复
+
+修复了 `datetime.datetime` 的序列化问题.
+
 ## 0.7.8
 
 ### 修复
@@ -192,7 +196,7 @@
 
 修复了仅使用 Websocket 的适配器的错误行为.
 
-#### 弃用
+### 弃用
 
 `getMemberInfo` 已被弃用，请使用 `getMember` 替代, 将在 `0.6.10` 或更高版本中移除。
 

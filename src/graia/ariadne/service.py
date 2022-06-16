@@ -82,7 +82,7 @@ class ElizabethService(Service):
                 # retrieve latest version from PyPI
                 task = asyncio.create_task(retrieve_version(session, name, version, output))
                 retrieve_tasks.append(task)
-        await asyncio.wait(retrieve_tasks)
+            await asyncio.wait(retrieve_tasks)
         output.sort()
         rich_output = "\n".join(output)
         logger.opt(colors=True).info(

@@ -47,10 +47,10 @@ if __name__ == "__main__":
 
     @sched.schedule(every_custom_seconds(30))
     async def print_ver(app: Ariadne):
-        logger.debug(await app.getVersion())
+        logger.debug(await app.get_version())
 
     async def chk(msg: MessageChain):
-        return msg.as_display().endswith("override")
+        return msg.display.endswith("override")
 
     @bcc.receiver(CommandExecutedEvent)
     async def print_remote_cmd(event: CommandExecutedEvent):
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     @bcc.receiver(MessageEvent)
     async def send(app: Ariadne, ev: MessageEvent, chain: MessageChain = MentionMe()):
         logger.debug(repr(chain))
-        if chain.as_display().startswith(".wait"):
+        if chain.display.startswith(".wait"):
             await app.send_message(ev, MessageChain("Wait for 5s!"))
             await asyncio.sleep(5.0)
             await app.send_message(ev, MessageChain("Complete!"))
@@ -160,11 +160,11 @@ if __name__ == "__main__":
         await app.send_message(event, MessageChain("Annotated reply!"))
 
     def unwind(fwd: Forward):
-        for node in fwd.nodeList:
-            if node.messageChain.has(Forward):
-                unwind(node.messageChain.get_first(Forward))
+        for node in fwd.node_list:
+            if node.message_chain.has(Forward):
+                unwind(node.message_chain.get_first(Forward))
             else:
-                logger.debug(node.messageChain.as_display())
+                logger.debug(node.message_chain.display)
 
     @bcc.receiver(MessageEvent)
     async def unwind_fwd(chain: MessageChain):

@@ -8,6 +8,12 @@ from typing import Dict, Literal, Match, Optional, Set
 from rich.console import Console
 
 MAPPING: Dict[str, str] = {
+    "groupId": "group_id",
+    "senderId": "sender_id",
+    "targetId": "target_id",
+    "faceId": "face_id",
+    "senderName": "sender_name",
+    "nodeList": "node_list",
     "messageChain": "message_chain",
     "durationSeconds": "duration",
     "messageId": "message_id",

@@ -166,13 +166,13 @@ class Quote(Element):
     id: int
     """引用的消息 ID"""
 
-    groupId: int
+    group_id: int = Field(..., alias="groupId")
     """引用消息所在群号 (好友消息为 0)"""
 
-    senderId: int
+    sender_id: int = Field(..., alias="senderId")
     """发送者 QQ 号"""
 
-    targetId: int
+    target_id: int = Field(..., alias="targetId")
     """原消息的接收者QQ号 (或群号) """
 
     origin: "MessageChain"
@@ -248,7 +248,7 @@ class Face(Element):
 
     type: str = "Face"
 
-    faceId: Optional[int] = None
+    face_id: Optional[int] = Field(None, alias="faceId")
     """QQ 表情编号, 优先于 name"""
 
     name: Optional[str] = None
@@ -262,10 +262,10 @@ class Face(Element):
         super().__init__(**data)
 
     def __str__(self) -> str:
-        return f"[表情: {self.name or self.faceId}]"
+        return f"[表情: {self.name or self.face_id}]"
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, Face) and (self.faceId == other.faceId or self.name == other.name)
+        return isinstance(other, Face) and (self.face_id == other.face_id or self.name == other.name)
 
 
 @internal_cls()
@@ -274,17 +274,17 @@ class MarketFace(Element):
 
     type: str = "MarketFace"
 
-    faceId: Optional[int] = Field(None, alias="id")
+    face_id: Optional[int] = Field(None, alias="id")
     """QQ 表情编号"""
 
     name: Optional[str] = None
     """QQ 表情名称"""
 
     def __str__(self) -> str:
-        return f"[商城表情: {self.name or self.faceId}]"
+        return f"[商城表情: {self.name or self.face_id}]"
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, MarketFace) and (self.faceId == other.faceId or self.name == other.name)
+        return isinstance(other, MarketFace) and (self.face_id == other.face_id or self.name == other.name)
 
 
 class Xml(Element):
@@ -439,6 +439,7 @@ class MusicShare(Element):
     """表示消息中音乐分享消息元素"""
 
     type = "MusicShare"
+
     kind: MusicShareKind
     """音乐分享的来源"""
 
@@ -486,22 +487,22 @@ class MusicShare(Element):
         return f"[音乐分享:{self.title}, {self.brief}]"
 
 
-class ForwardNode(AriadneBaseModel):
+class ForwardNode(AriadneBaseModel, AttrConvertMixin):
     """表示合并转发中的一个节点"""
 
-    senderId: int
+    sender_id: int = Field(None, alias="senderId")
     """发送者 QQ 号 (决定显示头像)"""
 
     time: datetime
     """发送时间"""
 
-    senderName: str
+    sender_name: str = Field(None, alias="senderName")
     """发送者显示名字"""
 
-    messageChain: Optional["MessageChain"]
+    message_chain: Optional["MessageChain"] = Field(None, alias="messageChain")
     """发送的消息链"""
 
-    messageId: Optional[int]
+    message_id: Optional[int] = Field(None, alias="messageId")
     """缓存的消息 ID"""
 
     def __init__(
@@ -539,7 +540,7 @@ class Forward(Element):
 
     type = "Forward"
 
-    nodeList: List[ForwardNode]
+    node_list: List[ForwardNode] = Field(None, alias="nodeList")
     """转发节点列表"""
 
     def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -> None:
@@ -554,7 +555,7 @@ class Forward(Element):
         super().__init__(**data)
 
     def __str__(self) -> str:
-        return f"[合并转发:共{len(self.nodeList)}条]"
+        return f"[合并转发:共{len(self.node_list)}条]"
 
     def as_persistent_string(self) -> str:
         return ""

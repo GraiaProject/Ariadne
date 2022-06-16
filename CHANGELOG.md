@@ -6,7 +6,11 @@
 
 增加了 `graia.ariadne.util.saya` 模块。
 
+重新加入了 `Ariadne` 的启动遥测.
+
 ### 修复
+
+修复 `Elizabeth` 的 `AiohttpClientInterface` 未初始化的问题.
 
 修复了 `datetime.datetime` 的序列化问题.
 

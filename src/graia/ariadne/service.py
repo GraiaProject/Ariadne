@@ -1,9 +1,12 @@
 import asyncio
+import contextlib
+import importlib.metadata
 from typing import Coroutine, Dict, Iterable, List, Optional, Tuple, Type, overload
 
+from aiohttp import ClientSession
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.broadcast import Broadcast
-from launart import Service
+from launart import Launart, Service
 from loguru import logger
 
 from graia.ariadne.exception import AriadneConfigurationError
@@ -16,6 +19,32 @@ from .connection import (
 )
 from .connection._info import HttpClientInfo, U_Info
 from .dispatcher import ContextDispatcher, NoneDispatcher
+
+ARIADNE_ASCII_LOGO = r"""
+    _         _           _
+   / \   _ __(_) __ _  __| |_ __   ___
+  / _ \ | '__| |/ _` |/ _` | '_ \ / _ \
+ / ___ \| |  | | (_| | (_| | | | |  __/
+/_/   \_\_|  |_|\__,_|\__,_|_| |_|\___|"""
+
+
+async def retrieve_version(session: ClientSession, name: str, current: str, output: List[str]) -> None:
+    try:
+        async with session.get(f"https://pypi.org/pypi/{name}/json") as resp:
+            data = await resp.json()
+            result: str = data["info"]["version"]
+    except Exception as e:
+        logger.warning(f"Failed to retrieve latest version of {name}: {e}")
+        result: str = current
+    output.append(
+        " ".join(
+            [
+                f"[cyan]{name}[/]:" if name.startswith("graiax-") else f"[magenta]{name}[/]:",
+                f"[green]{current}[/]",
+                f"-> [yellow]{result}[/]" if result > current else "",
+            ]
+        )
+    )
 
 
 class ElizabethService(Service):
@@ -37,6 +66,28 @@ class ElizabethService(Service):
             self.broadcast.finale_dispatchers.append(NoneDispatcher)
 
         super().__init__()
+
+    @staticmethod
+    async def run_telemetry() -> None:
+        output: List[str] = [f"[cyan]{ARIADNE_ASCII_LOGO}[/]"]
+        dist_map: Dict[str, str] = {}
+        for dist in importlib.metadata.distributions():
+            name: str = dist.metadata["Name"]
+            version: str = dist.version
+            if name.startswith("graia-") or name.startswith("graiax-"):
+                dist_map[name] = max(dist_map.get(name, ""), version)
+        async with ClientSession() as session:
+            retrieve_tasks = []
+            for name, version in dist_map.items():
+                # retrieve latest version from PyPI
+                task = asyncio.create_task(retrieve_version(session, name, version, output))
+                retrieve_tasks.append(task)
+        await asyncio.wait(retrieve_tasks)
+        output.sort()
+        rich_output = "\n".join(output)
+        logger.opt(colors=True).info(
+            rich_output.replace("[", "<").replace("]", ">"), alt=rich_output, highlighter=None
+        )
 
     def add_configs(self, configs: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
         configs = list(configs)
@@ -70,7 +121,7 @@ class ElizabethService(Service):
             raise ValueError(f"Connection {self.connections[account]} conflicts with {connection}")
         return connection
 
-    async def launch(self, _):
+    async def launch(self, mgr: Launart):
         from .app import Ariadne
         from .context import enter_context
         from .event.lifecycle import (
@@ -80,12 +131,16 @@ class ElizabethService(Service):
             ApplicationShutdowned,
         )
 
+        telemetry_task = asyncio.create_task(self.run_telemetry())
         async with self.stage("preparing"):
+            self.http_interface = mgr.get_interface(AiohttpClientInterface)
             if self.broadcast:
                 if asyncio.get_running_loop() is not self.loop:
                     raise AriadneConfigurationError("Broadcast is attached to a different loop")
             else:
                 self.broadcast = Broadcast(loop=self.loop)
+            with contextlib.suppress(Exception):
+                await telemetry_task
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
                 with enter_context(app=app):
@@ -120,7 +175,7 @@ class ElizabethService(Service):
 
     @property
     def required(self):
-        return {conn.id for conn in self.connections.values()}
+        return {"http.universal_client"} | {conn.id for conn in self.connections.values()}
 
     @property
     def stages(self):

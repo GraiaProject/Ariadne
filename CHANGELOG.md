@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.7.9
+
 ### 新增
 
 增加了 `graia.ariadne.util.saya` 模块。

@@ -203,11 +203,10 @@ class Member(AriadneBaseModel, AttrConvertMixin):
         """
         from ..app import Ariadne
 
-        rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
-        )
-
-        return await rider.io().read()
+        async with Ariadne.service.client_session.get(
+            f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
+        ) as resp:
+            return await resp.read()
 
 
 @internal_cls()
@@ -253,11 +252,10 @@ class Friend(AriadneBaseModel, AttrConvertMixin):
         """
         from ..app import Ariadne
 
-        rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
-        )
-
-        return await rider.io().read()
+        async with Ariadne.service.client_session.get(
+            f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
+        ) as resp:
+            return await resp.read()
 
 
 @internal_cls()
@@ -293,11 +291,10 @@ class Stranger(AriadneBaseModel, AttrConvertMixin):
         """
         from ..app import Ariadne
 
-        rider = await Ariadne.service.http_interface.request(
-            "GET", f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
-        )
-
-        return await rider.io().read()
+        async with Ariadne.service.client_session.get(
+            f"https://q2.qlogo.cn/headimg_dl?dst_uin={self.id}&spec={size}"
+        ) as resp:
+            return await resp.read()
 
 
 class GroupConfig(AriadneBaseModel, AttrConvertMixin):

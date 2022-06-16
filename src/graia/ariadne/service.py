@@ -174,6 +174,10 @@ class ElizabethService(Service):
                     logger.debug(f"Cancelling {task.get_name()} (Scheduler Task)")
 
     @property
+    def client_session(self) -> ClientSession:
+        return self.http_interface.service.session
+
+    @property
     def required(self):
         return {"http.universal_client"} | {conn.id for conn in self.connections.values()}
 

@@ -152,12 +152,12 @@ if __name__ == "__main__":
         dispatchers=[
             Twilight(
                 [FullMatch(".test")],
-                preprocessor=Annotated[MessageChain, MentionMe(), DetectPrefix("prefix")],
+                preprocessor=Annotated[MessageChain, MentionMe()],
             )
         ],
     )
     async def reply2(app: Ariadne, event: MessageEvent):
-        await app.send_message(event, MessageChain("Annotated reply!"))
+        await app.send_message(event, Image(data_bytes=await event.sender.get_avatar()))
 
     def unwind(fwd: Forward):
         for node in fwd.node_list:

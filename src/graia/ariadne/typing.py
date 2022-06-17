@@ -184,6 +184,10 @@ class _SentinelClass(enum.Enum):
 
 Sentinel = _SentinelClass._Sentinel
 
+T_Callable = TypeVar("T_Callable", bound=Callable)
+
+Wrapper = Callable[[T_Callable], T_Callable]
+
 AnnotatedType = type(Annotated[int, lambda x: x > 0])
 
 ExceptionHook = Callable[[Type[BaseException], BaseException, Optional[TracebackType]], Any]

@@ -47,7 +47,7 @@ from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
 
-from ..typing import DictStrAny, ExceptionHook, P, R, T
+from ..typing import DictStrAny, ExceptionHook, P, R, T, Wrapper
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -263,12 +263,7 @@ def get_stack_namespace(
     return global_dict, local_dict
 
 
-T_Callable = TypeVar("T_Callable", bound=Callable)
-
-
-def deprecated(
-    remove_ver: str, suggestion: Optional[str] = None
-) -> Callable[[Callable[P, R]], Callable[P, R]]:
+def deprecated(remove_ver: str, suggestion: Optional[str] = None) -> Wrapper:
     """标注一个方法 / 函数已被弃用
 
     Args:

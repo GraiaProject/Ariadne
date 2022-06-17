@@ -123,13 +123,13 @@ class Announcement(AriadneBaseModel):
     fid: str
     """公告唯一标识ID"""
 
-    allConfirmed: bool
+    all_confirmed: bool = Field(..., alias="allConfirmed")
     """群成员是否已全部确认"""
 
-    confirmedMembersCount: int
+    confirmed_members_count: int = Field(..., alias="confirmedMembersCount")
     """已确认群成员人数"""
 
-    publicationTime: datetime
+    publication_time: datetime = Field(..., alias="publicationTime")
     """公告发布时间"""
 
 

@@ -2,6 +2,7 @@ import asyncio
 import os
 import re
 import sys
+from datetime import datetime
 from typing import Annotated, Optional, Union
 
 import devtools
@@ -151,7 +152,7 @@ if __name__ == "__main__":
         MessageEvent,
         dispatchers=[
             Twilight(
-                [FullMatch(".test")],
+                [FullMatch(".avatar")],
                 preprocessor=Annotated[MessageChain, MentionMe()],
             )
         ],
@@ -159,17 +160,16 @@ if __name__ == "__main__":
     async def reply2(app: Ariadne, event: MessageEvent):
         await app.send_message(event, Image(data_bytes=await event.sender.get_avatar()))
 
-    def unwind(fwd: Forward):
-        for node in fwd.node_list:
-            if node.message_chain.has(Forward):
-                unwind(node.message_chain.get_first(Forward))
-            else:
-                logger.debug(node.message_chain.display)
-
-    @bcc.receiver(MessageEvent)
-    async def unwind_fwd(chain: MessageChain):
-        if chain.has(Forward):
-            unwind(chain.get_first(Forward))
+    @bcc.receiver(
+        MessageEvent,
+    )
+    async def reply2(
+        app: Ariadne, event: MessageEvent, chain: Annotated[MessageChain, DetectPrefix(".forward")]
+    ):
+        await app.send_message(
+            event,
+            Forward(ForwardNode(event.sender, datetime.now(), chain)),
+        )
 
     @bcc.receiver(GroupMessage)
     async def reply3(app: Ariadne, chain: MessageChain, group: Group, member: Member):

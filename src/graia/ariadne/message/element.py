@@ -13,6 +13,8 @@ from graia.amnesia.message import Text as BaseText
 from pydantic import validator
 from pydantic.fields import Field
 
+from graia.ariadne.model.util import DatetimeConversionModel
+
 from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
 from ..exception import InvalidArgument
@@ -132,7 +134,7 @@ class Plain(Element, BaseText):
 
 
 @internal_cls()
-class Source(Element):
+class Source(DatetimeConversionModel, Element):
     """表示消息在一个特定聊天区域内的唯一标识"""
 
     type: str = "Source"
@@ -487,7 +489,7 @@ class MusicShare(Element):
         return f"[音乐分享:{self.title}, {self.brief}]"
 
 
-class ForwardNode(AriadneBaseModel, AttrConvertMixin):
+class ForwardNode(DatetimeConversionModel, AttrConvertMixin):
     """表示合并转发中的一个节点"""
 
     sender_id: int = Field(None, alias="senderId")

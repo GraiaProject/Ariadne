@@ -53,6 +53,13 @@ class AriadneBaseModel(BaseModel):
         }
 
 
+class DatetimeConversionModel(AriadneBaseModel):
+    def dict(self, **kwargs):
+        data = super().dict(**kwargs)
+        data["time"] = int(data["time"].timestamp())
+        return data
+
+
 class AriadneOptions(TypedDict):
     installed_log: NotRequired[Literal[True]]
     inject_bypass_listener: NotRequired[Literal[True]]

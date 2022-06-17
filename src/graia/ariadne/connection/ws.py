@@ -50,7 +50,11 @@ class WebsocketConnectionMixin(Transport):
             validate_response(raw)  # raise it
         sync_id: str = raw.get("syncId", "#")
         data = raw.get("data", None)
-        data = validate_response(data)
+        data = validate_response(data, raising=False)
+        if isinstance(data, Exception):
+            if sync_id in self.futures:
+                self.futures[sync_id].set_exception(data)
+            return
         if "session" in data:
             self.status.session_key = data["session"]
             logger.success("Successfully got session key", style="green bold")

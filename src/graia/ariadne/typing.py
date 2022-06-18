@@ -4,6 +4,7 @@ import builtins
 import contextlib
 import enum
 import sys
+import types
 import typing
 from types import MethodType, TracebackType
 from typing import (
@@ -150,6 +151,8 @@ def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bo
                 return any(generic_issubclass(cls, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_issubclass(cls, par.__bound__)
+        if isinstance(par, getattr(types, "UnionType", None)):
+            return isinstance(cls, par)
     return False
 
 
@@ -175,6 +178,8 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
                 return any(generic_isinstance(obj, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_isinstance(obj, par.__bound__)
+        if isinstance(par, getattr(types, "UnionType", None)):
+            return isinstance(obj, par)
     return False
 
 

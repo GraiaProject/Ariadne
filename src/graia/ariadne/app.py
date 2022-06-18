@@ -25,6 +25,8 @@ from typing import (
     overload,
 )
 
+from graia.amnesia.builtins.memcache import MemcacheService
+from graia.amnesia.transport.common.storage import CacheStorage
 from graia.broadcast import Broadcast
 from launart import Launart
 from loguru import logger
@@ -246,6 +248,9 @@ class Ariadne(AttrConvertMixin):
 
         if "default_account" not in cls.options and len(cls.service.connections) == 1:
             cls.options["default_account"] = next(iter(cls.service.connections))
+
+        if CacheStorage not in cls.launch_manager._service_bind:
+            cls.launch_manager.add_service(MemcacheService())
 
     @classmethod
     def launch_blocking(cls):

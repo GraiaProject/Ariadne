@@ -14,12 +14,14 @@ from ..typing import T_Callable, Wrapper
 from ..util import gen_subclass
 
 
-def ensure_cube(func: Callable) -> Cube[ListenerSchema]:
+def ensure_cube_as_listener(func: Callable) -> Cube[ListenerSchema]:
     if func.__cube__:
+        if not isinstance(func.__cube__.metaclass, ListenerSchema):
+            raise TypeError("Cube must be ListenerSchema")
         return func.__cube__
     channel = Channel.current()
     for cube in channel.content:
-        if cube.content is func:
+        if cube.content is func and isinstance(cube.metaclass, ListenerSchema):
             func.__cube__ = cube
             break
     else:
@@ -39,7 +41,7 @@ def dispatch(*dispatcher: T_Dispatcher) -> Wrapper:
     """
 
     def wrapper(func: T_Callable) -> T_Callable:
-        cube: Cube[ListenerSchema] = ensure_cube(func)
+        cube: Cube[ListenerSchema] = ensure_cube_as_listener(func)
         cube.metaclass.inline_dispatchers.extend(dispatcher)
         return func
 
@@ -98,7 +100,7 @@ def decorate(*args) -> Wrapper:
         arg = list(args)
 
     def wrapper(func: T_Callable) -> T_Callable:
-        cube = ensure_cube(func)
+        cube = ensure_cube_as_listener(func)
         if isinstance(arg, list):
             cube.metaclass.decorators.extend(arg)
         elif isinstance(arg, dict):
@@ -126,12 +128,14 @@ def listen(*event: Union[Type[Dispatchable], str], priority: int = 16) -> Wrappe
     events: List[Type[Dispatchable]] = [e if isinstance(e, type) else EVENTS[e] for e in event]
 
     def wrapper(func: T_Callable) -> T_Callable:
-        cube = ensure_cube(func)
+        cube = ensure_cube_as_listener(func)
         cube.metaclass.listening_events.extend(events)
         return func
 
     return wrapper
 
+
+# TODO: event-specialized priority
 
 def priority(priority: int) -> Wrapper:
     """设置事件优先级
@@ -144,7 +148,7 @@ def priority(priority: int) -> Wrapper:
     """
 
     def wrapper(func: T_Callable) -> T_Callable:
-        cube = ensure_cube(func)
+        cube = ensure_cube_as_listener(func)
         cube.metaclass.priority = priority
         return func
 

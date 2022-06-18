@@ -1,5 +1,6 @@
 """Ariadne 的类型标注"""
 
+
 import builtins
 import contextlib
 import enum
@@ -56,6 +57,7 @@ DictIntStrAny = Dict[IntStr, Any]
 DictStrAny = Dict[str, Any]
 MappingIntStrAny = Mapping[IntStr, Any]
 ReprArgs = Sequence[Tuple[Optional[str], Any]]
+Unions = (Union, types.UnionType) if sys.version_info >= (3, 10) else (Union,)
 
 
 class SendMessageDict(TypedDict):
@@ -144,15 +146,13 @@ def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bo
     with contextlib.suppress(TypeError):
         if isinstance(par, (type, tuple)):
             return issubclass(cls, par)
-        if typing.get_origin(par) is Union:
+        if typing.get_origin(par) in Unions:
             return any(generic_issubclass(cls, p) for p in typing.get_args(par))
         if isinstance(par, TypeVar):
             if par.__constraints__:
                 return any(generic_issubclass(cls, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_issubclass(cls, par.__bound__)
-        if isinstance(par, getattr(types, "UnionType", None)):
-            return isinstance(cls, par)
     return False
 
 
@@ -171,15 +171,13 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
     with contextlib.suppress(TypeError):
         if isinstance(par, (type, tuple)):
             return isinstance(obj, par)
-        if typing.get_origin(par) is Union:
+        if typing.get_origin(par) in Unions:
             return any(generic_isinstance(obj, p) for p in typing.get_args(par))
         if isinstance(par, TypeVar):
             if par.__constraints__:
                 return any(generic_isinstance(obj, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_isinstance(obj, par.__bound__)
-        if isinstance(par, getattr(types, "UnionType", None)):
-            return isinstance(obj, par)
     return False
 
 

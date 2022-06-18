@@ -137,6 +137,7 @@ def listen(*event: Union[Type[Dispatchable], str], priority: int = 16) -> Wrappe
 
 # TODO: event-specialized priority
 
+
 def priority(priority: int) -> Wrapper:
     """设置事件优先级
 

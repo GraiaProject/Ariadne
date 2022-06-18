@@ -152,7 +152,7 @@ def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bo
             if par.__bound__:
                 return generic_issubclass(cls, par.__bound__)
         if isinstance(par, getattr(types, "UnionType", None)):
-            return isinstance(obj, par)
+            return isinstance(cls, par)
     return False
 
 

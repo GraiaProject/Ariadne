@@ -15,6 +15,7 @@ from typing import (
     Callable,
     Dict,
     Generic,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -25,7 +26,13 @@ from typing import (
     Union,
 )
 
-from typing_extensions import Annotated, ParamSpec, Protocol, runtime_checkable
+from typing_extensions import (
+    Annotated,
+    ParamSpec,
+    Protocol,
+    TypeAlias,
+    runtime_checkable,
+)
 
 if TYPE_CHECKING:
     from .message.chain import MessageChain
@@ -187,13 +194,15 @@ class _SentinelClass(enum.Enum):
 
 Sentinel = _SentinelClass._Sentinel
 
+FlagAlias: TypeAlias = Literal[Sentinel]
+
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
-Wrapper = Callable[[T_Callable], T_Callable]
+Wrapper: TypeAlias = Callable[[T_Callable], T_Callable]
 
 AnnotatedType = type(Annotated[int, lambda x: x > 0])
 
-ExceptionHook = Callable[[Type[BaseException], BaseException, Optional[TracebackType]], Any]
+ExceptionHook: TypeAlias = Callable[[Type[BaseException], BaseException, Optional[TracebackType]], Any]
 
 if sys.version_info >= (3, 9):
     classmethod = builtins.classmethod

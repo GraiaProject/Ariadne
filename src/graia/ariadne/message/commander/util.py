@@ -198,6 +198,7 @@ class MatchEntry:
         self.tokens: List[Union[Text, Param]] = [
             token.to_param() if isinstance(token, AnnotatedParam) else token for token in tokens
         ]
+        self.params: List[Param] = [token for token in tokens if isinstance(token, Param)]
 
 
 T_MatchEntry = TypeVar("T_MatchEntry", bound=MatchEntry)

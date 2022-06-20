@@ -1,9 +1,11 @@
 """Commander: 便捷的指令触发体系"""
 import abc
+import asyncio
 import inspect
 from typing import (
     Any,
     Callable,
+    Coroutine,
     Deque,
     Dict,
     FrozenSet,
@@ -28,6 +30,7 @@ from pydantic import BaseModel, create_model, validator
 from pydantic.fields import ModelField
 from typing_extensions import LiteralString
 
+from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
@@ -42,6 +45,7 @@ from ..chain import MessageChain
 from ..element import Element
 from .util import (
     AnnotatedParam,
+    ConstantDispatcher,
     MatchEntry,
     MatchNode,
     Param,
@@ -207,7 +211,7 @@ class Arg(ParamDesc):
 
 
 class CommandEntry(MatchEntry, ExecTarget):
-    execution_target: Callable
+    """命令信息的存储数据结构, 同时可作为 ExecTarget"""
 
     def __init__(self, priority: int) -> None:
         self.priority = priority
@@ -224,35 +228,23 @@ class CommandEntry(MatchEntry, ExecTarget):
             self._arg_name_map = {v: k for k, v in self.arg_map.items()}
         return self._arg_name_map.copy()
 
+    def compile_param(
+        self,
+        slot_data: Dict[str, MessageChain],
+        arg_data: Dict[str, List[MessageChain]],
+        extra_list: List[MessageChain],
+    ) -> Dict[str, Any]:
+        ...  # TODO
+
 
 class MismatchError(ValueError):
     """指令失配"""
 
 
-class CommandHandler(ExecTarget):
-    """Command 的 ExecTarget 对象, 承担了参数提取等任务"""
-
-    def __init__(
-        self,
-        entry: CommandEntry,
-        dispatchers: Sequence[T_Dispatcher],
-        decorators: Sequence[Decorator],
-    ):
-        super().__init__(
-            entry.execution_target,
-            [
-                ContextDispatcher(),
-                *resolve_dispatchers_mixin(dispatchers),
-            ],
-            list(decorators),
-        )
-        self.entry = entry
-
-
 class ParseData(NamedTuple):
     index: int
     node: MatchNode[CommandEntry]
-    params: Tuple[str, ...]
+    params: Tuple[MessageChain, ...]
 
 
 class Commander:
@@ -286,6 +278,12 @@ class Commander:
 
     @staticmethod
     def parse_command(command: LiteralString, entry: CommandEntry) -> None:
+        """从传入的命令补充 entry 的信息
+
+        Args:
+            command (LiteralString): 命令
+            entry (CommandEntry): 命令的 entry
+        """
         tokenize_result: List[Union[Text, Param, AnnotatedParam]] = tokenize(command)
         for token in tokenize_result:
             if isinstance(token, Text):
@@ -318,8 +316,13 @@ class Commander:
         MatchEntry.__init__(entry, tokenize_result)
 
     @staticmethod
-    def update_from_func(func: Callable, entry: CommandEntry) -> None:
-        for name, parameter in inspect.signature(func).parameters.items():
+    def update_from_func(entry: CommandEntry) -> None:
+        """从 entry 的 callable 更新 entry 的信息
+
+        Args:
+            entry (CommandEntry): 命令的 entry
+        """
+        for name, parameter in inspect.signature(entry.callable).parameters.items():
             annotation = convert_empty(parameter.annotation)
             default = convert_empty(parameter.default)
             if default is not Sentinel:
@@ -375,8 +378,16 @@ class Commander:
 
         def wrapper(func: T_Callable) -> T_Callable:
 
-            entry.execution_target = func
-            Commander.update_from_func(func, entry)
+            ExecTarget.__init__(
+                entry,
+                func,
+                [
+                    ContextDispatcher(),
+                    *resolve_dispatchers_mixin(dispatchers),
+                ],
+                list(decorators),
+            )
+            Commander.update_from_func(entry)
             for slot in entry.slot_map.values():
                 slot.gen_model(self.validators)
                 assert slot.dest is not None, "Slot dest is None!"
@@ -386,24 +397,50 @@ class Commander:
                 assert arg.default_factory is not Sentinel, f"{arg}'s default factory is not set!"
             if entry.extra:
                 entry.nodes.pop()  # the last optional / wildcard token should not be on the MatchGraph
-            ExecTarget.__init__(
-                entry,
-                entry.execution_target,
-                [
-                    ContextDispatcher(),
-                    *resolve_dispatchers_mixin(dispatchers),
-                ],
-                list(decorators),
-            )
+
             self.match_root.push(entry)
             return func
 
         return wrapper
 
-    @staticmethod
-    def parse_rest(frags: List[str], params: Tuple[str, ...], target: CommandEntry):
+    def parse_rest(
+        self,
+        frags: List[MessageChain],
+        str_frags: List[str],
+        params: Tuple[MessageChain, ...],
+        entry: CommandEntry,
+    ) -> Optional[Tuple[int, Coroutine]]:
         # walks down optional, wildcard and Arg
-        ...
+        # extract slot data based on entry
+        slot_data: Dict[str, MessageChain] = {
+            name: chain for param, chain in zip(entry.params, params) for name in param.names
+        }
+        # slam all the rest data inside extra_list
+        extra_list: List[MessageChain] = []
+        # store MessageChains assigned to Arg in arg_data
+        arg_data: Dict[str, List[MessageChain]] = {}
+        # index frags
+        index: int = 0
+        while index < len(frags):
+            str_frag: str = str_frags[index]
+            if str_frag in entry.header_map:
+                arg = entry.header_map[str_frag]
+                if arg.dest:
+                    if arg.dest in arg_data:  # if the arg is already assigned
+                        return
+                    arg_data[arg.dest] = frags[index : index + len(arg.tags)]
+                index += len(arg.tags)
+                if index > len(frags):  # failed
+                    return None
+            else:
+                extra_list.append(frags[index])
+            index += 1
+        dispatchers: List[T_Dispatcher] = [
+            ConstantDispatcher(entry.compile_param(slot_data, arg_data, extra_list))
+        ]
+        if event := event_ctx.get(None):
+            dispatchers.extend(resolve_dispatchers_mixin([event.Dispatcher]))
+        return index, self.broadcast.Executor(entry, dispatchers)
 
     async def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -413,25 +450,33 @@ class Commander:
         """
 
         mapping_str, elem_m = chain._to_mapping_str()
-        frags: List[str] = split(mapping_str)
-        pending_exec = []
+        str_frags: List[str] = split(mapping_str)
+        chain_frags: List[MessageChain] = [
+            MessageChain._from_mapping_string(frag, elem_m) for frag in str_frags
+        ]
+        pending_exec: Dict[int, List[Coroutine]] = {}
         pending_next: Deque[ParseData] = Deque([ParseData(0, self.match_root, ())])
+
+        def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[MessageChain, ...]):
+            for entry in nxt.entries:
+                if res := self.parse_rest(chain_frags[index:], str_frags[index:], params, entry):
+                    pending_exec.setdefault(res[0], []).append(res[1])
+                pending_next.append(ParseData(index, nxt, params))
+
         while pending_next:
             index, node, params = pending_next.popleft()
-            if index >= len(frags):
+            if index >= len(str_frags):
                 continue
-            frag: str = frags[index]
+            chain_frag: MessageChain = chain_frags[index]
             index += 1
+            frag: str = str_frags[index]
             if frag in node.next:
                 nxt = node.next[frag]
-                pending_exec.extend(
-                    Commander.parse_rest(frags[index:], params, entry) for entry in nxt.entries
-                )
-                pending_next.append(ParseData(index, nxt, params))
+                push_pending(index, nxt, params)
             if Sentinel in node.next:
                 nxt = node.next[Sentinel]
-                params += (frag,)
-                pending_exec.extend(
-                    Commander.parse_rest(frags[index:], params, entry) for entry in nxt.entries
-                )
-                pending_next.append(ParseData(index, nxt, params))
+                params += (chain_frag,)
+                push_pending(index, nxt, params)
+
+        for _, coros in sorted(pending_exec.items()):
+            await asyncio.wait(self.broadcast.loop.create_task(coro) for coro in coros)

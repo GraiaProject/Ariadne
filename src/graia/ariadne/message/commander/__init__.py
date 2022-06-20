@@ -3,6 +3,7 @@ import abc
 import asyncio
 import inspect
 from typing import (
+    TYPE_CHECKING,
     Any,
     Callable,
     Coroutine,
@@ -228,13 +229,67 @@ class CommandEntry(MatchEntry, ExecTarget):
             self._arg_name_map = {v: k for k, v in self.arg_map.items()}
         return self._arg_name_map.copy()
 
+    def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, List[MessageChain]]) -> None:
+        for arg in self.arg_name_map:
+            if TYPE_CHECKING:
+                assert arg.default_factory is not Sentinel
+                assert arg.type is not Sentinel
+                assert arg.dest
+                assert arg.model
+            value = arg.default_factory()
+            if arg.tags:
+                for param in arg.headers:
+                    if param in arg_data:  # provided in arg_data
+                        value = dict(zip(arg.tags, arg_data[param]))
+                        break
+                if isinstance(value, arg.type):  # compatible with arg.type
+                    compile_result[arg.dest] = value
+                    continue
+                if not isinstance(value, dict):
+                    value = dict(zip(arg.tags, value if isinstance(value, Sequence) else [value]))
+
+                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
+                    # an generated BaseModel, deconstruct
+                    compile_result[arg.dest] = arg.model(**value).__dict__[arg.tags[0]]
+                else:
+                    # user provided model
+                    compile_result[arg.dest] = arg.model(**value)
+
+            else:  # probably a bool
+                if any(param in arg_data for param in arg.headers):
+                    value = not value
+                compile_result[arg.dest] = arg.model(val=value).__dict__["val"]
+
+    def compile_extra(self, slot: Slot, extra_list: List[MessageChain]) -> Any:
+        if TYPE_CHECKING:
+            assert self.extra is not None
+            assert slot.model
+            assert slot.default_factory is not Sentinel
+        if self.extra.wildcard:  # Wildcard
+            if slot.type is raw:
+                return MessageChain([" "]).join(extra_list)
+            return tuple(slot.model(val=chain).__dict__["val"] for chain in extra_list)
+        # Optional
+        value = extra_list[0] or slot.default_factory()
+        return slot.model(val=value).__dict__["val"]
+
     def compile_param(
         self,
-        slot_data: Dict[str, MessageChain],
-        arg_data: Dict[str, List[MessageChain]],
+        slot_data: Dict[str, MessageChain],  # Slot.target -> MessageChain
+        arg_data: Dict[str, List[MessageChain]],  # Arg.dest -> MessageChain
         extra_list: List[MessageChain],
     ) -> Dict[str, Any]:
-        ...  # TODO
+        compile_result: Dict[str, Any] = {}
+        for ind, slot in self.slot_map.items():
+            if TYPE_CHECKING:
+                assert slot.dest
+                assert slot.model
+            if self.extra and self.extra.name == ind:  # skip Wildcard and Optional
+                compile_result[slot.dest] = self.compile_extra(slot, extra_list)
+            else:
+                compile_result[slot.dest] = slot.model(val=slot_data[ind]).__dict__["val"]
+        self.compile_arg(compile_result, arg_data)
+        return compile_result
 
 
 class MismatchError(ValueError):
@@ -435,6 +490,11 @@ class Commander:
             else:
                 extra_list.append(frags[index])
             index += 1
+        if entry.extra:
+            if not entry.extra.wildcard and len(extra_list) > 1:
+                return None
+        elif extra_list:
+            return None
         dispatchers: List[T_Dispatcher] = [
             ConstantDispatcher(entry.compile_param(slot_data, arg_data, extra_list))
         ]

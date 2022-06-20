@@ -195,6 +195,7 @@ class _SentinelClass(enum.Enum):
 Sentinel = _SentinelClass._Sentinel
 
 FlagAlias: TypeAlias = Literal[Sentinel]
+MaybeFlag: TypeAlias = Union[Literal[Sentinel], T]
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 

@@ -1,12 +1,30 @@
 from __future__ import annotations
 
+import enum
+import functools
+import inspect
 import re
 from copy import copy
-from typing import Dict, FrozenSet, Iterable, List, Optional, Set, Union
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    Generic,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    TypeVar,
+    Union,
+)
 
+from graia.broadcast.entities.decorator import Decorator
+from graia.broadcast.entities.dispatcher import BaseDispatcher
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from typing_extensions import Self
 
-from ...typing import FlagAlias, Sentinel
+from ...typing import MaybeFlag, Sentinel, T
+from ..parser.util import split as split  # noqa: F401
 
 L_PAREN = ("{", "[")
 R_PAREN = ("}", "]")
@@ -18,7 +36,7 @@ ESCAPE = {
     "}": "\x04",
     "|": "\x05",
 }
-R_ESCAPE = dict(reversed(ESCAPE.items()))
+R_ESCAPE = {v: k for k, v in ESCAPE.items()}
 
 
 def escape(string: str) -> str:
@@ -61,7 +79,7 @@ class Text:
         return f"Text({self.choice!r})"
 
 
-class BaseParam:
+class Param:
     __slots__ = ("names",)
     names: FrozenSet[str]
 
@@ -69,10 +87,10 @@ class BaseParam:
         self.names = frozenset(names)
 
     def __repr__(self) -> str:
-        return f"BaseParam({self.names!r})"
+        return f"Param({self.names!r})"
 
 
-class Param:
+class AnnotatedParam:
     __slots__ = ("name", "annotation", "default", "wildcard")
     name: str
     annotation: Optional[str]
@@ -92,15 +110,20 @@ class Param:
         self.wildcard = wildcard
 
     def __repr__(self) -> str:
-        return f"Param({'...' if self.wildcard else ''}{self.name}: {self.annotation} = {self.default})"
+        return (
+            f"AnnotatedParam({'...' if self.wildcard else ''}{self.name}: {self.annotation} = {self.default})"
+        )
+
+    def to_param(self) -> Param:
+        return Param((self.name,))
 
 
-U_Token = Union[Text, BaseParam, Param]
+U_Token = Union[Text, Param, AnnotatedParam]
 
 ann_assign = re.compile(r"(?P<name>[^:=]+)(?P<annotation>:[^=]+)?(?P<default>=.+)?")
 
 
-def parse_param(param_str: str) -> Union[BaseParam, Param]:
+def parse_param(param_str: str) -> Union[Param, AnnotatedParam]:
     wildcard: bool = param_str.startswith("...")
     if wildcard:
         param_str = param_str[3:]
@@ -109,9 +132,15 @@ def parse_param(param_str: str) -> Union[BaseParam, Param]:
     names, *extra = match.groups()
     names = names.split("|")
     if not extra:
-        return BaseParam(map(str.strip, names))
+        return Param(map(str.strip, names))
     assert len(names) == 1, f"Invalid param: {param_str}"
-    return Param(names[0], wildcard, *map(lambda s: unescape(s).lstrip(":=").strip(), extra))
+    return AnnotatedParam(names[0], wildcard, *map(lambda s: unescape(s).lstrip(":=").strip(), extra))
+
+
+def _pop(char_stk: List[str]) -> str:
+    piece = "".join(char_stk)
+    char_stk.clear()
+    return piece
 
 
 def tokenize(string: str) -> List[U_Token]:
@@ -129,11 +158,7 @@ def tokenize(string: str) -> List[U_Token]:
     paren: str = ""
     char_stk: List[str] = []
     token: List[U_Token] = []
-
-    def pop() -> str:
-        piece = "".join(char_stk)
-        char_stk.clear()
-        return piece
+    pop = functools.partial(_pop, char_stk)
 
     for index, char in enumerate(string):
         if char in L_PAREN + R_PAREN:
@@ -165,57 +190,23 @@ def tokenize(string: str) -> List[U_Token]:
     return token
 
 
-def split(string: str, keep_quote: bool = False) -> List[str]:
-    """尊重引号与转义的字符串切分
-
-    Args:
-        string (str): 要切割的字符串
-        keep_quote (bool): 是否保留引号, 默认 False.
-
-    Returns:
-        List[str]: 切割后的字符串, 可能含有空格
-    """
-    result: List[str] = []
-    quote = ""
-    cache: List[str] = []
-    for index, char in enumerate(string):
-        if char in {"'", '"'}:
-            if not quote:
-                quote = char
-            elif char == quote and index and string[index - 1] != "\\":  # is current quote, not transfigured
-                quote = ""
-            else:
-                cache.append(char)
-                continue
-            if keep_quote:
-                cache.append(char)
-        elif not quote and char == " ":
-            result.append("".join(cache))
-            cache = []
-        elif char != "\\":
-            cache.append(char)
-    if cache:
-        result.append("".join(cache))
-    return result
-
-
-class CommandEntry:
-    __slots__ = ("nodes", "tokens")
-
+class MatchEntry:
     def __init__(self, tokens: List[U_Token]) -> None:
-        self.tokens = tokens
-        self.nodes: List[Union[FrozenSet[str], FlagAlias]] = []
-        for token in tokens:
-            if isinstance(token, Text):
-                self.nodes.append(token.choice)
-            else:
-                self.nodes.append(Sentinel)
+        self.nodes: List[MaybeFlag[FrozenSet[str]]] = [
+            token.choice if isinstance(token, Text) else Sentinel for token in tokens
+        ]
+        self.tokens: List[Union[Text, Param]] = [
+            token.to_param() if isinstance(token, AnnotatedParam) else token for token in tokens
+        ]
 
 
-class MatchNode:
+T_MatchEntry = TypeVar("T_MatchEntry", bound=MatchEntry)
+
+
+class MatchNode(Generic[T_MatchEntry]):
     __slots__ = ("next", "entries")
-    next: Dict[Union[str, FlagAlias], MatchNode]
-    entries: List[CommandEntry]
+    next: Dict[MaybeFlag[str], MatchNode[T_MatchEntry]]
+    entries: List[T_MatchEntry]
 
     def __init__(self) -> None:
         self.next = {}
@@ -227,11 +218,11 @@ class MatchNode:
         new_obj.entries = self.entries.copy()
         return new_obj
 
-    def push(self, entry: CommandEntry, index: int = 0) -> None:
+    def push(self, entry: T_MatchEntry, index: int = 0) -> None:
         if index >= len(entry.nodes):
             self.entries.append(entry)
             return
-        current: Union[FrozenSet[str], FlagAlias] = entry.nodes[index]
+        current: MaybeFlag[FrozenSet[str]] = entry.nodes[index]
         if current is Sentinel:
             self.next.setdefault(current, MatchNode()).push(entry, index + 1)
         else:
@@ -257,3 +248,28 @@ class MatchNode:
             print(fwd)
         for k, node in self.next.items():
             node._inspect(f"{fwd}.{'?' if k is Sentinel else k}")
+
+
+class _RawEnum(enum.Enum):
+    Raw = object()
+
+
+raw = _RawEnum.Raw  # wildcard annotation object
+
+
+def convert_empty(obj: T) -> MaybeFlag[T]:
+    if obj is inspect.Parameter.empty:
+        return Sentinel
+    if isinstance(obj, Decorator):
+        return Sentinel
+    return obj
+
+
+class ConstantDispatcher(BaseDispatcher):
+    """分发常量给指定名称的参数"""
+
+    def __init__(self, data: Dict[str, Any]) -> None:
+        self.data = data
+
+    async def catch(self, interface: DispatcherInterface):
+        return self.data.get(interface.name)

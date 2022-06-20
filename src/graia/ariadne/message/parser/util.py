@@ -1,12 +1,10 @@
 """消息链处理器用到的工具函数, 类"""
 import argparse
-import enum
 import inspect
 import re
 from contextvars import ContextVar
 from typing import (
     TYPE_CHECKING,
-    Any,
     Callable,
     ClassVar,
     Dict,
@@ -15,7 +13,6 @@ from typing import (
     Literal,
     NoReturn,
     Optional,
-    Tuple,
     Type,
     Union,
     overload,
@@ -29,140 +26,6 @@ if TYPE_CHECKING:
     from .twilight import Twilight
 
 elem_mapping_ctx: ContextVar[Dict[str, Element]] = ContextVar("elem_mapping_ctx")
-
-L_PAREN = ("{", "[")
-R_PAREN = ("}", "]")
-ESCAPE = {
-    "\\": "\x00",
-    "[": "\x01",
-    "]": "\x02",
-    "{": "\x03",
-    "}": "\x04",
-    "|": "\x05",
-}
-R_ESCAPE = {v: k for k, v in ESCAPE.items()}
-
-
-def escape(string: str) -> str:
-    """转义字符串
-
-    Args:
-        string (str): 要转义的字符串
-
-    Returns:
-        str: 转义后的字符串
-    """
-    for k, v in ESCAPE.items():
-        string = string.replace("\\" + k, v)
-    string = string.replace("\\", "")
-    return string
-
-
-def unescape(string: str) -> str:
-    """逆转义字符串, 自动去除空白符
-
-    Args:
-        string (str): 要逆转义的字符串
-
-    Returns:
-        str: 逆转义后的字符串
-    """
-    for k, v in R_ESCAPE.items():
-        string = string.replace(k, v)
-    return string.strip()
-
-
-class CommandToken(enum.Enum):
-    """Command 的 Token."""
-
-    TEXT = "TEXT"
-    CHOICE = "CHOICE"
-    PARAM = "PARAM"
-    ANNOTATED = "ANNOTATED"
-
-
-CommandTokenTuple = Tuple[CommandToken, List[Any]]
-
-
-def tokenize_command(string: str) -> List[CommandTokenTuple]:
-    """将字符串转义化, 并处理为 Text, Choice, Param, AnnotatedParam 四种 token
-
-    Args:
-        string (str): 要处理的字符串
-
-    Returns:
-        List[Tuple[CommandToken, List[int, str]]]: 处理后的 Token
-    """
-
-    string = escape(string)
-
-    paren: str = ""
-    char_stk: List[str] = []
-    token: List[CommandTokenTuple] = []
-
-    for index, char in enumerate(string):
-        if char in L_PAREN + R_PAREN:
-            if char in L_PAREN:
-                if paren:
-                    raise ValueError(
-                        f"""Duplicated parenthesis character "{char}" @ {index} !"""
-                        """Are you sure you've escaped with "\\"?"""
-                    )
-                paren = char
-            elif char in R_PAREN:
-                if paren == "[":  # CHOICE
-                    token.append((CommandToken.CHOICE, list(map(unescape, "".join(char_stk).split("|")))))
-                elif paren == "{":  # PARAM
-                    piece = "".join(char_stk)
-                    match = re.fullmatch(
-                        r"(?P<wildcard>\.\.\.)?"
-                        r"(?P<name>[^:=|]+)"
-                        r"(?P<annotation>:[^=]+)?"
-                        r"(?P<default>=.+)?",
-                        piece,
-                    )
-                    if match and any(s in piece for s in ".:="):
-                        token.append(
-                            (
-                                CommandToken.ANNOTATED,
-                                list(
-                                    map(
-                                        lambda x: unescape(x).strip().lstrip(":=").strip() if x else "",
-                                        match.groups(),
-                                    )
-                                ),
-                            )
-                        )
-                    else:
-                        token.append(
-                            (
-                                CommandToken.PARAM,
-                                [
-                                    int(i) if re.match(r"\d+", i) else unescape(i)
-                                    for i in "".join(char_stk).split("|")
-                                ],
-                            )
-                        )
-                else:
-                    raise ValueError(f"No matching parenthesis: {paren} @ {index}")
-                char_stk.clear()
-                paren = ""
-            char_stk.clear()
-        elif char == " " and not paren:
-            if char_stk:
-                token.append((CommandToken.TEXT, ["".join(char_stk)]))
-                char_stk.clear()
-        else:
-            char_stk.append(char)
-
-    if paren:
-        raise ValueError(f"Unclosed parenthesis: {paren}")
-
-    if char_stk:
-        token.append((CommandToken.TEXT, ["".join(char_stk)]))
-        char_stk.clear()
-
-    return token
 
 
 def split(string: str, keep_quote: bool = False) -> List[str]:

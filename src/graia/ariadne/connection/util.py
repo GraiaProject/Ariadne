@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+from datetime import datetime
 from enum import Enum
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type, Union, overload
@@ -136,3 +138,10 @@ class UploadMethod(str, Enum):
 
     def __str__(self) -> str:
         return self.value
+
+
+class DatetimeJsonEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return int(obj.timestamp())
+        return json.JSONEncoder.default(self, obj)

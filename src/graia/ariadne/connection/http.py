@@ -1,4 +1,5 @@
 import asyncio
+import json as json_mod
 from typing import Any, Optional
 
 from aiohttp import FormData
@@ -15,7 +16,13 @@ from graia.ariadne.connection import ConnectionMixin
 
 from ..exception import InvalidSession
 from ._info import HttpClientInfo, HttpServerInfo
-from .util import CallMethod, build_event, get_router, validate_response
+from .util import (
+    CallMethod,
+    DatetimeJsonEncoder,
+    build_event,
+    get_router,
+    validate_response,
+)
 
 
 class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
@@ -70,7 +77,9 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
             for k, v in data.items():
                 form.add_field(k, **v) if isinstance(v, dict) else form.add_field(k, v)
             data = form
-        rider = await self.http_interface.request(method, url, params=params, data=data, json=json)
+        if json:
+            data = json_mod.dumps(json, cls=DatetimeJsonEncoder)
+        rider = await self.http_interface.request(method, url, params=params, data=data)
         byte_data = await rider.io().read()
         result = Json.deserialize(byte_data.decode("utf-8"))
         return validate_response(result)

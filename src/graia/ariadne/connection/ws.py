@@ -1,4 +1,5 @@
 import asyncio
+import json as json_mod
 import secrets
 from typing import Any, Awaitable, Callable, Dict, List, MutableMapping, Optional
 from weakref import WeakValueDictionary
@@ -28,7 +29,13 @@ from graia.ariadne.connection.http import HttpClientConnection
 
 from ..event import MiraiEvent
 from ._info import WebsocketClientInfo, WebsocketServerInfo
-from .util import CallMethod, build_event, get_router, validate_response
+from .util import (
+    CallMethod,
+    DatetimeJsonEncoder,
+    build_event,
+    get_router,
+    validate_response,
+)
 
 t = TransportRegistrar()
 
@@ -99,7 +106,7 @@ class WebsocketConnectionMixin(Transport):
         self.futures[sync_id] = fut
         await self.status.wait_for_available()
         assert self.ws_io
-        await self.ws_io.send(content)
+        await self.ws_io.send(json_mod.dumps(content, cls=DatetimeJsonEncoder))
         return await fut
 
 

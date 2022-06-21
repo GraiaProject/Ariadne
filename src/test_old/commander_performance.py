@@ -8,26 +8,22 @@ from graia.ariadne.entry.message import *
 from graia.ariadne.message.commander import Arg, Commander, Slot
 from graia.ariadne.util import Dummy
 
-RUN = 1000
+RUN = 10000
 
 if __name__ == "__main__":
 
     async def m():
         cmd = Commander(Broadcast(loop=asyncio.get_running_loop()))
 
-        msg = MessageChain(".test", " --foo ", At(123))
+        msg = MessageChain(".test foo bar fox mop ", At(123))
 
-        @cmd.command(".test --foo {v}")
-        def _(v: At = None):
-            ...
+        handles = 15
 
-        @cmd.command(".test --foo {v}")
-        def _(v: At = None):
-            ...
+        for _ in range(handles):
 
-        @cmd.command(".test --foo {v}")
-        def _(v: At = None):
-            ...
+            @cmd.command(".test foo bar fox mop {v}")
+            def _(v: At):
+                ...
 
         async def disp(entry, dispatchers):
             debug(dispatchers[0].data)
@@ -51,6 +47,6 @@ if __name__ == "__main__":
             ed = time.time()
             sec += ed - st
 
-        print(f"Commander: {RUN/sec} loop/s, {RUN} loops, 15 handlers")
+        print(f"Commander: {RUN*handles/sec} loop/s per handler, {RUN} loops, {handles} handlers")
 
     asyncio.run(m())

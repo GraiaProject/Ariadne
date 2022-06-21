@@ -12,11 +12,14 @@ from typing import (
     Generic,
     Iterable,
     List,
+    MutableMapping,
     Optional,
     Set,
+    Tuple,
     TypeVar,
     Union,
 )
+from weakref import WeakKeyDictionary
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -24,7 +27,8 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from typing_extensions import Self
 
 from ...typing import MaybeFlag, Sentinel, T
-from ..parser.util import split as split  # noqa: F401
+from ..chain import MessageChain
+from ..element import Element, Plain, Quote, Source
 
 L_PAREN = ("{", "[")
 R_PAREN = ("}", "]")
@@ -276,3 +280,57 @@ class ConstantDispatcher(BaseDispatcher):
 
     async def catch(self, interface: DispatcherInterface):
         return self.data.get(interface.name)
+
+
+q_split_cache: MutableMapping[MessageChain, Tuple[List[str], List[MessageChain]]] = WeakKeyDictionary()
+
+
+def q_split(chain: MessageChain) -> Tuple[List[str], List[MessageChain]]:
+    if chain in q_split_cache:
+        return q_split_cache[chain]
+    str_result: List[str] = []
+    str_cache: List[str] = []
+    result: List[MessageChain] = []
+    chain_cache: List[Element] = []
+    quote = ""
+
+    for elem in chain.__root__:
+        if elem.__class__ in (Quote, Source):
+            continue
+        if not isinstance(elem, Plain):
+            chain_cache.append(elem)
+            str_cache.append("\x01")
+            continue
+        string = elem.text
+        cache: List[str] = []
+        for index, char in enumerate(string):
+            if char in {"'", '"'}:
+                if not quote:
+                    quote = char
+                elif (
+                    char == quote and index and string[index - 1] != "\\"
+                ):  # is current quote, not transfigured
+                    quote = ""
+                else:
+                    cache.append(char)
+                    continue
+            elif not quote and char == " ":
+                tmp = "".join(cache)
+                chain_cache.append(Plain(tmp))
+                str_cache.append(tmp)
+                result.append(MessageChain(chain_cache.copy(), inline=True))
+                str_result.append("".join(str_cache))
+                chain_cache.clear()
+                cache.clear()
+                str_cache.clear()
+            elif char != "\\":
+                cache.append(char)
+        if cache:
+            tmp = "".join(cache)
+            chain_cache.append(Plain(tmp))
+            str_cache.append(tmp)
+    if chain_cache:
+        result.append(MessageChain(chain_cache, inline=True))
+        str_result.append("".join(str_cache))
+    q_split_cache[chain] = (str_result, result)
+    return str_result, result

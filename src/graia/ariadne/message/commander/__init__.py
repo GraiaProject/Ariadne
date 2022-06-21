@@ -2,13 +2,11 @@
 import abc
 import asyncio
 import contextlib
-import functools
 import inspect
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Coroutine,
     Deque,
     Dict,
     FrozenSet,
@@ -30,7 +28,8 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.exceptions import PropagationCancelled
 from graia.broadcast.typing import T_Dispatcher
-from pydantic import BaseModel, ValidationError, create_model, validator
+from graia.broadcast.utilles import dispatcher_mixin_handler
+from pydantic import BaseConfig, BaseModel, ValidationError, create_model, validator
 from pydantic.fields import ModelField
 from typing_extensions import LiteralString
 
@@ -55,8 +54,8 @@ from .util import (
     Param,
     Text,
     convert_empty,
+    q_split,
     raw,
-    split,
     tokenize,
 )
 
@@ -79,9 +78,8 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
     if field.outer_type_ is MessageChain:
         return value
     if issubclass(field.type_, Element):
-        assert len(value) == 1
-        assert isinstance(value[0], field.type_)
-        return value[0]
+        assert value.content[0].__class__ is field.type_
+        return value.content[0]
     if isinstance(value, MessageChain):
         return str(value)
     if value is None:
@@ -104,9 +102,14 @@ class ParamDesc(abc.ABC):
         ...
 
 
+class CommanderModelConfig(BaseConfig):
+    copy_on_model_validation: bool = False
+
+
 def make_model(name: str, validators: Iterable[Callable] = (), **fields) -> Type[BaseModel]:
     return create_model(
         name,
+        __config__=CommanderModelConfig,
         __validators__={
             f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
             for i, v in enumerate(validators)
@@ -225,12 +228,21 @@ class CommandEntry(MatchEntry, ExecTarget):
         self.header_map: Dict[str, Arg] = {}
         self.extra: Optional[AnnotatedParam] = None
         self._arg_name_map: Optional[Dict[Arg, str]] = None
+        self._slot_targets: Optional[Tuple[FrozenSet[str], ...]] = None
 
     @property
     def arg_name_map(self) -> Dict[Arg, str]:
         if not self._arg_name_map:
             self._arg_name_map = {v: k for k, v in self.arg_map.items()}
-        return self._arg_name_map.copy()
+        return self._arg_name_map
+
+    @property
+    def slot_targets(self) -> Tuple[FrozenSet[str], ...]:
+        if not self._slot_targets:
+            self._slot_targets = tuple(
+                frozenset(name for name in param.names if name in self.slot_map) for param in self.params
+            )
+        return self._slot_targets
 
     def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, List[MessageChain]]) -> None:
         for arg in self.arg_name_map:
@@ -281,14 +293,14 @@ class CommandEntry(MatchEntry, ExecTarget):
         extra_list: List[MessageChain],
     ) -> Dict[str, Any]:
         compile_result: Dict[str, Any] = {}
-        for ind, slot in self.slot_map.items():
+        for target, slot in self.slot_map.items():
             if TYPE_CHECKING:
                 assert slot.dest
                 assert slot.model
-            if self.extra and self.extra.name == ind:  # skip Wildcard and Optional
+            if self.extra and self.extra.name == target:  # skip Wildcard and Optional
                 compile_result[slot.dest] = self.compile_extra(slot, extra_list)
             else:
-                compile_result[slot.dest] = slot.model(val=slot_data[ind]).__dict__["val"]
+                compile_result[slot.dest] = slot.model(val=slot_data[target]).__dict__["val"]
         self.compile_arg(compile_result, arg_data)
         self.oplog.clear()
         return compile_result
@@ -462,22 +474,22 @@ class Commander:
 
     def parse_rest(
         self,
+        index: int,
         frags: List[MessageChain],
         str_frags: List[str],
         params: Tuple[MessageChain, ...],
         entry: CommandEntry,
-    ) -> Optional[Tuple[int, Callable[[], Coroutine]]]:
+    ) -> Optional[Tuple[int, Callable, dict]]:
         # walks down optional, wildcard and Arg
         # extract slot data based on entry
         slot_data: Dict[str, MessageChain] = {
-            name: chain for param, chain in zip(entry.params, params) for name in param.names
+            name: chain for targets, chain in zip(entry.slot_targets, params) for name in targets
         }
         # slam all the rest data inside extra_list
         extra_list: List[MessageChain] = []
         # store MessageChains assigned to Arg in arg_data
         arg_data: Dict[str, List[MessageChain]] = {}
         # index frags
-        index: int = 0
         while index < len(frags):
             str_frag: str = str_frags[index]
             if str_frag in entry.header_map:
@@ -499,12 +511,7 @@ class Commander:
                 return None
         elif extra_list:
             return None
-        dispatchers: List[T_Dispatcher] = [
-            ConstantDispatcher(entry.compile_param(slot_data, arg_data, extra_list))
-        ]
-        if event := event_ctx.get(None):
-            dispatchers.extend(resolve_dispatchers_mixin([event.Dispatcher]))
-        return index, functools.partial(self.broadcast.Executor, entry, dispatchers)
+        return entry.priority, entry.callable, entry.compile_param(slot_data, arg_data, extra_list)
 
     async def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -513,19 +520,20 @@ class Commander:
             chain (MessageChain): 触发的消息链
         """
 
-        mapping_str, elem_m = chain._to_mapping_str()
-        str_frags: List[str] = split(mapping_str)
-        chain_frags: List[MessageChain] = [
-            MessageChain._from_mapping_string(frag, elem_m) for frag in str_frags
-        ]
-        pending_exec: Dict[int, List[Callable[[], Coroutine]]] = {}
+        str_frags, chain_frags = q_split(chain)
+        pending_exec: Dict[int, List[Tuple[Callable, dict]]] = {}
         pending_next: Deque[ParseData] = Deque([ParseData(0, self.match_root, ())])
+
+        if event := event_ctx.get(None):
+            dispatchers = dispatcher_mixin_handler(event.Dispatcher)
+        else:
+            dispatchers = []
 
         def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[MessageChain, ...]):
             for entry in nxt.entries:
                 with contextlib.suppress(ValidationError):
-                    if res := self.parse_rest(chain_frags[index:], str_frags[index:], params, entry):
-                        pending_exec.setdefault(res[0], []).append(res[1])
+                    if res := self.parse_rest(index, chain_frags, str_frags, params, entry):
+                        pending_exec.setdefault(res[0], []).append(res[1:])
             pending_next.append(ParseData(index, nxt, params))
 
         while pending_next:
@@ -543,8 +551,15 @@ class Commander:
                 params += (chain_frag,)
                 push_pending(index, nxt, params)
 
-        for _, coros in sorted(pending_exec.items()):
-            done, _ = await asyncio.wait([self.broadcast.loop.create_task(coro()) for coro in coros])
+        for _, execution in sorted(pending_exec.items()):
+            done, _ = await asyncio.wait(
+                [
+                    self.broadcast.loop.create_task(
+                        self.broadcast.Executor(func, dispatchers + [ConstantDispatcher(param)])
+                    )
+                    for func, param in execution
+                ]
+            )
             for task in done:
                 if task.exception() and isinstance(task.exception(), PropagationCancelled):
                     return

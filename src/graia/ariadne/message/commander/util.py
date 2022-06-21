@@ -130,11 +130,13 @@ def parse_param(param_str: str) -> Union[Param, AnnotatedParam]:
     match = ann_assign.match(param_str)
     assert match, f"Invalid param: {param_str}"
     names, *extra = match.groups()
-    names = names.split("|")
-    if not extra:
-        return Param(map(str.strip, names))
+    names = [unescape(name).strip() for name in names.split("|")]
+    if not wildcard and not any(extra):
+        return Param(names)
     assert len(names) == 1, f"Invalid param: {param_str}"
-    return AnnotatedParam(names[0], wildcard, *map(lambda s: unescape(s).lstrip(":=").strip(), extra))
+    return AnnotatedParam(
+        names[0], wildcard, *map(lambda s: unescape(s).strip().lstrip(":=").strip() if s else None, extra)
+    )
 
 
 def _pop(char_stk: List[str]) -> str:
@@ -198,7 +200,7 @@ class MatchEntry:
         self.tokens: List[Union[Text, Param]] = [
             token.to_param() if isinstance(token, AnnotatedParam) else token for token in tokens
         ]
-        self.params: List[Param] = [token for token in tokens if isinstance(token, Param)]
+        self.params: List[Param] = [token for token in self.tokens if isinstance(token, Param)]
 
 
 T_MatchEntry = TypeVar("T_MatchEntry", bound=MatchEntry)
@@ -248,7 +250,7 @@ class MatchNode(Generic[T_MatchEntry]):
         if not self.next:
             print(fwd)
         for k, node in self.next.items():
-            node._inspect(f"{fwd}.{'?' if k is Sentinel else k}")
+            node._inspect(f"{fwd}{'<PARAM>' if k is Sentinel else k} ")
 
 
 class _RawEnum(enum.Enum):

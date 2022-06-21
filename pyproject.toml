@@ -72,6 +72,7 @@ graia-scheduler = { version = "^0.0"}
 graia-saya = { version = "^0.0" }
 fastapi = { version = ">=0.74.1, <1.0.0" }
 uvicorn = { extras = ["standard"], version = "^0.17.5" }
+viztracer = "^0.15.3"
 
 [tool.isort]
 profile = "black"

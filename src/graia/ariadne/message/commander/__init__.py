@@ -1,6 +1,8 @@
 """Commander: 便捷的指令触发体系"""
 import abc
 import asyncio
+import contextlib
+import functools
 import inspect
 from typing import (
     TYPE_CHECKING,
@@ -26,8 +28,9 @@ from typing import (
 from graia.broadcast import Broadcast, Listener
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.exectarget import ExecTarget
+from graia.broadcast.exceptions import PropagationCancelled
 from graia.broadcast.typing import T_Dispatcher
-from pydantic import BaseModel, create_model, validator
+from pydantic import BaseModel, ValidationError, create_model, validator
 from pydantic.fields import ModelField
 from typing_extensions import LiteralString
 
@@ -126,8 +129,6 @@ class Slot(ParamDesc):
         self.type: Union[Literal[Sentinel, raw], Type] = type
         if self.type == "raw":
             self.type = raw
-        if self.type is Sentinel:
-            self.type = MessageChain
         self.default_factory = constant(default) if default is not Sentinel else default_factory
         self.dest: Optional[str] = None
         self.model: Optional[Type[BaseModel]] = None
@@ -135,6 +136,8 @@ class Slot(ParamDesc):
     def gen_model(self, validators: Iterable[Callable]) -> None:
         if self.model or self.type is raw:
             return
+        if self.type is Sentinel:
+            self.type = MessageChain
         self.model = make_model("SlotModel", validators, val=self.type)
 
     def merge(self, other: "Slot") -> None:
@@ -238,10 +241,8 @@ class CommandEntry(MatchEntry, ExecTarget):
                 assert arg.model
             value = arg.default_factory()
             if arg.tags:
-                for param in arg.headers:
-                    if param in arg_data:  # provided in arg_data
-                        value = dict(zip(arg.tags, arg_data[param]))
-                        break
+                if arg.dest in arg_data:  # provided in arg_data
+                    value = dict(zip(arg.tags, arg_data[arg.dest]))
                 if isinstance(value, arg.type):  # compatible with arg.type
                     compile_result[arg.dest] = value
                     continue
@@ -256,7 +257,7 @@ class CommandEntry(MatchEntry, ExecTarget):
                     compile_result[arg.dest] = arg.model(**value)
 
             else:  # probably a bool
-                if any(param in arg_data for param in arg.headers):
+                if arg.dest in arg_data:
                     value = not value
                 compile_result[arg.dest] = arg.model(val=value).__dict__["val"]
 
@@ -267,10 +268,10 @@ class CommandEntry(MatchEntry, ExecTarget):
             assert slot.default_factory is not Sentinel
         if self.extra.wildcard:  # Wildcard
             if slot.type is raw:
-                return MessageChain([" "]).join(extra_list)
+                return MessageChain([" "]).join(*extra_list)
             return tuple(slot.model(val=chain).__dict__["val"] for chain in extra_list)
         # Optional
-        value = extra_list[0] or slot.default_factory()
+        value = extra_list[0] if extra_list else slot.default_factory()
         return slot.model(val=value).__dict__["val"]
 
     def compile_param(
@@ -289,6 +290,7 @@ class CommandEntry(MatchEntry, ExecTarget):
             else:
                 compile_result[slot.dest] = slot.model(val=slot_data[ind]).__dict__["val"]
         self.compile_arg(compile_result, arg_data)
+        self.oplog.clear()
         return compile_result
 
 
@@ -380,18 +382,18 @@ class Commander:
         for name, parameter in inspect.signature(entry.callable).parameters.items():
             annotation = convert_empty(parameter.annotation)
             default = convert_empty(parameter.default)
-            if default is not Sentinel:
-                last_token = entry.tokens[-1]
-                assert isinstance(last_token, Param), "Expected Param, not Text!"
-                assert (
-                    entry.slot_map[name].target in last_token.names
-                ), "Not setting wildcard / optional on the last slot!"
             if name in entry.targets:
                 parsed_slot = Slot(name, annotation, default)
                 parsed_slot.dest = name  # assuming that name is consistent
                 entry.slot_map.setdefault(name, parsed_slot).merge(parsed_slot)  # parsed slot < provided slot
             if name in entry.arg_map:
                 entry.arg_map[name].update(annotation, default)
+            if default is not Sentinel:
+                last_token = entry.tokens[-1]
+                assert isinstance(last_token, Param), "Expected Param, not Text!"
+                assert (
+                    entry.slot_map[name].target in last_token.names
+                ), "Not setting wildcard / optional on the last slot!"
 
     def command(
         self,
@@ -464,7 +466,7 @@ class Commander:
         str_frags: List[str],
         params: Tuple[MessageChain, ...],
         entry: CommandEntry,
-    ) -> Optional[Tuple[int, Coroutine]]:
+    ) -> Optional[Tuple[int, Callable[[], Coroutine]]]:
         # walks down optional, wildcard and Arg
         # extract slot data based on entry
         slot_data: Dict[str, MessageChain] = {
@@ -480,6 +482,7 @@ class Commander:
             str_frag: str = str_frags[index]
             if str_frag in entry.header_map:
                 arg = entry.header_map[str_frag]
+                index += 1
                 if arg.dest:
                     if arg.dest in arg_data:  # if the arg is already assigned
                         return
@@ -487,9 +490,10 @@ class Commander:
                 index += len(arg.tags)
                 if index > len(frags):  # failed
                     return None
+                continue
             else:
                 extra_list.append(frags[index])
-            index += 1
+                index += 1
         if entry.extra:
             if not entry.extra.wildcard and len(extra_list) > 1:
                 return None
@@ -500,7 +504,7 @@ class Commander:
         ]
         if event := event_ctx.get(None):
             dispatchers.extend(resolve_dispatchers_mixin([event.Dispatcher]))
-        return index, self.broadcast.Executor(entry, dispatchers)
+        return index, functools.partial(self.broadcast.Executor, entry, dispatchers)
 
     async def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -514,22 +518,23 @@ class Commander:
         chain_frags: List[MessageChain] = [
             MessageChain._from_mapping_string(frag, elem_m) for frag in str_frags
         ]
-        pending_exec: Dict[int, List[Coroutine]] = {}
+        pending_exec: Dict[int, List[Callable[[], Coroutine]]] = {}
         pending_next: Deque[ParseData] = Deque([ParseData(0, self.match_root, ())])
 
         def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[MessageChain, ...]):
             for entry in nxt.entries:
-                if res := self.parse_rest(chain_frags[index:], str_frags[index:], params, entry):
-                    pending_exec.setdefault(res[0], []).append(res[1])
-                pending_next.append(ParseData(index, nxt, params))
+                with contextlib.suppress(ValidationError):
+                    if res := self.parse_rest(chain_frags[index:], str_frags[index:], params, entry):
+                        pending_exec.setdefault(res[0], []).append(res[1])
+            pending_next.append(ParseData(index, nxt, params))
 
         while pending_next:
             index, node, params = pending_next.popleft()
             if index >= len(str_frags):
                 continue
             chain_frag: MessageChain = chain_frags[index]
-            index += 1
             frag: str = str_frags[index]
+            index += 1
             if frag in node.next:
                 nxt = node.next[frag]
                 push_pending(index, nxt, params)
@@ -539,4 +544,7 @@ class Commander:
                 push_pending(index, nxt, params)
 
         for _, coros in sorted(pending_exec.items()):
-            await asyncio.wait(self.broadcast.loop.create_task(coro) for coro in coros)
+            done, _ = await asyncio.wait([self.broadcast.loop.create_task(coro()) for coro in coros])
+            for task in done:
+                if task.exception() and isinstance(task.exception(), PropagationCancelled):
+                    return

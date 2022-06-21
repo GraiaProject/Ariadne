@@ -4,7 +4,6 @@ import enum
 import functools
 import inspect
 import re
-from copy import copy
 from typing import (
     Any,
     Dict,
@@ -19,7 +18,7 @@ from typing import (
     TypeVar,
     Union,
 )
-from weakref import WeakKeyDictionary
+from weakref import WeakKeyDictionary, WeakSet
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
@@ -213,13 +212,13 @@ T_MatchEntry = TypeVar("T_MatchEntry", bound=MatchEntry)
 class MatchNode(Generic[T_MatchEntry]):
     __slots__ = ("next", "entries")
     next: Dict[MaybeFlag[str], MatchNode[T_MatchEntry]]
-    entries: List[T_MatchEntry]
+    entries: WeakSet[T_MatchEntry]
 
     def __init__(self) -> None:
         self.next = {}
-        self.entries = []
+        self.entries = WeakSet()
 
-    def __copy__(self) -> Self:
+    def copy(self) -> Self:
         new_obj = self.__class__()
         new_obj.next = self.next.copy()
         new_obj.entries = self.entries.copy()
@@ -227,18 +226,17 @@ class MatchNode(Generic[T_MatchEntry]):
 
     def push(self, entry: T_MatchEntry, index: int = 0) -> None:
         if index >= len(entry.nodes):
-            self.entries.append(entry)
-            return
+            self.entries.add(entry)
         current: MaybeFlag[FrozenSet[str]] = entry.nodes[index]
         if current is Sentinel:
             self.next.setdefault(current, MatchNode()).push(entry, index + 1)
         else:
-            target_nodes: List[MatchNode] = []
-            conflicts: Dict[MatchNode, Set[str]] = {}
+            target_nodes: List[MatchNode[T_MatchEntry]] = []
+            conflicts: Dict[MatchNode[T_MatchEntry], Set[str]] = {}
             for piece, node in {piece: self.next[piece] for piece in current if piece in self.next}.items():
                 conflicts.setdefault(node, set()).add(piece)
             for old_node, conflict_fields in conflicts.items():
-                new_node = copy(old_node)
+                new_node = old_node.copy()
                 target_nodes.append(new_node)
                 for field in conflict_fields:
                     self.next[field] = new_node

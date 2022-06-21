@@ -328,6 +328,7 @@ class Commander:
         self.broadcast = broadcast
         self.validators: List[Callable] = [chain_validator]
         self.match_root: MatchNode[CommandEntry] = MatchNode()
+        self.entries: Set[CommandEntry] = set()
 
         if listen:
             self.broadcast.listeners.append(
@@ -410,7 +411,7 @@ class Commander:
     def command(
         self,
         command: LiteralString,
-        setting: Optional[Dict[str, Union[Slot, Arg]]] = None,
+        settings: Optional[Dict[str, Union[Slot, Arg]]] = None,
         dispatchers: Sequence[T_Dispatcher] = (),
         decorators: Sequence[Decorator] = (),
         priority: int = 16,
@@ -431,8 +432,9 @@ class Commander:
         """
 
         entry = CommandEntry(priority)
+        self.entries.add(entry)  # Add strong ref
 
-        for name, val in (setting or {}).items():
+        for name, val in (settings or {}).items():
             if isinstance(val, Slot):
                 entry.slot_map[val.target] = val
             elif isinstance(val, Arg):

@@ -876,6 +876,14 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "objprint"
+version = "0.2.2"
+description = "A library that can print Python objects in human readable format"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -1360,6 +1368,20 @@ docs = ["proselint (>=0.10.2)", "sphinx (>=3)", "sphinx-argparse (>=0.2.5)", "sp
 testing = ["coverage (>=4)", "coverage-enable-subprocess (>=1)", "flaky (>=3)", "pytest (>=4)", "pytest-env (>=0.6.2)", "pytest-freezegun (>=0.4.1)", "pytest-mock (>=2)", "pytest-randomly (>=1)", "pytest-timeout (>=1)", "packaging (>=20.0)"]
 
 [[package]]
+name = "viztracer"
+version = "0.15.3"
+description = "A debugging and profiling tool that can trace and visualize python code execution"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+objprint = ">=0.1.3"
+
+[package.extras]
+full = ["rich", "orjson"]
+
+[[package]]
 name = "watchdog"
 version = "2.1.9"
 description = "Filesystem events monitoring"
@@ -1442,7 +1464,7 @@ standard = ["richuru", "graia-saya", "graia-scheduler"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "86ff46d9c81b23678d818c8a2ad2a78b4fc0ba057fe2c0e9561beb4c230f2ccf"
+content-hash = "9963b3ec7ba842ea94abff58b87b101fdb8f12b8e2321d7484435319f9aacc15"
 
 [metadata.files]
 aiohttp = [
@@ -2101,6 +2123,10 @@ nodeenv = [
     {file = "nodeenv-1.6.0-py2.py3-none-any.whl", hash = "sha256:621e6b7076565ddcacd2db0294c0381e01fd28945ab36bcf00f41c5daf63bef7"},
     {file = "nodeenv-1.6.0.tar.gz", hash = "sha256:3ef13ff90291ba2a4a7a4ff9a979b63ffdd00a464dbe04acf0ea6471517a4c2b"},
 ]
+objprint = [
+    {file = "objprint-0.2.2-py3-none-any.whl", hash = "sha256:9f50bb3b7cbe95b6d22c79e4f08a5273e3f7e5ff5ce35e146f6e7854abd276a0"},
+    {file = "objprint-0.2.2.tar.gz", hash = "sha256:90f2f3c19dfda1b5eb50d87d82ccbc20511ca4f02c4878553c56edc711e39689"},
+]
 packaging = [
     {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
     {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
@@ -2487,6 +2513,44 @@ uvloop = [
 virtualenv = [
     {file = "virtualenv-20.14.1-py2.py3-none-any.whl", hash = "sha256:e617f16e25b42eb4f6e74096b9c9e37713cf10bf30168fb4a739f3fa8f898a3a"},
     {file = "virtualenv-20.14.1.tar.gz", hash = "sha256:ef589a79795589aada0c1c5b319486797c03b67ac3984c48c669c0e4f50df3a5"},
+]
+viztracer = [
+    {file = "viztracer-0.15.3-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:1ae9c70ea45f6d56faab89f46e387e31c5e20484b024cbf8cb4542140f131060"},
+    {file = "viztracer-0.15.3-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5799fc9c284047030f6de1448ef9681782ffb49f4e54ce3f9d890dd214436991"},
+    {file = "viztracer-0.15.3-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.manylinux_2_24_i686.whl", hash = "sha256:7fad5c50857c4ed0c7b3a43c867c3e79d148ef173ec35a3019eeb9ade032ac2a"},
+    {file = "viztracer-0.15.3-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:871b29f74155189e160e9d3849a30a476cd398ca2e823e09ab4fd571edaee588"},
+    {file = "viztracer-0.15.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a55e5851e292d3b110d08612f19fe0f0a92105ab717e95582ff910c9b29fc424"},
+    {file = "viztracer-0.15.3-cp310-cp310-win32.whl", hash = "sha256:d4a855370d309b529b38684a63adb118a1afa8f407d988db8396e052059d1ade"},
+    {file = "viztracer-0.15.3-cp310-cp310-win_amd64.whl", hash = "sha256:ee03edbd153b315e126bc6f5e13965c4926735f0762d3a76bf7414c7ded8c047"},
+    {file = "viztracer-0.15.3-cp36-cp36m-macosx_10_15_x86_64.whl", hash = "sha256:d30a0f5b0794fa68fd3dae9de9131d925b24d6b39826c5f421b0871417e59ab4"},
+    {file = "viztracer-0.15.3-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:eb127260dc9ce12d594500852052b4936e1f5b199abedea1a86d6853c943337b"},
+    {file = "viztracer-0.15.3-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.manylinux_2_24_i686.whl", hash = "sha256:111e5d2f9bebb328987abbde23e6b649260bf6965d01ba14e566f5beb03e3333"},
+    {file = "viztracer-0.15.3-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:3f4282210f6fe4bbcd0ef6a52e28e3b016d6058b3f8b2b3cd529360c2dedeb55"},
+    {file = "viztracer-0.15.3-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9006f8cc4ab7f79be92c42b6af6c0c4d6058a3a1402c1f6985834ff4b8e54ff1"},
+    {file = "viztracer-0.15.3-cp36-cp36m-win32.whl", hash = "sha256:670aea21f07a89b991ba684fc646276182a7bda012e47ae1cf8adad17d6e44f4"},
+    {file = "viztracer-0.15.3-cp36-cp36m-win_amd64.whl", hash = "sha256:4998f252fc1b2f1221521537b73777716a8b3591548d0a82d80dfbea5cbe55fe"},
+    {file = "viztracer-0.15.3-cp37-cp37m-macosx_10_15_x86_64.whl", hash = "sha256:7f72ed27ee847dc840835cca74211086a9a99dc4f5d4e74d12d5b11ecf462f66"},
+    {file = "viztracer-0.15.3-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:924e5e5a01fde11e27c5d631c6a35c57a44927b9dfbe4786470fadeb922c38ba"},
+    {file = "viztracer-0.15.3-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.manylinux_2_24_i686.whl", hash = "sha256:86bad516a3709ec278d894b2530b84dfbbbdcfb1d09f43bdaef586e7d17c39ed"},
+    {file = "viztracer-0.15.3-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:082c07fb5c0b6df016f7209df0f351d67fb0d94a2b7478c638f6913897fe424c"},
+    {file = "viztracer-0.15.3-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2f843f9482d7b52c51e606023b649ef82c5dc6b22611d024d85cf07b4e0e573c"},
+    {file = "viztracer-0.15.3-cp37-cp37m-win32.whl", hash = "sha256:c202e5c9a841766aad2be240edb2256d8dac3f69005d608d357319abea412d2b"},
+    {file = "viztracer-0.15.3-cp37-cp37m-win_amd64.whl", hash = "sha256:51d39a405295af404bf3fc8bbc68baa05940cff7b29742cd8df7fb0bfc9b8b30"},
+    {file = "viztracer-0.15.3-cp38-cp38-macosx_10_15_x86_64.whl", hash = "sha256:54f51c08f8d53b86bbb8d2bbdbaf4b56c797d077952185e38980811333facb3e"},
+    {file = "viztracer-0.15.3-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ce9acfa872af1d9282f3c7999ee56a9d981e901ba795d6a87e69da9f17ded398"},
+    {file = "viztracer-0.15.3-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.manylinux_2_24_i686.whl", hash = "sha256:ae833b1000c2c9e2272898459bd09ca45cbab66281e632eee96f3e07bfb2b25e"},
+    {file = "viztracer-0.15.3-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:c90d94f2f38d508a62cb6c3c802344ef2f250ae3b236d13c89dc093cd1f492f5"},
+    {file = "viztracer-0.15.3-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d6c99923ba13dda455cb6324500c3917262007277f3c04b603e27fbf6579d553"},
+    {file = "viztracer-0.15.3-cp38-cp38-win32.whl", hash = "sha256:f5988e6a6437890420a067ba74e3b315911674816d5e9ef523d3dbe7bd2f8419"},
+    {file = "viztracer-0.15.3-cp38-cp38-win_amd64.whl", hash = "sha256:a27bd61f8a860e0e0f457b4d3efbd65054e3204779f47c812fde18b47c862627"},
+    {file = "viztracer-0.15.3-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:7b34ec770f30014e929616b2e6da10de04d13fd0fe436cc25ef332b74730f90a"},
+    {file = "viztracer-0.15.3-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d07ebb2cc225a26070fa2a0415b6112330a213d6aa9110850116c59680a9f90d"},
+    {file = "viztracer-0.15.3-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.manylinux_2_24_i686.whl", hash = "sha256:a502382413997e95ffea2f03e3809d31f28a2e6ae2ccbfc6bc5e291a07d0a8d4"},
+    {file = "viztracer-0.15.3-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:30e0b520e7eed63c46a45a65b463c669da883bca9819a0bd7f1ff3c6cd92523b"},
+    {file = "viztracer-0.15.3-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:271817e017d35090fa0838992da32530be2591f2ca46353e05d59254d57db083"},
+    {file = "viztracer-0.15.3-cp39-cp39-win32.whl", hash = "sha256:b24eb667f05990016b08a892a110bb61bd3642dd008473b34a2b2a2166b36a63"},
+    {file = "viztracer-0.15.3-cp39-cp39-win_amd64.whl", hash = "sha256:4280b59d699ed5aec175eb3c825e494779b6501d59cc6281195efe4ab4bfa812"},
+    {file = "viztracer-0.15.3.tar.gz", hash = "sha256:f28de150304c300b27b3335993e0bdc47f5a7ba7b6f8c43dc54c4e74efa32cd6"},
 ]
 watchdog = [
     {file = "watchdog-2.1.9-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:a735a990a1095f75ca4f36ea2ef2752c99e6ee997c46b0de507ba40a09bf7330"},

@@ -143,7 +143,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
                 __root__=self.build_chain((__root__, *elements)),
             )
         else:
-            AriadneBaseModel.__init__(self, __root__=__root__)
+            AriadneBaseModel.__init__(self, __root__=[])
+            self.__root__ = __root__  # type: ignore
 
     def unzip(self) -> List[Union[str, Element]]:
         """解压消息链为元素/单字符列表.
@@ -297,6 +298,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         return self.exclude(Source, Quote, File)
 
     def __eq__(self, other: Union[MessageContainer, Self]) -> bool:
+        if id(self) == id(other):
+            return True
         if not isinstance(other, (MessageChain, list)):
             return False
         if not isinstance(other, MessageChain):
@@ -454,6 +457,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
                 elem_str_list.append(elem.text)
         return "".join(elem_str_list), elem_mapping
 
+    __element_pattern = re.compile("(\x02\\w+\x03)")
+
     @classmethod
     def _from_mapping_string(cls, string: str, mapping: Dict[str, Element]) -> Self:
         """从映射字符串与映射字典的元组还原消息链.
@@ -466,7 +471,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             MessageChain: 构建的消息链
         """
         elements: List[Element] = []
-        for x in re.split("(\x02\\d+_\\w+\x03)", string):
+        for x in cls.__element_pattern.split(string):
             if x:
                 if x[0] == "\x02" and x[-1] == "\x03":
                     index, class_name = x[1:-1].split("_")
@@ -593,6 +598,9 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             str: 消息链的安全显示字符串.
         """
         return repr(str(self))[1:-1]
+
+    def __hash__(self) -> int:
+        return id(self)
 
     if not TYPE_CHECKING:
 

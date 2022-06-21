@@ -11,7 +11,6 @@ import traceback
 import types
 import typing
 import warnings
-from contextvars import ContextVar
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
@@ -33,7 +32,6 @@ from typing import (
 
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
@@ -42,7 +40,6 @@ from graia.broadcast.exceptions import (
     PropagationCancelled,
     RequirementCrashed,
 )
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
@@ -311,17 +308,6 @@ def resolve_dispatchers_mixin(dispatchers: Iterable[T_Dispatcher]) -> List[T_Dis
     return result
 
 
-class ConstantDispatcher(BaseDispatcher):
-    """分发常量给指定名称的参数"""
-
-    def __init__(self, context: ContextVar[Dict[str, Any]]) -> None:
-        self.ctx_var = context
-
-    async def catch(self, interface: DispatcherInterface):
-        if interface.name in self.ctx_var.get():
-            return self.ctx_var.get()[interface.name]
-
-
 class Dummy:
     """Dummy 类, 对所有调用返回 None. (可以预设某些值)"""
 
@@ -404,7 +390,7 @@ class AttrConvertMixin:
         def __getattr__(self, name: str) -> Any:
             # camelCase to snake_case
             name = camel_to_snake(name)
-            if name not in self.__class__.__dict__:
+            if name not in self.__class__.__dict__ or name == name:
                 raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
             # extract caller's file and line number
             frame = inspect.stack()[1].frame

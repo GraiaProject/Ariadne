@@ -38,10 +38,12 @@ from typing_extensions import Self
 from ...typing import AnnotatedType, Sentinel, T, generic_isinstance, generic_issubclass
 from ...util import gen_subclass
 from ..chain import MessageChain
+from ..commander.util import Param as ParamToken
+from ..commander.util import Text as TextToken
+from ..commander.util import tokenize
 from ..element import Element
 from .base import ChainDecorator
 from .util import (
-    CommandToken,
     ElementType,
     MessageChainType,
     TwilightHelpManager,
@@ -49,7 +51,6 @@ from .util import (
     Unmatched,
     elem_mapping_ctx,
     split,
-    tokenize_command,
     transform_regex,
 )
 
@@ -666,15 +667,18 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         extra_args = extra_args or []
         match: List[RegexMatch] = []
 
-        for t_type, token_list in tokenize_command(command):
-            if t_type is CommandToken.TEXT:
-                match.append(FullMatch(*token_list).space(SpacePolicy.FORCE))
-            elif t_type is CommandToken.CHOICE:
-                match.append(UnionMatch(*token_list).space(SpacePolicy.FORCE))
-            elif t_type is CommandToken.PARAM:
-                match.append(ParamMatch().space(SpacePolicy.FORCE).param(token_list[0]))
+        for token in tokenize(command):
+            if isinstance(token, TextToken):
+                text_list = list(token.choice)
+                if len(text_list) == 1:
+                    match.append(FullMatch(text_list[0]).space(SpacePolicy.FORCE))
+                else:
+                    match.append(UnionMatch(text_list).space(SpacePolicy.FORCE))
+            elif isinstance(token, ParamToken):
+                assert len(token.names) == 1, "Param aliasing is not allowed!"
+                match.append(ParamMatch().space(SpacePolicy.FORCE).param(next(iter(token.names))))
             else:
-                raise ValueError(f"unexpected token type: {t_type}")
+                raise ValueError(f"unexpected token: {token}")
 
         if match:
             match[-1].space_policy = SpacePolicy.NOSPACE

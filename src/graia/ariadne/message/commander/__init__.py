@@ -1,32 +1,35 @@
 """Commander: 便捷的指令触发体系"""
 import abc
-import enum
+import asyncio
+import contextlib
 import inspect
-from contextlib import suppress
-from contextvars import ContextVar
-from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
+    Deque,
     Dict,
+    FrozenSet,
     Iterable,
     List,
+    Literal,
+    NamedTuple,
     Optional,
     Sequence,
     Set,
+    Tuple,
     Type,
     TypeVar,
     Union,
-    cast,
 )
 
 from graia.broadcast import Broadcast, Listener
 from graia.broadcast.entities.decorator import Decorator
-from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
-from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
-from pydantic import BaseModel, create_model, validator
+from graia.broadcast.exceptions import PropagationCancelled
+from graia.broadcast.typing import T_Dispatcher
+from graia.broadcast.utilles import dispatcher_mixin_handler
+from pydantic import BaseConfig, BaseModel, ValidationError, create_model, validator
 from pydantic.fields import ModelField
 from typing_extensions import LiteralString
 
@@ -34,8 +37,8 @@ from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
+from ...typing import MaybeFlag, Sentinel, Wrapper
 from ...util import (
-    ConstantDispatcher,
     constant,
     gen_subclass,
     get_stack_namespace,
@@ -43,7 +46,18 @@ from ...util import (
 )
 from ..chain import MessageChain
 from ..element import Element
-from ..parser.util import CommandToken, CommandTokenTuple, split, tokenize_command
+from .util import (
+    AnnotatedParam,
+    ConstantDispatcher,
+    MatchEntry,
+    MatchNode,
+    Param,
+    Text,
+    convert_empty,
+    q_split,
+    raw,
+    tokenize,
+)
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
@@ -64,9 +78,8 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
     if field.outer_type_ is MessageChain:
         return value
     if issubclass(field.type_, Element):
-        assert len(value) == 1
-        assert isinstance(value[0], field.type_)
-        return value[0]
+        assert value.content[0].__class__ is field.type_
+        return value.content[0]
     if isinstance(value, MessageChain):
         return str(value)
     if value is None:
@@ -75,16 +88,9 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
 
 
 class ParamDesc(abc.ABC):
-    model: Optional[BaseModel]
-    default: Any
-    default_factory: Callable[[], Any]
-
-    def __or__(self, other: "ParamDesc | Dict[str, Any]"):
-        dct = other.__dict__ if isinstance(other, ParamDesc) else other
-        for k, v in dct.items():
-            if v and v is not ... and not isinstance(v, Decorator):
-                self.__dict__[k] = v
-        return self
+    model: Optional[Type[BaseModel]]
+    dest: Optional[str]
+    default_factory: MaybeFlag[Callable[[], Any]]
 
     @abc.abstractmethod
     def gen_model(self, validators: Iterable[Callable]) -> None:
@@ -96,98 +102,95 @@ class ParamDesc(abc.ABC):
         ...
 
 
-@dataclass
+class CommanderModelConfig(BaseConfig):
+    copy_on_model_validation: bool = False
+
+
+def make_model(name: str, validators: Iterable[Callable] = (), **fields) -> Type[BaseModel]:
+    return create_model(
+        name,
+        __config__=CommanderModelConfig,
+        __validators__={
+            f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
+            for i, v in enumerate(validators)
+        },
+        **{k: (v, ...) for k, v in fields.items()},
+    )
+
+
 class Slot(ParamDesc):
     """Slot"""
 
     def __init__(
         self,
-        placeholder: Union[str, int],
-        type: Type = ...,
-        default: Any = ...,
-        default_factory: Callable[[], Any] = ...,
+        target: Union[str, int],
+        type: MaybeFlag[Type] = Sentinel,
+        default: MaybeFlag[Any] = Sentinel,
+        default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
-        self.placeholder = placeholder
-        self.type = type
+        self.target = str(target)
+        self.type: Union[Literal[Sentinel, raw], Type] = type
         if self.type == "raw":
-            self.type = _raw
-        self.default = default
-        self.default_factory = default_factory
-        self.param_name: str = ""
+            self.type = raw
+        self.default_factory = constant(default) if default is not Sentinel else default_factory
+        self.dest: Optional[str] = None
         self.model: Optional[Type[BaseModel]] = None
 
     def gen_model(self, validators: Iterable[Callable]) -> None:
-        if self.model or self.type is _raw:
+        if self.model or self.type is raw:
             return
-
-        self.default_factory = constant(self.default) if self.default is not ... else self.default_factory
-
-        if self.type is ...:
+        if self.type is Sentinel:
             self.type = MessageChain
+        self.model = make_model("SlotModel", validators, val=self.type)
 
-        self.model = create_model(
-            "SlotModel",
-            __validators__={
-                f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
-                for i, v in enumerate(validators)
-            },
-            val=(self.type, ...),  # default is handled at exec
-        )
+    def merge(self, other: "Slot") -> None:
+        if self.type is Sentinel and other.type is not Sentinel:
+            self.type = other.type
+        if self.default_factory is Sentinel and other.default_factory is not Sentinel:
+            self.default_factory = other.default_factory
 
 
 class Arg(ParamDesc):
     """Argument"""
 
+    headers: FrozenSet[str]
+
     def __init__(
         self,
         pattern: str,
-        type: Type[Union[BaseModel, Any]] = ...,
-        default: Any = ...,
-        default_factory: Callable[[], Any] = ...,
+        type: MaybeFlag[Type] = Sentinel,
+        default: MaybeFlag[Any] = Sentinel,
+        default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
 
-        self.pattern: str = pattern
-        self.match_patterns: List[str] = []
         self.tags: List[str] = []
-        self.default = default
-        self.default_factory = default_factory
-        self.param_name: Optional[str] = None
-
-        tokens = tokenize_command(pattern)
-
-        assert tokens[0][0] in {CommandToken.TEXT, CommandToken.CHOICE}, "Required argument pattern!"
-
-        self.match_patterns = list(map(str, tokens[0][1]))
-
-        for t_type, token_list in tokens[1:]:
-            if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
-                raise ValueError(
-                    """Argument pattern can only be placed at head. """
-                    """Use "{" and "}" for placeholders."""
-                )
-            if t_type is CommandToken.PARAM:
-                if len(token_list) != 1:
-                    raise ValueError("Arg doesn't support aliasing!")
-                if str(token_list[0]) in self.tags:
-                    raise ValueError("Duplicated tag!")
-                self.tags.append(str(token_list[0]))
-
-        self.nargs = len(self.tags)
-        self.type = type
+        self.dest: Optional[str] = None
+        self.type: MaybeFlag[Type] = Sentinel
         self.model: Optional[Type[BaseModel]] = None
+        iter_tokens = iter(tokenize(pattern))
+        headers = next(iter_tokens)
+        assert isinstance(headers, Text), "Required argument pattern!"
+        self.headers = headers.choice
+        for token in iter_tokens:
+            assert isinstance(token, Param), "Argument pattern can only be presented at header!"
+            assert len(token.names) == 1, "Arg param cannot have alias!"
+            self.tags.append(next(iter(token.names)))
+        nargs = len(self.tags)
+        if nargs == 0:
+            self.type = bool
+            self.default_factory = constant(False)
+        elif nargs == 1:
+            self.type = MessageChain
+        if default is not Sentinel:
+            self.default_factory = constant(default)
+        elif default_factory is not Sentinel:
+            self.default_factory = default_factory
+        if type is not Sentinel:
+            self.type = type
 
     def gen_model(self, validators: Iterable[Callable]) -> None:
         if self.model:
             return
-
-        if self.nargs == 0:
-            self.type = self.type if self.type is not ... else bool
-            if self.default is ... and self.default_factory is ...:
-                self.default = False
-        elif self.nargs == 1:
-            self.type = self.type if self.type is not ... else MessageChain
-        self.default_factory = constant(self.default) if self.default is not ... else self.default_factory
-
         if (
             isinstance(self.type, type)
             and issubclass(self.type, BaseModel)
@@ -196,134 +199,121 @@ class Arg(ParamDesc):
             self.model = self.type
             return
 
-        if self.nargs == 0:  # Set default
-            self.model = create_model(
-                "ArgModel",
-                __validators__={
-                    f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
-                    for i, v in enumerate(validators)
-                },
-                val=(self.type, ...),
+        nargs = len(self.tags)
+        if nargs == 0:  # Set default
+            self.model = make_model("ArgModel", validators, val=self.type)
+        elif nargs == 1:
+            self.model = make_model("ArgModel", validators, **{self.tags[0]: self.type})
+        if self.model is None:
+            raise ValueError(f"You didn't supply a suitable model for {self.dest}!")
+
+    def update(self, annotation: MaybeFlag[Any], default: MaybeFlag[Any]) -> None:
+        if self.type is Sentinel and annotation is not Sentinel:
+            self.type = annotation
+        if self.default_factory is Sentinel and default is not Sentinel:
+            self.default_factory = constant(default)
+
+    def __repr__(self) -> str:
+        return f"Arg([{'|'.join(self.headers)}]{''.join(f' {{{tag}}}' for tag in self.tags)}"
+
+
+class CommandEntry(MatchEntry, ExecTarget):
+    """命令信息的存储数据结构, 同时可作为 ExecTarget"""
+
+    def __init__(self, priority: int) -> None:
+        self.priority = priority
+        self.slot_map: Dict[str, Slot] = {}
+        self.arg_map: Dict[str, Arg] = {}
+        self.targets: Set[str] = set()
+        self.header_map: Dict[str, Arg] = {}
+        self.extra: Optional[AnnotatedParam] = None
+        self._arg_name_map: Optional[Dict[Arg, str]] = None
+        self._slot_targets: Optional[Tuple[FrozenSet[str], ...]] = None
+
+    @property
+    def arg_name_map(self) -> Dict[Arg, str]:
+        if not self._arg_name_map:
+            self._arg_name_map = {v: k for k, v in self.arg_map.items()}
+        return self._arg_name_map
+
+    @property
+    def slot_targets(self) -> Tuple[FrozenSet[str], ...]:
+        if not self._slot_targets:
+            self._slot_targets = tuple(
+                frozenset(name for name in param.names if name in self.slot_map) for param in self.params
             )
-        elif self.nargs == 1:
-            self.model = create_model(
-                "ArgModel",
-                __validators__={
-                    f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
-                    for i, v in enumerate(validators)
-                },
-                **{self.tags[0]: (self.type, ...)},
-            )
+        return self._slot_targets
 
-        if self.model is ...:
-            raise ValueError(f"You didn't supply a suitable model for {self.param_name}!")
+    def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, List[MessageChain]]) -> None:
+        for arg in self.arg_name_map:
+            if TYPE_CHECKING:
+                assert arg.default_factory is not Sentinel
+                assert arg.type is not Sentinel
+                assert arg.dest
+                assert arg.model
+            value = arg.default_factory()
+            if arg.tags:
+                if arg.dest in arg_data:  # provided in arg_data
+                    value = dict(zip(arg.tags, arg_data[arg.dest]))
+                if isinstance(value, arg.type):  # compatible with arg.type
+                    compile_result[arg.dest] = value
+                    continue
+                if not isinstance(value, dict):
+                    value = dict(zip(arg.tags, value if isinstance(value, Sequence) else [value]))
 
+                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
+                    # an generated BaseModel, deconstruct
+                    compile_result[arg.dest] = arg.model(**value).__dict__[arg.tags[0]]
+                else:
+                    # user provided model
+                    compile_result[arg.dest] = arg.model(**value)
 
-@dataclass
-class CommandPattern:
-    """命令样式"""
+            else:  # probably a bool
+                if arg.dest in arg_data:
+                    value = not value
+                compile_result[arg.dest] = arg.model(val=value).__dict__["val"]
 
-    class ELast(enum.Enum):
-        REQUIRED = "required"
-        OPTIONAL = "optional"
-        WILDCARD = "wildcard"
+    def compile_extra(self, slot: Slot, extra_list: List[MessageChain]) -> Any:
+        if TYPE_CHECKING:
+            assert self.extra is not None
+            assert slot.model
+            assert slot.default_factory is not Sentinel
+        if self.extra.wildcard:  # Wildcard
+            if slot.type is raw:
+                return MessageChain([" "]).join(*extra_list)
+            return tuple(slot.model(val=chain).__dict__["val"] for chain in extra_list)
+        # Optional
+        value = extra_list[0] if extra_list else slot.default_factory()
+        return slot.model(val=value).__dict__["val"]
 
-    token_list: "List[Set[str] | List[int | str]]"
-    slot_map: Dict[Union[str, int], Slot]
-    arg_map: Dict[str, Arg]
-    last_type: ELast
-    wildcard: str = ""
-
-
-_raw = object()  # wildcard annotation object
+    def compile_param(
+        self,
+        slot_data: Dict[str, MessageChain],  # Slot.target -> MessageChain
+        arg_data: Dict[str, List[MessageChain]],  # Arg.dest -> MessageChain
+        extra_list: List[MessageChain],
+    ) -> Dict[str, Any]:
+        compile_result: Dict[str, Any] = {}
+        for target, slot in self.slot_map.items():
+            if TYPE_CHECKING:
+                assert slot.dest
+                assert slot.model
+            if self.extra and self.extra.name == target:  # skip Wildcard and Optional
+                compile_result[slot.dest] = self.compile_extra(slot, extra_list)
+            else:
+                compile_result[slot.dest] = slot.model(val=slot_data[target]).__dict__["val"]
+        self.compile_arg(compile_result, arg_data)
+        self.oplog.clear()
+        return compile_result
 
 
 class MismatchError(ValueError):
     """指令失配"""
 
 
-commander_data_ctx: ContextVar[Dict[str, Any]] = ContextVar("commander_data_ctx", default={})
-
-
-class CommandHandler(ExecTarget):
-    """Command 的 ExecTarget 对象, 承担了参数提取等任务"""
-
-    def __init__(
-        self,
-        record: CommandPattern,
-        callable: Callable,
-        dispatchers: Sequence[BaseDispatcher] = (),
-        decorators: Sequence[Decorator] = (),
-    ):
-        super().__init__(
-            callable,
-            [
-                ConstantDispatcher(commander_data_ctx),
-                ContextDispatcher(),
-                *resolve_dispatchers_mixin(dispatchers),
-            ],
-            list(decorators),
-        )
-        self.pattern: CommandPattern = record
-
-    def get_data(
-        self,
-        slot_data: Dict[Union[int, str], MessageChain],
-        arg_data: Dict[str, List[MessageChain]],
-        wildcard_list: List[MessageChain],
-    ) -> Dict[str, Any]:
-        """基于 CommandRecord 与解析数据设置 ConstantDispatcher 参数
-
-        Args:
-            slot_data (Dict[Union[int, str], MessageChain]): Slot 的解析结果
-            arg_data (Dict[str, List[MessageChain]]): Arg 的解析结果
-
-        Returns:
-            Dict[str, Any]: 参数
-        """
-        param_result: Dict[str, Any] = {}
-        for arg in set(self.pattern.arg_map.values()):
-            value = arg.default_factory()
-            if TYPE_CHECKING:
-                assert arg.param_name
-                assert arg.model
-            if arg.nargs:
-                for param in arg.match_patterns:
-                    if param in arg_data:
-                        value = dict(zip(arg.tags, arg_data[param]))
-                        break
-                else:
-                    if issubclass(arg.type, BaseModel) and isinstance(value, arg.type):
-                        param_result[arg.param_name] = value
-                        continue
-                    if not isinstance(value, list):
-                        value = [value]
-                    if not isinstance(value, dict):
-                        value = dict(zip(arg.tags, value))
-
-                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
-                    param_result[arg.param_name] = arg.model(**value).__dict__[arg.tags[0]]
-                else:
-                    param_result[arg.param_name] = arg.model(**value)
-
-            else:
-                if any(param in arg_data for param in arg.match_patterns):
-                    value = not value
-                param_result[arg.param_name] = arg.model(val=value).__dict__["val"]
-
-        for ind, slot in self.pattern.slot_map.items():
-            if TYPE_CHECKING:
-                assert slot.model
-            if slot.param_name != self.pattern.wildcard:
-                value = slot_data.get(ind, None) or slot.default_factory()
-                param_result[slot.param_name] = slot.model(val=value).__dict__["val"]
-            elif slot.type is _raw:
-                param_result[slot.param_name] = MessageChain([" "]).join(wildcard_list)
-            else:
-                param_result[slot.param_name] = tuple(
-                    slot.model(val=chain).__dict__["val"] for chain in wildcard_list
-                )
-        return param_result
+class ParseData(NamedTuple):
+    index: int
+    node: MatchNode[CommandEntry]
+    params: Tuple[MessageChain, ...]
 
 
 class Commander:
@@ -333,11 +323,12 @@ class Commander:
         """
         Args:
             broadcast (Broadcast): 事件系统
-            listen (bool): 是否监听指令
+            listen (bool): 是否监听消息事件
         """
         self.broadcast = broadcast
-        self.command_handlers: List[CommandHandler] = []
         self.validators: List[Callable] = [chain_validator]
+        self.match_root: MatchNode[CommandEntry] = MatchNode()
+        self.entries: Set[CommandEntry] = set()
 
         if listen:
             self.broadcast.listeners.append(
@@ -355,19 +346,82 @@ class Commander:
         """添加类型验证器 (type caster / validator)"""
         self.validators = [*reversed(caster), *self.validators]
 
+    @staticmethod
+    def parse_command(command: LiteralString, entry: CommandEntry) -> None:
+        """从传入的命令补充 entry 的信息
+
+        Args:
+            command (LiteralString): 命令
+            entry (CommandEntry): 命令的 entry
+        """
+        tokenize_result: List[Union[Text, Param, AnnotatedParam]] = tokenize(command)
+        for token in tokenize_result:
+            if isinstance(token, Text):
+                assert all(
+                    pattern not in entry.header_map for pattern in token.choice
+                ), f"{token} conflicts with an Arg object!"
+
+            elif isinstance(token, AnnotatedParam):
+                if token.wildcard or token.default:
+                    assert token is tokenize_result[-1], "Not setting wildcard / optional on the last slot!"
+                    entry.extra = token
+                assert token.name not in entry.targets, "Duplicated parameter slot!"
+                entry.targets.add(token.name)
+                parsed_slot = Slot(
+                    token.name,
+                    eval(
+                        token.annotation or "_sentinel",
+                        *get_stack_namespace(2, {"raw": raw, "_sentinel": Sentinel}),
+                    ),
+                    eval(token.default or "_sentinel", *get_stack_namespace(2, {"_sentinel": Sentinel})),
+                )
+                parsed_slot.dest = token.name  # assuming that param_name is consistent
+                entry.slot_map.setdefault(token.name, parsed_slot).merge(
+                    parsed_slot
+                )  # parsed slot < provided slot
+            elif isinstance(token, Param):
+                for name in token.names:
+                    assert name not in entry.targets, "Duplicated parameter slot!"
+                    entry.targets.add(name)
+        MatchEntry.__init__(entry, tokenize_result)
+
+    @staticmethod
+    def update_from_func(entry: CommandEntry) -> None:
+        """从 entry 的 callable 更新 entry 的信息
+
+        Args:
+            entry (CommandEntry): 命令的 entry
+        """
+        for name, parameter in inspect.signature(entry.callable).parameters.items():
+            annotation = convert_empty(parameter.annotation)
+            default = convert_empty(parameter.default)
+            if name in entry.targets:
+                parsed_slot = Slot(name, annotation, default)
+                parsed_slot.dest = name  # assuming that name is consistent
+                entry.slot_map.setdefault(name, parsed_slot).merge(parsed_slot)  # parsed slot < provided slot
+            if name in entry.arg_map:
+                entry.arg_map[name].update(annotation, default)
+            if default is not Sentinel:
+                last_token = entry.tokens[-1]
+                assert isinstance(last_token, Param), "Expected Param, not Text!"
+                assert (
+                    entry.slot_map[name].target in last_token.names
+                ), "Not setting wildcard / optional on the last slot!"
+
     def command(
         self,
         command: LiteralString,
-        setting: Optional[Dict[str, Union[Slot, Arg]]] = None,
-        dispatchers: Sequence[BaseDispatcher] = (),
+        settings: Optional[Dict[str, Union[Slot, Arg]]] = None,
+        dispatchers: Sequence[T_Dispatcher] = (),
         decorators: Sequence[Decorator] = (),
-    ) -> Callable[[T_Callable], T_Callable]:
+        priority: int = 16,
+    ) -> Wrapper:
         """装饰一个命令处理函数
 
         Args:
             command (str): 要处理的命令
             setting (Dict[str, Union[Slot, Arg]], optional): 参数设置.
-            dispatchers (Sequence[BaseDispatcher], optional): 可选的额外 Dispatcher 序列.
+            dispatchers (Sequence[T_Dispatcher], optional): 可选的额外 Dispatcher 序列.
             decorators (Sequence[Decorator], optional): 可选的额外 Decorator 序列.
 
         Raises:
@@ -377,126 +431,89 @@ class Commander:
             Callable[[T_Callable], T_Callable]: 装饰器
         """
 
-        slot_map: Dict[Union[int, str], Slot] = {}
-        pattern_arg_map: Dict[str, Arg] = {}
-        param_arg_map: Dict[str, Arg] = {}
-        for name, val in (setting or {}).items():
+        entry = CommandEntry(priority)
+        self.entries.add(entry)  # Add strong ref
+
+        for name, val in (settings or {}).items():
             if isinstance(val, Slot):
-                slot_map[val.placeholder] = val
+                entry.slot_map[val.target] = val
             elif isinstance(val, Arg):
-                for pattern in val.match_patterns:
-                    pattern_arg_map[pattern] = val
-                param_arg_map[name] = val
+                for header in val.headers:
+                    entry.header_map[header] = val
+                entry.arg_map[name] = val
             else:
                 raise TypeError(f"Unknown setting value: {name} - {val!r}")
-            val.param_name = name
+            val.dest = name
 
-        token_list: "List[Set[str] | List[int | str]]" = []  # set: const, list: param
-
-        placeholder_set: Set[Union[int, str]] = set()
-
-        last: CommandPattern.ELast = CommandPattern.ELast.REQUIRED
-        wildcard_slot_name: str = ""
-
-        command_tokens: List[CommandTokenTuple] = tokenize_command(command)
-
-        for (t_type, tokens) in command_tokens:
-            if t_type in {CommandToken.TEXT, CommandToken.CHOICE}:
-                assert not any(
-                    token in pattern_arg_map for token in tokens
-                ), f"{tokens} conflicts with a Arg object!"
-
-                token_list.append(set(cast(List[str], tokens)))
-
-            elif t_type is CommandToken.ANNOTATED:
-                wildcard, name, annotation, default = cast(List[str], tokens)
-                if wildcard or default:
-                    assert (
-                        tokens is command_tokens[-1][1]
-                    ), "Not setting wildcard / optional on the last slot!"
-                if wildcard:
-                    last = CommandPattern.ELast.WILDCARD
-                if default:
-                    last = CommandPattern.ELast.OPTIONAL
-                assert name not in placeholder_set, "Duplicated parameter slot!"
-                placeholder_set.add(name)
-                parsed_slot = Slot(
-                    name,
-                    eval(annotation or "...", *get_stack_namespace(1, {"raw": _raw})),
-                    eval(default or "...", *get_stack_namespace(1)),
-                )
-                parsed_slot.param_name = name  # assuming that param_name is consistent
-                if name in slot_map:
-                    slot_map[name] = parsed_slot | slot_map[name]  # parsed slot < provided slot
-                if wildcard:
-                    wildcard_slot_name = name
-                token_list.append([name])
-            elif t_type is CommandToken.PARAM:
-                for param_name in tokens:
-                    assert param_name not in placeholder_set, "Duplicated parameter slot!"
-                    placeholder_set.add(param_name)
-                token_list.append(tokens)
+        Commander.parse_command(command, entry)
 
         def wrapper(func: T_Callable) -> T_Callable:
-            """register as command executor"""
 
-            # scan function signature
-
-            def __translate_obj(obj):
-                if obj is inspect.Parameter.empty:
-                    return ...
-                if isinstance(obj, Decorator):
-                    return ...
-                return obj
-
-            for name, parameter in inspect.signature(func).parameters.items():
-                annotation, default = __translate_obj(parameter.annotation), __translate_obj(
-                    parameter.default
-                )
-                if name in placeholder_set:
-                    parsed_slot = Slot(name, annotation, default)
-                    parsed_slot.param_name = name  # assuming that param_name is consistent
-                    if name in slot_map:
-                        slot_map[name] = parsed_slot | slot_map[name]  # parsed slot < provided slot
-                    if default is not ...:
-                        assert all(
-                            [
-                                slot_map[name].placeholder in command_tokens[-1][1],
-                                command_tokens[-1][0]
-                                in {
-                                    CommandToken.ANNOTATED,
-                                    CommandToken.PARAM,
-                                },
-                            ]
-                        ), "Not setting wildcard / optional on the last slot!"
-
-                        nonlocal last
-                        if last is CommandPattern.ELast.REQUIRED:
-                            last = CommandPattern.ELast.OPTIONAL
-
-                if name in param_arg_map:
-                    arg = param_arg_map[name]
-                    arg.type = arg.type if arg.type is not ... else parameter.annotation
-                    if arg.default is ... and arg.default_factory is ...:
-                        arg.default = parameter.default
-
-            for slot in slot_map.values():
-                slot.gen_model(self.validators)
-            for arg in param_arg_map.values():
-                arg.gen_model(self.validators)
-
-            self.command_handlers.append(
-                CommandHandler(
-                    CommandPattern(token_list, slot_map, pattern_arg_map, last, wildcard_slot_name),
-                    func,
-                    dispatchers,
-                    decorators,
-                )
+            ExecTarget.__init__(
+                entry,
+                func,
+                [
+                    ContextDispatcher(),
+                    *resolve_dispatchers_mixin(dispatchers),
+                ],
+                list(decorators),
             )
+            Commander.update_from_func(entry)
+            for slot in entry.slot_map.values():
+                slot.gen_model(self.validators)
+                assert slot.dest is not None, "Slot dest is None!"
+            for arg in entry.arg_map.values():
+                arg.gen_model(self.validators)
+                assert arg.dest is not None, "Argument dest is not set!"
+                assert arg.default_factory is not Sentinel, f"{arg}'s default factory is not set!"
+            if entry.extra:
+                entry.nodes.pop()  # the last optional / wildcard token should not be on the MatchGraph
 
+            self.match_root.push(entry)
             return func
 
         return wrapper
+
+    def parse_rest(
+        self,
+        index: int,
+        frags: List[MessageChain],
+        str_frags: List[str],
+        params: Tuple[MessageChain, ...],
+        entry: CommandEntry,
+    ) -> Optional[Tuple[int, Callable, dict]]:
+        # walks down optional, wildcard and Arg
+        # extract slot data based on entry
+        slot_data: Dict[str, MessageChain] = {
+            name: chain for targets, chain in zip(entry.slot_targets, params) for name in targets
+        }
+        # slam all the rest data inside extra_list
+        extra_list: List[MessageChain] = []
+        # store MessageChains assigned to Arg in arg_data
+        arg_data: Dict[str, List[MessageChain]] = {}
+        # index frags
+        while index < len(frags):
+            str_frag: str = str_frags[index]
+            if str_frag in entry.header_map:
+                arg = entry.header_map[str_frag]
+                index += 1
+                if arg.dest:
+                    if arg.dest in arg_data:  # if the arg is already assigned
+                        return
+                    arg_data[arg.dest] = frags[index : index + len(arg.tags)]
+                index += len(arg.tags)
+                if index > len(frags):  # failed
+                    return None
+                continue
+            else:
+                extra_list.append(frags[index])
+                index += 1
+        if entry.extra:
+            if not entry.extra.wildcard and len(extra_list) > 1:
+                return None
+        elif extra_list:
+            return None
+        return entry.priority, entry.callable, entry.compile_param(slot_data, arg_data, extra_list)
 
     async def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -505,53 +522,46 @@ class Commander:
             chain (MessageChain): 触发的消息链
         """
 
-        mapping_str, elem_m = chain._to_mapping_str()
+        str_frags, chain_frags = q_split(chain)
+        pending_exec: Dict[int, List[Tuple[Callable, dict]]] = {}
+        pending_next: Deque[ParseData] = Deque([ParseData(0, self.match_root, ())])
 
-        for handler in reversed(self.command_handlers):  # starting from latest added
-            pattern = handler.pattern
-            text_index: int = 0
-            token_index: int = 0
-            arg_data: Dict[str, List[MessageChain]] = {}
-            slot_data: Dict[Union[str, int], MessageChain] = {}
-            text_list: List[str] = split(mapping_str)
-            wildcard_list: List[MessageChain] = []
-            with suppress(IndexError, MismatchError, ValueError, RequirementCrashed, ExecutionStop):
-                while text_index < len(text_list):
-                    text = text_list[text_index]
-                    text_index += 1
+        if event := event_ctx.get(None):
+            dispatchers = dispatcher_mixin_handler(event.Dispatcher)
+        else:
+            dispatchers = []
 
-                    if text in pattern.arg_map:  # Arg handle
-                        if text in arg_data:
-                            raise MismatchError("Duplicated argument")
-                        nargs: int = pattern.arg_map[text].nargs
-                        arg_data[text] = [
-                            MessageChain._from_mapping_string(t, elem_m)
-                            for t in text_list[text_index : text_index + nargs]
-                        ]
-                        text_index += nargs
+        def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[MessageChain, ...]):
+            for entry in nxt.entries:
+                with contextlib.suppress(ValidationError):
+                    if res := self.parse_rest(index, chain_frags, str_frags, params, entry):
+                        pending_exec.setdefault(res[0], []).append(res[1:])
+            pending_next.append(ParseData(index, nxt, params))
 
-                    else:  # Constant and Slot handle
-                        tokens = pattern.token_list[token_index]
-                        token_index += 1
-                        if isinstance(tokens, set) and text not in tokens:
-                            raise MismatchError
-                        if isinstance(tokens, list):
-                            if pattern.last_type is CommandPattern.ELast.WILDCARD and token_index == len(
-                                pattern.token_list
-                            ):
-                                wildcard_list.append(MessageChain._from_mapping_string(text, elem_m))
-                                token_index -= 1
-                            for slot in tokens:
-                                slot_data[slot] = MessageChain._from_mapping_string(text, elem_m)
+        while pending_next:
+            index, node, params = pending_next.popleft()
+            if index >= len(str_frags):
+                continue
+            chain_frag: MessageChain = chain_frags[index]
+            frag: str = str_frags[index]
+            index += 1
+            if frag in node.next:
+                nxt = node.next[frag]
+                push_pending(index, nxt, params)
+            if Sentinel in node.next:
+                nxt = node.next[Sentinel]
+                params += (chain_frag,)
+                push_pending(index, nxt, params)
 
-                if text_index < len(pattern.token_list) - (
-                    pattern.last_type is not CommandPattern.ELast.REQUIRED
-                ):
-                    continue
-
-                dispatchers = []
-                if event := event_ctx.get(None):
-                    dispatchers = resolve_dispatchers_mixin([event.Dispatcher])
-                token = commander_data_ctx.set(handler.get_data(slot_data, arg_data, wildcard_list))
-                await self.broadcast.Executor(handler, dispatchers)
-                commander_data_ctx.reset(token)
+        for _, execution in sorted(pending_exec.items()):
+            done, _ = await asyncio.wait(
+                [
+                    self.broadcast.loop.create_task(
+                        self.broadcast.Executor(func, dispatchers + [ConstantDispatcher(param)])
+                    )
+                    for func, param in execution
+                ]
+            )
+            for task in done:
+                if task.exception() and isinstance(task.exception(), PropagationCancelled):
+                    return

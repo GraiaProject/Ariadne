@@ -15,7 +15,7 @@ from ..util import gen_subclass
 
 
 def ensure_cube_as_listener(func: Callable) -> Cube[ListenerSchema]:
-    if func.__cube__:
+    if hasattr(func, "__cube__"):
         if not isinstance(func.__cube__.metaclass, ListenerSchema):
             raise TypeError("Cube must be ListenerSchema")
         return func.__cube__
@@ -25,8 +25,9 @@ def ensure_cube_as_listener(func: Callable) -> Cube[ListenerSchema]:
             func.__cube__ = cube
             break
     else:
-        channel.content.append(Cube(func, ListenerSchema([], None, [], [], 16)))
-        func.__cube__ = func.__cube__
+        cube = Cube(func, ListenerSchema([], None, [], [], 16))
+        channel.content.append(cube)
+        func.__cube__ = cube
     return func.__cube__
 
 

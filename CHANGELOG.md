@@ -2,6 +2,20 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `datetime` 无法被正确序列化的 bug.
+
+### 改进
+
+现在检查更新放在清理任务中执行.
+
+重新实现了 `Commander` (#179) (@BlueGlassBlock)
+
+支持使用 `types.UnionType` (#178) (@ProgramRipper)
+
+重新实现了 saya util.
+
 ## 0.7.12
 
 ### 修复

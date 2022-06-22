@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Dict, List, Type, Union, overload
+from typing import Callable, Dict, List, Optional, Type, Union, overload
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.event import Dispatchable
@@ -115,7 +115,7 @@ def decorate(*args) -> Wrapper:
     return wrapper
 
 
-def listen(*event: Union[Type[Dispatchable], str], priority: int = 16) -> Wrapper:
+def listen(*event: Union[Type[Dispatchable], str]) -> Wrapper:
     """在当前 Saya Channel 中监听指定事件
 
     Args:
@@ -136,14 +136,12 @@ def listen(*event: Union[Type[Dispatchable], str], priority: int = 16) -> Wrappe
     return wrapper
 
 
-# TODO: event-specialized priority
-
-
-def priority(priority: int) -> Wrapper:
+def priority(priority: int, *events: Type[Dispatchable]) -> Wrapper:
     """设置事件优先级
 
     Args:
         priority (int): 事件优先级
+        *events (Type[Dispatchable]): 提供时则会设置这些事件的优先级, 否则设置全局优先级
 
     Returns:
         Callable[[T_Callable], T_Callable]: 装饰器
@@ -152,6 +150,9 @@ def priority(priority: int) -> Wrapper:
     def wrapper(func: T_Callable) -> T_Callable:
         cube = ensure_cube_as_listener(func)
         cube.metaclass.priority = priority
+        if events:
+            extra: Dict[Optional[Type[Dispatchable]], int] = getattr(cube.metaclass, "extra_priorities", {})
+            extra.update((e, priority) for e in events)
         return func
 
     return wrapper

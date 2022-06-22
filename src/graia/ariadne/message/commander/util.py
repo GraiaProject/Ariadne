@@ -4,6 +4,7 @@ import enum
 import functools
 import inspect
 import re
+from contextvars import ContextVar
 from typing import (
     Any,
     Dict,
@@ -270,14 +271,14 @@ def convert_empty(obj: T) -> MaybeFlag[T]:
     return obj
 
 
-class ConstantDispatcher(BaseDispatcher):
+class ContextVarDispatcher(BaseDispatcher):
     """分发常量给指定名称的参数"""
 
-    def __init__(self, data: Dict[str, Any]) -> None:
-        self.data = data
+    def __init__(self, data_ctx: ContextVar[Dict[str, Any]]) -> None:
+        self.data_ctx = data_ctx
 
     async def catch(self, interface: DispatcherInterface):
-        return self.data.get(interface.name)
+        return self.data_ctx.get().get(interface.name)
 
 
 q_split_cache: MutableMapping[MessageChain, Tuple[List[str], List[MessageChain]]] = WeakKeyDictionary()

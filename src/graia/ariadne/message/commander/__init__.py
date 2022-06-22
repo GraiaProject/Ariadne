@@ -3,6 +3,7 @@ import abc
 import asyncio
 import contextlib
 import inspect
+from contextvars import ContextVar
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -48,7 +49,7 @@ from ..chain import MessageChain
 from ..element import Element
 from .util import (
     AnnotatedParam,
-    ConstantDispatcher,
+    ContextVarDispatcher,
     MatchEntry,
     MatchNode,
     Param,
@@ -316,6 +317,11 @@ class ParseData(NamedTuple):
     params: Tuple[MessageChain, ...]
 
 
+commander_param_ctx = ContextVar("commander_param_ctx")
+
+param_dispatcher = ContextVarDispatcher(commander_param_ctx)
+
+
 class Commander:
     """便利的指令触发体系"""
 
@@ -481,7 +487,7 @@ class Commander:
         str_frags: List[str],
         params: Tuple[MessageChain, ...],
         entry: CommandEntry,
-    ) -> Optional[Tuple[int, Callable, dict]]:
+    ) -> Optional[Tuple[CommandEntry, dict]]:
         # walks down optional, wildcard and Arg
         # extract slot data based on entry
         slot_data: Dict[str, MessageChain] = {
@@ -513,7 +519,7 @@ class Commander:
                 return None
         elif extra_list:
             return None
-        return entry.priority, entry.callable, entry.compile_param(slot_data, arg_data, extra_list)
+        return entry, entry.compile_param(slot_data, arg_data, extra_list)
 
     async def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -523,19 +529,19 @@ class Commander:
         """
 
         str_frags, chain_frags = q_split(chain)
-        pending_exec: Dict[int, List[Tuple[Callable, dict]]] = {}
+        pending_exec: Dict[int, List[Tuple[CommandEntry, dict]]] = {}
         pending_next: Deque[ParseData] = Deque([ParseData(0, self.match_root, ())])
 
+        dispatchers: List[T_Dispatcher] = [param_dispatcher]
+
         if event := event_ctx.get(None):
-            dispatchers = dispatcher_mixin_handler(event.Dispatcher)
-        else:
-            dispatchers = []
+            dispatchers.extend(dispatcher_mixin_handler(event.Dispatcher))
 
         def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[MessageChain, ...]):
             for entry in nxt.entries:
                 with contextlib.suppress(ValidationError):
                     if res := self.parse_rest(index, chain_frags, str_frags, params, entry):
-                        pending_exec.setdefault(res[0], []).append(res[1:])
+                        pending_exec.setdefault(res[0].priority, []).append(res)
             pending_next.append(ParseData(index, nxt, params))
 
         while pending_next:
@@ -554,14 +560,11 @@ class Commander:
                 push_pending(index, nxt, params)
 
         for _, execution in sorted(pending_exec.items()):
-            done, _ = await asyncio.wait(
-                [
-                    self.broadcast.loop.create_task(
-                        self.broadcast.Executor(func, dispatchers + [ConstantDispatcher(param)])
-                    )
-                    for func, param in execution
-                ]
-            )
+            tasks: List[asyncio.Task] = []
+            for entry, param in execution:
+                commander_param_ctx.set(param)
+                tasks.append(self.broadcast.loop.create_task(self.broadcast.Executor(entry, dispatchers)))
+            done, _ = await asyncio.wait(tasks)
             for task in done:
                 if task.exception() and isinstance(task.exception(), PropagationCancelled):
                     return

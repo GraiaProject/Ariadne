@@ -2,6 +2,16 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `AttrConvertMixin`.
+
+修复了 `Commander` dispatcher 优先级错误的 bug.
+
+### 改进
+
+Saya util 支持基于事件的优先级.
+
 ## 0.7.13
 
 ### 修复

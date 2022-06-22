@@ -387,10 +387,10 @@ class AttrConvertMixin:
 
     if not TYPE_CHECKING:  # Runtime Only
 
-        def __getattr__(self, name: str) -> Any:
+        def __getattr__(self, origin: str) -> Any:
             # camelCase to snake_case
-            name = camel_to_snake(name)
-            if name not in self.__class__.__dict__ or name == name:
+            name = camel_to_snake(origin)
+            if name not in self.__class__.__dict__ or name == origin:
                 raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
             # extract caller's file and line number
             frame = inspect.stack()[1].frame

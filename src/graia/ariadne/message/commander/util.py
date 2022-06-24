@@ -228,6 +228,7 @@ class MatchNode(Generic[T_MatchEntry]):
     def push(self, entry: T_MatchEntry, index: int = 0) -> None:
         if index >= len(entry.nodes):
             self.entries.add(entry)
+            return
         current: MaybeFlag[FrozenSet[str]] = entry.nodes[index]
         if current is Sentinel:
             self.next.setdefault(current, MatchNode()).push(entry, index + 1)

@@ -1,8 +1,7 @@
 import asyncio
-from typing import List, Tuple
+from typing import List, Sequence, Tuple
 
 import pydantic
-import richuru
 from devtools import debug
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -79,6 +78,12 @@ async def main():
     def get_img(images):
         logger.info(repr(images))
 
+    @cmd.command("record {title} {...targets: At}", {"help": Arg("--help")})
+    def log_targets(title: str, targets: Sequence[At], help: bool):
+        logger.info(title)
+        logger.info(targets)
+        logger.info(help)
+
     cmd.match_root._inspect()
 
     await cmd.execute(MessageChain("lp group ", At(12345), "error perm set database.read false"))
@@ -91,6 +96,8 @@ async def main():
     debug("db read 2")
     await cmd.execute(MessageChain("img img.net/1 img.net/2 img.net/3"))
     debug("wildcard")
+    await cmd.execute(MessageChain("record example-talk ", At(1), " ", At(2), " ", At(3), " --help"))
+    debug("targets")
 
 
 if __name__ == "__main__":

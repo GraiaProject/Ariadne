@@ -1,7 +1,7 @@
 import asyncio
 import importlib.metadata
 import json
-from typing import Coroutine, Dict, Iterable, List, Optional, Tuple, Type, overload
+from typing import Coroutine, Dict, Iterable, List, Tuple, Type, overload
 
 from aiohttp import ClientSession
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
@@ -65,11 +65,9 @@ class ElizabethService(Service):
     connections: Dict[int, ConnectionMixin[U_Info]]
     broadcast: Broadcast
 
-    def __init__(self, broadcast: Optional[Broadcast] = None) -> None:
+    def __init__(self, broadcast: Broadcast) -> None:
         self.connections = {}
-        self.broadcast = broadcast or Broadcast(loop=asyncio.new_event_loop())
-
-        asyncio.set_event_loop(self.broadcast.loop)
+        self.broadcast = broadcast
 
         if ContextDispatcher not in self.broadcast.prelude_dispatchers:
             self.broadcast.prelude_dispatchers.append(ContextDispatcher)

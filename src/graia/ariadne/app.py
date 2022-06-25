@@ -3,7 +3,6 @@
 
 import asyncio
 import base64
-import inspect
 import io
 import os
 import sys
@@ -25,6 +24,7 @@ from typing import (
     overload,
 )
 
+import creart
 from graia.amnesia.builtins.memcache import MemcacheService
 from graia.amnesia.transport.common.storage import CacheStorage
 from graia.broadcast import Broadcast
@@ -83,7 +83,6 @@ class Ariadne(AttrConvertMixin):
     service: ClassVar[ElizabethService]
     launch_manager: ClassVar[Launart]
     instances: ClassVar[Dict[int, "Ariadne"]] = {}
-    held_objects: ClassVar[Dict[type, Any]] = {}
 
     account: int
     connection: ConnectionInterface
@@ -105,11 +104,9 @@ class Ariadne(AttrConvertMixin):
     @classmethod
     def _ensure_config(cls):
         if not hasattr(cls, "service"):
-            cls.service = ElizabethService()
+            cls.service = ElizabethService(creart.it(Broadcast))
         if not hasattr(cls, "launch_manager"):
             cls.launch_manager = Launart()
-        cls.held_objects.setdefault(Broadcast, cls.service.broadcast)
-        cls.held_objects.setdefault(asyncio.AbstractEventLoop, cls.service.loop)
         if "install_log" not in cls.options:
             sys.excepthook = loguru_exc_callback
             traceback.print_exception = loguru_exc_callback
@@ -131,23 +128,15 @@ class Ariadne(AttrConvertMixin):
         注：请在实例化 Ariadne 前配置完成
 
         Args:
-            loop (Optional[asyncio.AbstractEventLoop], optional): 异步事件循环, 与 `broadcast` 参数互斥
-            broadcast (Optional[Broadcast], optional): 事件系统, 与 `loop` 参数互斥
             launch_manager (Optional[LaunchManager], optional): 启动管理器
             default_account (Optional[int], optional): 默认账号
             install_log (Union[bool, RichLogInstallOptions], optional): 是否安装 rich 日志, 默认为 False
             inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
         """
-        if loop:
-            if broadcast:
-                assert broadcast.loop is loop, "Inconsistent event loop"
-            broadcast = broadcast or Broadcast(loop=loop)
 
-        if broadcast:
-            service = ElizabethService(broadcast)
-            if getattr(cls, "service", service) is not service:
-                raise AriadneConfigurationError("Inconsistent broadcast instance")
-            cls.service = service
+        if loop or broadcast:
+            logger.warning("Passing `loop` or `broadcast` is deprecated!")
+            logger.warning("Use `creart.create` instead.")
 
         if launch_manager:
             if getattr(cls, "launch_manager", launch_manager) is not launch_manager:
@@ -174,10 +163,7 @@ class Ariadne(AttrConvertMixin):
         if inject_bypass_listener and "inject_bypass_listener" not in cls.options:
             from .util import inject_bypass_listener as inject
 
-            if not hasattr(cls, "service"):
-                cls.service = ElizabethService()
-
-            inject(cls.service.broadcast)
+            inject(creart.it(Broadcast))
 
     def __init__(
         self,
@@ -278,28 +264,7 @@ class Ariadne(AttrConvertMixin):
         Returns:
             T: 创建的类.
         """
-        if typ in cls.held_objects:
-            return cls.held_objects[typ]
-        call_args: list = []
-        call_kwargs: Dict[str, Any] = {}
-
-        for name, param in inspect.signature(typ).parameters.items():
-            if param.annotation in cls.held_objects and param.kind not in (
-                param.VAR_KEYWORD,
-                param.VAR_POSITIONAL,
-            ):
-                param_obj = cls.held_objects.get(param.annotation, param.default)
-                if param_obj is param.empty:
-                    param_obj = cls.create(param.annotation, reuse=True)
-                if param.kind is param.POSITIONAL_ONLY:
-                    call_args.append(param_obj)
-                else:
-                    call_kwargs[name] = param_obj
-
-        obj: T = typ(*call_args, **call_kwargs)
-        if reuse:
-            cls.held_objects[typ] = obj
-        return obj
+        return creart.it(typ, cache=reuse)
 
     @classmethod
     def current(cls, account: Optional[int] = None) -> "Ariadne":

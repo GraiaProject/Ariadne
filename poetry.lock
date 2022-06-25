@@ -240,6 +240,25 @@ python-versions = ">=3.7"
 toml = ["tomli"]
 
 [[package]]
+name = "creart"
+version = "0.2.1"
+description = "a universal, extensible class instantiation helper"
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[[package]]
+name = "creart-graia"
+version = "0.1.4"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.8"
+
+[package.dependencies]
+creart = ">=0.1.0"
+
+[[package]]
 name = "croniter"
 version = "1.3.5"
 description = "croniter provides iteration for datetime object with cron like format"
@@ -372,7 +391,7 @@ dev = ["twine", "markdown", "flake8", "wheel"]
 
 [[package]]
 name = "graia-amnesia"
-version = "0.5.2"
+version = "0.5.3"
 description = "a collection of shared components for graia"
 category = "main"
 optional = false
@@ -408,7 +427,7 @@ name = "graia-saya"
 version = "0.0.16"
 description = ""
 category = "main"
-optional = false
+optional = true
 python-versions = "^3.7"
 develop = false
 
@@ -1474,7 +1493,7 @@ standard = ["richuru", "graia-saya", "graia-scheduler"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "31563b1d62a6c1331259941a3a1e37604f39844c50d92b92038e165b664819eb"
+content-hash = "5c26bc40a66ba17d5d068b744ca022c4bbb755279c2733763fc838cc84f14bb0"
 
 [metadata.files]
 aiohttp = [
@@ -1733,6 +1752,14 @@ coverage = [
     {file = "coverage-6.4.1-pp36.pp37.pp38-none-any.whl", hash = "sha256:4803e7ccf93230accb928f3a68f00ffa80a88213af98ed338a57ad021ef06815"},
     {file = "coverage-6.4.1.tar.gz", hash = "sha256:4321f075095a096e70aff1d002030ee612b65a205a0a0f5b815280d5dc58100c"},
 ]
+creart = [
+    {file = "creart-0.2.1-py3-none-any.whl", hash = "sha256:961ac6f9ae325be578adc8c69311f40ae5e9b2ee8eccd913514417b393d9c203"},
+    {file = "creart-0.2.1.tar.gz", hash = "sha256:a19517cf3bc8bb648edc6d3f634cc0f691e13c26594011bca94657ae28df953b"},
+]
+creart-graia = [
+    {file = "creart-graia-0.1.4.tar.gz", hash = "sha256:3401fd39203f5066447aa5c5f6c6d1612026fb1ea1a3375646e1526cea5870fe"},
+    {file = "creart_graia-0.1.4-py3-none-any.whl", hash = "sha256:7214dfa261691bfd1fbc9f483dbb369a49fa419ea39fed9a2ada5de6051c1b26"},
+]
 croniter = [
     {file = "croniter-1.3.5-py2.py3-none-any.whl", hash = "sha256:4f72faca42c00beb6e30907f1315145f43dfbe5ec0ad4ada24b4c0d57b86a33a"},
     {file = "croniter-1.3.5.tar.gz", hash = "sha256:7592fc0e8a00d82af98dfa2768b75983b6fb4c2adc8f6d0d7c931a715b7cefee"},
@@ -1855,8 +1882,8 @@ ghp-import = [
     {file = "ghp_import-2.1.0-py3-none-any.whl", hash = "sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619"},
 ]
 graia-amnesia = [
-    {file = "graia-amnesia-0.5.2.tar.gz", hash = "sha256:3721d91c55feee1db2dd9ccade4801492b779f8164be172e7a9fad7cf6f80108"},
-    {file = "graia_amnesia-0.5.2-py3-none-any.whl", hash = "sha256:8f5c3fa216cdc198a17b93c420ec339f007e5b44dec6a434a5276bcaf9aeca0f"},
+    {file = "graia-amnesia-0.5.3.tar.gz", hash = "sha256:bf672b269224af4133d8d1abc6068fafbaa887d939bfe75c40c2335d433dce59"},
+    {file = "graia_amnesia-0.5.3-py3-none-any.whl", hash = "sha256:bccc818e7f64fd2e2ae3b7c00a681a905aaa98fad3da50ae627ce0eb88e88ced"},
 ]
 graia-broadcast = [
     {file = "graia-broadcast-0.18.1.tar.gz", hash = "sha256:e435989cb17de59f4f5ab2a022b428ca4523b9a7962aec081bef588253cecb22"},

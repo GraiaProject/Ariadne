@@ -5,6 +5,7 @@ import sys
 from datetime import datetime
 from typing import Annotated, Optional, Union
 
+import creart
 import devtools
 from graia.amnesia.builtins.aiohttp import AiohttpServerService
 from graia.saya.context import channel_instance
@@ -30,9 +31,8 @@ if __name__ == "__main__":
 
     bcc = Ariadne.broadcast
 
-    sched = app.create(GraiaScheduler)
     sy = app.create(Saya)
-    sy.install_behaviours(app.create(BroadcastBehaviour), app.create(GraiaSchedulerBehaviour))
+    sched = app.create(GraiaScheduler)
 
     channel = sy.create_main_channel()
     channel_instance.set(channel)

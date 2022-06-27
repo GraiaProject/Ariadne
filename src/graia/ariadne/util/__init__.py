@@ -241,20 +241,25 @@ def constant(val: T) -> Callable[[], T]:
 
 
 def get_stack_namespace(
-    layer: int = 0, globals_: Optional[DictStrAny] = None, locals_: Optional[DictStrAny] = None
+    globals_: Optional[DictStrAny] = None, locals_: Optional[DictStrAny] = None
 ) -> Tuple[DictStrAny, DictStrAny]:
-    """获取一个上下文的全局和局部变量
+    """获取一个外部的全局和局部变量
 
     Args:
-        layer (int, optional): 层数. Defaults to 0.
         globals_ (Optional[DictStrAny], optional): 全局变量. Defaults to None.
         locals_ (Optional[DictStrAny], optional): 局部变量. Defaults to None.
 
     Returns:
         Tuple[DictStrAny, DictStrAny]: 全局和局部变量字典.
     """
-    frame = inspect.stack()[layer + 1].frame  # add the current frame
+    layer: int = 0
+    stk = inspect.stack()
+    frame = stk[layer].frame  # add the current frame
     global_dict, local_dict = frame.f_globals, frame.f_locals
+    while global_dict["__name__"].startswith("graia."):
+        layer += 1
+        frame = stk[layer].frame  # add the current frame
+        global_dict, local_dict = frame.f_globals, frame.f_locals
     global_dict.update(globals_ or {})
     local_dict.update(locals_ or {})
     return global_dict, local_dict

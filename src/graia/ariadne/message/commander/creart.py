@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class CommanderCreator(AbstractCreator):
     targets = (
         CreateTargetInfo(
-            "graia.ariadne.commander",
+            "graia.ariadne.message.commander",
             "Commander",
             humanized_name="Commander",
             description="<common,graia,ariadne,commander,parser> Fast and typing-based message parser.",
@@ -37,7 +37,7 @@ class CommanderCreator(AbstractCreator):
 
 
 class CommanderBehaviourCreator(AbstractCreator):
-    targets = (CreateTargetInfo("graia.ariadne.commander.saya", "CommanderBehaviour"),)
+    targets = (CreateTargetInfo("graia.ariadne.message.commander.saya", "CommanderBehaviour"),)
 
     @staticmethod
     def available() -> bool:

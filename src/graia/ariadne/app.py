@@ -24,7 +24,6 @@ from typing import (
     overload,
 )
 
-import creart
 from graia.amnesia.builtins.memcache import MemcacheService
 from graia.amnesia.transport.common.storage import CacheStorage
 from graia.broadcast import Broadcast
@@ -103,6 +102,8 @@ class Ariadne(AttrConvertMixin):
 
     @classmethod
     def _ensure_config(cls):
+        import creart
+
         if not hasattr(cls, "service"):
             cls.service = ElizabethService(creart.it(Broadcast))
         if not hasattr(cls, "launch_manager"):
@@ -161,6 +162,8 @@ class Ariadne(AttrConvertMixin):
             cls.options["installed_log"] = True
 
         if inject_bypass_listener and "inject_bypass_listener" not in cls.options:
+            import creart
+
             from .util import inject_bypass_listener as inject
 
             inject(creart.it(Broadcast))
@@ -264,6 +267,8 @@ class Ariadne(AttrConvertMixin):
         Returns:
             T: 创建的类.
         """
+        import creart
+
         return creart.it(typ, cache=reuse)
 
     @classmethod

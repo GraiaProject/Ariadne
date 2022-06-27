@@ -376,9 +376,9 @@ class Commander:
                     token.name,
                     eval(
                         token.annotation or "_sentinel",
-                        *get_stack_namespace(2, {"raw": raw, "_sentinel": Sentinel}),
+                        *get_stack_namespace({"raw": raw, "_sentinel": Sentinel}),
                     ),
-                    eval(token.default or "_sentinel", *get_stack_namespace(2, {"_sentinel": Sentinel})),
+                    eval(token.default or "_sentinel", *get_stack_namespace({"_sentinel": Sentinel})),
                 )
                 parsed_slot.dest = token.name  # assuming that param_name is consistent
                 entry.slot_map.setdefault(token.name, parsed_slot).merge(

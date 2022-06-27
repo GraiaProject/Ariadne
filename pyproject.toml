@@ -75,8 +75,8 @@ uvicorn = { extras = ["standard"], version = "^0.17.5" }
 viztracer = "^0.15.3"
 
 [tool.poetry.plugins."creart.creators"]
-commander = "graia.ariadne.commander.creart:CommanderCreator"
-commander_behaviour = "graia.ariadne.commander.creart:CommanderBehaviourCreator"
+commander = "graia.ariadne.message.commander.creart:CommanderCreator"
+commander_behaviour = "graia.ariadne.message.commander.creart:CommanderBehaviourCreator"
 
 [tool.isort]
 profile = "black"

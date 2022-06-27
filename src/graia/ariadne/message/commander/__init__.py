@@ -32,7 +32,6 @@ from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from pydantic import BaseConfig, BaseModel, ValidationError, create_model, validator
 from pydantic.fields import ModelField
-from typing_extensions import LiteralString
 
 from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
@@ -353,11 +352,11 @@ class Commander:
         self.validators = [*reversed(caster), *self.validators]
 
     @staticmethod
-    def parse_command(command: LiteralString, entry: CommandEntry) -> None:
+    def parse_command(command: str, entry: CommandEntry) -> None:
         """从传入的命令补充 entry 的信息
 
         Args:
-            command (LiteralString): 命令
+            command (str): 命令
             entry (CommandEntry): 命令的 entry
         """
         tokenize_result: List[Union[Text, Param, AnnotatedParam]] = tokenize(command)
@@ -416,7 +415,7 @@ class Commander:
 
     def command(
         self,
-        command: LiteralString,
+        command: str,
         settings: Optional[Dict[str, Union[Slot, Arg]]] = None,
         dispatchers: Sequence[T_Dispatcher] = (),
         decorators: Sequence[Decorator] = (),

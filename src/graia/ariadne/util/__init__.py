@@ -44,7 +44,7 @@ from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 from loguru import logger
 
-from ..typing import DictStrAny, ExceptionHook, P, R, T, Wrapper
+from ..typing import ExceptionHook, P, R, T, Wrapper
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -238,31 +238,6 @@ def constant(val: T) -> Callable[[], T]:
         Callable[[], T]: 返回的函数
     """
     return lambda: val
-
-
-def get_stack_namespace(
-    globals_: Optional[DictStrAny] = None, locals_: Optional[DictStrAny] = None
-) -> Tuple[DictStrAny, DictStrAny]:
-    """获取一个外部的全局和局部变量
-
-    Args:
-        globals_ (Optional[DictStrAny], optional): 全局变量. Defaults to None.
-        locals_ (Optional[DictStrAny], optional): 局部变量. Defaults to None.
-
-    Returns:
-        Tuple[DictStrAny, DictStrAny]: 全局和局部变量字典.
-    """
-    layer: int = 0
-    stk = inspect.stack()
-    frame = stk[layer].frame  # add the current frame
-    global_dict, local_dict = frame.f_globals, frame.f_locals
-    while global_dict["__name__"].startswith("graia."):
-        layer += 1
-        frame = stk[layer].frame  # add the current frame
-        global_dict, local_dict = frame.f_globals, frame.f_locals
-    global_dict.update(globals_ or {})
-    local_dict.update(locals_ or {})
-    return global_dict, local_dict
 
 
 def deprecated(remove_ver: str, suggestion: Optional[str] = None) -> Wrapper:

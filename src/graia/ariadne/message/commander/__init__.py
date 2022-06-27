@@ -37,13 +37,8 @@ from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
 from ...model import AriadneBaseModel
-from ...typing import MaybeFlag, Sentinel, Wrapper
-from ...util import (
-    constant,
-    gen_subclass,
-    get_stack_namespace,
-    resolve_dispatchers_mixin,
-)
+from ...typing import DictStrAny, MaybeFlag, Sentinel, Wrapper
+from ...util import constant, gen_subclass, resolve_dispatchers_mixin
 from ..chain import MessageChain
 from ..element import Element
 from .util import (
@@ -352,7 +347,7 @@ class Commander:
         self.validators = [*reversed(caster), *self.validators]
 
     @staticmethod
-    def parse_command(command: str, entry: CommandEntry) -> None:
+    def parse_command(command: str, entry: CommandEntry, globals_: Optional[DictStrAny] = None) -> None:
         """从传入的命令补充 entry 的信息
 
         Args:
@@ -376,9 +371,9 @@ class Commander:
                     token.name,
                     eval(
                         token.annotation or "_sentinel",
-                        *get_stack_namespace({"raw": raw, "_sentinel": Sentinel}),
+                        {"raw": raw, "_sentinel": Sentinel, **(globals_ or {})},
                     ),
-                    eval(token.default or "_sentinel", *get_stack_namespace({"_sentinel": Sentinel})),
+                    eval(token.default or "_sentinel", {"_sentinel": Sentinel, **(globals_ or {})}),
                 )
                 parsed_slot.dest = token.name  # assuming that param_name is consistent
                 entry.slot_map.setdefault(token.name, parsed_slot).merge(
@@ -450,9 +445,8 @@ class Commander:
                 raise TypeError(f"Unknown setting value: {name} - {val!r}")
             val.dest = name
 
-        Commander.parse_command(command, entry)
-
         def wrapper(func: T_Callable) -> T_Callable:
+            Commander.parse_command(command, entry, func.__globals__)
 
             ExecTarget.__init__(
                 entry,

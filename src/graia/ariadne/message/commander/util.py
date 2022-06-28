@@ -15,7 +15,6 @@ from typing import (
     MutableMapping,
     Optional,
     Set,
-    Tuple,
     TypeVar,
     Union,
 )
@@ -282,55 +281,56 @@ class ContextVarDispatcher(BaseDispatcher):
         return self.data_ctx.get().get(interface.name)
 
 
-q_split_cache: MutableMapping[MessageChain, Tuple[List[str], List[MessageChain]]] = WeakKeyDictionary()
+ChainContent = List[Union[str, Element]]
+
+ChainContentList = List[ChainContent]
+
+split_cache: MutableMapping[MessageChain, ChainContentList] = WeakKeyDictionary()
+
+quote_pairs = {"'": "'", '"': '"', "‘": "’", "“": "”"}
 
 
-def q_split(chain: MessageChain) -> Tuple[List[str], List[MessageChain]]:
-    if chain in q_split_cache:
-        return q_split_cache[chain]
-    str_result: List[str] = []
-    str_cache: List[str] = []
-    result: List[MessageChain] = []
-    chain_cache: List[Element] = []
-    quote = ""
+def extract_str(buf: ChainContent) -> Optional[str]:
+    if len(buf) == 1 and isinstance(buf[0], str):
+        return buf[0]
+
+
+def split(chain: MessageChain) -> ChainContentList:
+    if chain in split_cache:
+        return split_cache[chain]
+    result: ChainContentList = []
+    quote: str = ""
+    buffer: ChainContent = []
 
     for elem in chain.__root__:
         if elem.__class__ in (Quote, Source):
             continue
         if not isinstance(elem, Plain):
-            chain_cache.append(elem)
-            str_cache.append("\x01")
+            buffer.append(elem)
             continue
-        string = elem.text
         cache: List[str] = []
-        for index, char in enumerate(string):
-            if char in {"'", '"'}:
-                if not quote:
-                    quote = char
-                elif (
-                    char == quote and index and string[index - 1] != "\\"
-                ):  # is current quote, not transfigured
-                    quote = ""
-                else:
-                    cache.append(char)
-                    continue
-            elif not quote and char == " ":
-                tmp = "".join(cache)
-                chain_cache.append(Plain(tmp))
-                str_cache.append(tmp)
-                result.append(MessageChain(chain_cache.copy(), inline=True))
-                str_result.append("".join(str_cache))
-                chain_cache.clear()
+        skipping: bool = False
+        for char in elem.text:
+            if char == "\\" or skipping:
+                skipping = not skipping
+                continue
+            if char in quote_pairs and not quote:
+                quote = quote_pairs[char]
+                continue
+            elif char == quote:
+                quote = ""
+                continue
+            if char == " " and cache and not quote:
+                buffer.append("".join(cache))
                 cache.clear()
-                str_cache.clear()
-            elif char != "\\":
+                if buffer:
+                    result.append(buffer)
+                buffer = []  # buffer is "move"d, so DO NOT clear.
+            elif quote or char != " ":
                 cache.append(char)
         if cache:
-            tmp = "".join(cache)
-            chain_cache.append(Plain(tmp))
-            str_cache.append(tmp)
-    if chain_cache:
-        result.append(MessageChain(chain_cache, inline=True))
-        str_result.append("".join(str_cache))
-    q_split_cache[chain] = (str_result, result)
-    return str_result, result
+            buffer.append("".join(cache))
+    if buffer:
+        result.append(buffer)
+    split_cache[chain] = result
+    return result

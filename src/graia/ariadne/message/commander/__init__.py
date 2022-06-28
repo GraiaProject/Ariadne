@@ -43,32 +43,32 @@ from ..chain import MessageChain
 from ..element import Element
 from .util import (
     AnnotatedParam,
+    ChainContent,
+    ChainContentList,
     ContextVarDispatcher,
     MatchEntry,
     MatchNode,
     Param,
     Text,
     convert_empty,
-    q_split,
+    extract_str,
     raw,
+    split,
     tokenize,
 )
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChain, Element, str]:
+def chain_validator(value: MessageChain, field: ModelField) -> Any:
     """
     MessageChain 处理函数.
     应用作 pydantic 的 Model validator.
     取决于字段类型标注, 若与消息链, 消息元素无关则会直接把消息链用 asDisplay 转换为字符串.
 
     Args:
-        value (MessageChain): 消息链
+        value (Any): 验证值
         field (ModelField): 当前的 model 字段
-
-    Returns:
-        Union[MessageChain, Element, str]: 取决于字段类型标注
     """
     if field.outer_type_ is MessageChain:
         return value
@@ -82,6 +82,7 @@ def chain_validator(value: MessageChain, field: ModelField) -> Union[MessageChai
     return value
 
 
+# TODO: Use `ModelField`
 class ParamDesc(abc.ABC):
     model: Optional[Type[BaseModel]]
     dest: Optional[str]
@@ -239,7 +240,7 @@ class CommandEntry(MatchEntry, ExecTarget):
             )
         return self._slot_targets
 
-    def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, List[MessageChain]]) -> None:
+    def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, ChainContentList]) -> None:
         for arg in self.arg_name_map:
             if TYPE_CHECKING:
                 assert arg.default_factory is not Sentinel
@@ -268,24 +269,24 @@ class CommandEntry(MatchEntry, ExecTarget):
                     value = not value
                 compile_result[arg.dest] = arg.model(val=value).__dict__["val"]
 
-    def compile_extra(self, slot: Slot, extra_list: List[MessageChain]) -> Any:
+    def compile_extra(self, slot: Slot, extra_list: ChainContentList) -> Any:
         if TYPE_CHECKING:
             assert self.extra is not None
             assert slot.model
             assert slot.default_factory is not Sentinel
-        if self.extra.wildcard:  # Wildcard
-            if slot.type is raw:
-                return MessageChain([" "]).join(*extra_list)
-            return tuple(slot.model(val=chain).__dict__["val"] for chain in extra_list)
-        # Optional
-        value = extra_list[0] if extra_list else slot.default_factory()
-        return slot.model(val=value).__dict__["val"]
+        if not extra_list:
+            v = slot.default_factory()
+        elif self.extra.wildcard:
+            v = extra_list
+        else:
+            v = extra_list[0]
+        return slot.model(val=v).__dict__["val"]
 
     def compile_param(
         self,
-        slot_data: Dict[str, MessageChain],  # Slot.target -> MessageChain
-        arg_data: Dict[str, List[MessageChain]],  # Arg.dest -> MessageChain
-        extra_list: List[MessageChain],
+        slot_data: Dict[str, ChainContent],  # Slot.target -> ChainContent
+        arg_data: Dict[str, ChainContentList],  # Arg.dest -> List[ChainContent]
+        extras: ChainContentList,
     ) -> Dict[str, Any]:
         compile_result: Dict[str, Any] = {}
         for target, slot in self.slot_map.items():
@@ -293,7 +294,7 @@ class CommandEntry(MatchEntry, ExecTarget):
                 assert slot.dest
                 assert slot.model
             if self.extra and self.extra.name == target:  # skip Wildcard and Optional
-                compile_result[slot.dest] = self.compile_extra(slot, extra_list)
+                compile_result[slot.dest] = self.compile_extra(slot, extras)
             else:
                 compile_result[slot.dest] = slot.model(val=slot_data[target]).__dict__["val"]
         self.compile_arg(compile_result, arg_data)
@@ -308,7 +309,7 @@ class MismatchError(ValueError):
 class ParseData(NamedTuple):
     index: int
     node: MatchNode[CommandEntry]
-    params: Tuple[MessageChain, ...]
+    params: Tuple[ChainContent, ...]
 
 
 commander_param_ctx = ContextVar("commander_param_ctx")
@@ -470,7 +471,8 @@ class Commander:
                 assert arg.default_factory is not Sentinel, f"{arg}'s default factory is not set!"
             if entry.extra:
                 entry.nodes.pop()  # the last optional / wildcard token should not be on the MatchGraph
-
+            # TODO: validate type integrity (All have type)
+            # TODO: infinite optional + one wildcard
             self.match_root.push(entry)
             return func
 
@@ -479,24 +481,22 @@ class Commander:
     def parse_rest(
         self,
         index: int,
-        frags: List[MessageChain],
-        str_frags: List[str],
-        params: Tuple[MessageChain, ...],
+        frags: ChainContentList,
+        params: Tuple[ChainContent, ...],
         entry: CommandEntry,
     ) -> Optional[Tuple[CommandEntry, dict]]:
         # walks down optional, wildcard and Arg
         # extract slot data based on entry
-        slot_data: Dict[str, MessageChain] = {
+        slot_data: Dict[str, ChainContent] = {
             name: chain for targets, chain in zip(entry.slot_targets, params) for name in targets
         }
         # slam all the rest data inside extra_list
-        extra_list: List[MessageChain] = []
-        # store MessageChains assigned to Arg in arg_data
-        arg_data: Dict[str, List[MessageChain]] = {}
+        extras: ChainContentList = []
+        arg_data: Dict[str, ChainContentList] = {}
         # index frags
         while index < len(frags):
-            str_frag: str = str_frags[index]
-            if str_frag in entry.header_map:
+            frag: ChainContent = frags[index]
+            if (str_frag := extract_str(frag)) in entry.header_map:
                 arg = entry.header_map[str_frag]
                 index += 1
                 if arg.dest:
@@ -508,14 +508,14 @@ class Commander:
                     return None
                 continue
             else:
-                extra_list.append(frags[index])
+                extras.append(frags[index])
                 index += 1
         if entry.extra:
-            if not entry.extra.wildcard and len(extra_list) > 1:
+            if not entry.extra.wildcard and len(extras) > 1:
                 return None
-        elif extra_list:
+        elif extras:
             return None
-        return entry, entry.compile_param(slot_data, arg_data, extra_list)
+        return entry, entry.compile_param(slot_data, arg_data, extras)
 
     async def execute(self, chain: MessageChain):
         """触发 Commander.
@@ -524,7 +524,7 @@ class Commander:
             chain (MessageChain): 触发的消息链
         """
 
-        str_frags, chain_frags = q_split(chain)
+        frags = split(chain)
         pending_exec: Dict[int, List[Tuple[CommandEntry, dict]]] = {}
         pending_next: Deque[ParseData] = Deque([ParseData(0, self.match_root, ())])
 
@@ -533,27 +533,28 @@ class Commander:
         if event := event_ctx.get(None):
             dispatchers.extend(dispatcher_mixin_handler(event.Dispatcher))
 
-        def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[MessageChain, ...]):
+        def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[ChainContent, ...]):
             for entry in nxt.entries:
                 with contextlib.suppress(ValidationError):
-                    if res := self.parse_rest(index, chain_frags, str_frags, params, entry):
+                    if res := self.parse_rest(index, frags, params, entry):
                         pending_exec.setdefault(res[0].priority, []).append(res)
             pending_next.append(ParseData(index, nxt, params))
 
         while pending_next:
+            params: Tuple[ChainContent, ...]
             index, node, params = pending_next.popleft()
-            if index >= len(str_frags):
+            if index >= len(frags):
                 continue
-            chain_frag: MessageChain = chain_frags[index]
-            frag: str = str_frags[index]
+            frag = frags[index]
             index += 1
-            if frag in node.next:
-                nxt = node.next[frag]
+            if (str_frag := extract_str(frag)) in node.next:
+                if TYPE_CHECKING:
+                    assert isinstance(str_frag, str)
+                nxt = node.next[str_frag]
                 push_pending(index, nxt, params)
             if Sentinel in node.next:
                 nxt = node.next[Sentinel]
-                params += (chain_frag,)
-                push_pending(index, nxt, params)
+                push_pending(index, nxt, params + (frag,))
 
         for _, execution in sorted(pending_exec.items()):
             tasks: List[asyncio.Task] = []

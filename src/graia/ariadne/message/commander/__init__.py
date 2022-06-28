@@ -347,12 +347,13 @@ class Commander:
         self.validators = [*reversed(caster), *self.validators]
 
     @staticmethod
-    def parse_command(command: str, entry: CommandEntry, globals_: Optional[DictStrAny] = None) -> None:
+    def parse_command(command: str, entry: CommandEntry, nbsp: DictStrAny) -> None:
         """从传入的命令补充 entry 的信息
 
         Args:
             command (str): 命令
             entry (CommandEntry): 命令的 entry
+            nbsp (DictStrAny): eval 的命名空间
         """
         tokenize_result: List[Union[Text, Param, AnnotatedParam]] = tokenize(command)
         for token in tokenize_result:
@@ -371,9 +372,9 @@ class Commander:
                     token.name,
                     eval(
                         token.annotation or "_sentinel",
-                        {"raw": raw, "_sentinel": Sentinel, **(globals_ or {})},
+                        {"raw": raw, "_sentinel": Sentinel, **nbsp},
                     ),
-                    eval(token.default or "_sentinel", {"_sentinel": Sentinel, **(globals_ or {})}),
+                    eval(token.default or "_sentinel", {"_sentinel": Sentinel, **nbsp}),
                 )
                 parsed_slot.dest = token.name  # assuming that param_name is consistent
                 entry.slot_map.setdefault(token.name, parsed_slot).merge(
@@ -415,6 +416,8 @@ class Commander:
         dispatchers: Sequence[T_Dispatcher] = (),
         decorators: Sequence[Decorator] = (),
         priority: int = 16,
+        *,
+        nbsp: Optional[DictStrAny] = None,
     ) -> Wrapper:
         """装饰一个命令处理函数
 
@@ -423,7 +426,7 @@ class Commander:
             setting (Dict[str, Union[Slot, Arg]], optional): 参数设置.
             dispatchers (Sequence[T_Dispatcher], optional): 可选的额外 Dispatcher 序列.
             decorators (Sequence[Decorator], optional): 可选的额外 Decorator 序列.
-
+            nbsp (DictStrAny, optional): 可选的字符串评估命名空间.
         Raises:
             ValueError: 命令格式错误
 
@@ -446,7 +449,7 @@ class Commander:
             val.dest = name
 
         def wrapper(func: T_Callable) -> T_Callable:
-            Commander.parse_command(command, entry, func.__globals__)
+            Commander.parse_command(command, entry, {**func.__globals__, **(nbsp or {})})
 
             ExecTarget.__init__(
                 entry,

@@ -28,6 +28,8 @@ async def main():
             return self.__repr__()
 
     def cast_to_list(value: MessageChain, field: ModelField):
+        if not isinstance(value, MessageChain):
+            return value
         if field.outer_type_ is List[str]:
             return value.display.split(".")
         if field.outer_type_ is List[MessageChain]:
@@ -84,10 +86,8 @@ async def main():
         logger.info(targets)
         logger.info(help)
 
-    cmd.match_root._inspect()
-
     await cmd.execute(MessageChain("lp group ", At(12345), "error perm set database.read false"))
-    print("Nothing")
+    debug("Nothing")
     await cmd.execute(MessageChain("lp group ", At(12345), " perm set database.read false"))
     debug("db read 1")
     await cmd.execute(MessageChain("lp group ", At(23456), " perm set system.overload --fast -s crab"))

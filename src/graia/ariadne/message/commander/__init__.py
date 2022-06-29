@@ -30,17 +30,19 @@ from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.exceptions import PropagationCancelled
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
-from pydantic import BaseConfig, BaseModel, ValidationError, create_model, validator
+from pydantic import BaseConfig, BaseModel
+from pydantic.class_validators import Validator
 from pydantic.fields import ModelField
+
+from graia.ariadne.model.util import AriadneBaseModel
 
 from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
-from ...model import AriadneBaseModel
 from ...typing import DictStrAny, MaybeFlag, Sentinel, Wrapper
 from ...util import constant, gen_subclass, resolve_dispatchers_mixin
 from ..chain import MessageChain
-from ..element import Element
+from ..element import Element, Plain
 from .util import (
     AnnotatedParam,
     ChainContent,
@@ -60,7 +62,7 @@ from .util import (
 T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
-def chain_validator(value: MessageChain, field: ModelField) -> Any:
+def chain_validator(value: Any, field: ModelField) -> Any:
     """
     MessageChain 处理函数.
     应用作 pydantic 的 Model validator.
@@ -70,47 +72,74 @@ def chain_validator(value: MessageChain, field: ModelField) -> Any:
         value (Any): 验证值
         field (ModelField): 当前的 model 字段
     """
-    if field.outer_type_ is MessageChain:
-        return value
-    if issubclass(field.type_, Element):
-        assert value.content[0].__class__ is field.type_
-        return value.content[0]
-    if isinstance(value, MessageChain):
+    if field.type_ is MessageChain:
+        return MessageChain(value)
+    if isinstance(field.type_, type) and issubclass(field.type_, Element):
+        assert len(value) == 1
+        v = value[0]
+        if field.type_ is Plain:
+            assert v.__class__ is str
+            return Plain(v)
+        assert v.__class__ is field.type_
+        return v
+    if isinstance(value, list) and value:
+        value = MessageChain(value)
+    if field.type_ in (bool, str, int):
         return str(value)
-    if value is None:
-        return field.default
-    return value
+    return value or field.get_default()
 
 
-# TODO: Use `ModelField`
+def wildcard_validator(value: ChainContentList, field: ModelField) -> Any:
+    if not isinstance(value, list):
+        return value
+    chains = [MessageChain(v) for v in value]
+    if field.outer_type_ is raw:
+        return MessageChain(" ").join(chains)
+    return [chain_validator(chain, field) for chain in chains] or field.get_default()
+
+
 class ParamDesc(abc.ABC):
-    model: Optional[Type[BaseModel]]
-    dest: Optional[str]
-    default_factory: MaybeFlag[Callable[[], Any]]
+    field: ModelField
+    dest: str
 
     @abc.abstractmethod
-    def gen_model(self, validators: Iterable[Callable]) -> None:
-        """生成用于 pydantic 解析的 model 属性
+    def populate_field(self, validators: Iterable[Callable]) -> None:
+        """生成 ParamDesc 上的 ModelField.
 
         Args:
             validators (Iterable[Callable]): 用作 validator 的 Callable 可迭代对象
         """
         ...
 
+    def validate(self, v: Any) -> MaybeFlag[Any]:
+        res, err = self.field.validate(v, {self.field.name: v}, loc=self.dest)
+        if err:
+            raise ValueError(err)
+        return res
 
-class CommanderModelConfig(BaseConfig):
+
+class _CommanderModelConfig(BaseConfig):
     copy_on_model_validation: bool = False
+    arbitrary_types_allowed: bool = True
 
 
-def make_model(name: str, validators: Iterable[Callable] = (), **fields) -> Type[BaseModel]:
-    return create_model(
-        name,
-        __config__=CommanderModelConfig,
-        __validators__={
-            f"#validator_{i}#": validator("*", pre=True, allow_reuse=True)(v)
+def make_field(
+    name: str,
+    type: Type,
+    default_factory: MaybeFlag[Callable[[], Any]],
+    validators: Iterable[Callable] = (),
+) -> ModelField:
+    new_factory = None if default_factory is Sentinel else default_factory
+    return ModelField(
+        name=name,
+        type_=type,
+        model_config=_CommanderModelConfig,
+        class_validators={
+            f"#commander_validator_{i}#": Validator(v, pre=True, always=True)
             for i, v in enumerate(validators)
         },
-        **{k: (v, ...) for k, v in fields.items()},
+        default_factory=new_factory,
+        required=new_factory is None,
     )
 
 
@@ -125,19 +154,25 @@ class Slot(ParamDesc):
         default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
         self.target = str(target)
-        self.type: Union[Literal[Sentinel, raw], Type] = type
+        self.type: Union[Literal[Sentinel], Type] = type
+        self.is_wildcard: bool = False
         if self.type == "raw":
             self.type = raw
-        self.default_factory = constant(default) if default is not Sentinel else default_factory
-        self.dest: Optional[str] = None
-        self.model: Optional[Type[BaseModel]] = None
+        self.default_factory: MaybeFlag[Callable[[], Any]] = (
+            constant(default) if default is not Sentinel else default_factory
+        )
 
-    def gen_model(self, validators: Iterable[Callable]) -> None:
-        if self.model or self.type is raw:
-            return
+    def populate_field(self, validators: Iterable[Callable]) -> None:
         if self.type is Sentinel:
             self.type = MessageChain
-        self.model = make_model("SlotModel", validators, val=self.type)
+        if self.is_wildcard and self.type is not raw and not TYPE_CHECKING:
+            self.type = List[self.type]
+        self.field = make_field(
+            self.target,
+            self.type,
+            self.default_factory,
+            [wildcard_validator if self.is_wildcard else chain_validator, *validators],
+        )
 
     def merge(self, other: "Slot") -> None:
         if self.type is Sentinel and other.type is not Sentinel:
@@ -154,15 +189,12 @@ class Arg(ParamDesc):
     def __init__(
         self,
         pattern: str,
-        type: MaybeFlag[Type] = Sentinel,
+        type: MaybeFlag[Type[Any]] = Sentinel,
         default: MaybeFlag[Any] = Sentinel,
         default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
-
+        self.type: MaybeFlag[Type[Any]] = Sentinel
         self.tags: List[str] = []
-        self.dest: Optional[str] = None
-        self.type: MaybeFlag[Type] = Sentinel
-        self.model: Optional[Type[BaseModel]] = None
         iter_tokens = iter(tokenize(pattern))
         headers = next(iter_tokens)
         assert isinstance(headers, Text), "Required argument pattern!"
@@ -184,24 +216,11 @@ class Arg(ParamDesc):
         if type is not Sentinel:
             self.type = type
 
-    def gen_model(self, validators: Iterable[Callable]) -> None:
-        if self.model:
-            return
-        if (
-            isinstance(self.type, type)
-            and issubclass(self.type, BaseModel)
-            and not issubclass(self.type, AriadneBaseModel)
-        ):
-            self.model = self.type
-            return
-
-        nargs = len(self.tags)
-        if nargs == 0:  # Set default
-            self.model = make_model("ArgModel", validators, val=self.type)
-        elif nargs == 1:
-            self.model = make_model("ArgModel", validators, **{self.tags[0]: self.type})
-        if self.model is None:
-            raise ValueError(f"You didn't supply a suitable model for {self.dest}!")
+    def populate_field(self, validators: Iterable[Callable]) -> None:
+        assert self.dest
+        assert self.type is not Sentinel, f"{self} don't have an appropriate type!"
+        assert self.default_factory is not Sentinel, f"{self} doesn't have default value!"
+        self.field = make_field(self.dest, self.type, Sentinel, [chain_validator, *validators])
 
     def update(self, annotation: MaybeFlag[Any], default: MaybeFlag[Any]) -> None:
         if self.type is Sentinel and annotation is not Sentinel:
@@ -210,7 +229,7 @@ class Arg(ParamDesc):
             self.default_factory = constant(default)
 
     def __repr__(self) -> str:
-        return f"Arg([{'|'.join(self.headers)}]{''.join(f' {{{tag}}}' for tag in self.tags)}"
+        return f"Arg([{'|'.join(self.headers)}]{''.join(f' {{{tag}}}' for tag in self.tags)})"
 
 
 class CommandEntry(MatchEntry, ExecTarget):
@@ -243,44 +262,25 @@ class CommandEntry(MatchEntry, ExecTarget):
     def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, ChainContentList]) -> None:
         for arg in self.arg_name_map:
             if TYPE_CHECKING:
-                assert arg.default_factory is not Sentinel
                 assert arg.type is not Sentinel
-                assert arg.dest
-                assert arg.model
             value = arg.default_factory()
-            if arg.tags:
-                if arg.dest in arg_data:  # provided in arg_data
+            if arg.dest in arg_data:  # provided in arg_data
+                if (
+                    len(arg.tags) > 1
+                    or issubclass(arg.type, BaseModel)  # user provided a model, then we have to zip it
+                    and not issubclass(arg.type, AriadneBaseModel)
+                ):
                     value = dict(zip(arg.tags, arg_data[arg.dest]))
-                if isinstance(value, arg.type):  # compatible with arg.type
-                    compile_result[arg.dest] = value
-                    continue
-                if not isinstance(value, dict):
-                    value = dict(zip(arg.tags, value if isinstance(value, Sequence) else [value]))
-
-                if not issubclass(arg.type, BaseModel) or issubclass(arg.type, AriadneBaseModel):
-                    # an generated BaseModel, deconstruct
-                    compile_result[arg.dest] = arg.model(**value).__dict__[arg.tags[0]]
-                else:
-                    # user provided model
-                    compile_result[arg.dest] = arg.model(**value)
-
-            else:  # probably a bool
-                if arg.dest in arg_data:
+                elif len(arg.tags):
+                    value = arg_data[arg.dest]
+                else:  # probably a bool, flip it
                     value = not value
-                compile_result[arg.dest] = arg.model(val=value).__dict__["val"]
+            compile_result[arg.dest] = arg.validate(value)
 
     def compile_extra(self, slot: Slot, extra_list: ChainContentList) -> Any:
         if TYPE_CHECKING:
             assert self.extra is not None
-            assert slot.model
-            assert slot.default_factory is not Sentinel
-        if not extra_list:
-            v = slot.default_factory()
-        elif self.extra.wildcard:
-            v = extra_list
-        else:
-            v = extra_list[0]
-        return slot.model(val=v).__dict__["val"]
+        return slot.validate(extra_list)
 
     def compile_param(
         self,
@@ -288,17 +288,13 @@ class CommandEntry(MatchEntry, ExecTarget):
         arg_data: Dict[str, ChainContentList],  # Arg.dest -> List[ChainContent]
         extras: ChainContentList,
     ) -> Dict[str, Any]:
-        compile_result: Dict[str, Any] = {}
-        for target, slot in self.slot_map.items():
-            if TYPE_CHECKING:
-                assert slot.dest
-                assert slot.model
-            if self.extra and self.extra.name == target:  # skip Wildcard and Optional
-                compile_result[slot.dest] = self.compile_extra(slot, extras)
-            else:
-                compile_result[slot.dest] = slot.model(val=slot_data[target]).__dict__["val"]
+        compile_result: Dict[str, Any] = {
+            slot.dest: self.compile_extra(slot, extras)  # skip Wildcard and Optional
+            if self.extra and self.extra.name == target
+            else slot.validate(slot_data[target])
+            for target, slot in self.slot_map.items()
+        }
         self.compile_arg(compile_result, arg_data)
-        self.oplog.clear()
         return compile_result
 
 
@@ -327,7 +323,7 @@ class Commander:
             listen (bool): 是否监听消息事件
         """
         self.broadcast = broadcast
-        self.validators: List[Callable] = [chain_validator]
+        self.validators: List[Callable] = []
         self.match_root: MatchNode[CommandEntry] = MatchNode()
         self.entries: Set[CommandEntry] = set()
 
@@ -345,7 +341,7 @@ class Commander:
 
     def add_type_cast(self, *caster: Callable):
         """添加类型验证器 (type caster / validator)"""
-        self.validators = [*reversed(caster), *self.validators]
+        self.validators.extend(caster)
 
     @staticmethod
     def parse_command(command: str, entry: CommandEntry, nbsp: DictStrAny) -> None:
@@ -364,9 +360,6 @@ class Commander:
                 ), f"{token} conflicts with an Arg object!"
 
             elif isinstance(token, AnnotatedParam):
-                if token.wildcard or token.default:
-                    assert token is tokenize_result[-1], "Not setting wildcard / optional on the last slot!"
-                    entry.extra = token
                 assert token.name not in entry.targets, "Duplicated parameter slot!"
                 entry.targets.add(token.name)
                 parsed_slot = Slot(
@@ -381,6 +374,11 @@ class Commander:
                 entry.slot_map.setdefault(token.name, parsed_slot).merge(
                     parsed_slot
                 )  # parsed slot < provided slot
+                if token.wildcard or token.default:
+                    assert token is tokenize_result[-1], "Not setting wildcard / optional on the last slot!"
+                    entry.extra = token
+                if token.wildcard:
+                    entry.slot_map[token.name].is_wildcard = True
             elif isinstance(token, Param):
                 for name in token.names:
                     assert name not in entry.targets, "Duplicated parameter slot!"
@@ -462,16 +460,11 @@ class Commander:
                 list(decorators),
             )
             Commander.update_from_func(entry)
-            for slot in entry.slot_map.values():
-                slot.gen_model(self.validators)
-                assert slot.dest is not None, "Slot dest is None!"
-            for arg in entry.arg_map.values():
-                arg.gen_model(self.validators)
-                assert arg.dest is not None, "Argument dest is not set!"
-                assert arg.default_factory is not Sentinel, f"{arg}'s default factory is not set!"
+            descriptors: List[ParamDesc] = [*entry.slot_map.values(), *entry.arg_map.values()]
+            for desc in descriptors:
+                desc.populate_field(self.validators)
             if entry.extra:
                 entry.nodes.pop()  # the last optional / wildcard token should not be on the MatchGraph
-            # TODO: validate type integrity (All have type)
             # TODO: infinite optional + one wildcard
             self.match_root.push(entry)
             return func
@@ -535,7 +528,7 @@ class Commander:
 
         def push_pending(index: int, nxt: MatchNode[CommandEntry], params: Tuple[ChainContent, ...]):
             for entry in nxt.entries:
-                with contextlib.suppress(ValidationError):
+                with contextlib.suppress(ValueError):
                     if res := self.parse_rest(index, frags, params, entry):
                         pending_exec.setdefault(res[0].priority, []).append(res)
             pending_next.append(ParseData(index, nxt, params))

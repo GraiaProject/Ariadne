@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import enum
+import abc
 import functools
 import inspect
 import re
@@ -256,11 +256,11 @@ class MatchNode(Generic[T_MatchEntry]):
             node._inspect(f"{fwd}{'<PARAM>' if k is Sentinel else k} ")
 
 
-class _RawEnum(enum.Enum):
-    Raw = object()
+class raw(abc.ABC):  # wildcard annotation object
+    ...
 
 
-raw = _RawEnum.Raw  # wildcard annotation object
+raw.register(MessageChain)
 
 
 def convert_empty(obj: T) -> MaybeFlag[T]:
@@ -320,12 +320,13 @@ def split(chain: MessageChain) -> ChainContentList:
             elif char == quote:
                 quote = ""
                 continue
-            if char == " " and cache and not quote:
-                buffer.append("".join(cache))
-                cache.clear()
+            if char == " " and (cache or buffer) and not quote:
+                if cache:
+                    buffer.append("".join(cache))
+                    cache.clear()
                 if buffer:
                     result.append(buffer)
-                buffer = []  # buffer is "move"d, so DO NOT clear.
+                    buffer = []  # buffer is "move"d, so DO NOT clear.
             elif quote or char != " ":
                 cache.append(char)
         if cache:

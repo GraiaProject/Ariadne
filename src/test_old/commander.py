@@ -80,7 +80,7 @@ async def main():
     def get_img(images):
         logger.info(repr(images))
 
-    @cmd.command("record {title} {...targets: At}", {"help": Arg("--help")})
+    @cmd.command("record {title: str = ''} {...targets: At}", {"help": Arg("--help")})
     def log_targets(title: str, targets: Sequence[At], help: bool):
         logger.info(title)
         logger.info(targets)
@@ -96,6 +96,7 @@ async def main():
     debug("db read 2")
     await cmd.execute(MessageChain("img img.net/1 img.net/2 img.net/3"))
     debug("wildcard")
+    await cmd.execute(MessageChain("record --help"))
     await cmd.execute(MessageChain("record example-talk ", At(1), " ", At(2), " ", At(3), " --help"))
     debug("targets")
 

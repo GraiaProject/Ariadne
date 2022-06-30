@@ -34,6 +34,7 @@ from graia.broadcast.utilles import dispatcher_mixin_handler
 from pydantic import BaseConfig, BaseModel
 from pydantic.class_validators import Validator
 from pydantic.fields import ModelField
+from typing_extensions import Self
 
 from graia.ariadne.model.util import AriadneBaseModel
 
@@ -100,7 +101,7 @@ def wildcard_validator(value: ChainContentList, field: ModelField) -> Any:
         return MessageChain(" ").join([MessageChain(v) for v in value])
     altered_field = copy.copy(field)
     altered_field.outer_type_ = field.type_
-    return [chain_validator(v, altered_field) for v in value] or field.get_default()
+    return [chain_validator(v, altered_field) for v in value] or field.get_default() or []
 
 
 class ParamDesc(abc.ABC):
@@ -116,7 +117,7 @@ class ParamDesc(abc.ABC):
         """
         ...
 
-    def validate(self, v: Any) -> MaybeFlag[Any]:
+    def validate(self, v: Any) -> Any:
         res, err = self.field.validate(v, {self.field.name: v}, loc=self.dest)
         if err:
             raise ValueError(err)
@@ -160,6 +161,7 @@ class Slot(ParamDesc):
     ) -> None:
         self.target = str(target)
         self.type: Union[Literal[Sentinel], Type[Any]] = type
+        self.is_optional: bool = False
         self.is_wildcard: bool = False
         if self.type == "raw":
             self.type = raw
@@ -172,6 +174,7 @@ class Slot(ParamDesc):
             self.type = MessageChain if self.default_factory is Sentinel else self.default_factory().__class__
         if self.is_wildcard and self.type is not raw and not TYPE_CHECKING:
             self.type = List[self.type]
+        self.is_optional = self.is_wildcard or (self.default_factory is not Sentinel)
         self.field = make_field(
             self.target,
             self.type,
@@ -179,11 +182,12 @@ class Slot(ParamDesc):
             validators,
         )
 
-    def merge(self, other: "Slot") -> None:
+    def merge(self, other: Self) -> Self:
         if self.type is Sentinel and other.type is not Sentinel:
             self.type = other.type
         if self.default_factory is Sentinel and other.default_factory is not Sentinel:
             self.default_factory = other.default_factory
+        return self
 
 
 class Arg(ParamDesc):
@@ -242,13 +246,15 @@ class CommandEntry(MatchEntry, ExecTarget):
 
     def __init__(self, priority: int) -> None:
         self.priority = priority
-        self.slot_map: Dict[str, Slot] = {}
+        self.slot_map: Dict[str, Slot] = {}  # Slot.target -> Slot
         self.arg_map: Dict[str, Arg] = {}
         self.targets: Set[str] = set()
         self.header_map: Dict[str, Arg] = {}
         self.extra: Optional[AnnotatedParam] = None
         self._arg_name_map: Optional[Dict[Arg, str]] = None
         self._slot_targets: Optional[Tuple[FrozenSet[str], ...]] = None
+        self.optional: List[Slot] = []
+        self.wildcard: Optional[Slot] = None
 
     @property
     def arg_name_map(self) -> Dict[Arg, str]:
@@ -263,6 +269,24 @@ class CommandEntry(MatchEntry, ExecTarget):
                 frozenset(name for name in param.names if name in self.slot_map) for param in self.params
             )
         return self._slot_targets
+
+    def update_from_func(self) -> None:
+        """从 ExecTarget.callable 更新 entry 的信息"""
+        for name, parameter in inspect.signature(self.callable).parameters.items():
+            annotation = convert_empty(parameter.annotation)
+            default = convert_empty(parameter.default)
+            if name in self.targets:
+                parsed_slot = Slot(name, annotation, default)
+                parsed_slot.dest = name  # assuming that name is consistent
+                self.slot_map.setdefault(name, parsed_slot).merge(parsed_slot)  # parsed slot < provided slot
+            if name in self.arg_map:
+                self.arg_map[name].update(annotation, default)
+            if default is not Sentinel:
+                last_token = self.tokens[-1]
+                assert isinstance(last_token, Param), "Expected Param, not Text!"
+                assert (
+                    self.slot_map[name].target in last_token.names
+                ), "Not setting wildcard / optional on the last slot!"
 
     def compile_arg(self, compile_result: Dict[str, Any], arg_data: Dict[str, ChainContentList]) -> None:
         for arg in self.arg_name_map:
@@ -282,10 +306,11 @@ class CommandEntry(MatchEntry, ExecTarget):
                     value = not value
             compile_result[arg.dest] = arg.validate(value)
 
-    def compile_extra(self, slot: Slot, extra_list: ChainContentList) -> Any:
-        if TYPE_CHECKING:
-            assert self.extra is not None
-        return slot.validate(extra_list)
+    def compile_extra(self, compile_result: Dict[str, Any], extra_list: ChainContentList) -> Any:
+        for index, slot in enumerate(self.optional):
+            compile_result[slot.dest] = slot.validate(extra_list[index])
+        if self.wildcard:
+            compile_result[self.wildcard.dest] = self.wildcard.validate(extra_list[len(self.optional) :])
 
     def compile_param(
         self,
@@ -294,17 +319,11 @@ class CommandEntry(MatchEntry, ExecTarget):
         extras: ChainContentList,
     ) -> Dict[str, Any]:
         compile_result: Dict[str, Any] = {
-            slot.dest: self.compile_extra(slot, extras)  # skip Wildcard and Optional
-            if self.extra and self.extra.name == target
-            else slot.validate(slot_data[target])
-            for target, slot in self.slot_map.items()
+            slot.dest: slot.validate(slot_data[target]) for target, slot in self.slot_map.items()
         }
         self.compile_arg(compile_result, arg_data)
+        self.compile_extra(compile_result, extras)
         return compile_result
-
-
-class MismatchError(ValueError):
-    """指令失配"""
 
 
 class ParseData(NamedTuple):
@@ -367,6 +386,7 @@ class Commander:
             nbsp (DictStrAny): eval 的命名空间
         """
         tokenize_result: List[Union[Text, Param, AnnotatedParam]] = tokenize(command)
+        have_optional: bool = False
         for token in tokenize_result:
             if isinstance(token, Text):
                 assert all(
@@ -385,42 +405,24 @@ class Commander:
                     eval(token.default or "_sentinel", {"_sentinel": Sentinel, **nbsp}),
                 )
                 parsed_slot.dest = token.name  # assuming that param_name is consistent
-                entry.slot_map.setdefault(token.name, parsed_slot).merge(
+                slot = entry.slot_map.setdefault(token.name, parsed_slot).merge(
                     parsed_slot
                 )  # parsed slot < provided slot
-                if token.wildcard or token.default:
-                    assert token is tokenize_result[-1], "Not setting wildcard / optional on the last slot!"
-                    entry.extra = token
                 if token.wildcard:
-                    entry.slot_map[token.name].is_wildcard = True
+                    assert token is tokenize_result[-1], "Not setting wildcard on the last slot!"
+                    slot.is_wildcard = True
+                    entry.wildcard = slot
+                    continue
+                elif slot.default_factory is not Sentinel:  # Definitely an optional
+                    have_optional = True
+                    entry.optional.append(slot)
+                    continue
             elif isinstance(token, Param):
                 for name in token.names:
                     assert name not in entry.targets, "Duplicated parameter slot!"
                     entry.targets.add(name)
+            assert not have_optional, "Optional Slot is mixed with other type of components!"
         MatchEntry.__init__(entry, tokenize_result)
-
-    @staticmethod
-    def update_from_func(entry: CommandEntry) -> None:
-        """从 entry 的 callable 更新 entry 的信息
-
-        Args:
-            entry (CommandEntry): 命令的 entry
-        """
-        for name, parameter in inspect.signature(entry.callable).parameters.items():
-            annotation = convert_empty(parameter.annotation)
-            default = convert_empty(parameter.default)
-            if name in entry.targets:
-                parsed_slot = Slot(name, annotation, default)
-                parsed_slot.dest = name  # assuming that name is consistent
-                entry.slot_map.setdefault(name, parsed_slot).merge(parsed_slot)  # parsed slot < provided slot
-            if name in entry.arg_map:
-                entry.arg_map[name].update(annotation, default)
-            if default is not Sentinel:
-                last_token = entry.tokens[-1]
-                assert isinstance(last_token, Param), "Expected Param, not Text!"
-                assert (
-                    entry.slot_map[name].target in last_token.names
-                ), "Not setting wildcard / optional on the last slot!"
 
     def command(
         self,
@@ -463,7 +465,6 @@ class Commander:
 
         def wrapper(func: T_Callable) -> T_Callable:
             Commander.parse_command(command, entry, {**func.__globals__, **(nbsp or {})})
-
             ExecTarget.__init__(
                 entry,
                 func,
@@ -473,14 +474,17 @@ class Commander:
                 ],
                 list(decorators),
             )
-            Commander.update_from_func(entry)
-            for desc in entry.slot_map.values():
-                desc.populate_field(self._wildcard_validators if desc.is_wildcard else self._slot_validators)
-            for desc in entry.arg_map.values():
-                desc.populate_field(self._arg_validators)
-            if entry.extra:
+            entry.update_from_func()
+            for slot in entry.slot_map.values():
+                slot.populate_field(self._wildcard_validators if slot.is_wildcard else self._slot_validators)
+            for arg in entry.arg_map.values():
+                arg.populate_field(self._arg_validators)
+            for optional_key in [k for k, v in entry.slot_map.items() if v.is_optional]:
+                entry.slot_map.pop(optional_key)
+            for _ in entry.optional:
+                entry.nodes.pop()
+            if entry.wildcard:
                 entry.nodes.pop()  # the last optional / wildcard token should not be on the MatchGraph
-            # TODO: infinite optional + one wildcard
             self.match_root.push(entry)
             return func
 
@@ -518,11 +522,10 @@ class Commander:
             else:
                 extras.append(frags[index])
                 index += 1
-        if entry.extra:
-            if not entry.extra.wildcard and len(extras) > 1:
-                return None
-        elif extras:
+        if not entry.wildcard and len(extras) > len(entry.optional):
             return None
+        if len(extras) < len(entry.optional):
+            extras.extend([] for _ in range(len(entry.optional) - len(extras)))
         return entry, entry.compile_param(slot_data, arg_data, extras)
 
     async def execute(self, chain: MessageChain):

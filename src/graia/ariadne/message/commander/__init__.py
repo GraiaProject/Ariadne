@@ -2,6 +2,7 @@
 import abc
 import asyncio
 import contextlib
+import copy
 import inspect
 from contextvars import ContextVar
 from typing import (
@@ -66,36 +67,40 @@ def chain_validator(value: Any, field: ModelField) -> Any:
     """
     MessageChain 处理函数.
     应用作 pydantic 的 Model validator.
-    取决于字段类型标注, 若与消息链, 消息元素无关则会直接把消息链用 asDisplay 转换为字符串.
+    取决于字段类型标注, 若与消息链, 消息元素无关则会直接把消息链用 as_display 转换为字符串.
 
     Args:
         value (Any): 验证值
         field (ModelField): 当前的 model 字段
     """
-    if field.type_ is MessageChain:
+    if not isinstance(value, list):
+        return field.get_default() if value is None else value
+    if not value:
+        return field.get_default()
+    if field.outer_type_ is MessageChain:
         return MessageChain(value)
-    if isinstance(field.type_, type) and issubclass(field.type_, Element):
+    if isinstance(field.outer_type_, type) and issubclass(field.outer_type_, Element):
         assert len(value) == 1
         v = value[0]
-        if field.type_ is Plain:
+        if field.outer_type_ is Plain:
             assert v.__class__ is str
             return Plain(v)
-        assert v.__class__ is field.type_
+        assert v.__class__ is field.outer_type_
         return v
-    if isinstance(value, list) and value:
-        value = MessageChain(value)
-    if field.type_ in (bool, str, int):
+    value = MessageChain(value)
+    if field.outer_type_ in (bool, str, int):
         return str(value)
-    return value or field.get_default()
+    return value
 
 
 def wildcard_validator(value: ChainContentList, field: ModelField) -> Any:
     if not isinstance(value, list):
         return value
-    chains = [MessageChain(v) for v in value]
     if field.outer_type_ is raw:
-        return MessageChain(" ").join(chains)
-    return [chain_validator(chain, field) for chain in chains] or field.get_default()
+        return MessageChain(" ").join([MessageChain(v) for v in value])
+    altered_field = copy.copy(field)
+    altered_field.outer_type_ = field.type_
+    return [chain_validator(v, altered_field) for v in value] or field.get_default()
 
 
 class ParamDesc(abc.ABC):
@@ -149,12 +154,12 @@ class Slot(ParamDesc):
     def __init__(
         self,
         target: Union[str, int],
-        type: MaybeFlag[Type] = Sentinel,
+        type: MaybeFlag[Type[Any]] = Sentinel,
         default: MaybeFlag[Any] = Sentinel,
         default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
         self.target = str(target)
-        self.type: Union[Literal[Sentinel], Type] = type
+        self.type: Union[Literal[Sentinel], Type[Any]] = type
         self.is_wildcard: bool = False
         if self.type == "raw":
             self.type = raw
@@ -164,14 +169,14 @@ class Slot(ParamDesc):
 
     def populate_field(self, validators: Iterable[Callable]) -> None:
         if self.type is Sentinel:
-            self.type = MessageChain
+            self.type = MessageChain if self.default_factory is Sentinel else self.default_factory().__class__
         if self.is_wildcard and self.type is not raw and not TYPE_CHECKING:
             self.type = List[self.type]
         self.field = make_field(
             self.target,
             self.type,
             self.default_factory,
-            [wildcard_validator if self.is_wildcard else chain_validator, *validators],
+            validators,
         )
 
     def merge(self, other: "Slot") -> None:
@@ -220,7 +225,7 @@ class Arg(ParamDesc):
         assert self.dest
         assert self.type is not Sentinel, f"{self} don't have an appropriate type!"
         assert self.default_factory is not Sentinel, f"{self} doesn't have default value!"
-        self.field = make_field(self.dest, self.type, Sentinel, [chain_validator, *validators])
+        self.field = make_field(self.dest, self.type, Sentinel, validators)
 
     def update(self, annotation: MaybeFlag[Any], default: MaybeFlag[Any]) -> None:
         if self.type is Sentinel and annotation is not Sentinel:
@@ -323,7 +328,9 @@ class Commander:
             listen (bool): 是否监听消息事件
         """
         self.broadcast = broadcast
-        self.validators: List[Callable] = []
+        self._slot_validators: List[Callable] = [chain_validator]
+        self._wildcard_validators: List[Callable] = [wildcard_validator]
+        self._arg_validators: List[Callable] = [chain_validator]
         self.match_root: MatchNode[CommandEntry] = MatchNode()
         self.entries: Set[CommandEntry] = set()
 
@@ -339,9 +346,16 @@ class Commander:
     def __del__(self):
         self.broadcast.listeners = [i for i in self.broadcast.listeners if i.callable != self.execute]
 
-    def add_type_cast(self, *caster: Callable):
-        """添加类型验证器 (type caster / validator)"""
-        self.validators.extend(caster)
+    def add_type_cast(self, *caster: Callable, type: Literal["slot", "wildcard", "arg"] = "slot") -> None:
+        """添加类型验证器 (type caster / validator)
+
+        Args:
+            *caster (Callable): 验证器
+            type (Literal["slot", "wildcard", "arg"], optional): 应用验证器的区域, 默认为不是 wildcard 的 Slot.
+        """
+        assert type in ("slot", "wildcard", "arg")
+        validators: List[Callable] = getattr(self, f"_{type}_validators")
+        validators.extend(caster)
 
     @staticmethod
     def parse_command(command: str, entry: CommandEntry, nbsp: DictStrAny) -> None:
@@ -460,9 +474,10 @@ class Commander:
                 list(decorators),
             )
             Commander.update_from_func(entry)
-            descriptors: List[ParamDesc] = [*entry.slot_map.values(), *entry.arg_map.values()]
-            for desc in descriptors:
-                desc.populate_field(self.validators)
+            for desc in entry.slot_map.values():
+                desc.populate_field(self._wildcard_validators if desc.is_wildcard else self._slot_validators)
+            for desc in entry.arg_map.values():
+                desc.populate_field(self._arg_validators)
             if entry.extra:
                 entry.nodes.pop()  # the last optional / wildcard token should not be on the MatchGraph
             # TODO: infinite optional + one wildcard

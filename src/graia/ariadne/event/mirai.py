@@ -305,9 +305,6 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
 class BotLeaveEventActive(GroupEvent, BotEvent):
     """Bot 账号主动退出了某群组.
 
-    Tip:
-        当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息!
-
     提供的额外注解支持:
         - Ariadne (annotation): 发布事件的应用实例
         - Group (annotation): 发生该事件的群组
@@ -330,12 +327,10 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
 class BotLeaveEventKick(GroupEvent, BotEvent):
     """Bot 账号被某群组的管理员/群主从该群组中删除.
 
-    Tip:
-        当监听该事件或该类事件时, 请优先考虑使用原始事件类作为类型注解, 以此获得事件类实例, 便于获取更多的信息!
-
     提供的额外注解支持:
         - Ariadne (annotation): 发布事件的应用实例
         - Group (annotation): 发生该事件的群组
+        - Member (annotation): 操作者, 为群主或管理员.
     """
 
     type: str = "BotLeaveEventKick"
@@ -343,13 +338,44 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
     group: Group
     """Bot 被踢出的群的信息"""
 
+    operator: Optional[Member]
+    """操作员, 为群主或管理员"""
+
     class Dispatcher(BaseDispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotLeaveEventKick) and generic_issubclass(
-                Group, interface.annotation
-            ):
-                return interface.event.group
+            if isinstance(interface.event, BotLeaveEventKick):
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
+                if generic_issubclass(Member, interface.annotation):
+                    return interface.event.operator
+
+
+class BotLeaveEventDisband(GroupEvent, BotEvent):
+    """Bot 账号因群主解散群而退出某个群组.
+
+    提供的额外注解支持:
+        - Ariadne (annotation): 发布事件的应用实例
+        - Group (annotation): 发生该事件的群组
+        - Member (annotation): 操作者, 一定是群主.
+    """
+
+    type: str = "BotLeaveEventKick"
+
+    group: Group
+    """Bot 退出的群的信息"""
+
+    operator: Optional[Member]
+    """操作员, 为群主"""
+
+    class Dispatcher(BaseDispatcher):
+        @staticmethod
+        async def catch(interface: DispatcherInterface):
+            if isinstance(interface.event, BotLeaveEventDisband):
+                if generic_issubclass(Group, interface.annotation):
+                    return interface.event.group
+                if generic_issubclass(Member, interface.annotation):
+                    return interface.event.operator
 
 
 class GroupRecallEvent(GroupEvent):

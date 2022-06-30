@@ -2,6 +2,14 @@
 
 ## 未发布的更新
 
+### 新增
+
+添加 `BotLeaveGroupDisband` 事件. (mamoe/mirai#585)
+
+### 改进
+
+`Commander` 现在在尾部支持多个可选的 `Slot`. (#181)
+
 ### 弃用
 
 使用 `creart` 替代 `Ariadne.create`.

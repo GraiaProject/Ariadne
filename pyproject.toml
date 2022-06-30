@@ -28,7 +28,7 @@ pydantic = "^1.8.2"
 typing-extensions = "^4.0"
 graia-amnesia = "^0.5.2"
 richuru = { version = "^0.1.0", optional = true }
-arclet-alconna-graia = { version = "^0.0", optional = true }
+arclet-alconna-graia = { version = "*", optional = true }
 graia-scheduler = { version = "^0.0", optional = true }
 graia-saya = { version = "^0.0", optional = true }
 fastapi = { version = ">=0.74.1, <1.0.0", optional = true }
@@ -68,7 +68,6 @@ mkdocs-literate-nav = "^0.4.1"
 ipykernel = "^6.13.0"
 
 richuru = { version = "^0.1.0" }
-arclet-alconna-graia = { version = "^0.0" }
 graia-scheduler = { version = "^0.0"}
 fastapi = { version = ">=0.74.1, <1.0.0" }
 uvicorn = { extras = ["standard"], version = "^0.17.5" }

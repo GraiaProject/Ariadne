@@ -16,6 +16,10 @@
 
 自定义 `Broadcast` 与事件循环无效，并且会引发警告.
 
+### 移除
+
+移除了弃用的 `graia.ariadne.message.parser.alconna` 模块, 请使用 `arclet.alconna.graia`
+
 ## 0.7.14
 
 ### 修复

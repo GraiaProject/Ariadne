@@ -53,6 +53,27 @@ if TYPE_CHECKING:
     from rich.text import Text
 
 
+def type_repr(obj) -> str:
+    """Return the repr() of an object, special-casing types (internal helper).
+
+    If obj is a type, we return a shorter version than the default
+    type.__repr__, based on the module and qualified name, which is
+    typically enough to uniquely identify a type.  For everything
+    else, we fall back on repr(obj).
+    """
+    if isinstance(obj, getattr(types, "GenericAlias", type(None))):
+        return repr(obj)
+    if isinstance(obj, type):
+        if obj.__module__ == "builtins":
+            return obj.__qualname__
+        return f"{obj.__module__}.{obj.__qualname__}"
+    if obj is ...:
+        return "..."
+    if isinstance(obj, types.FunctionType):
+        return obj.__name__
+    return repr(obj)
+
+
 def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Optional[TracebackType], *_, **__):
     """loguru 异常回调
 
@@ -74,7 +95,7 @@ def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Option
                 param_repr = "".join(
                     [
                         param_name,
-                        f": {param_anno}" if param_anno else "",
+                        f": {type_repr(param_anno)}" if param_anno else "",
                         f" = {param_default}" if param_default else "",
                     ]
                 )

@@ -42,7 +42,7 @@ from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
 from ...typing import DictStrAny, MaybeFlag, Sentinel, Wrapper
-from ...util import constant, gen_subclass, resolve_dispatchers_mixin
+from ...util import constant, gen_subclass, resolve_dispatchers_mixin, type_repr
 from ..chain import MessageChain
 from ..element import Element, Plain
 from .util import (
@@ -188,6 +188,17 @@ class Slot(ParamDesc):
         if self.default_factory is Sentinel and other.default_factory is not Sentinel:
             self.default_factory = other.default_factory
         return self
+
+    def __repr__(self) -> str:
+        seg: List[str] = [
+            "..." if self.is_wildcard else "",
+            self.target,
+            ": ",
+            type_repr(self.type),
+            f" = {self.default_factory()}" if self.default_factory is not Sentinel else "",
+            f" -> {self.dest}" if self.dest != self.target else "",
+        ]
+        return f"Slot({''.join(seg)})"
 
 
 class Arg(ParamDesc):

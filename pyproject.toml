@@ -72,6 +72,7 @@ graia-scheduler = { version = "^0.0"}
 fastapi = { version = ">=0.74.1, <1.0.0" }
 uvicorn = { extras = ["standard"], version = "^0.17.5" }
 viztracer = "^0.15.3"
+pydocstyle = "^6.1.1"
 
 [tool.poetry.plugins."creart.creators"]
 commander = "graia.ariadne.message.commander.creart:CommanderCreator"
@@ -117,3 +118,6 @@ ignore = [
     "**/adapter/**",
     "**/temp/**/*.py"
 ]
+
+[tool.pydocstyle]
+match-dir = "(?!\\.)(?!test).*"

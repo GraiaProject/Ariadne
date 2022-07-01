@@ -49,6 +49,7 @@
     "noreply",
     "popleft",
     "pycon",
+    "pydocstyle",
     "pymdownx",
     "pypi",
     "qualname",
@@ -85,5 +86,6 @@
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
     },
-  }
+  },
+  "python.linting.pydocstyleEnabled": true
 }

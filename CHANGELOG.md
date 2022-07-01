@@ -6,7 +6,7 @@
 
 ### 新增
 
-添加 `BotLeaveGroupDisband` 事件. (mamoe/mirai#585)
+添加 `BotLeaveGroupDisband` 事件. (project-mirai/mirai-api-http#585)
 
 ### 改进
 

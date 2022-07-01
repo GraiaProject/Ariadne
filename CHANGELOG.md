@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.7.15
+
 ### 新增
 
 添加 `BotLeaveGroupDisband` 事件. (mamoe/mirai#585)

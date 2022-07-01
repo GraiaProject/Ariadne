@@ -6,7 +6,6 @@ import contextlib
 import enum
 import sys
 import types
-import typing
 from types import MethodType, TracebackType
 from typing import (
     TYPE_CHECKING,
@@ -26,11 +25,13 @@ from typing import (
     Union,
 )
 
+import typing_extensions
 from typing_extensions import (
     Annotated,
     ParamSpec,
     Protocol,
     TypeAlias,
+    get_args,
     runtime_checkable,
 )
 
@@ -46,14 +47,6 @@ T_co = TypeVar("T_co", covariant=True)
 T_start = TypeVar("T_start")
 T_stop = TypeVar("T_stop")
 T_step = TypeVar("T_step")
-
-
-class Slice(Generic[T_start, T_stop, T_step]):  # type: ignore
-    """对 slice 对象的泛型化包装, 但无法直接继承于 slice"""
-
-    start: T_start
-    stop: T_stop
-    step: T_step
 
 
 MessageIndex = Union[Tuple[int, Optional[int]], int]
@@ -138,7 +131,7 @@ class SendMessageActionProtocol(Protocol, Generic[T_co]):
         ...
 
 
-def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bool:
+def generic_issubclass(cls: Any, par: Union[type, Any, Tuple[type, ...]]) -> bool:
     """检查 cls 是否是 args 中的一个子类, 支持泛型, Any, Union
 
     Args:
@@ -153,14 +146,18 @@ def generic_issubclass(cls: type, par: Union[type, Any, Tuple[type, ...]]) -> bo
     with contextlib.suppress(TypeError):
         if isinstance(par, (type, tuple)):
             return issubclass(cls, par)
-        if typing.get_origin(par) in Unions:
-            return any(generic_issubclass(cls, p) for p in typing.get_args(par))
+        if get_origin(par) in Unions:
+            return any(generic_issubclass(cls, p) for p in get_args(par))
         if isinstance(par, TypeVar):
             if par.__constraints__:
                 return any(generic_issubclass(cls, p) for p in par.__constraints__)
             if par.__bound__:
                 return generic_issubclass(cls, par.__bound__)
     return False
+
+
+def get_origin(obj: Any) -> Any:
+    return typing_extensions.get_origin(obj) or obj
 
 
 def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> bool:
@@ -178,8 +175,8 @@ def generic_isinstance(obj: Any, par: Union[type, Any, Tuple[type, ...]]) -> boo
     with contextlib.suppress(TypeError):
         if isinstance(par, (type, tuple)):
             return isinstance(obj, par)
-        if typing.get_origin(par) in Unions:
-            return any(generic_isinstance(obj, p) for p in typing.get_args(par))
+        if get_origin(par) in Unions:
+            return any(generic_isinstance(obj, p) for p in get_args(par))
         if isinstance(par, TypeVar):
             if par.__constraints__:
                 return any(generic_isinstance(obj, p) for p in par.__constraints__)

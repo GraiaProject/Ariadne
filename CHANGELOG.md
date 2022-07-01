@@ -10,6 +10,7 @@
 
 `Commander` 现在在尾部支持多个可选的 `Slot`. (#181)
 
+`Twilight` 现在可以较好地分派带有泛型的 `MatchResult`.
 ### 弃用
 
 使用 `creart` 替代 `Ariadne.create`.

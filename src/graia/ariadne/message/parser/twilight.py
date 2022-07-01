@@ -35,8 +35,14 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic.utils import Representation
 from typing_extensions import Self
 
-from ...typing import AnnotatedType, Sentinel, T, generic_isinstance, generic_issubclass
-from ...util import gen_subclass
+from ...typing import (
+    AnnotatedType,
+    Sentinel,
+    T,
+    generic_isinstance,
+    generic_issubclass,
+    get_origin,
+)
 from ..chain import MessageChain
 from ..commander.util import Param as ParamToken
 from ..commander.util import Text as TextToken
@@ -797,11 +803,9 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
                     f"Please use {interface.name}: {result.__class__.__qualname__} to get origin attribute!"
                 )
                 interface.stop()
-            if any(
-                generic_issubclass(res_cls, interface.annotation) for res_cls in gen_subclass(MatchResult)
-            ):
+            if generic_issubclass(get_origin(interface.annotation), MatchResult):
                 return result
-            if generic_isinstance(result.result, interface.annotation):
+            if generic_isinstance(result.result, get_origin(interface.annotation)):
                 return result.result
 
 

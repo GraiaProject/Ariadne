@@ -3,10 +3,13 @@ max-line-length = 110
 extend-ignore =
     # See https://github.com/PyCQA/pycodestyle/issues/373
     E203,
+    D # just for now
 
-exclude = .git,
-    __pycache__,
+exclude = .git
+    __pycache__
     src/test/*,
     src/test_old/*
     src/graia/ariadne/entry/*
-    .venv,
+    .venv
+    ./extract-release-notes.py
+    ./migrate_src/*

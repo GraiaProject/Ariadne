@@ -249,6 +249,11 @@ def escape_bracket(string: str) -> str:
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
+def unescape_bracket(string: str) -> str:
+    """在字符串中反转义中括号括号"""
+    return string.replace("\\u005b", "[").replace("\\u005d", "]")
+
+
 def constant(val: T) -> Callable[[], T]:
     """生成一个返回常量的 Callable
 

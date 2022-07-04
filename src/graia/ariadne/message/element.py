@@ -5,13 +5,14 @@ from enum import Enum
 from io import BytesIO
 from json import dumps as j_dump
 from pathlib import Path
-from typing import TYPE_CHECKING, Iterable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union, overload
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.message import Element as BaseElement
 from graia.amnesia.message import Text as BaseText
 from pydantic import validator
 from pydantic.fields import Field
+from typing_extensions import Self
 
 from ..connection.util import UploadMethod
 from ..context import upload_method_ctx
@@ -545,20 +546,42 @@ class Forward(Element):
 
     def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -> None:
         if nodes:
-            nodeList: List[ForwardNode] = []
+            node_list: List[ForwardNode] = []
             for i in nodes:
                 if isinstance(i, ForwardNode):
-                    nodeList.append(i)
+                    node_list.append(i)
                 else:
-                    nodeList.extend(i)
-            data.update(nodeList=nodeList)
+                    node_list.extend(i)
+            data.update(nodeList=node_list)
         super().__init__(**data)
 
     def __str__(self) -> str:
         return f"[合并转发:共{len(self.node_list)}条]"
 
     def as_persistent_string(self) -> str:
-        return ""
+        from ..connection.util import DatetimeJsonEncoder
+
+        data: str = escape_bracket(
+            j_dump(self.node_list, indent=None, separators=(",", ":"), cls=DatetimeJsonEncoder)
+        )
+        return f"[mirai:{self.type}:{data}]"
+
+    @classmethod
+    def parse_obj(cls, obj: Any) -> Self:
+        if isinstance(obj, list):
+            return cls([ForwardNode.parse_obj(o) for o in obj])
+        return super().parse_obj(obj)
+
+    @overload
+    def __getitem__(self, key: int) -> ForwardNode:
+        ...
+
+    @overload
+    def __getitem__(self, key: slice) -> List[ForwardNode]:
+        ...
+
+    def __getitem__(self, key: Union[int, slice]) -> Union[ForwardNode, List[ForwardNode]]:
+        return self.node_list[key]
 
 
 @internal_cls()

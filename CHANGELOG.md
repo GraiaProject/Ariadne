@@ -8,6 +8,8 @@
 
 `model.relationship` 下的 `Model` 不再是内部类.
 
+支持 `Forward` 转发消息的序列化.
+
 ### 新增
 
 添加 `AnnotationWaiter`.

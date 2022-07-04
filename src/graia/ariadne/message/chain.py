@@ -21,7 +21,7 @@ from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import AttrConvertMixin, deprecated, gen_subclass
+from ..util import AttrConvertMixin, deprecated, gen_subclass, unescape_bracket
 from .element import (
     At,
     AtAll,
@@ -385,9 +385,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
                 or (exclude and not isinstance(i, exclude))
                 or not (include or exclude)
             ):
-                if isinstance(i, Plain):
-                    string_list.append(i.as_persistent_string().replace("[", "[_"))
-                elif not isinstance(i, MultimediaElement):
+                if not isinstance(i, MultimediaElement):
                     string_list.append(i.as_persistent_string())
                 else:
                     string_list.append(i.as_persistent_string(binary=binary))
@@ -412,9 +410,9 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
             if mirai := re.fullmatch(r"\[mirai:(.+?)(:(.+?))\]", match):
                 j_string = mirai[3]
                 element_cls = ELEMENT_MAPPING[mirai[1]]
-                result.append(element_cls.parse_obj(Json.deserialize(j_string)))
+                result.append(element_cls.parse_obj(Json.deserialize(unescape_bracket(j_string))))
             elif match:
-                result.append(Plain(match.replace("[_", "[")))
+                result.append(Plain(match))
         return MessageChain(result, inline=True)
 
     def _to_mapping_str(

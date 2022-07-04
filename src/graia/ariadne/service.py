@@ -53,7 +53,7 @@ def get_dist_map() -> Dict[str, str]:
     for dist in importlib.metadata.distributions():
         name: str = dist.metadata["Name"]
         version: str = dist.version
-        if name.startswith("graia-") or name.startswith("graiax-"):
+        if name.startswith(("graia-", "graiax-")):
             dist_map[name] = max(version, dist_map.get(name, ""))
     return dist_map
 

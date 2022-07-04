@@ -336,14 +336,16 @@ def get_cls(obj) -> Optional[type]:
 
 _T_cls = TypeVar("_T_cls", bound=type)
 
+__SAFE_MODULES__: List[str] = ["graia", "launart", "statv", "pydantic", "aiohttp", "avilla"]
 
-def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Callable[[_T_cls], _T_cls]:
+
+def internal_cls(alt: Optional[Callable] = None) -> Callable[[_T_cls], _T_cls]:
     if alt:
         hint = f"Use {alt.__module__}.{alt.__qualname__}!"
     else:
-        hint = f"Only modules start with {module} can initialize it!"
+        hint = "Only modules start with {module} can initialize it!"
 
-    SAFE_MODULES = (module, "launart", "statv", "pydantic", "aiohttp", "avilla")
+    SAFE_MODULES = tuple(__SAFE_MODULES__)
 
     def deco(cls: _T_cls) -> _T_cls:
         origin_init = cls.__init__
@@ -355,7 +357,7 @@ def internal_cls(module: str = "graia", alt: Optional[Callable] = None) -> Calla
             if not module_name.startswith(SAFE_MODULES):
                 raise NameError(
                     f"{self.__class__.__module__}.{self.__class__.__qualname__} is an internal class!",
-                    hint,
+                    hint.format(module=self.__class__.__module__),
                 )
             return origin_init(self, *args, **kwargs)
 

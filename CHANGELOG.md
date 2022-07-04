@@ -6,6 +6,8 @@
 
 更改了遥测的显示顺序.
 
+`model.relationship` 下的 `Model` 不再是内部类.
+
 ### 新增
 
 添加 `AnnotationWaiter`.

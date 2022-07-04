@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 from loguru import logger
 from pydantic import Field
 
-from ..util import AttrConvertMixin, camel_to_snake, deprecated, internal_cls
+from ..util import AttrConvertMixin, camel_to_snake, deprecated
 from .util import AriadneBaseModel
 
 if TYPE_CHECKING:
@@ -43,7 +43,6 @@ class MemberPerm(Enum):
         return _MEMBER_PERM_REPR_MAP[self.value]
 
 
-@internal_cls()
 class Group(AriadneBaseModel, AttrConvertMixin):
     """描述 Tencent QQ 中的群组."""
 
@@ -102,7 +101,6 @@ class Group(AriadneBaseModel, AttrConvertMixin):
         return await rider.io().read()
 
 
-@internal_cls()
 class Member(AriadneBaseModel, AttrConvertMixin):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
 
@@ -209,7 +207,6 @@ class Member(AriadneBaseModel, AttrConvertMixin):
             return await resp.read()
 
 
-@internal_cls()
 class Friend(AriadneBaseModel, AttrConvertMixin):
     """描述 Tencent QQ 中的好友."""
 
@@ -258,7 +255,6 @@ class Friend(AriadneBaseModel, AttrConvertMixin):
             return await resp.read()
 
 
-@internal_cls()
 class Stranger(AriadneBaseModel, AttrConvertMixin):
     """描述 Tencent QQ 中的陌生人."""
 
@@ -345,7 +341,6 @@ class MemberInfo(AriadneBaseModel):
     """特殊头衔"""
 
 
-@internal_cls()
 class Client(AriadneBaseModel):
     """
     指示其他客户端

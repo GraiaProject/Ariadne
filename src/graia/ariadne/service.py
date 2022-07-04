@@ -78,7 +78,7 @@ class ElizabethService(Service):
 
     @staticmethod
     def base_telemetry() -> None:
-        output: List[str] = [f"[cyan]{ARIADNE_ASCII_LOGO}[/]"]
+        output: List[str] = [""]
         dist_map: Dict[str, str] = get_dist_map()
         output.extend(
             " ".join(
@@ -90,6 +90,7 @@ class ElizabethService(Service):
             for name, version in dist_map.items()
         )
         output.sort()
+        output.insert(0, f"[cyan]{ARIADNE_ASCII_LOGO}[/]")
         rich_output = "\n".join(output)
         logger.opt(colors=True).info(
             rich_output.replace("[", "<").replace("]", ">"), alt=rich_output, highlighter=None
@@ -97,7 +98,7 @@ class ElizabethService(Service):
 
     @staticmethod
     async def check_update() -> None:
-        output: List[str] = []
+        output: List[str] = [""]
         dist_map: Dict[str, str] = get_dist_map()
         async with ClientSession() as session:
             await asyncio.gather(

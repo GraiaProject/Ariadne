@@ -10,6 +10,8 @@
 
 支持 `Forward` 转发消息的序列化.
 
+支持直接使用 `MessageEvent` 作为片段构造转发消息.
+
 ### 新增
 
 添加 `AnnotationWaiter`.

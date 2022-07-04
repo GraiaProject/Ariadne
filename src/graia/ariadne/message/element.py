@@ -21,6 +21,7 @@ from ..model import AriadneBaseModel, Friend, Member, Stranger
 from ..util import AttrConvertMixin, deprecated, escape_bracket, internal_cls
 
 if TYPE_CHECKING:
+    from ..event.message import MessageEvent
     from ..typing import ReprArgs
     from .chain import MessageChain
 
@@ -544,12 +545,22 @@ class Forward(Element):
     node_list: List[ForwardNode] = Field(None, alias="nodeList")
     """转发节点列表"""
 
-    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode], **data) -> None:
+    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"], **data) -> None:
+        from ..event.message import MessageEvent
+        from ..model.relationship import Client
+
         if nodes:
             node_list: List[ForwardNode] = []
             for i in nodes:
                 if isinstance(i, ForwardNode):
                     node_list.append(i)
+                elif isinstance(i, MessageEvent):
+                    if not isinstance(i.sender, Client):
+                        node_list.append(
+                            ForwardNode(
+                                i.sender, time=i.message_chain.get_first(Source).time, message=i.message_chain
+                            )
+                        )
                 else:
                     node_list.extend(i)
             data.update(nodeList=node_list)

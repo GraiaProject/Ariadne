@@ -65,8 +65,8 @@ T_Callable = TypeVar("T_Callable", bound=Callable)
 
 
 def chain_validator(value: Any, field: ModelField) -> Any:
-    """
-    MessageChain 处理函数.
+    """MessageChain 处理函数.
+
     应用作 pydantic 的 Model validator.
     取决于字段类型标注, 若与消息链, 消息元素无关则会直接把消息链用 as_display 转换为字符串.
 
@@ -129,7 +129,7 @@ class _CommanderModelConfig(BaseConfig):
     arbitrary_types_allowed: bool = True
 
 
-def make_field(
+def _make_field(
     name: str,
     type: Type,
     default_factory: MaybeFlag[Callable[[], Any]],
@@ -159,6 +159,14 @@ class Slot(ParamDesc):
         default: MaybeFlag[Any] = Sentinel,
         default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
+        """构建 Slot.
+
+        Args:
+            target (Union[str, int]): Slot 的目标 token 名
+            type (type, optional): Slot 的类型
+            default (Any, optional): 默认值
+            default_factory (Callable[[], Any], optional): 默认值工厂函数
+        """
         self.target = str(target)
         self.type: Union[Literal[Sentinel], Type[Any]] = type
         self.is_optional: bool = False
@@ -175,7 +183,7 @@ class Slot(ParamDesc):
         if self.is_wildcard and self.type is not raw and not TYPE_CHECKING:
             self.type = List[self.type]
         self.is_optional = self.is_wildcard or (self.default_factory is not Sentinel)
-        self.field = make_field(
+        self.field = _make_field(
             self.target,
             self.type,
             self.default_factory,
@@ -213,6 +221,14 @@ class Arg(ParamDesc):
         default: MaybeFlag[Any] = Sentinel,
         default_factory: MaybeFlag[Callable[[], Any]] = Sentinel,
     ) -> None:
+        """初始化 Arg.
+
+        Args:
+            pattern (str): Arg 的匹配模板, 与 `Commander.command` 使用相同语法.
+            type (type, optional): Arg 的类型
+            default (Any, optional): 默认值
+            default_factory (Callable[[], Any], optional): 默认值工厂函数
+        """
         self.type: MaybeFlag[Type[Any]] = Sentinel
         self.tags: List[str] = []
         iter_tokens = iter(tokenize(pattern))
@@ -240,7 +256,7 @@ class Arg(ParamDesc):
         assert self.dest
         assert self.type is not Sentinel, f"{self} don't have an appropriate type!"
         assert self.default_factory is not Sentinel, f"{self} doesn't have default value!"
-        self.field = make_field(self.dest, self.type, Sentinel, validators)
+        self.field = _make_field(self.dest, self.type, Sentinel, validators)
 
     def update(self, annotation: MaybeFlag[Any], default: MaybeFlag[Any]) -> None:
         if self.type is Sentinel and annotation is not Sentinel:

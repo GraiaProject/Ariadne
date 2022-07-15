@@ -15,8 +15,6 @@ from pydantic.fields import Field
 from typing_extensions import Self
 
 from ..connection.util import UploadMethod
-from ..context import upload_method_ctx
-from ..exception import InvalidArgument
 from ..model import AriadneBaseModel, Friend, Member, Stranger
 from ..util import AttrConvertMixin, deprecated, escape_bracket, internal_cls
 
@@ -217,12 +215,6 @@ class At(Element):
     def __eq__(self, other: "At"):
         return isinstance(other, At) and self.target == other.target
 
-    def prepare(self) -> None:
-        if upload_method_ctx.get(None) != UploadMethod.Group:
-            raise InvalidArgument(
-                f"you cannot use this element in this method: {upload_method_ctx.get().value}"
-            )
-
     def __str__(self) -> str:
         return f"@{self.representation}" if self.representation else f"@{self.target}"
 
@@ -238,12 +230,6 @@ class AtAll(Element):
     def __str__(self) -> str:
         return "@全体成员"
 
-    def prepare(self) -> None:
-        if upload_method_ctx.get(None) != UploadMethod.Group:
-            raise InvalidArgument(
-                f"you cannot use this element in this method: {upload_method_ctx.get().value}"
-            )
-
 
 class Face(Element):
     """表示消息中所附带的表情, 这些表情大多都是聊天工具内置的."""
@@ -257,6 +243,12 @@ class Face(Element):
     """QQ 表情名称"""
 
     def __init__(self, id: int = ..., name: str = ..., **data) -> None:
+        """
+
+        Args:
+            face_id (int, optional): QQ 表情编号
+            name (str, optional): QQ 表情名称
+        """
         if id is not ...:
             data.update(faceId=id)
         if name is not ...:
@@ -515,6 +507,14 @@ class ForwardNode(AriadneBaseModel, AttrConvertMixin):
         name: str = ...,
         **data,
     ) -> None:
+        """构建合并转发的一个节点
+
+        Args:
+            target (Union[int, Friend, Member, Stranger]): 发送者 QQ
+            time (datetime): 发送时间
+            message (MessageChain): 发送的消息链
+            name (str): 显示的发送者名称
+        """
         if target is not ...:
             if isinstance(target, int):
                 data.update(senderId=target)
@@ -546,6 +546,11 @@ class Forward(Element):
     """转发节点列表"""
 
     def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"], **data) -> None:
+        """构建转发消息对象
+
+        Args:
+            *nodes (List[ForwardNode]): 转发节点的列表
+        """
         from ..event.message import MessageEvent
         from ..model.relationship import Client
 
@@ -581,7 +586,7 @@ class Forward(Element):
     def parse_obj(cls, obj: Any) -> Self:
         if isinstance(obj, list):
             return cls([ForwardNode.parse_obj(o) for o in obj])
-        return super().parse_obj(obj)
+        return cls(**obj)
 
     @overload
     def __getitem__(self, key: int) -> ForwardNode:
@@ -671,6 +676,12 @@ class MultimediaElement(Element):
         data_bytes: Union[None, bytes, BytesIO] = None,
         **kwargs,
     ) -> None:
+        """
+        id (str, optional): 元素 ID
+        url (str, optional): 元素的下载 url
+        path (Union[Path, str], optional): 文件路径
+        data_bytes (Union[None, BytesIO, bytes], optional): 元素的字节数据
+        """
         data = {"id": value for key, value in kwargs.items() if key.lower().endswith("id")}
 
         if sum([bool(url), bool(path), bool(base64)]) > 1:

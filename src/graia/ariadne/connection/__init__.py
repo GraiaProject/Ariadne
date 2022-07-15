@@ -72,7 +72,7 @@ class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
 
 class ConnectionMixin(Launchable, Generic[T_Info]):
     status: ConnectionStatus
-    config: T_Info
+    info: T_Info
     dependencies: ClassVar[Set[str]]
 
     fallback: Optional["HttpClientConnection"]
@@ -86,21 +86,28 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
     def stages(self):
         return {}
 
-    def __init__(self, config: T_Info) -> None:
+    def __init__(self, info: T_Info) -> None:
         self.id = ".".join(
             [
                 "elizabeth",
                 "connection",
-                str(config.account),
+                str(info.account),
                 camel_to_snake(self.__class__.__qualname__),
             ]
         )
-        self.config = config
+        self.info = info
         self.fallback = None
         self.event_callbacks = []
         self.status = ConnectionStatus()
 
     async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
+        """调用下层 API
+
+        Args:
+            command (str): 命令
+            method (CallMethod): 调用类型
+            params (dict, optional): 调用参数
+        """
         if self.fallback:
             return await self.fallback.call(command, method, params)
         raise NotImplementedError(
@@ -129,6 +136,12 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
     connection: Optional[ConnectionMixin]
 
     def __init__(self, service: "ElizabethService", account: Optional[int] = None) -> None:
+        """初始化连接接口
+
+        Args:
+            service (ElizabethService): 连接服务
+            account (int, optional): 对应账号
+        """
         self.service = service
         self.connection = None
         if account:

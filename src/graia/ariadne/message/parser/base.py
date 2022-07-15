@@ -178,6 +178,11 @@ class ContainKeyword(ChainDecorator):
     """消息中含有指定关键字"""
 
     def __init__(self, keyword: str) -> None:
+        """初始化
+
+        Args:
+            keyword (str): 关键字
+        """
         self.keyword: str = keyword
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
@@ -190,6 +195,11 @@ class MatchContent(ChainDecorator):
     """匹配字符串 / 消息链"""
 
     def __init__(self, content: Union[str, MessageChain]) -> None:
+        """初始化
+
+        Args:
+            content (Union[str, MessageChain]): 匹配内容
+        """
         self.content: Union[str, MessageChain] = content
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
@@ -232,7 +242,14 @@ class MatchRegex(ChainDecorator, BaseDispatcher):
 
 
 class RegexGroup:
+    """正则表达式组的标志, 以 `Annotated[MessageChain, RegexGroup("xxx") 的形式使用"""
+
     def __init__(self, target: Union[int, str]) -> None:
+        """初始化
+
+        Args:
+            target (Union[int, str]): 目标的组名或序号
+        """
         self.target = target
 
     async def __call__(self, _, interface: DispatcherInterface[MessageEvent]):
@@ -256,6 +273,11 @@ class MatchTemplate(ChainDecorator):
     """模板匹配"""
 
     def __init__(self, template: List[Union[Type[Element], Element]]) -> None:
+        """初始化
+
+        Args:
+            template (List[Union[Type[Element], Element]]): 匹配模板
+        """
         self.template: List[Union[Type[Element], Element, str]] = []
         for element in template:
             if isinstance(element, type) and element is not Plain:
@@ -298,6 +320,12 @@ class FuzzyMatch(ChainDecorator):
     """
 
     def __init__(self, template: str, min_rate: float = 0.6) -> None:
+        """初始化
+
+        Args:
+            template (str): 模板字符串
+            min_rate (float): 最小匹配阈值
+        """
         self.template: str = template
         self.min_rate: float = min_rate
 
@@ -329,6 +357,13 @@ class FuzzyDispatcher(BaseDispatcher):
     event_ref: ClassVar["Dict[int, Dict[str, Tuple[str, float]]]"] = {}
 
     def __init__(self, template: str, min_rate: float = 0.6, scope: str = "") -> None:
+        """初始化
+
+        Args:
+            template (str): 模板字符串
+            min_rate (float): 最小匹配阈值
+            scope (str): 作用域
+        """
         self.template: str = template
         self.min_rate: float = min_rate
         self.scope: str = scope

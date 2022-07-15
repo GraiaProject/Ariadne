@@ -42,6 +42,10 @@ class CertainGroup(Certain):
     value: Set[int]
 
     def __init__(self, group: SequenceOrInstance[Union[Group, int]]):
+        """
+        Args:
+            group (SequenceOrInstance[Union[Group, int]]): 一个群/群号的列表/对象
+        """
         group = list(group) if isinstance(group, Sequence) else [group]
         super().__init__({int(g) for g in group}, Group)
 
@@ -55,6 +59,10 @@ class CertainFriend(Certain):
     value: Set[int]
 
     def __init__(self, friend: SequenceOrInstance[Union[Friend, int]]):
+        """
+        Args:
+            friend (SequenceOrInstance[Union[Friend, int]]): 一个好友/好友 QQ 号的列表/对象
+        """
         friend = list(friend) if isinstance(friend, Sequence) else [friend]
         super().__init__({int(f) for f in friend}, Friend)
 
@@ -73,6 +81,11 @@ class CertainMember(Certain):
         member: SequenceOrInstance[Union[Member, int]],
         group: Optional[SequenceOrInstance[Union[Member, int]]] = None,
     ):
+        """
+        Args:
+            member (SequenceOrInstance[Union[Member, int]]): 成员或成员QQ号的列表/对象
+            group (SequenceOrInstance[Union[Group, int]], optional): 如果提供, 则要求群员在传入的群内
+        """
         member = list(member) if isinstance(member, Sequence) else [member]
         super().__init__({int(m) for m in member}, Member)
         self.group = None
@@ -92,6 +105,10 @@ class Quoting(Decorator):
     msg_ids: Set[int]
 
     def __init__(self, message: SequenceOrInstance[Union[int, BotMessage, MessageChain, Source]]):
+        """
+        Args:
+            message (SequenceOrInstance[Union[int, BotMessage, MessageChain, Source]]): 要回复的指定信息
+        """
         if not isinstance(message, Sequence):
             message = [message]
         self.msg_ids = set()

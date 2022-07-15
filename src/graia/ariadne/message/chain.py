@@ -77,7 +77,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         Returns:
             List[Element]: 内部承载有尽量有效的消息元素的列表
         """
-
         # single object
         if isinstance(obj, MessageChain):
             return deepcopy(obj.content)
@@ -605,8 +604,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
         @classmethod
         @deprecated("0.8.0", "Instantiate `MessageChain` directly instead.")
         def create(cls, *elements: Union[Iterable[Element], Element, str]) -> Self:
-            """
-            创建消息链.
+            """创建消息链.
 
             Args:
                 *elements (Union[Iterable[Element], Element, str]): \

@@ -1,3 +1,4 @@
+"""Broadcast Interrupt 相关的工具"""
 import asyncio
 from typing import Awaitable, Callable, Generic, List, Optional, Type, TypeVar, cast
 
@@ -47,6 +48,12 @@ class _ExtendedWaiter(Waiter, Generic[T, T_E]):
         ...
 
     async def wait(self, timeout: Optional[float] = None, default: Optional[T] = None):
+        """等待 Waiter, 如果超时则返回默认值
+
+        Args:
+            timeout (float, optional): 超时时间, 单位为秒
+            default (T, optional): 默认值
+        """
         inc = it(InterruptControl)
         if timeout:
             try:

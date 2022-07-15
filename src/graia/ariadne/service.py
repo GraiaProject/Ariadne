@@ -1,8 +1,10 @@
+"""Ariadne 的 launart 服务相关"""
 import asyncio
 import importlib.metadata
 import json
 from typing import Coroutine, Dict, Iterable, List, Tuple, Type, overload
 
+import creart
 from aiohttp import ClientSession
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.broadcast import Broadcast
@@ -31,6 +33,7 @@ monitored_prefix = ("kayaku", "statv", "launart", "luma", "graia", "avilla")
 
 
 async def check_update(session: ClientSession, name: str, current: str, output: List[str]) -> None:
+    """在线检查更新"""
     result: str = current
     try:
         async with session.get(f"https://mirrors.aliyun.com/pypi/web/json/{name}") as resp:
@@ -51,6 +54,7 @@ async def check_update(session: ClientSession, name: str, current: str, output: 
 
 
 def get_dist_map() -> Dict[str, str]:
+    """获取与项目相关的发行字典"""
     dist_map: Dict[str, str] = {}
     for dist in importlib.metadata.distributions():
         name: str = dist.metadata["Name"]
@@ -61,15 +65,18 @@ def get_dist_map() -> Dict[str, str]:
 
 
 class ElizabethService(Service):
+    """ElizabethService, Ariadne 的直接后端"""
+
     id = "elizabeth.service"
     supported_interface_types = {ConnectionInterface}
     http_interface: AiohttpClientInterface
     connections: Dict[int, ConnectionMixin[U_Info]]
     broadcast: Broadcast
 
-    def __init__(self, broadcast: Broadcast) -> None:
+    def __init__(self) -> None:
+        """初始化 ElizabethService"""
         self.connections = {}
-        self.broadcast = broadcast
+        self.broadcast = creart.it(Broadcast)
 
         if ContextDispatcher not in self.broadcast.prelude_dispatchers:
             self.broadcast.prelude_dispatchers.append(ContextDispatcher)
@@ -80,6 +87,7 @@ class ElizabethService(Service):
 
     @staticmethod
     def base_telemetry() -> None:
+        """执行基础遥测检查"""
         output: List[str] = [""]
         dist_map: Dict[str, str] = get_dist_map()
         output.extend(
@@ -100,6 +108,7 @@ class ElizabethService(Service):
 
     @staticmethod
     async def check_update() -> None:
+        """执行更新检查"""
         output: List[str] = []
         dist_map: Dict[str, str] = get_dist_map()
         async with ClientSession() as session:
@@ -118,23 +127,25 @@ class ElizabethService(Service):
         else:
             logger.opt(colors=True).success("All dependencies up to date!", style="green")
 
-    def add_configs(self, configs: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
-        configs = list(configs)
-        if not configs:
+    def add_infos(self, infos: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
+        """通过传入的 Info 对象创建 Connection"""
+        infos = list(infos)
+        if not infos:
             raise AriadneConfigurationError("No configs provided")
 
-        account: int = configs[0].account
+        account: int = infos[0].account
         if account in self.connections:
             raise AriadneConfigurationError(f"Account {account} already exists")
-        if len({i.account for i in configs}) != 1:
+        if len({i.account for i in infos}) != 1:
             raise AriadneConfigurationError("All configs must be for the same account")
 
-        configs.sort(key=lambda x: isinstance(x, HttpClientInfo))
+        infos.sort(key=lambda x: isinstance(x, HttpClientInfo))
         # make sure the http client is the last one
-        conns: List[ConnectionMixin] = [self.add_info(conf) for conf in configs]
+        conns: List[ConnectionMixin] = [self.add_info(conf) for conf in infos]
         return conns, account
 
     def add_info(self, config: U_Info) -> ConnectionMixin:
+        """添加单个 Info"""
         account: int = config.account
         connection = CONFIG_MAP[config.__class__](config)
         if account not in self.connections:
@@ -151,6 +162,7 @@ class ElizabethService(Service):
         return connection
 
     async def launch(self, mgr: Launart):
+        """Launart 启动点"""
         from .app import Ariadne
         from .context import enter_context
         from .event.lifecycle import (
@@ -173,7 +185,7 @@ class ElizabethService(Service):
                 with enter_context(app=app):
                     self.broadcast.postEvent(ApplicationLaunched(app))
             for conn in self.connections.values():
-                app = Ariadne.current(conn.config.account)
+                app = Ariadne.current(conn.info.account)
                 with enter_context(app=app):
                     self.broadcast.postEvent(AccountLaunch(app))
 
@@ -185,7 +197,7 @@ class ElizabethService(Service):
                     await self.broadcast.postEvent(ApplicationShutdowned(app))
             for conn in self.connections.values():
                 if conn.status.available:
-                    app = Ariadne.current(conn.config.account)
+                    app = Ariadne.current(conn.info.account)
                     with enter_context(app=app):
                         await self.broadcast.postEvent(AccountShutdown(app))
 
@@ -205,6 +217,11 @@ class ElizabethService(Service):
 
     @property
     def client_session(self) -> ClientSession:
+        """获取 aiohttp 的 ClientSession
+
+        Returns:
+            ClientSession: ClientSession 对象
+        """
         return self.http_interface.service.session
 
     @property
@@ -221,6 +238,11 @@ class ElizabethService(Service):
 
     @property
     def loop(self) -> asyncio.AbstractEventLoop:
+        """获取绑定的事件循环
+
+        Returns:
+            asyncio.AbstractEventLoop: 事件循环
+        """
         return self.broadcast.loop
 
     @overload

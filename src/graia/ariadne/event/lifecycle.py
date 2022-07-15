@@ -12,9 +12,7 @@ if typing.TYPE_CHECKING:
 
 
 class ApplicationLifecycleEvent(Dispatchable):
-    """
-    指示有关应用 (Ariadne) 的事件.
-    """
+    """指示有关应用 (Ariadne) 的事件."""
 
     app: "Ariadne"
 
@@ -33,24 +31,16 @@ class ApplicationLifecycleEvent(Dispatchable):
 
 
 class ApplicationLaunched(ApplicationLifecycleEvent):
-    """
-    指示 Ariadne 启动.
-    """
+    """指示 Ariadne 启动."""
 
 
 class ApplicationShutdowned(ApplicationLifecycleEvent):
-    """
-    指示 Ariadne 关闭.
-    """
+    """指示 Ariadne 关闭."""
 
 
 class AccountLaunch(ApplicationLifecycleEvent):
-    """
-    指示账号的链接已启动.
-    """
+    """指示账号的链接已启动."""
 
 
 class AccountShutdown(ApplicationLifecycleEvent):
-    """
-    指示账号的链接关闭.
-    """
+    """指示账号的链接关闭."""

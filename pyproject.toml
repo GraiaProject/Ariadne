@@ -73,7 +73,6 @@ fastapi = { version = ">=0.74.1, <1.0.0" }
 uvicorn = { extras = ["standard"], version = "^0.17.5" }
 viztracer = "^0.15.3"
 pydocstyle = "^6.1.1"
-flake8-docstrings = "^1.6.0"
 
 [tool.poetry.plugins."creart.creators"]
 commander = "graia.ariadne.message.commander.creart:CommanderCreator"

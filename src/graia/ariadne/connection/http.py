@@ -32,13 +32,13 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
 
     def __init__(self, config: HttpServerInfo) -> None:
         super().__init__(config)
-        self.handlers[HttpEndpoint(self.config.path, ["POST"])] = self.__class__.handle_request
+        self.handlers[HttpEndpoint(self.info.path, ["POST"])] = self.__class__.handle_request
 
     async def handle_request(self, io: AbstractServerRequestIO):
         req: HttpRequest = await io.extra(HttpRequest)
-        if req.headers.get("qq") != str(self.config.account):
+        if req.headers.get("qq") != str(self.info.account):
             return
-        for k, v in self.config.headers:
+        for k, v in self.info.headers:
             if req.headers.get(k) != v:
                 return "Authorization failed", {"status": 401}
         data = Json.deserialize((await io.read()).decode("utf-8"))
@@ -87,14 +87,14 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
     async def http_auth(self) -> None:
         data = await self.request(
             "POST",
-            self.config.get_url("verify"),
-            json={"verifyKey": self.config.verify_key},
+            self.info.get_url("verify"),
+            json={"verifyKey": self.info.verify_key},
         )
         session_key = data["session"]
         await self.request(
             "POST",
-            self.config.get_url("bind"),
-            json={"qq": self.config.account, "sessionKey": session_key},
+            self.info.get_url("bind"),
+            json={"qq": self.info.account, "sessionKey": session_key},
         )
         self.status.session_key = session_key
 
@@ -107,11 +107,11 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
             await self.http_auth()
         try:
             if method in (CallMethod.GET, CallMethod.RESTGET):
-                return await self.request("GET", self.config.get_url(command), params=params)
+                return await self.request("GET", self.info.get_url(command), params=params)
             elif method in (CallMethod.POST, CallMethod.RESTPOST):
-                return await self.request("POST", self.config.get_url(command), json=params)
+                return await self.request("POST", self.info.get_url(command), json=params)
             elif method == CallMethod.MULTIPART:
-                return await self.request("POST", self.config.get_url(command), data=params)
+                return await self.request("POST", self.info.get_url(command), data=params)
         except InvalidSession:
             self.status.session_key = None
             raise
@@ -132,7 +132,7 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
                         await self.http_auth()
                     data = await self.request(
                         "GET",
-                        self.config.get_url("fetchMessage"),
+                        self.info.get_url("fetchMessage"),
                         {"sessionKey": self.status.session_key, "count": 10},
                     )
                     self.status.alive = True

@@ -1,3 +1,4 @@
+"""用于 Ariadne 数据模型的工具类."""
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Literal, Union
 
@@ -11,11 +12,10 @@ if TYPE_CHECKING:
 
 
 class AriadneBaseModel(BaseModel):
-    """
-    Ariadne 一切数据模型的基类.
-    """
+    """Ariadne 一切数据模型的基类."""
 
     def __init__(self, **data: Any) -> None:
+        """初始化模型. 直接向 pydantic 转发."""
         super().__init__(**data)
 
     def dict(
@@ -30,6 +30,7 @@ class AriadneBaseModel(BaseModel):
         exclude_none: bool = False,
         to_camel: bool = False,
     ) -> "DictStrAny":
+        """转化为字典, 直接向 pydantic 转发."""
         _, *_ = by_alias, exclude_none, skip_defaults
         data = super().dict(
             include=include,  # type: ignore
@@ -55,6 +56,8 @@ class AriadneBaseModel(BaseModel):
 
 
 class AriadneOptions(TypedDict):
+    """Ariadne 内部的选项存储"""
+
     installed_log: NotRequired[Literal[True]]
     inject_bypass_listener: NotRequired[Literal[True]]
     default_account: NotRequired[int]

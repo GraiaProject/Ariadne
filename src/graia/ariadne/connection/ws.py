@@ -121,7 +121,7 @@ class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
 
     def __init__(self, config: WebsocketServerInfo) -> None:
         ConnectionMixin.__init__(self, config)
-        self.declares.append(WebsocketEndpoint(self.config.path))
+        self.declares.append(WebsocketEndpoint(self.info.path))
         self.futures = WeakValueDictionary()
 
     async def launch(self, mgr: Launart) -> None:
@@ -131,10 +131,10 @@ class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
     @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:
         req: HttpRequest = await io.extra(HttpRequest)
-        for k, v in self.config.headers:
+        for k, v in self.info.headers:
             if req.headers.get(k) != v:
                 return await io.extra(WSConnectionClose)
-        for k, v in self.config.params:
+        for k, v in self.info.params:
             if req.query_params.get(k) != v:
                 return await io.extra(WSConnectionClose)
         await io.extra(WSConnectionAccept)
@@ -144,9 +144,9 @@ class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
                 "syncId": "#",
                 "command": "verify",
                 "content": {
-                    "verifyKey": self.config.verify_key,
+                    "verifyKey": self.info.verify_key,
                     "sessionKey": None,
-                    "qq": self.config.account,
+                    "qq": self.info.account,
                 },
             }
         )
@@ -173,7 +173,7 @@ class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
 
     async def launch(self, mgr: Launart) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)
-        config = self.config
+        config = self.info
         async with self.stage("blocking"):
             rider = self.http_interface.websocket(
                 str(

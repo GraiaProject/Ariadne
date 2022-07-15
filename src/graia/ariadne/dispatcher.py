@@ -70,9 +70,7 @@ class SourceDispatcher(AbstractDispatcher):
 
 
 class SenderDispatcher(AbstractDispatcher):
-    """
-    从 MessageEvent 提取 sender 的 Dispatcher.
-    """
+    """从 MessageEvent 提取 sender 的 Dispatcher."""
 
     @staticmethod
     async def catch(interface: DispatcherInterface):

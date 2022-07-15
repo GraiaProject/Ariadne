@@ -19,21 +19,15 @@ from . import MiraiEvent
 
 
 class BotEvent(MiraiEvent):
-    """
-    指示有关 Bot 本身的事件.
-    """
+    """指示有关 Bot 本身的事件."""
 
 
 class FriendEvent(MiraiEvent):
-    """
-    指示有关好友的事件.
-    """
+    """指示有关好友的事件"""
 
 
 class GroupEvent(MiraiEvent):
-    """
-    指示有关群组的事件.
-    """
+    """指示有关群组的事件."""
 
 
 class BotOnlineEvent(BotEvent):
@@ -1029,9 +1023,7 @@ class MemberHonorChangeEvent(GroupEvent):
 
 
 class RequestEvent(MiraiEvent):
-    """
-    各种申请事件的基类.
-    """
+    """各种申请事件的基类."""
 
     type: str
 
@@ -1050,9 +1042,7 @@ class RequestEvent(MiraiEvent):
     """申请消息"""
 
     async def _operate(self, operation: int, msg: str = "") -> None:
-        """
-        内部接口, 用于内部便捷发送相应操作.
-        """
+        """内部接口, 用于内部便捷发送相应操作."""
         from ..app import Ariadne
 
         api_route = self.type[0].lower() + self.type[1:]

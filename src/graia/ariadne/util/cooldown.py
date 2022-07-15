@@ -145,7 +145,7 @@ class CoolDown(BaseDispatcher):
     ) -> AsyncGenerator[Tuple[Union[T_Time, datetime, None], bool], None]:
         try:
             yield await self.get(target, type)
-        except:  # noqa
-            raise
+        except Exception as e:
+            raise e
         else:
             await self.set(target)

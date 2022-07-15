@@ -386,11 +386,27 @@ class ArgumentMatch(Match, Generic[T]):
             self.arg_data["type"] = MessageChainType()
 
     def param(self, target: Union[int, str]) -> Self:
+        """标注分派位置
+
+        Args:
+            target (Union[int, str]): 分派位置
+
+        Returns:
+            Self: 返回自身
+        """
         self.arg_data["dest"] = target if isinstance(target, str) else f"_#!{target}!#_"
         super().param(target)
         return self
 
     def help(self, value: str) -> Self:
+        """设置帮助值
+
+        Args:
+            value (str): 帮助字符串
+
+        Returns:
+            Self: 返回自身
+        """
         self.arg_data["help"] = value
         super().help(value)
         return self
@@ -418,8 +434,10 @@ class ElementResult(MatchResult[Element, ElementMatch]):
 
 
 class ForceResult(MatchResult[T, Match]):
+    """声明匹配结果一定存在/可通过 matched 判别"""
+
     result: T
-    matched: Literal[True]
+    matched: bool
     ...
 
 
@@ -566,7 +584,6 @@ class TwilightMatcher:
         Returns:
             str: 生成的帮助字符串, 被格式化与缩进过了
         """
-
         formatter = formatter_class(prog="")
 
         if usage:
@@ -845,10 +862,20 @@ class Help(Decorator, Generic[T]):
 
     @overload
     def __init__(self) -> None:
+        """
+        Args:
+            formatter (Callable[[str, DecoratorInterface], Union[Awaitable[T], T]], optional): \
+                帮助信息格式化函数.
+        """
         ...
 
     @overload
     def __init__(self, formatter: Callable[[str, DecoratorInterface], Union[Awaitable[T], T]]) -> None:
+        """
+        Args:
+            formatter (Callable[[str, DecoratorInterface], Union[Awaitable[T], T]], optional): \
+                帮助信息格式化函数.
+        """
         ...
 
     def __init__(

@@ -1,5 +1,4 @@
-"""本模块提供 Ariadne 内部使用的小工具, 以及方便的 `async_exec` 模块.
-"""
+"""本模块提供 Ariadne 内部使用的小工具, 以及方便的辅助模块."""
 
 import contextlib
 
@@ -151,6 +150,8 @@ def loguru_exc_callback_async(loop, context: dict):
 
 
 class RichLogInstallOptions(NamedTuple):
+    """安装 Rich log 的选项"""
+
     rich_console: Optional["Console"] = None
     exc_hook: Union[ExceptionHook, None] = loguru_exc_callback
     rich_traceback: bool = False
@@ -276,7 +277,6 @@ def deprecated(remove_ver: str, suggestion: Optional[str] = None) -> Wrapper:
     Returns:
         Callable[[T_Callable], T_Callable]: 包装器.
     """
-
     __warning_info: MutableSet[Tuple[str, int]] = set()
 
     def out_wrapper(func: Callable[P, R]) -> Callable[P, R]:
@@ -333,6 +333,7 @@ class Dummy:
 
 
 def get_cls(obj) -> Optional[type]:
+    """获取一个对象的类型，支持 GenericAlias"""
     if cls := typing.get_origin(obj):
         return cls
     if isinstance(obj, type):
@@ -345,6 +346,7 @@ __SAFE_MODULES__: List[str] = ["graia", "launart", "statv", "pydantic", "aiohttp
 
 
 def internal_cls(alt: Optional[Callable] = None) -> Callable[[_T_cls], _T_cls]:
+    """将一个类型包装为内部类, 可通过 __SAFE_MODULES__ 定制."""
     if alt:
         hint = f"Use {alt.__module__}.{alt.__qualname__}!"
     else:
@@ -373,6 +375,7 @@ def internal_cls(alt: Optional[Callable] = None) -> Callable[[_T_cls], _T_cls]:
 
 
 def camel_to_snake(name: str) -> str:
+    """将 camelCase 字符串转换为 snake_case 字符串"""
     if "_" in name:
         return name
     import re
@@ -384,6 +387,7 @@ def camel_to_snake(name: str) -> str:
 
 
 def snake_to_camel(name: str, capital: bool = False) -> str:
+    """将 snake_case 字符串转换为 camelCase 字符串"""
     name = "".join(seg.capitalize() for seg in name.split("_"))
     if not capital:
         name = name[0].lower() + name[1:]
@@ -391,6 +395,8 @@ def snake_to_camel(name: str, capital: bool = False) -> str:
 
 
 class AttrConvertMixin:
+    """用于支持不同属性拼写的 mixin"""
+
     __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
 
     if not TYPE_CHECKING:  # Runtime Only

@@ -175,9 +175,7 @@ FileInfo.update_forward_refs(FileInfo=FileInfo)
 
 @internal_cls()
 class Profile(AriadneBaseModel):
-    """
-    指示某个用户的个人资料
-    """
+    """指示某个用户的个人资料"""
 
     nickname: str
     """昵称"""
@@ -199,9 +197,7 @@ class Profile(AriadneBaseModel):
 
 
 class BotMessage(AriadneBaseModel):
-    """
-    指示 Bot 发出的消息.
-    """
+    """指示 Bot 发出的消息."""
 
     messageId: int
     """消息 ID"""

@@ -83,25 +83,12 @@ markdown_extensions:
   - pymdownx.smartsymbols # 符号转换
   - pymdownx.superfences # 代码嵌套在列表里
   - pymdownx.keys
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
   - codehilite: # 代码高亮, 显示行号
       guess_lang: false
       linenums: true
   - toc: # 锚点
       permalink: 🔗
   - pymdownx.arithmatex # 数学公式
-  - pymdownx.betterem: # 对加粗和斜体更好的检测
-      smart_enable: all
-  - pymdownx.magiclink: # 自动识别超链接
-      repo_url_shorthand: true
-      user: "GraiaProject"
-      repo: "Ariadne"
-      social_url_shorthand: true
-      repo_url_shortener: true
   - pymdownx.tasklist: # 复选框checklist
       custom_checkbox: true
   - pymdownx.tabbed:

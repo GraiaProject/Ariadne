@@ -1,5 +1,7 @@
 """Ariadne 控制台
-注意, 本实现并不 robust, 但是可以使用"""
+
+注意, 本实现并不 robust, 但是可以使用
+"""
 
 import contextlib
 import importlib.metadata
@@ -27,7 +29,9 @@ from ..util import resolve_dispatchers_mixin
 
 class Console:
     """Ariadne 的控制台, 可以脱离 Ariadne 实例运行
-    警告: 本实现无法确保稳定性"""
+
+    警告: 本实现无法确保稳定性
+    """
 
     def __init__(
         self,

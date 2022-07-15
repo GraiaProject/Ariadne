@@ -1,5 +1,4 @@
-"""Ariadne 实例
-"""
+"""Ariadne 实例"""
 
 import asyncio
 import base64
@@ -78,6 +77,8 @@ if TYPE_CHECKING:
 
 
 class Ariadne(AttrConvertMixin):
+    """Ariadne, 一个优雅且协议完备的 Python QQ Bot 框架."""
+
     options: ClassVar[AriadneOptions] = {}
     service: ClassVar[ElizabethService]
     launch_manager: ClassVar[Launart]
@@ -91,21 +92,29 @@ class Ariadne(AttrConvertMixin):
     @classmethod
     @property
     def broadcast(cls) -> Broadcast:
+        """获取 Ariadne 的事件系统.
+
+        Returns:
+            Broadcast: 事件系统
+        """
         return cls.service.broadcast
 
     @classmethod
     @property
     def default_account(cls) -> int:
+        """获取默认账号.
+
+        Returns:
+            int: 默认账号
+        """
         if "default_account" in Ariadne.options:
             return Ariadne.options["default_account"]
         raise ValueError("No default account configured")
 
     @classmethod
     def _ensure_config(cls):
-        import creart
-
         if not hasattr(cls, "service"):
-            cls.service = ElizabethService(creart.it(Broadcast))
+            cls.service = ElizabethService()
         if not hasattr(cls, "launch_manager"):
             cls.launch_manager = Launart()
         if "install_log" not in cls.options:
@@ -126,6 +135,7 @@ class Ariadne(AttrConvertMixin):
         inject_bypass_listener: bool = False,
     ) -> None:
         """配置 Ariadne 全局参数, 未提供的值会自动生成合理的默认值
+
         注：请在实例化 Ariadne 前配置完成
 
         Args:
@@ -134,7 +144,6 @@ class Ariadne(AttrConvertMixin):
             install_log (Union[bool, RichLogInstallOptions], optional): 是否安装 rich 日志, 默认为 False
             inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
         """
-
         if loop or broadcast:
             logger.warning("Passing `loop` or `broadcast` is deprecated!")
             logger.warning("Use `creart.create` instead.")
@@ -173,7 +182,8 @@ class Ariadne(AttrConvertMixin):
         connection: Iterable[U_Info] = (),
         log_config: Optional[LogConfig] = None,
     ) -> None:
-        """针对单个账号配置 Ariadne 实例.
+        """针对单个账号初始化 Ariadne 实例.
+
         若需全局配置, 请使用 `Ariadne.config()`
 
         Args:
@@ -187,7 +197,7 @@ class Ariadne(AttrConvertMixin):
         from .util.send import Strict
 
         self.default_send_action = Strict
-        conns, account = Ariadne.service.add_configs(connection)
+        conns, account = Ariadne.service.add_infos(connection)
         for conn in conns:
             Ariadne.launch_manager.add_launchable(conn)
         if account in Ariadne.instances:
@@ -243,11 +253,13 @@ class Ariadne(AttrConvertMixin):
 
     @classmethod
     def launch_blocking(cls):
+        """以阻塞方式启动 Ariadne"""
         cls._patch_launch_manager()
         cls.launch_manager.launch_blocking(loop=cls.service.loop)
 
     @classmethod
     def stop(cls):
+        """计划停止 Ariadne"""
         mgr = cls.launch_manager
         mgr.status.exiting = True
         if mgr.taskgroup is not None:
@@ -273,6 +285,11 @@ class Ariadne(AttrConvertMixin):
 
     @classmethod
     def current(cls, account: Optional[int] = None) -> "Ariadne":
+        """获取 Ariadne 的当前实例.
+
+        Returns:
+            Ariadne: 当前实例.
+        """
         if account:
             assert account in Ariadne.service.connections, f"{account} is not configured"
             return Ariadne.instances[account]
@@ -551,18 +568,19 @@ class Ariadne(AttrConvertMixin):
         name: str = "",
     ) -> "FileInfo":
         """
-        上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型,
+        上传文件到指定目标, 需要提供: 文件的原始数据(bytes), 文件的上传类型, \
         上传目标, (可选)上传目录ID.
+
         Args:
             data (Union[bytes, io.IOBase, os.PathLike]): 文件的原始数据
             method (str | UploadMethod, optional): 文件的上传类型
             target (Union[Friend, Group, int]): 文件上传目标, 即群组
             path (str): 目标路径, 默认为根路径.
             name (str): 文件名, 可选, 若 path 存在斜杠可从 path 推断.
+
         Returns:
             FileInfo: 文件信息
         """
-
         method = str(method or UploadMethod[target.__class__.__name__]).lower()
 
         if method != "group":
@@ -594,6 +612,7 @@ class Ariadne(AttrConvertMixin):
         self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
+
         Args:
             data (Union[bytes, io.IOBase, os.PathLike]): 图片的原始数据
             method (str | UploadMethod, optional): 图片的上传类型, 可从上下文推断
@@ -624,6 +643,7 @@ class Ariadne(AttrConvertMixin):
         self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Voice":
         """上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
+
         Args:
             data (Union[bytes, io.IOBase, os.PathLike]): 语音的原始数据
             method (str | UploadMethod, optional): 语音的上传类型, 可从上下文推断
@@ -695,7 +715,6 @@ class Ariadne(AttrConvertMixin):
         Returns:
             List[Announcement]: 列出群组下所有的公告.
         """
-
         result = await self.connection.call(
             "anno_list",
             CallMethod.GET,
@@ -741,7 +760,6 @@ class Ariadne(AttrConvertMixin):
         Returns:
             None: 没有返回.
         """
-
         data: Dict[str, Any] = {
             "target": int(target),
             "content": content,
@@ -781,7 +799,6 @@ class Ariadne(AttrConvertMixin):
         Raises:
             TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
         """
-
         await self.connection.call(
             "anno_delete",
             CallMethod.POST,
@@ -802,7 +819,6 @@ class Ariadne(AttrConvertMixin):
         Returns:
             None: 没有返回.
         """
-
         friend_id = target.id if isinstance(target, Friend) else target
 
         await self.connection.call(
@@ -816,7 +832,7 @@ class Ariadne(AttrConvertMixin):
     @ariadne_api
     async def mute_member(self, group: Union[Group, int], member: Union[Member, int], time: int) -> None:
         """
-        在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
+        在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正; \
         当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
 
         Args:
@@ -951,6 +967,7 @@ class Ariadne(AttrConvertMixin):
     async def set_essence(self, target: Union[Source, BotMessage, int]) -> None:
         """
         添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
+
         请自行判断消息来源是否为群组.
 
         Args:
@@ -1147,10 +1164,30 @@ class Ariadne(AttrConvertMixin):
 
     @overload
     async def get_friend(self, friend_id: int, assertion: Literal[False] = False) -> Optional[Friend]:
+        """从已知的可能的好友 ID, 获取 Friend 实例.
+
+        Args:
+            friend_id (int): 已知的可能的好友 ID.
+            assertion (bool, optional): 检查是否存在. Defaults to False.
+
+        Returns:
+            Friend: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
         ...
 
     @overload
     async def get_friend(self, friend_id: int, assertion: Literal[True]) -> Friend:
+        """从已知的可能的好友 ID, 获取 Friend 实例.
+
+        Args:
+            friend_id (int): 已知的可能的好友 ID.
+            assertion (bool, optional): 检查是否存在. Defaults to False.
+
+        Returns:
+            Friend: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
         ...
 
     @ariadne_api
@@ -1159,6 +1196,7 @@ class Ariadne(AttrConvertMixin):
 
         Args:
             friend_id (int): 已知的可能的好友 ID.
+            assertion (bool, optional): 检查是否存在. Defaults to False.
 
         Returns:
             Friend: 操作成功, 你得到了你应得的.
@@ -1187,10 +1225,30 @@ class Ariadne(AttrConvertMixin):
 
     @overload
     async def get_group(self, group_id: int, assertion: Literal[False] = False) -> Optional[Group]:
+        """尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
+
+        Args:
+            group_id (int): 尝试获取的群组的唯一 ID.
+            assertion (bool, optional): 是否强制验证. Defaults to False.
+
+        Returns:
+            Group: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
         ...
 
     @overload
     async def get_group(self, group_id: int, assertion: Literal[True]) -> Group:
+        """尝试从已知的群组唯一ID, 获取对应群组的信息; 可能返回 None.
+
+        Args:
+            group_id (int): 尝试获取的群组的唯一 ID.
+            assertion (bool, optional): 是否强制验证. Defaults to False.
+
+        Returns:
+            Group: 操作成功, 你得到了你应得的.
+            None: 未能获取到.
+        """
         ...
 
     @ariadne_api
@@ -1520,6 +1578,23 @@ class Ariadne(AttrConvertMixin):
         quote: Union[bool, int, Source, MessageChain] = False,
         action: SendMessageActionProtocol["T"],
     ) -> "T":
+        """
+        依据传入的 `target` 自动发送消息.
+
+        请注意发送给群成员时会自动作为临时消息发送.
+
+        Args:
+            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
+            message (Union[MessageChain, List[Union[Element, str]], str]): 要发送的消息链.
+            quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息, \
+            否则会视为 `messageId` 处理.
+            action (SendMessageCaller[T], optional): 消息发送的处理 action, \
+            可以在 graia.ariadne.util.send 查看自带的 action, \
+            未传入使用默认 action
+
+        Returns:
+            Union[T, R]: 默认实现为 BotMessage
+        """
         ...
 
     @overload
@@ -1531,6 +1606,23 @@ class Ariadne(AttrConvertMixin):
         quote: Union[bool, int, Source, MessageChain] = False,
         action: Literal[Sentinel] = Sentinel,
     ) -> BotMessage:
+        """
+        依据传入的 `target` 自动发送消息.
+
+        请注意发送给群成员时会自动作为临时消息发送.
+
+        Args:
+            target (Union[MessageEvent, Group, Friend, Member]): 消息发送目标.
+            message (Union[MessageChain, List[Union[Element, str]], str]): 要发送的消息链.
+            quote (Union[bool, int, Source]): 若为布尔类型, 则会尝试通过传入对象解析要回复的消息, \
+            否则会视为 `messageId` 处理.
+            action (SendMessageCaller[T], optional): 消息发送的处理 action, \
+            可以在 graia.ariadne.util.send 查看自带的 action, \
+            未传入使用默认 action
+
+        Returns:
+            Union[T, R]: 默认实现为 BotMessage
+        """
         ...
 
     @ariadne_api
@@ -1544,6 +1636,7 @@ class Ariadne(AttrConvertMixin):
     ) -> "T":
         """
         依据传入的 `target` 自动发送消息.
+
         请注意发送给群成员时会自动作为临时消息发送.
 
         Args:
@@ -1637,7 +1730,6 @@ class Ariadne(AttrConvertMixin):
         Returns:
             None: 没有返回.
         """
-
         if isinstance(target, BotMessage):
             target = target.messageId
         elif isinstance(target, Source):

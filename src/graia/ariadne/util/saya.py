@@ -1,3 +1,4 @@
+"""Saya 相关的工具"""
 from __future__ import annotations
 
 import inspect
@@ -90,6 +91,15 @@ def decorate(map: Dict[str, Decorator], /) -> Wrapper:
 
 
 def decorate(*args) -> Wrapper:
+    """给指定参数名称附加装饰器
+
+    Args:
+        name (str | Dict[str, Decorator]): 参数名称或与装饰器的映射
+        decorator (Decorator): 装饰器
+
+    Returns:
+        Callable[[T_Callable], T_Callable]: 装饰器
+    """
     arg: Union[Dict[str, Decorator], List[Decorator]]
     if isinstance(args[0], str):
         name: str = args[0]

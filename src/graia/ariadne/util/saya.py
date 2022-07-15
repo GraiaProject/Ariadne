@@ -110,6 +110,7 @@ def decorate(*args) -> Wrapper:
             for param in sig.parameters.values():
                 if param.name in arg:
                     setattr(param, "_default", arg[param.name])
+            func.__signature__ = sig
         return func
 
     return wrapper

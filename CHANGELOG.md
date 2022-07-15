@@ -20,6 +20,8 @@
 
 修复了 `WebsocketServerConnection` 不会自动注入服务器依赖的问题.
 
+修复了 `Saya util`.
+
 ## 0.7.15
 
 ### 新增

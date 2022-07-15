@@ -38,6 +38,7 @@ from ..message.parser.base import MatchRegex as MatchRegex
 from ..message.parser.base import MatchTemplate as MatchTemplate
 from ..message.parser.base import Mention as Mention
 from ..message.parser.base import MentionMe as MentionMe
+from ..message.parser.base import RegexGroup as RegexGroup
 from ..message.parser.twilight import FORCE as FORCE
 from ..message.parser.twilight import NOSPACE as NOSPACE
 from ..message.parser.twilight import PRESERVE as PRESERVE

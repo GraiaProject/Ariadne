@@ -24,7 +24,7 @@ from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ...app import Ariadne
-from ...event.message import GroupMessage
+from ...event.message import GroupMessage, MessageEvent
 from ...typing import generic_issubclass
 from ...util import deprecated
 from ..chain import MessageChain
@@ -200,7 +200,7 @@ class MatchContent(ChainDecorator):
         return chain
 
 
-class MatchRegex(ChainDecorator):
+class MatchRegex(ChainDecorator, BaseDispatcher):
     """匹配正则表达式"""
 
     def __init__(self, regex: str, flags: re.RegexFlag = re.RegexFlag(0)) -> None:
@@ -217,6 +217,39 @@ class MatchRegex(ChainDecorator):
         if not re.match(self.regex, str(chain), self.flags):
             raise ExecutionStop
         return chain
+
+    async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
+        _mapping_str, _map = interface.event.message_chain._to_mapping_str()
+        if res := re.fullmatch(self.regex, _mapping_str, self.flags):
+            interface.local_storage["__parser_regex_match_obj__"] = res
+            interface.local_storage["__parser_regex_match_map__"] = _map
+        else:
+            raise ExecutionStop
+
+    async def catch(self, interface: DispatcherInterface[MessageEvent]):
+        if interface.annotation is re.Match:
+            return interface.local_storage["__parser_regex_match_obj__"]
+
+
+class RegexGroup:
+    def __init__(self, target: Union[int, str]) -> None:
+        self.target = target
+
+    async def __call__(self, _, interface: DispatcherInterface[MessageEvent]):
+        _res: re.Match = interface.local_storage["__parser_regex_match_obj__"]
+        match_group: Tuple[str] = _res.groups()
+        match_group_dict: Dict[str, str] = _res.groupdict()
+        origin: Optional[str] = None
+        if isinstance(self.target, str) and self.target in match_group_dict:
+            origin = match_group_dict[self.target]
+        elif isinstance(self.target, int) and self.target < len(match_group):
+            origin = match_group[self.target]
+
+        return (
+            MessageChain._from_mapping_string(origin, interface.local_storage["__parser_regex_match_map__"])
+            if origin is not None
+            else None
+        )
 
 
 class MatchTemplate(ChainDecorator):

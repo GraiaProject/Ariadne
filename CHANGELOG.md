@@ -16,6 +16,8 @@
 
 添加 `AnnotationWaiter`.
 
+可以在 `MatchRegex` 和 `Twilight` 中使用 `RegexGroup` 来提取正则表达式中的组.
+
 ### 修复
 
 修复了 `WebsocketServerConnection` 不会自动注入服务器依赖的问题.

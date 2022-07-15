@@ -17,6 +17,7 @@ from typing import (
     List,
     Literal,
     Optional,
+    Tuple,
     Type,
     TypedDict,
     TypeVar,
@@ -386,11 +387,13 @@ class ArgumentMatch(Match, Generic[T]):
 
     def param(self, target: Union[int, str]) -> Self:
         self.arg_data["dest"] = target if isinstance(target, str) else f"_#!{target}!#_"
-        return super().param(target)
+        super().param(target)
+        return self
 
     def help(self, value: str) -> Self:
         self.arg_data["help"] = value
-        return super().help(value)
+        super().help(value)
+        return self
 
     def __repr_args__(self):
         return [(None, self.pattern)]
@@ -505,7 +508,7 @@ class TwilightMatcher:
 
     def match(
         self, arguments: List[str], elem_mapping: Dict[str, Element]
-    ) -> Dict[Union[int, str], MatchResult]:
+    ) -> Tuple[Dict[Union[int, str], MatchResult], re.Match]:
         """匹配参数
         Args:
             arguments (List[str]): 参数列表
@@ -539,7 +542,7 @@ class TwilightMatcher:
                     result[match.dest] = MatchResult(bool(res), match, res)
                 else:
                     result[match.dest] = MatchResult(group is not None, match, res)
-        return result
+        return result, total_match
 
     def get_help(
         self,
@@ -638,7 +641,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
     def __repr__(self) -> str:
         return f"<Twilight: {self.matcher}>"
 
-    def generate(self, chain: MessageChain) -> T_Sparkle:
+    def generate(self, chain: MessageChain, storage: Optional[Dict[str, Any]] = None) -> T_Sparkle:
         """从消息链生成 Sparkle 实例.
 
         Args:
@@ -650,7 +653,10 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         mapping_str, elem_mapping = chain._to_mapping_str(**self.map_param)
         token = elem_mapping_ctx.set(elem_mapping)
         arguments: List[str] = split(mapping_str, keep_quote=True)
-        res = self.matcher.match(arguments, elem_mapping)
+        res, match = self.matcher.match(arguments, elem_mapping)
+        if storage:
+            storage["__parser_regex_match_obj__"] = match
+            storage["__parser_regex_match_map__"] = elem_mapping
         elem_mapping_ctx.reset(token)
         return cast(T_Sparkle, Sparkle(res))
 
@@ -782,7 +788,7 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         else:
             chain = await interface.lookup_param("message_chain", MessageChain, None)
         with contextlib.suppress(Exception):
-            local_storage[f"{__name__}:result"] = self.generate(chain)
+            local_storage[f"{__name__}:result"] = self.generate(chain, local_storage)
             local_storage[f"{__name__}:twilight"] = self
             return
         interface.stop()

@@ -12,6 +12,7 @@ from graia.saya.context import channel_instance
 from loguru import logger
 
 from graia.ariadne.entry import *
+from graia.ariadne.message.parser.base import RegexGroup
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
@@ -185,6 +186,13 @@ if __name__ == "__main__":
     )
     async def stop(app: Ariadne):
         app.stop()
+
+    @bcc.receiver(
+        FriendMessage,
+        dispatchers=[MatchRegex("[./]regex (?P<args>.+)")],
+    )
+    async def regex(app: Ariadne, chain: Annotated[MessageChain, RegexGroup("args")]):
+        await app.send_friend_message(target, chain)
 
     @bcc.receiver(ApplicationLaunched)
     async def m(app: Ariadne):

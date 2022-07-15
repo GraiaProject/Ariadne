@@ -3,6 +3,7 @@ from typing import (
     Any,
     Awaitable,
     Callable,
+    ClassVar,
     Dict,
     Generic,
     List,
@@ -72,7 +73,7 @@ class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
 class ConnectionMixin(Launchable, Generic[T_Info]):
     status: ConnectionStatus
     config: T_Info
-    dependencies: Set[str]
+    dependencies: ClassVar[Set[str]]
 
     fallback: Optional["HttpClientConnection"]
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]

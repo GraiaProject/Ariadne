@@ -16,6 +16,10 @@
 
 添加 `AnnotationWaiter`.
 
+### 修复
+
+修复了 `WebsocketServerConnection` 不会自动注入服务器依赖的问题.
+
 ## 0.7.15
 
 ### 新增

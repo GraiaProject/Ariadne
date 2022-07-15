@@ -29,13 +29,13 @@ ARIADNE_ASCII_LOGO = r"""
 
 
 async def check_update(session: ClientSession, name: str, current: str, output: List[str]) -> None:
+    result: str = current
     try:
         async with session.get(f"https://mirrors.aliyun.com/pypi/web/json/{name}") as resp:
             data = await resp.text()
             result: str = json.loads(data)["info"]["version"]
     except Exception as e:
         logger.warning(f"Failed to retrieve latest version of {name}: {e}")
-        result: str = current
     if result > current:
         output.append(
             " ".join(
@@ -203,7 +203,11 @@ class ElizabethService(Service):
 
     @property
     def required(self):
-        return {"http.universal_client"} | {conn.id for conn in self.connections.values()}
+        dependencies = {"http.universal_client"}
+        for conn in self.connections.values():
+            dependencies |= conn.dependencies
+            dependencies.add(conn.id)
+        return dependencies
 
     @property
     def stages(self):

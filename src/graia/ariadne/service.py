@@ -27,6 +27,8 @@ ARIADNE_ASCII_LOGO = r"""
  / ___ \| |  | | (_| | (_| | | | |  __/
 /_/   \_\_|  |_|\__,_|\__,_|_| |_|\___|"""
 
+monitored_prefix = ("kayaku", "statv", "launart", "luma", "graia", "avilla")
+
 
 async def check_update(session: ClientSession, name: str, current: str, output: List[str]) -> None:
     result: str = current
@@ -53,7 +55,7 @@ def get_dist_map() -> Dict[str, str]:
     for dist in importlib.metadata.distributions():
         name: str = dist.metadata["Name"]
         version: str = dist.version
-        if name.startswith(("graia-", "graiax-")):
+        if name.startswith(monitored_prefix):
             dist_map[name] = max(version, dist_map.get(name, ""))
     return dist_map
 
@@ -98,7 +100,7 @@ class ElizabethService(Service):
 
     @staticmethod
     async def check_update() -> None:
-        output: List[str] = [""]
+        output: List[str] = []
         dist_map: Dict[str, str] = get_dist_map()
         async with ClientSession() as session:
             await asyncio.gather(
@@ -106,11 +108,15 @@ class ElizabethService(Service):
             )
         output.sort()
         if output:
-            output = ["[bold]", f"[red]{len(output)}[/] [yellow]update(s) available:[/]"] + output + ["[/]"]
-        rich_output = "\n".join(output)
-        logger.opt(colors=True).warning(
-            rich_output.replace("[", "<").replace("]", ">"), alt=rich_output, highlighter=None
-        )
+            output = (
+                ["", "[bold]", f"[red]{len(output)}[/] [yellow]update(s) available:[/]"] + output + ["[/]"]
+            )
+            rich_output = "\n".join(output)
+            logger.opt(colors=True).warning(
+                rich_output.replace("[", "<").replace("]", ">"), alt=rich_output, highlighter=None
+            )
+        else:
+            logger.opt(colors=True).success("All dependencies up to date!", style="green")
 
     def add_configs(self, configs: Iterable[U_Info]) -> Tuple[List[ConnectionMixin], int]:
         configs = list(configs)
@@ -189,12 +195,12 @@ class ElizabethService(Service):
                 coro: Coroutine = task.get_coro()  # type: ignore
                 if coro.__qualname__ == "Broadcast.Executor":
                     task.cancel()
-                    logger.debug(f"Cancelling {task.get_name()} (Broadcast.Executor)")
+                    logger.debug(f"Cancelled {task.get_name()} (Broadcast.Executor)")
                 elif coro.cr_frame.f_globals["__name__"].startswith("graia.scheduler"):
                     task.cancel()
-                    logger.debug(f"Cancelling {task.get_name()} (Scheduler Task)")
+                    logger.debug(f"Cancelled {task.get_name()} (Scheduler Task)")
 
-            logger.info("Checking for updates...")
+            logger.info("Checking for updates...", alt="[cyan]Checking for updates...[/]")
             await self.check_update()
 
     @property

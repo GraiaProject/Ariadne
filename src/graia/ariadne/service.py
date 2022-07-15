@@ -4,7 +4,6 @@ import importlib.metadata
 import json
 from typing import Coroutine, Dict, Iterable, List, Tuple, Type, overload
 
-import creart
 from aiohttp import ClientSession
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.broadcast import Broadcast
@@ -75,6 +74,8 @@ class ElizabethService(Service):
 
     def __init__(self) -> None:
         """初始化 ElizabethService"""
+        import creart
+        
         self.connections = {}
         self.broadcast = creart.it(Broadcast)
 

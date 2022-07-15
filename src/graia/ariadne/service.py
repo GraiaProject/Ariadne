@@ -75,7 +75,7 @@ class ElizabethService(Service):
     def __init__(self) -> None:
         """初始化 ElizabethService"""
         import creart
-        
+
         self.connections = {}
         self.broadcast = creart.it(Broadcast)
 

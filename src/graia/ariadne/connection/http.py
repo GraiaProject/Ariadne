@@ -38,7 +38,7 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
         req: HttpRequest = await io.extra(HttpRequest)
         if req.headers.get("qq") != str(self.info.account):
             return
-        for k, v in self.info.headers:
+        for k, v in self.info.headers.items():
             if req.headers.get(k) != v:
                 return "Authorization failed", {"status": 401}
         data = Json.deserialize((await io.read()).decode("utf-8"))

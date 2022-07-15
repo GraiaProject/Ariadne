@@ -131,10 +131,10 @@ class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
     @t.on(WebsocketConnectEvent)
     async def _(self, io: AbstractWebsocketIO) -> None:
         req: HttpRequest = await io.extra(HttpRequest)
-        for k, v in self.config.headers:
+        for k, v in self.config.headers.items():
             if req.headers.get(k) != v:
                 return await io.extra(WSConnectionClose)
-        for k, v in self.config.params:
+        for k, v in self.config.params.items():
             if req.query_params.get(k) != v:
                 return await io.extra(WSConnectionClose)
         await io.extra(WSConnectionAccept)

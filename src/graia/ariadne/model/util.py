@@ -51,7 +51,7 @@ class AriadneBaseModel(BaseModel):
         arbitrary_types_allowed = True
         copy_on_model_validation: bool = False
         json_encoders = {
-            datetime: lambda dt: dt.timestamp(),
+            datetime: lambda dt: int(dt.timestamp()),
         }
 
 

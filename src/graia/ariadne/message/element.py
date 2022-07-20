@@ -575,11 +575,8 @@ class Forward(Element):
         return f"[合并转发:共{len(self.node_list)}条]"
 
     def as_persistent_string(self) -> str:
-        from ..connection.util import DatetimeJsonEncoder
 
-        data: str = escape_bracket(
-            j_dump(self.node_list, indent=None, separators=(",", ":"), cls=DatetimeJsonEncoder)
-        )
+        data: str = escape_bracket(f"[{','.join(node.json() for node in self.node_list)}")
         return f"[mirai:{self.type}:{data}]"
 
     @classmethod

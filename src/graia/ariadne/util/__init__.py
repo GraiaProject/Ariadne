@@ -246,12 +246,12 @@ def gen_subclass(cls: Type[T]) -> Generator[Type[T], None, None]:
 
 
 def escape_bracket(string: str) -> str:
-    """在字符串中转义中括号括号"""
+    """在字符串中转义中括号"""
     return string.replace("[", "\\u005b").replace("]", "\\u005d")
 
 
 def unescape_bracket(string: str) -> str:
-    """在字符串中反转义中括号括号"""
+    """在字符串中反转义中括号"""
     return string.replace("\\u005b", "[").replace("\\u005d", "]")
 
 

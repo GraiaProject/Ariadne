@@ -255,16 +255,19 @@ class Ariadne(AttrConvertMixin):
     def launch_blocking(cls):
         """以阻塞方式启动 Ariadne"""
         cls._patch_launch_manager()
-        cls.launch_manager.launch_blocking(loop=cls.service.loop)
+        try:
+            cls.launch_manager.launch_blocking(loop=cls.service.loop)
+        except asyncio.CancelledError:
+            logger.info("Launch manager exited.", style="red")
 
     @classmethod
     def stop(cls):
         """计划停止 Ariadne"""
         mgr = cls.launch_manager
         mgr.status.exiting = True
-        if mgr.taskgroup is not None:
-            mgr.taskgroup.stop = True
-            task = mgr.taskgroup.blocking_task
+        if mgr.task_group is not None:
+            mgr.task_group.stop = True
+            task = mgr.task_group.blocking_task
             if task and not task.done():
                 task.cancel()
 

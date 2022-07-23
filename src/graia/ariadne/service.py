@@ -194,8 +194,9 @@ class ElizabethService(Service):
             logger.info("Elizabeth Service cleaning up...", style="dark_orange")
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
-                with enter_context(app=app):
-                    await self.broadcast.postEvent(ApplicationShutdowned(app))
+                if app.connection.status.available:
+                    with enter_context(app=app):
+                        await self.broadcast.postEvent(ApplicationShutdowned(app))
             for conn in self.connections.values():
                 if conn.status.available:
                     app = Ariadne.current(conn.info.account)

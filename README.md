@@ -6,16 +6,15 @@ _Another elegant framework for mirai and mirai-api-http v2._
 
 > 接受当下, 面向未来.
 
-<a href="https://pypi.org/project/graia-ariadne"><img alt="PyPI" src="https://img.shields.io/pypi/v/graia-ariadne" /></a></td>
-<a href="https://pypi.org/project/graia-ariadne"><img alt="PyPI Pre Release" src="https://img.shields.io/github/v/tag/GraiaProject/Ariadne?include_prereleases&label=latest&color=orange"></td>
-<a href="https://pypi.org/project/graia-ariadne"><img alt="Python Version" src="https://img.shields.io/pypi/pyversions/graia-ariadne" /></a>
-<a href="https://pypi.org/project/graia-ariadne"><img alt="Python Implementation" src="https://img.shields.io/pypi/implementation/graia-ariadne" /></a>
+[![PyPI](https://img.shields.io/pypi/v/graia-ariadne)](https://pypi.org/project/graia-ariadne)
+[![Python Version](https://img.shields.io/pypi/pyversions/graia-ariadne)](https://pypi.org/project/graia-ariadne)
+[![Docs](https://img.shields.io/badge/文档-here-blue)](https://graia.readthedocs.io/ariadne/)
+[![API docs](https://img.shields.io/badge/API_文档-here-purple)](https://graia.readthedocs.io/projects/ariadne/)
 
-<a href="https://graia.readthedocs.io/ariadne/"><img alt="docs" src="https://img.shields.io/badge/文档-here-blue" /></a>
-<a href="https://graia.readthedocs.io/projects/ariadne/"><img alt="API docs" src="https://img.shields.io/badge/API_文档-here-purple"></a>
-<a href="https://github.com/psf/black"><img src="https://img.shields.io/badge/code%20style-black-black.svg" alt="black" /></a>
-<a href="https://pycqa.github.io/isort/"><img src="https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat" alt="isort"/></a>
-<a href="https://github.com/GraiaProject/Ariadne/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/GraiaProject/Ariadne"></a>
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![License](https://img.shields.io/github/license/GraiaProject/Ariadne)](https://github.com/GraiaProject/Ariadne/blob/master/LICENSE)
+[![pdm-managed](https://img.shields.io/badge/pdm-managed-blueviolet)](https://pdm.fming.dev)
 
 </div>
 

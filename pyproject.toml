@@ -1,82 +1,73 @@
-[tool.poetry]
+[project]
+# PEP 621 project metadata
+# See https://www.python.org/dev/peps/pep-0621/
+authors = [
+    {name = "BlueGlassBlock", email = "blueglassblock@outlook.com"},
+    {name = "GreyElaina", email = "GreyElaina@outlook.com"},
+]
+requires-python = ">=3.8,<4.0"
+dependencies = [
+    "graia-broadcast~=0.18",
+    "aiohttp~=3.7",
+    "pydantic~=1.8",
+    "typing-extensions~=4.0",
+    "graia-amnesia~=0.5.2",
+    "creart-graia<1.0.0,>=0.1.4",
+    "launart>=0.5.1",
+]
 name = "graia-ariadne"
 version = "0.7.16"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
-authors = [
-    "BlueGlassBlock <blueglassblock@outlook.com>",
-    "GreyElaina <GreyElaina@outlook.com>"
-]
-packages = [{ include = "graia", from = "src" }]
 readme = "README.md"
+keywords = ["graia", "bot", "qq", "framework", "mirai", "ariadne"]
+classifiers = ["Topic :: Communications :: Chat", "Framework :: Robot Framework :: Library", "Framework :: AsyncIO", "Typing :: Typed", "Development Status :: 4 - Beta", "Operating System :: OS Independent"]
+
+[project.urls]
 repository = "https://github.com/GraiaProject/Ariadne"
 documentation = "https://graia.readthedocs.io/projects/ariadne"
-keywords = ["graia", "bot", "qq", "framework", "mirai", "ariadne"]
-classifiers = [
-    "Topic :: Communications :: Chat",
-    "Framework :: Robot Framework :: Library",
-    "Framework :: AsyncIO",
-    "Typing :: Typed",
-    "Development Status :: 4 - Beta",
-    "Operating System :: OS Independent",
-]
 
-[tool.poetry.dependencies]
-python = "^3.8"
-graia-broadcast = "^0.18.0"
-aiohttp = "^3.7.4"
-pydantic = "^1.8.2"
-typing-extensions = "^4.0"
-graia-amnesia = "^0.5.2"
-richuru = { version = "^0.1.0", optional = true }
-arclet-alconna-graia = { version = "*", optional = true }
-graia-scheduler = { version = "^0.0", optional = true }
-graia-saya = { version = "^0.0", optional = true }
-fastapi = { version = ">=0.74.1, <1.0.0", optional = true }
-uvicorn = { extras = ["standard"], version = "^0.17.5", optional = true }
-creart-graia = "^0.1.4"
-
-[tool.poetry.extras]
-alconna = ["arclet-alconna-graia"]
-graia = ["graia-saya", "graia-scheduler"]
-fastapi = ["uvicorn", "fastapi"]
-standard = [
-    "richuru",
-    "graia-saya",
-    "graia-scheduler",
-]
-full = [
-    "graia-saya",
-    "graia-scheduler",
-    "arclet-alconna-graia",
-    "richuru",
-]
-
-[tool.poetry.dev-dependencies]
-black = ">=22.1.0"
-isort = ">=5.9.3"
-pytest = "^7.1"
-coverage = "^6.2"
-flake8 = "^4.0"
-pytest-asyncio = "^0.18.3"
-devtools = ">= 0.8"
-pre-commit = "^2.19"
-mkdocstrings = {version = "^0.19.0", extras = ["python"]}
-mkdocs-material = "^8.2.13"
-mkdocs-gen-files = "^0.3.4"
-mkdocs-section-index = "^0.3.3"
-mkdocs-literate-nav = "^0.4.1"
-ipykernel = "^6.13.0"
-
-richuru = { version = "^0.1.0" }
-graia-scheduler = { version = "^0.0"}
-fastapi = { version = ">=0.74.1, <1.0.0" }
-uvicorn = { extras = ["standard"], version = "^0.17.5" }
-viztracer = "^0.15.3"
-pydocstyle = "^6.1.1"
-
-[tool.poetry.plugins."creart.creators"]
+[project.entry-points."creart.creators"]
 commander = "graia.ariadne.message.commander.creart:CommanderCreator"
 commander_behaviour = "graia.ariadne.message.commander.creart:CommanderBehaviourCreator"
+
+[project.optional-dependencies]
+standard = ["richuru~=0.1", "graia-scheduler~=0.0", "graia-saya~=0.0"]
+alconna = ["arclet-alconna-graia"]
+graia = ["graia-scheduler~=0.0", "graia-saya~=0.0"]
+fastapi = ["fastapi<1.0.0,>=0.74.1", "uvicorn[standard]<1.0.0,>=0.17.5"]
+full = ["richuru~=0.1", "graia-scheduler~=0.0", "graia-saya~=0.0", "arclet-alconna-graia"]
+
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "black>=22.1.0",
+    "isort>=5.9.3",
+    "pytest<8.0,>=7.1",
+    "coverage<7.0,>=6.2",
+    "flake8<5.0,>=4.0",
+    "pytest-asyncio<1.0.0,>=0.18.3",
+    "devtools>=0.8",
+    "pre-commit<3.0,>=2.19",
+    "mkdocstrings[python]<1.0.0,>=0.19.0",
+    "mkdocs-material<9.0.0,>=8.2.13",
+    "mkdocs-gen-files<1.0.0,>=0.3.4",
+    "mkdocs-section-index<1.0.0,>=0.3.3",
+    "mkdocs-literate-nav<1.0.0,>=0.4.1",
+    "ipykernel<7.0.0,>=6.13.0",
+    "richuru<1.0.0,>=0.1.0",
+    "graia-scheduler<1.0,>=0.0",
+    "fastapi<1.0.0,>=0.74.1",
+    "uvicorn[standard]<1.0.0,>=0.17.5",
+    "viztracer<1.0.0,>=0.15.3",
+    "pydocstyle<7.0.0,>=6.1.1",
+]
+
+[tool.pdm.build]
+includes = ["src/graia"]
+
+[build-system]
+requires = ["pdm-pep517>=1.0.0"]
+build-backend = "pdm.pep517.api"
 
 [tool.isort]
 profile = "black"
@@ -84,10 +75,6 @@ profile = "black"
 [tool.black]
 line-length = 110
 target-version = ['py39']
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.run]
 branch = true

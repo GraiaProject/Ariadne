@@ -2,9 +2,15 @@
 
 ## 未发布的更新
 
+### 其他
+
+改用 [`pdm`](https://github.com/pdm-project/pdm) 管理项目依赖.
+
 ### 修复
 
 修复 `ForwardNode` 的序列化问题.
+
+修复了 `creart` 导入顺序的问题.
 
 ## 0.7.16
 

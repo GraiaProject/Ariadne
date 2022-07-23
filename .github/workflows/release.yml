@@ -42,6 +42,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
+
       - name: Update Changelog
         if: ${{ github.event.inputs.changelog == 'true' }}
         run: |
@@ -52,6 +53,7 @@ jobs:
       - name: Release to Public
         if: ${{ github.event.inputs.release == 'true' }}
         run: |
+          python ./bump-version.py ${{ github.event.inputs.version }}
           pip install pdm twine
           pdm build
           twine upload --username __token__ --password ${{ secrets.PYPI_TOKEN }} dist/*

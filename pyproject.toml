@@ -16,11 +16,11 @@ dependencies = [
     "launart>=0.5.1",
 ]
 name = "graia-ariadne"
-version = "0.7.16"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
 readme = "README.md"
 keywords = ["graia", "bot", "qq", "framework", "mirai", "ariadne"]
 classifiers = ["Topic :: Communications :: Chat", "Framework :: Robot Framework :: Library", "Framework :: AsyncIO", "Typing :: Typed", "Development Status :: 4 - Beta", "Operating System :: OS Independent"]
+dynamic = ["version"]
 
 [project.urls]
 repository = "https://github.com/GraiaProject/Ariadne"
@@ -38,6 +38,7 @@ fastapi = ["fastapi<1.0.0,>=0.74.1", "uvicorn[standard]<1.0.0,>=0.17.5"]
 full = ["richuru~=0.1", "graia-scheduler~=0.0", "graia-saya~=0.0", "arclet-alconna-graia"]
 
 [tool.pdm]
+
 [tool.pdm.dev-dependencies]
 dev = [
     "black>=22.1.0",
@@ -64,6 +65,10 @@ dev = [
 
 [tool.pdm.build]
 includes = ["src/graia"]
+
+[tool.pdm.version]
+source = "file"
+path = "src/graia/ariadne/__init__.py"
 
 [build-system]
 requires = ["pdm-pep517>=1.0.0"]

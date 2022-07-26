@@ -19,7 +19,19 @@ name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
 readme = "README.md"
 keywords = ["graia", "bot", "qq", "framework", "mirai", "ariadne"]
-classifiers = ["Topic :: Communications :: Chat", "Framework :: Robot Framework :: Library", "Framework :: AsyncIO", "Typing :: Typed", "Development Status :: 4 - Beta", "Operating System :: OS Independent"]
+classifiers = ["Topic :: Communications :: Chat",
+"Framework :: Robot Framework :: Library",
+"Framework :: AsyncIO", "Typing :: Typed",
+"Development Status :: 4 - Beta",
+"Operating System :: OS Independent",
+"Programming Language :: Python :: Implementation :: CPython",
+"Programming Language :: Python :: 3.8",
+"Programming Language :: Python :: 3.9",
+"Programming Language :: Python :: 3.10",
+"Programming Language :: Python :: 3.11",
+"Programming Language :: Python :: 3.12",
+"Programming Language :: Python :: 3 :: Only",
+]
 dynamic = ["version"]
 
 [project.urls]

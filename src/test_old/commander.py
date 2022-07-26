@@ -2,6 +2,7 @@ import asyncio
 from typing import List, Sequence, Tuple
 
 import pydantic
+import rich.traceback
 from devtools import debug
 from graia.broadcast import Broadcast
 from loguru import logger
@@ -11,6 +12,8 @@ from pydantic.fields import ModelField
 from graia.ariadne.console import Console
 from graia.ariadne.entry import At, MessageChain
 from graia.ariadne.message.commander import Arg, Commander, Slot, chain_validator
+
+rich.traceback.install(show_locals=True)
 
 
 async def main():
@@ -86,6 +89,10 @@ async def main():
         logger.info(targets)
         logger.info(help)
 
+    @cmd.command("&test {param}", {"param": Slot("param", str, "")})
+    def al(param: str):
+        print("Param", param)
+
     await cmd.execute(MessageChain("lp group ", At(12345), "error perm set database.read false"))
     debug("Nothing")
     await cmd.execute(MessageChain("lp group ", At(12345), " perm set database.read false"))
@@ -98,6 +105,7 @@ async def main():
     debug("wildcard")
     await cmd.execute(MessageChain("record --help"))
     await cmd.execute(MessageChain("record example-talk ", At(1), " ", At(2), " ", At(3), " --help"))
+    await cmd.execute(MessageChain("&test type"))
     debug("targets")
 
 

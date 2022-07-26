@@ -442,7 +442,6 @@ class Commander:
                     continue
                 elif slot.default_factory is not Sentinel:  # Definitely an optional
                     have_optional = True
-                    entry.optional.append(slot)
                     continue
             elif isinstance(token, Param):
                 for name in token.names:
@@ -502,6 +501,16 @@ class Commander:
                 list(decorators),
             )
             entry.update_from_func()
+
+            # compute optional slots dynamically
+            for token in entry.tokens:
+                if isinstance(token, Param):
+                    for token in token.names:
+                        if (slot := entry.slot_map.get(token)) and slot.default_factory is not Sentinel:
+                            entry.optional.append(slot)
+                            break
+
+            # populate fields
             for slot in entry.slot_map.values():
                 slot.populate_field(self._wildcard_validators if slot.is_wildcard else self._slot_validators)
             for arg in entry.arg_map.values():

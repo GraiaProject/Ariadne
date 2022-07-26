@@ -442,7 +442,7 @@ dependencies = [
 
 [[package]]
 name = "launart"
-version = "0.5.1"
+version = "0.5.2"
 requires_python = ">=3.8"
 summary = "Component lifetime manager for runtime."
 dependencies = [
@@ -1459,6 +1459,10 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/0e/0f/698e90a90c9ada08c8e49f2258fa56de6ecde4d408a5187828f045f46a95/graia_amnesia-0.5.4-py3-none-any.whl", hash = "sha256:8fe6e3c4d21bdde326e7569a99bfb5818dfbf0d79fa4da7a66ba29a84989297f"},
     {url = "https://files.pythonhosted.org/packages/1a/61/8971d0207021f2a9a957fc322ce3d34757474a5160940c554247427e2920/graia-amnesia-0.5.4.tar.gz", hash = "sha256:e4515f72b3e16bd958b48271d5d89a2994bd891ca74fa0266cad9dc5e6a45dbb"},
 ]
+"graia-ariadne 0.7.16" = [
+    {url = "https://files.pythonhosted.org/packages/49/71/0614d3bc15bf70a1c8e8240037427bb5234376b18bd3bf9670669a89ffa6/graia-ariadne-0.7.16.tar.gz", hash = "sha256:01b179021e7cfd78215cd7ef2b7cefd29750385adea92259acb06f31c91121cb"},
+    {url = "https://files.pythonhosted.org/packages/cf/cb/4a76408377937783afdbe522d5535e8badbe93ef29ff0da5a1e101fb8438/graia_ariadne-0.7.16-py3-none-any.whl", hash = "sha256:cf8e27cd97fb380f959be5245d9d01a047b46365d6f6e4e8aa8c04ea7880e410"},
+]
 "graia-broadcast 0.18.2" = [
     {url = "https://files.pythonhosted.org/packages/0b/14/e155d41933b6069a0ea85dd04aca5660cdf156aee4bd8b44117b9be751a1/graia_broadcast-0.18.2-py3-none-any.whl", hash = "sha256:dcb712dc5be29419c4b65dc649c4e7c795c834fb810682f6131b313d6bd3e740"},
     {url = "https://files.pythonhosted.org/packages/84/5f/93cd697ef2cbdae2b9ed8ec0011713b40c872a495b0abcbdab186d02ade9/graia-broadcast-0.18.2.tar.gz", hash = "sha256:07b0285d417021c795c3c4f4f12713311fcdec10d63f8e7a8ed7964e2f1b7a5a"},
@@ -1559,9 +1563,9 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/66/5f/32ee101e07d5ece26876f13526b16179525e19f4e460f8085e9ef8e54cff/jupyter_core-4.11.1-py3-none-any.whl", hash = "sha256:715e22bb6cc7db3718fddfac1f69f1c7e899ca00e42bdfd4bf3705452b9fd84a"},
     {url = "https://files.pythonhosted.org/packages/e4/e0/13fc7f8b72f39d87c1c32918a99475911b7b2f28c1a9f2734a5ab5cc35ef/jupyter_core-4.11.1.tar.gz", hash = "sha256:2e5f244d44894c4154d06aeae3419dd7f1b0ef4494dc5584929b398c61cfd314"},
 ]
-"launart 0.5.1" = [
-    {url = "https://files.pythonhosted.org/packages/9a/4b/bf1da0c489c8c07fb833039ce45dae8574c805f9c19edf0a77265df74196/launart-0.5.1.tar.gz", hash = "sha256:8f67dd164f52b80b02cd6a9c4c8d86761d22989936e5f5c0406a0ae90453ae1c"},
-    {url = "https://files.pythonhosted.org/packages/eb/fd/cec1aa772f62a669fc831748ad76da4ccc0568cd337e070073d0b89c359b/launart-0.5.1-py3-none-any.whl", hash = "sha256:2ed4b88ceb5f0ad60acc1ae42c189b5a5e6b3aba8ff3b7f88f65c3f6aef81db0"},
+"launart 0.5.2" = [
+    {url = "https://files.pythonhosted.org/packages/fe/29/c253c1e1830dfffbbb20a8ccb217eff87add37ce27ad6fb21a0bb9dfb56a/launart-0.5.2-py3-none-any.whl", hash = "sha256:c6936a536760f24c195e91b1cf567457f47b4516ffbff97f932633146f97ebe1"},
+    {url = "https://files.pythonhosted.org/packages/fe/99/3dc28c8313ed93ea34198e0e35159e44658598563101bfb683ac5590d947/launart-0.5.2.tar.gz", hash = "sha256:7060ff71d4b25195067573895ee623d5b2958dcf0adcb7ef013d5dac9ed61f14"},
 ]
 "loguru 0.6.0" = [
     {url = "https://files.pythonhosted.org/packages/75/1f/d3818863e4be96bd641c4643c535a98f0fa2a12efa7c8ba35f763fa778ee/loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},

@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+修复 `HttpServerInfo` 缺失 `verify_key` 导致 `TypeError` 问题.
+
 ## 0.7.18
 
 ### 修复

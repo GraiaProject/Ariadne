@@ -31,6 +31,7 @@ class WebsocketServerInfo(NamedTuple):
 
 class HttpServerInfo(NamedTuple):
     account: int
+    verify_key: str
     path: str
     headers: Dict[str, str]
 

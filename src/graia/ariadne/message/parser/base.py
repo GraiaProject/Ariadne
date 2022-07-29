@@ -22,10 +22,11 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from typing_extensions import get_args
 
 from ...app import Ariadne
 from ...event.message import GroupMessage, MessageEvent
-from ...typing import generic_issubclass
+from ...typing import Unions, generic_issubclass, get_origin
 from ...util import deprecated
 from ..chain import MessageChain
 from ..element import At, Element, Plain, Quote, Source
@@ -272,22 +273,31 @@ class RegexGroup:
 class MatchTemplate(ChainDecorator):
     """模板匹配"""
 
-    def __init__(self, template: List[Union[Type[Element], Element]]) -> None:
+    def __init__(self, template: List[Union[Type[Element], Element, str]]) -> None:
         """初始化
 
         Args:
-            template (List[Union[Type[Element], Element]]): 匹配模板
+            template (List[Union[Type[Element], Element]]): 匹配模板， 可以为 `Element` 类或其 `Union`, `str`, `Plain` 实例
         """
-        self.template: List[Union[Type[Element], Element, str]] = []
+        self.template: List[Union[Tuple[Type[Element], ...], Element, str]] = []
         for element in template:
-            if isinstance(element, type) and element is not Plain:
-                self.template.append(element)
+            if element is Plain:
+                element = "*"
+            if isinstance(element, type):
+                self.template.append((element,))
+            elif get_origin(element) in Unions:  # Union
+                assert Plain not in get_args(element), "Leaving Plain here leads to ambiguity"  # TODO
+                self.template.append(get_args(element))
             elif isinstance(element, Element) and not isinstance(element, Plain):
                 self.template.append(element)
             else:
-                element = element.text if isinstance(element, Plain) else "*"
+                element = (
+                    re.escape(element.text)
+                    if isinstance(element, Plain)
+                    else fnmatch.translate(element)[:-2]  # truncating the ending \Z
+                )
                 if self.template and isinstance(self.template[-1], str):
-                    self.template[-1] = self.template[-1] + element
+                    self.template[-1] += element
                 else:
                     self.template.append(element)
 
@@ -297,12 +307,12 @@ class MatchTemplate(ChainDecorator):
         if len(self.template) != len(chain):
             return False
         for element, template in zip(chain, self.template):
-            if isinstance(template, type) and not isinstance(element, template):
+            if isinstance(template, tuple) and not isinstance(element, template):
                 return False
             elif isinstance(template, Element) and element != template:
                 return False
             elif isinstance(template, str):
-                if not isinstance(element, Plain) or not fnmatch.fnmatch(element.text, template):
+                if not isinstance(element, Plain) or not re.match(template, element.text):
                     return False
         return True
 

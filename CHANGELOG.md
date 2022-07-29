@@ -2,6 +2,12 @@
 
 ## 未发布的更新
 
+### 改进
+
+`MatchTemplate` 现在支持 `Element` 类的 `Union`.
+
+### 修复
+
 修复 `HttpServerInfo` 缺失 `verify_key` 导致 `TypeError` 问题.
 
 ## 0.7.18

@@ -57,7 +57,7 @@ class _ExtendedWaiter(Waiter, Generic[T, T_E]):
         inc = it(InterruptControl)
         if timeout:
             try:
-                await inc.wait(self, timeout=timeout)
+                return await inc.wait(self, timeout=timeout)
             except asyncio.TimeoutError:
                 return default
         return await inc.wait(self)

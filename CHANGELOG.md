@@ -8,7 +8,9 @@
 
 ### 修复
 
-修复 `HttpServerInfo` 缺失 `verify_key` 导致 `TypeError` 问题.
+修复 `HttpServerInfo` 缺失 `verify_key` 导致 `TypeError` 的问题.
+
+修复 interrupt util 的内置 `wait` 问题.
 
 ## 0.7.18
 

@@ -169,8 +169,8 @@ class ElizabethService(Service):
         from .event.lifecycle import (
             AccountLaunch,
             AccountShutdown,
-            ApplicationLaunched,
-            ApplicationShutdowned,
+            ApplicationLaunch,
+            ApplicationShutdown,
         )
 
         self.base_telemetry()
@@ -184,7 +184,7 @@ class ElizabethService(Service):
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
                 with enter_context(app=app):
-                    self.broadcast.postEvent(ApplicationLaunched(app))
+                    self.broadcast.postEvent(ApplicationLaunch(app))
             for conn in self.connections.values():
                 app = Ariadne.current(conn.info.account)
                 with enter_context(app=app):
@@ -196,7 +196,7 @@ class ElizabethService(Service):
                 app = Ariadne.current()
                 if app.connection.status.available:
                     with enter_context(app=app):
-                        await self.broadcast.postEvent(ApplicationShutdowned(app))
+                        await self.broadcast.postEvent(ApplicationShutdown(app))
             for conn in self.connections.values():
                 if conn.status.available:
                     app = Ariadne.current(conn.info.account)

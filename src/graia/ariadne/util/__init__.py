@@ -66,11 +66,9 @@ def type_repr(obj) -> str:
         if obj.__module__ == "builtins":
             return obj.__qualname__
         return f"{obj.__module__}.{obj.__qualname__}"
-    if obj is ...:
+    if obj is Ellipsis:
         return "..."
-    if isinstance(obj, types.FunctionType):
-        return obj.__name__
-    return repr(obj)
+    return obj.__name__ if isinstance(obj, types.FunctionType) else repr(obj)
 
 
 def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Optional[TracebackType], *_, **__):
@@ -116,7 +114,11 @@ def loguru_exc_callback_async(loop, context: dict):
     message = context.get("message")
     if not message:
         message = "Unhandled exception in event loop"
-
+    if (
+        handle := context.get("handle")
+    ) and handle._callback.__qualname__ == "ClientConnectionRider.connection_manage.<locals>.<lambda>":
+        logger.warning("Uncompleted aiohttp transport", style="yellow bold")
+        return
     exception = context.get("exception")
     if exception is None:
         exc_info = False
@@ -195,16 +197,16 @@ def inject_bypass_listener(broadcast: Broadcast):
                 priority=priority,
             )
 
+    import creart
     import graia.broadcast.entities.listener
 
     graia.broadcast.entities.listener.Listener = BypassListener  # type: ignore
     graia.broadcast.Listener = BypassListener  # type: ignore
-    try:  # Override saya listener
+
+    if creart.exists_module("graia.saya"):
         import graia.saya.builtins.broadcast.schema
 
         graia.saya.builtins.broadcast.schema.Listener = BypassListener  # type: ignore
-    except ImportError:  # Saya not installed, pass.
-        pass
 
 
 def ariadne_api(func: Callable[P, R]) -> Callable[P, R]:

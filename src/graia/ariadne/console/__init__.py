@@ -23,7 +23,7 @@ from prompt_toolkit.shortcuts.prompt import PromptSession
 from prompt_toolkit.styles import Style
 
 from ..dispatcher import ContextDispatcher
-from ..event.lifecycle import ApplicationLaunched, ApplicationShutdowned
+from ..event.lifecycle import ApplicationLaunch, ApplicationShutdown
 from ..util import resolve_dispatchers_mixin
 
 
@@ -62,10 +62,10 @@ class Console:
 
         # Handle Ariadne Event
         if listen_launch:
-            broadcast.receiver(ApplicationLaunched)(self.start)
+            broadcast.receiver(ApplicationLaunch)(self.start)
 
         if listen_shutdown:
-            broadcast.receiver(ApplicationShutdowned)(self.stop)
+            broadcast.receiver(ApplicationShutdown)(self.stop)
 
         self.session: PromptSession[str] = PromptSession()
 

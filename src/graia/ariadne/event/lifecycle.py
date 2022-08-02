@@ -30,12 +30,16 @@ class ApplicationLifecycleEvent(Dispatchable):
                 return interface.event.app
 
 
-class ApplicationLaunched(ApplicationLifecycleEvent):
+class ApplicationLaunch(ApplicationLifecycleEvent):
     """指示 Ariadne 启动."""
 
 
-class ApplicationShutdowned(ApplicationLifecycleEvent):
+class ApplicationShutdown(ApplicationLifecycleEvent):
     """指示 Ariadne 关闭."""
+
+
+ApplicationLaunched = ApplicationLaunch
+ApplicationShutdowned = ApplicationShutdown
 
 
 class AccountLaunch(ApplicationLifecycleEvent):

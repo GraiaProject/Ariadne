@@ -50,8 +50,8 @@ from .event import ActiveGroupMessage as ActiveGroupMessage
 from .event import ActiveMessage as ActiveMessage
 from .event import ActiveStrangerMessage as ActiveStrangerMessage
 from .event import ActiveTempMessage as ActiveTempMessage
-from .event import ApplicationLaunched as ApplicationLaunched
-from .event import ApplicationShutdowned as ApplicationShutdowned
+from .event import ApplicationLaunch as ApplicationLaunch
+from .event import ApplicationShutdown as ApplicationShutdown
 from .event import BotEvent as BotEvent
 from .event import BotGroupPermissionChangeEvent as BotGroupPermissionChangeEvent
 from .event import BotInvitedJoinGroupRequestEvent as BotInvitedJoinGroupRequestEvent

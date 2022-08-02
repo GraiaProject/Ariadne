@@ -11,3 +11,4 @@ exclude = .git
     .venv
     ./extract-release-notes.py
     ./migrate_src/*
+    *temp*

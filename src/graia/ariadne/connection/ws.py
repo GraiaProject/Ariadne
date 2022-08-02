@@ -1,7 +1,7 @@
 import asyncio
 import json as json_mod
 import secrets
-from typing import Any, Awaitable, Callable, Dict, List, MutableMapping, Optional
+from typing import Any, Dict, MutableMapping, Optional
 from weakref import WeakValueDictionary
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
@@ -24,11 +24,9 @@ from launart.utilles import wait_fut
 from loguru import logger
 from yarl import URL
 
-from graia.ariadne.connection import ConnectionMixin, ConnectionStatus
-from graia.ariadne.connection.http import HttpClientConnection
+from graia.ariadne.connection import ConnectionMixin
 
-from ..event import MiraiEvent
-from ._info import WebsocketClientInfo, WebsocketServerInfo
+from ._info import T_Info, WebsocketClientInfo, WebsocketServerInfo
 from .util import (
     CallMethod,
     DatetimeJsonEncoder,
@@ -41,12 +39,13 @@ t = TransportRegistrar()
 
 
 @t.apply
-class WebsocketConnectionMixin(Transport):
+class WebsocketConnectionMixin(Transport, ConnectionMixin[T_Info]):
     ws_io: Optional[AbstractWebsocketIO]
     futures: MutableMapping[str, asyncio.Future]
-    status: ConnectionStatus
-    fallback: Optional["HttpClientConnection"]
-    event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
+
+    def __init__(self, info: T_Info) -> None:
+        super().__init__(info=info)
+        self.futures = WeakValueDictionary()
 
     @t.on(WebsocketReceivedEvent)
     @data_type(str)
@@ -114,15 +113,14 @@ t = TransportRegistrar()
 
 
 @t.apply
-class WebsocketServerConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketServerInfo]):
+class WebsocketServerConnection(WebsocketConnectionMixin[WebsocketServerInfo]):
     """Websocket 服务器连接"""
 
     dependencies = {"http.universal_server"}
 
-    def __init__(self, config: WebsocketServerInfo) -> None:
-        ConnectionMixin.__init__(self, config)
+    def __init__(self, info: WebsocketServerInfo) -> None:
+        super().__init__(info)
         self.declares.append(WebsocketEndpoint(self.info.path))
-        self.futures = WeakValueDictionary()
 
     async def launch(self, mgr: Launart) -> None:
         router = get_router(mgr)
@@ -157,7 +155,7 @@ t = TransportRegistrar()
 
 
 @t.apply
-class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[WebsocketClientInfo]):
+class WebsocketClientConnection(WebsocketConnectionMixin[WebsocketClientInfo]):
     """Websocket 客户端连接"""
 
     dependencies = {"http.universal_client"}
@@ -166,10 +164,6 @@ class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
     @property
     def stages(self):
         return {"blocking"}
-
-    def __init__(self, config: WebsocketClientInfo) -> None:
-        ConnectionMixin.__init__(self, config)
-        self.futures = WeakValueDictionary()
 
     async def launch(self, mgr: Launart) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)
@@ -183,7 +177,7 @@ class WebsocketClientConnection(WebsocketConnectionMixin, ConnectionMixin[Websoc
                 )
             )
             await wait_fut(
-                [rider.use(self), self.wait_for("finished", "elizabeth.service")],
+                [rider.use(self), mgr.status.wait_for_sigexit()],
                 return_when=asyncio.FIRST_COMPLETED,
             )
 

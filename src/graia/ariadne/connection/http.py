@@ -125,7 +125,8 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
         if self.is_hook:
             return
         async with self.stage("blocking"):
-            while not mgr.launchables["elizabeth.service"].status.finished:
+            exit_signal = asyncio.create_task(mgr.status.wait_for_sigexit())
+            while not exit_signal.done():
                 try:
                     if not self.status.session_key:
                         logger.info("HttpClient: authenticate", style="dark_orange")
@@ -146,6 +147,6 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
                     event = build_event(event_data)
                     await asyncio.gather(*(callback(event) for callback in self.event_callbacks))
                 await wait_fut(
-                    [asyncio.sleep(0.5), self.wait_for("finished", "elizabeth.service")],
+                    [asyncio.sleep(0.5), exit_signal],
                     return_when=asyncio.FIRST_COMPLETED,
                 )

@@ -1,7 +1,9 @@
 from ..event import MiraiEvent as MiraiEvent
 from ..event.lifecycle import AccountLaunch as AccountLaunch
 from ..event.lifecycle import AccountShutdown as AccountShutdown
+from ..event.lifecycle import ApplicationLaunch as ApplicationLaunch
 from ..event.lifecycle import ApplicationLaunched as ApplicationLaunched
+from ..event.lifecycle import ApplicationShutdown as ApplicationShutdown
 from ..event.lifecycle import ApplicationShutdowned as ApplicationShutdowned
 from ..event.message import ActiveFriendMessage as ActiveFriendMessage
 from ..event.message import ActiveGroupMessage as ActiveGroupMessage

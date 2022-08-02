@@ -6,6 +6,10 @@
 
 `MatchTemplate` 现在支持 `Element` 类的 `Union`.
 
+`Ariadne.launch_blocking` 支持自定义停止信号.
+
+自动忽略结束时未完成的 Amnesia transport 导致的 CancelledError.
+
 ### 修复
 
 修复 `HttpServerInfo` 缺失 `verify_key` 导致 `TypeError` 的问题.

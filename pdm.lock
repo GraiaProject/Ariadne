@@ -229,13 +229,13 @@ summary = "A platform independent file lock."
 
 [[package]]
 name = "flake8"
-version = "4.0.1"
-requires_python = ">=3.6"
+version = "5.0.3"
+requires_python = ">=3.6.1"
 summary = "the modular source code checker: pep8 pyflakes and co"
 dependencies = [
-    "mccabe<0.7.0,>=0.6.0",
-    "pycodestyle<2.9.0,>=2.8.0",
-    "pyflakes<2.5.0,>=2.4.0",
+    "mccabe<0.8.0,>=0.7.0",
+    "pycodestyle<2.10.0,>=2.9.0",
+    "pyflakes<2.6.0,>=2.5.0",
 ]
 
 [[package]]
@@ -442,7 +442,7 @@ dependencies = [
 
 [[package]]
 name = "launart"
-version = "0.5.2"
+version = "0.6.0"
 requires_python = ">=3.8"
 summary = "Component lifetime manager for runtime."
 dependencies = [
@@ -486,7 +486,8 @@ dependencies = [
 
 [[package]]
 name = "mccabe"
-version = "0.6.1"
+version = "0.7.0"
+requires_python = ">=3.6"
 summary = "McCabe checker, plugin for flake8"
 
 [[package]]
@@ -729,8 +730,8 @@ summary = "library with cross-python path, ini-parsing, io, code, log facilities
 
 [[package]]
 name = "pycodestyle"
-version = "2.8.0"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "2.9.0"
+requires_python = ">=3.6"
 summary = "Python style guide checker"
 
 [[package]]
@@ -759,8 +760,8 @@ dependencies = [
 
 [[package]]
 name = "pyflakes"
-version = "2.4.0"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "2.5.0"
+requires_python = ">=3.6"
 summary = "passive checker of Python programs"
 
 [[package]]
@@ -1058,7 +1059,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.0"
-content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdca504508"
+content_hash = "sha256:ff85acbb8f4f0dd795e852001698b1080b05084f6e61d41406db704488a5926e"
 
 [metadata.files]
 "aiohttp 3.8.1" = [
@@ -1386,9 +1387,9 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/a6/d5/17f02b379525d1ff9678bfa58eb9548f561c8826deb0b85797aa0eed582d/filelock-3.7.1-py3-none-any.whl", hash = "sha256:37def7b658813cda163b56fc564cdc75e86d338246458c4c28ae84cabefa2404"},
     {url = "https://files.pythonhosted.org/packages/f3/c7/5c1aef87f1197d2134a096c0264890969213c9cbfb8a4102087e8d758b5c/filelock-3.7.1.tar.gz", hash = "sha256:3a0fd85166ad9dbab54c9aec96737b744106dc5f15c0b09a6744a445299fcf04"},
 ]
-"flake8 4.0.1" = [
-    {url = "https://files.pythonhosted.org/packages/34/39/cde2c8a227abb4f9ce62fe55586b920f438f1d2903a1a22514d0b982c333/flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},
-    {url = "https://files.pythonhosted.org/packages/e6/84/d8db922289195c435779b4ca3a3f583f263f87e67954f7b2e83c8da21f48/flake8-4.0.1.tar.gz", hash = "sha256:806e034dda44114815e23c16ef92f95c91e4c71100ff52813adf7132a6ad870d"},
+"flake8 5.0.3" = [
+    {url = "https://files.pythonhosted.org/packages/30/8a/dbc2e61f779a60252677f36833d040813f492bb0ca04dfe8aa480c2b39d4/flake8-5.0.3.tar.gz", hash = "sha256:b27fd7faa8d90aaae763664a489012292990388e5d3604f383b290caefbbc922"},
+    {url = "https://files.pythonhosted.org/packages/ed/be/d1705b8bab0452b5682f5a7c4de6c01e998da2ae4bdeece2425f9d59ad87/flake8-5.0.3-py2.py3-none-any.whl", hash = "sha256:93aa565ae2f0316b95bb57a354f2b2d55ee8508e1fe1cb13b77b9c195b4a2537"},
 ]
 "frozenlist 1.3.0" = [
     {url = "https://files.pythonhosted.org/packages/0a/8f/de0f5ee99386c90f49f927fc8bf3436ac7145534db521784823e258870d3/frozenlist-1.3.0-cp37-cp37m-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:25af28b560e0c76fa41f550eacb389905633e7ac02d6eb3c09017fa1c8cdfde1"},
@@ -1563,9 +1564,9 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/66/5f/32ee101e07d5ece26876f13526b16179525e19f4e460f8085e9ef8e54cff/jupyter_core-4.11.1-py3-none-any.whl", hash = "sha256:715e22bb6cc7db3718fddfac1f69f1c7e899ca00e42bdfd4bf3705452b9fd84a"},
     {url = "https://files.pythonhosted.org/packages/e4/e0/13fc7f8b72f39d87c1c32918a99475911b7b2f28c1a9f2734a5ab5cc35ef/jupyter_core-4.11.1.tar.gz", hash = "sha256:2e5f244d44894c4154d06aeae3419dd7f1b0ef4494dc5584929b398c61cfd314"},
 ]
-"launart 0.5.2" = [
-    {url = "https://files.pythonhosted.org/packages/fe/29/c253c1e1830dfffbbb20a8ccb217eff87add37ce27ad6fb21a0bb9dfb56a/launart-0.5.2-py3-none-any.whl", hash = "sha256:c6936a536760f24c195e91b1cf567457f47b4516ffbff97f932633146f97ebe1"},
-    {url = "https://files.pythonhosted.org/packages/fe/99/3dc28c8313ed93ea34198e0e35159e44658598563101bfb683ac5590d947/launart-0.5.2.tar.gz", hash = "sha256:7060ff71d4b25195067573895ee623d5b2958dcf0adcb7ef013d5dac9ed61f14"},
+"launart 0.6.0" = [
+    {url = "https://files.pythonhosted.org/packages/18/12/6f5d1423b7220194b8e4f5875d5b00f90c43e9cbbdce69184c885f08b105/launart-0.6.0.tar.gz", hash = "sha256:2452efdb7524740f2e8e59a0de1719d1044f96bed7e16119a8ce8e4b933eb73a"},
+    {url = "https://files.pythonhosted.org/packages/57/cd/c8f783345b6135efce8ee07071af744423b5bcc07743297b1f7bf7c42099/launart-0.6.0-py3-none-any.whl", hash = "sha256:21a0db0e7493d67567e8913e2f0e35871aaf36a70a41fcc732cc19b881cad5b5"},
 ]
 "loguru 0.6.0" = [
     {url = "https://files.pythonhosted.org/packages/75/1f/d3818863e4be96bd641c4643c535a98f0fa2a12efa7c8ba35f763fa778ee/loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},
@@ -1621,9 +1622,9 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/0f/98/838f4c57f7b2679eec038ad0abefd1acaeec35e635d4d7af215acd7d1bd2/matplotlib-inline-0.1.3.tar.gz", hash = "sha256:a04bfba22e0d1395479f866853ec1ee28eea1485c1d69a6faf00dc3e24ff34ee"},
     {url = "https://files.pythonhosted.org/packages/a6/2d/2230afd570c70074e80fd06857ba2bdc5f10c055bd9125665fe276fadb67/matplotlib_inline-0.1.3-py3-none-any.whl", hash = "sha256:aed605ba3b72462d64d475a21a9296f400a19c4f74a31b59103d2a99ffd5aa5c"},
 ]
-"mccabe 0.6.1" = [
-    {url = "https://files.pythonhosted.org/packages/06/18/fa675aa501e11d6d6ca0ae73a101b2f3571a565e0f7d38e062eec18a91ee/mccabe-0.6.1.tar.gz", hash = "sha256:dd8d182285a0fe56bace7f45b5e7d1a6ebcbf524e8f3bd87eb0f125271b8831f"},
-    {url = "https://files.pythonhosted.org/packages/87/89/479dc97e18549e21354893e4ee4ef36db1d237534982482c3681ee6e7b57/mccabe-0.6.1-py2.py3-none-any.whl", hash = "sha256:ab8a6258860da4b6677da4bd2fe5dc2c659cff31b3ee4f7f5d64e79735b80d42"},
+"mccabe 0.7.0" = [
+    {url = "https://files.pythonhosted.org/packages/27/1a/1f68f9ba0c207934b35b86a8ca3aad8395a3d6dd7921c0686e23853ff5a9/mccabe-0.7.0-py2.py3-none-any.whl", hash = "sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e"},
+    {url = "https://files.pythonhosted.org/packages/e7/ff/0ffefdcac38932a54d2b5eed4e0ba8a408f215002cd178ad1df0f2806ff8/mccabe-0.7.0.tar.gz", hash = "sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325"},
 ]
 "mergedeep 1.3.4" = [
     {url = "https://files.pythonhosted.org/packages/2c/19/04f9b178c2d8a15b076c8b5140708fa6ffc5601fb6f1e975537072df5b2a/mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307"},
@@ -1824,9 +1825,9 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/98/ff/fec109ceb715d2a6b4c4a85a61af3b40c723a961e8828319fbcb15b868dc/py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
     {url = "https://files.pythonhosted.org/packages/f6/f0/10642828a8dfb741e5f3fbaac830550a518a775c7fff6f04a007259b0548/py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},
 ]
-"pycodestyle 2.8.0" = [
-    {url = "https://files.pythonhosted.org/packages/08/dc/b29daf0a202b03f57c19e7295b60d1d5e1281c45a6f5f573e41830819918/pycodestyle-2.8.0.tar.gz", hash = "sha256:eddd5847ef438ea1c7870ca7eb78a9d47ce0cdb4851a5523949f2601d0cbbe7f"},
-    {url = "https://files.pythonhosted.org/packages/15/94/bc43a2efb7b8615e38acde2b6624cae8c9ec86faf718ff5676c5179a7714/pycodestyle-2.8.0-py2.py3-none-any.whl", hash = "sha256:720f8b39dde8b293825e7ff02c475f3077124006db4f440dcbc9a20b76548a20"},
+"pycodestyle 2.9.0" = [
+    {url = "https://files.pythonhosted.org/packages/a4/9e/2f9e7d5b13ad7c326f99d08d36757fc02fcd137cd5898b216a9faca38f9a/pycodestyle-2.9.0-py2.py3-none-any.whl", hash = "sha256:289cdc0969d589d90752582bef6dff57c5fbc6949ee8b013ad6d6449a8ae9437"},
+    {url = "https://files.pythonhosted.org/packages/f7/98/95b7936a9439bea0e537a42feca1404e7926518fe054f85d28ad7e4bc6fa/pycodestyle-2.9.0.tar.gz", hash = "sha256:beaba44501f89d785be791c9462553f06958a221d166c64e1f107320f839acc2"},
 ]
 "pycparser 2.21" = [
     {url = "https://files.pythonhosted.org/packages/5e/0b/95d387f5f4433cb0f53ff7ad859bd2c6051051cebbb564f139a999ab46de/pycparser-2.21.tar.gz", hash = "sha256:e644fdec12f7872f86c58ff790da456218b10f863970249516d60a5eaca77206"},
@@ -1873,9 +1874,9 @@ content_hash = "sha256:8b9e998940220459b888dc56d6ffe74f400b65cf79f92765c69f7dfdc
     {url = "https://files.pythonhosted.org/packages/4c/30/4cdea3c8342ad343d41603afc1372167c224a04dc5dc0bf4193ccb39b370/pydocstyle-6.1.1.tar.gz", hash = "sha256:1d41b7c459ba0ee6c345f2eb9ae827cab14a7533a88c5c6f7e94923f72df92dc"},
     {url = "https://files.pythonhosted.org/packages/87/67/4df10786068766000518c6ad9c4a614e77585a12ab8f0654c776757ac9dc/pydocstyle-6.1.1-py3-none-any.whl", hash = "sha256:6987826d6775056839940041beef5c08cc7e3d71d63149b48e36727f70144dc4"},
 ]
-"pyflakes 2.4.0" = [
-    {url = "https://files.pythonhosted.org/packages/15/60/c577e54518086e98470e9088278247f4af1d39cb43bcbd731e2c307acd6a/pyflakes-2.4.0.tar.gz", hash = "sha256:05a85c2872edf37a4ed30b0cce2f6093e1d0581f8c19d7393122da7e25b2b24c"},
-    {url = "https://files.pythonhosted.org/packages/43/fb/38848eb494af7df9aeb2d7673ace8b213313eb7e391691a79dbaeb6a838f/pyflakes-2.4.0-py2.py3-none-any.whl", hash = "sha256:3bb3a3f256f4b7968c9c788781e4ff07dce46bdf12339dcda61053375426ee2e"},
+"pyflakes 2.5.0" = [
+    {url = "https://files.pythonhosted.org/packages/07/92/f0cb5381f752e89a598dd2850941e7f570ac3cb8ea4a344854de486db152/pyflakes-2.5.0.tar.gz", hash = "sha256:491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3"},
+    {url = "https://files.pythonhosted.org/packages/dc/13/63178f59f74e53acc2165aee4b002619a3cfa7eeaeac989a9eb41edf364e/pyflakes-2.5.0-py2.py3-none-any.whl", hash = "sha256:4579f67d887f804e67edb544428f264b7b24f435b263c4614f384135cea553d2"},
 ]
 "pygments 2.12.0" = [
     {url = "https://files.pythonhosted.org/packages/59/0f/eb10576eb73b5857bc22610cdfc59e424ced4004fe7132c8f2af2cc168d3/Pygments-2.12.0.tar.gz", hash = "sha256:5eb116118f9612ff1ee89ac96437bb6b49e8f04d8a13b514ba26f620208e26eb"},

@@ -4,6 +4,7 @@ import asyncio
 import base64
 import io
 import os
+import signal
 import sys
 import traceback
 from datetime import datetime
@@ -252,11 +253,15 @@ class Ariadne(AttrConvertMixin):
             cls.launch_manager.add_service(MemcacheService())
 
     @classmethod
-    def launch_blocking(cls):
-        """以阻塞方式启动 Ariadne"""
+    def launch_blocking(cls, stop_signals: Iterable[signal.Signals] = (signal.SIGINT,)):
+        """以阻塞方式启动 Ariadne
+
+        Args:
+            stop_signal (Iterable[signal.Signals], optional): 要监听的停止信号，默认为 `(signal.SIGINT,)`
+        """
         cls._patch_launch_manager()
         try:
-            cls.launch_manager.launch_blocking(loop=cls.service.loop)
+            cls.launch_manager.launch_blocking(loop=cls.service.loop, stop_signal=stop_signals)
         except asyncio.CancelledError:
             logger.info("Launch manager exited.", style="red")
 

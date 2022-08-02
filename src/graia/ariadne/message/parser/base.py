@@ -27,28 +27,8 @@ from typing_extensions import get_args
 from ...app import Ariadne
 from ...event.message import GroupMessage, MessageEvent
 from ...typing import Unions, generic_issubclass, get_origin
-from ...util import deprecated
 from ..chain import MessageChain
 from ..element import At, Element, Plain, Quote, Source
-
-
-class Compose(Decorator):
-    """将多个基础 Decorator 串联起来"""
-
-    @deprecated("0.8.0", "Use `Derive` feature instead")
-    def __init__(self, *deco: "ChainDecorator") -> None:
-        self.deco: List[ChainDecorator] = list(deco)
-
-    async def target(self, interface: DispatcherInterface):
-        chain = await interface.lookup_param("message_chain", MessageChain, None)
-        for deco in self.deco:
-            chain = await deco.__call__(chain, interface)
-            if chain is None:
-                break
-        if interface.annotation is MessageChain:
-            if chain is None:
-                raise ExecutionStop
-            return chain
 
 
 class ChainDecorator(abc.ABC, Decorator, Derive[MessageChain]):

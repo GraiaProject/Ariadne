@@ -27,13 +27,17 @@ Ariadne 是 `Graia Project` 继承了 [`Application`](https://github.com/GraiaPr
 
 ## 安装
 
+`pdm add graia-ariadne`
+
+或
+
 `poetry add graia-ariadne`
 
 或
 
 `pip install graia-ariadne`
 
-> 我们强烈建议使用 [`poetry`](https://python-poetry.org) 进行包管理
+> 我们强烈建议使用 [`pdm`](https://pdm.fming.dev) / [`poetry`](https://python-poetry.org) 进行包管理
 
 ## 开始使用
 

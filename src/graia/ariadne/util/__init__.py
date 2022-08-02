@@ -13,10 +13,7 @@ import warnings
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
-    Any,
     Callable,
-    ClassVar,
-    Dict,
     Generator,
     Iterable,
     List,
@@ -394,27 +391,3 @@ def snake_to_camel(name: str, capital: bool = False) -> str:
     if not capital:
         name = name[0].lower() + name[1:]
     return name
-
-
-class AttrConvertMixin:
-    """用于支持不同属性拼写的 mixin"""
-
-    __warning_info: ClassVar[Dict[type, MutableSet[Tuple[str, int]]]] = {}
-
-    if not TYPE_CHECKING:  # Runtime Only
-
-        def __getattr__(self, origin: str) -> Any:
-            # camelCase to snake_case
-            name = camel_to_snake(origin)
-            if name not in self.__class__.__dict__ or name == origin:
-                raise AttributeError(f"'{self.__class__.__qualname__}' object has no attribute '{name}'")
-            # extract caller's file and line number
-            frame = inspect.stack()[1].frame
-            caller_file = frame.f_code.co_filename
-            caller_line = frame.f_lineno
-            AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
-            if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
-                AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
-                logger.warning(f"At {caller_file}:{caller_line}")
-                logger.warning(f"Found deprecated call: {self.__class__.__qualname__}.{name}!")
-            return getattr(self, name)

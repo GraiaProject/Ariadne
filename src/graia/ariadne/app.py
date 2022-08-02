@@ -65,7 +65,6 @@ from .typing import (
     classmethod,
 )
 from .util import (
-    AttrConvertMixin,
     RichLogInstallOptions,
     ariadne_api,
     camel_to_snake,
@@ -77,7 +76,7 @@ if TYPE_CHECKING:
     from .message.element import Image, Voice
 
 
-class Ariadne(AttrConvertMixin):
+class Ariadne:
     """Ariadne, 一个优雅且协议完备的 Python QQ Bot 框架."""
 
     options: ClassVar[AriadneOptions] = {}
@@ -128,8 +127,6 @@ class Ariadne(AttrConvertMixin):
     def config(
         cls,
         *,
-        loop: Optional[asyncio.AbstractEventLoop] = None,
-        broadcast: Optional[Broadcast] = None,
         launch_manager: Optional[Launart] = None,
         default_account: Optional[int] = None,
         install_log: Union[bool, RichLogInstallOptions] = False,
@@ -145,9 +142,6 @@ class Ariadne(AttrConvertMixin):
             install_log (Union[bool, RichLogInstallOptions], optional): 是否安装 rich 日志, 默认为 False
             inject_bypass_listener (bool, optional): 是否注入透传 Broadcast, 默认为 False
         """
-        if loop or broadcast:
-            logger.warning("Passing `loop` or `broadcast` is deprecated!")
-            logger.warning("Use `creart.create` instead.")
 
         if launch_manager:
             if getattr(cls, "launch_manager", launch_manager) is not launch_manager:

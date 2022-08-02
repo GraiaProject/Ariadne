@@ -1,12 +1,9 @@
 import functools
-import inspect
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional
 
-from loguru import logger
 from pydantic import Field
 
-from ..util import AttrConvertMixin, camel_to_snake, deprecated
 from .util import AriadneBaseModel
 
 if TYPE_CHECKING:
@@ -43,7 +40,7 @@ class MemberPerm(Enum):
         return _MEMBER_PERM_REPR_MAP[self.value]
 
 
-class Group(AriadneBaseModel, AttrConvertMixin):
+class Group(AriadneBaseModel):
     """描述 Tencent QQ 中的群组."""
 
     id: int
@@ -101,7 +98,7 @@ class Group(AriadneBaseModel, AttrConvertMixin):
         return await rider.io().read()
 
 
-class Member(AriadneBaseModel, AttrConvertMixin):
+class Member(AriadneBaseModel):
     """描述用户在群组中所具备的有关状态, 包括所在群组, 群中昵称, 所具备的权限, 唯一ID."""
 
     id: int
@@ -127,13 +124,6 @@ class Member(AriadneBaseModel, AttrConvertMixin):
 
     group: Group
     """所在群组"""
-
-    if not TYPE_CHECKING:
-
-        @property
-        @deprecated("0.8.0", "use `mute_time` instead")
-        def mutetime_remaining(self) -> Optional[int]:
-            return self.mute_time
 
     def __str__(self) -> str:
         return f"{self.name}({self.id} @ {self.group})"
@@ -207,7 +197,7 @@ class Member(AriadneBaseModel, AttrConvertMixin):
             return await resp.read()
 
 
-class Friend(AriadneBaseModel, AttrConvertMixin):
+class Friend(AriadneBaseModel):
     """描述 Tencent QQ 中的好友."""
 
     id: int
@@ -255,7 +245,7 @@ class Friend(AriadneBaseModel, AttrConvertMixin):
             return await resp.read()
 
 
-class Stranger(AriadneBaseModel, AttrConvertMixin):
+class Stranger(AriadneBaseModel):
     """描述 Tencent QQ 中的陌生人."""
 
     id: int
@@ -293,7 +283,7 @@ class Stranger(AriadneBaseModel, AttrConvertMixin):
             return await resp.read()
 
 
-class GroupConfig(AriadneBaseModel, AttrConvertMixin):
+class GroupConfig(AriadneBaseModel):
     """描述群组各项功能的设置."""
 
     name: str = ""
@@ -313,22 +303,6 @@ class GroupConfig(AriadneBaseModel, AttrConvertMixin):
 
     anonymous_chat: bool = False
     """允许匿名聊天"""
-
-    if not TYPE_CHECKING:
-
-        def __setattr__(self, o_name: str, value: Any) -> None:
-            name = camel_to_snake(o_name)
-            super().__setattr__(name, value)
-            if o_name == name:
-                return
-            frame = inspect.stack()[1].frame
-            caller_file = frame.f_code.co_filename
-            caller_line = frame.f_lineno
-            AttrConvertMixin.__warning_info.setdefault(self.__class__, set())
-            if (caller_file, caller_line) not in AttrConvertMixin.__warning_info[self.__class__]:
-                AttrConvertMixin.__warning_info[self.__class__].add((caller_file, caller_line))
-                logger.warning(f"At {caller_file}:{caller_line}")
-                logger.warning(f"Found deprecated attribute set: {self.__class__.__qualname__}.{name}!")
 
 
 class MemberInfo(AriadneBaseModel):

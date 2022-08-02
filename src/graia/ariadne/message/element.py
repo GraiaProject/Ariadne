@@ -16,7 +16,7 @@ from typing_extensions import Self
 
 from ..connection.util import UploadMethod
 from ..model import AriadneBaseModel, Friend, Member, Stranger
-from ..util import AttrConvertMixin, deprecated, escape_bracket, internal_cls
+from ..util import deprecated, escape_bracket, internal_cls
 
 if TYPE_CHECKING:
     from ..event.message import MessageEvent
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from .chain import MessageChain
 
 
-class Element(AriadneBaseModel, AttrConvertMixin, BaseElement):
+class Element(AriadneBaseModel, BaseElement):
     """
     指示一个消息中的元素.
     type (str): 元素类型
@@ -481,7 +481,7 @@ class MusicShare(Element):
         return f"[音乐分享:{self.title}, {self.brief}]"
 
 
-class ForwardNode(AriadneBaseModel, AttrConvertMixin):
+class ForwardNode(AriadneBaseModel):
     """表示合并转发中的一个节点"""
 
     sender_id: int = Field(None, alias="senderId")
@@ -692,7 +692,7 @@ class MultimediaElement(Element):
                 path = Path(path)
             if not path.exists():
                 raise FileNotFoundError(f"{path} is not exist!")
-            data["base64"] = b64encode(path.read_bytes())
+            data["url"] = path.absolute().as_uri()
         elif base64:
             data["base64"] = base64
         elif data_bytes:
@@ -751,9 +751,7 @@ class MultimediaElement(Element):
             return True
         if self.url and self.url == other.url:
             return True
-        if self.base64 and self.base64 == other.base64:
-            return True
-        return False
+        return self.base64 and self.base64 == other.base64
 
 
 class Image(MultimediaElement):

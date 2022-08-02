@@ -21,7 +21,7 @@ from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import AttrConvertMixin, deprecated, gen_subclass, unescape_bracket
+from ..util import deprecated, gen_subclass, unescape_bracket
 from .element import (
     At,
     AtAll,
@@ -52,7 +52,7 @@ MessageOrigin = Union[str, dict, Element]
 MessageContainer = Union[MessageOrigin, Sequence["MessageContainer"], "MessageChain"]
 
 
-class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
+class MessageChain(BaseMessageChain, AriadneBaseModel):
     """
     即 "消息链", 被用于承载整个消息内容的数据结构, 包含有一有序列表, 包含有元素实例.
     """
@@ -602,7 +602,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
     if not TYPE_CHECKING:
 
         @classmethod
-        @deprecated("0.8.0", "Instantiate `MessageChain` directly instead.")
+        @deprecated("0.9.0", "Instantiate `MessageChain` directly instead.")
         def create(cls, *elements: Union[Iterable[Element], Element, str]) -> Self:
             """创建消息链.
 
@@ -617,17 +617,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
 
             return cls(*elements)
 
-        @deprecated("0.8.0", "Use `as_sendable` instead.")
-        def prepare(self, copy: bool = False) -> Self:
-            """
-            对消息链中所有元素进行处理.
-
-            Returns:
-                MessageChain: copy = True 时返回副本, 否则返回自己的引用.
-            """
-            return self.as_sendable()
-
-        @deprecated("0.8.0", "Use `display` instead.")
+        @deprecated("0.9.0", "Use `display` instead.")
         def as_display(self) -> str:
             """
             获取以字符串形式表示的消息链, 且趋于通常你见到的样子.
@@ -636,15 +626,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel, AttrConvertMixin):
                 str: 以字符串形式表示的消息链
             """
             return "".join(i.display for i in self.content)
-
-        @deprecated("0.8.0", "Use `only` instead.")
-        def only_contains(self, *types: Type[Element]) -> bool:
-            """判断消息链中是否只含有特定类型元素.
-
-            Returns:
-                bool: 判断结果
-            """
-            return self.only(*types)
 
 
 _update_forward_refs()

@@ -8,13 +8,19 @@
 
 `Ariadne.launch_blocking` 支持自定义停止信号.
 
-自动忽略结束时未完成的 Amnesia transport 导致的 CancelledError.
+自动忽略结束时未完成的 Amnesia transport 导致的 `CancelledError`.
+
+使用 `url` 作为基于 `Path` 的 `MultimediaElement` 的实现.
 
 ### 修复
 
 修复 `HttpServerInfo` 缺失 `verify_key` 导致 `TypeError` 的问题.
 
 修复 interrupt util 的内置 `wait` 问题.
+
+### 移除
+
+移除了弃用的方法名转换和部分事件属性名.
 
 ## 0.7.18
 

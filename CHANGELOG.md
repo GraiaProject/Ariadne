@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.8.0
+
 ### 改进
 
 `MatchTemplate` 现在支持 `Element` 类的 `Union`.

@@ -115,7 +115,6 @@ from .message import At as At
 from .message import AtAll as AtAll
 from .message import Bypass as Bypass
 from .message import Commander as Commander
-from .message import Compose as Compose
 from .message import ContainKeyword as ContainKeyword
 from .message import DetectPrefix as DetectPrefix
 from .message import DetectSuffix as DetectSuffix

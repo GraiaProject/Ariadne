@@ -760,6 +760,11 @@ class Image(MultimediaElement):
     type = "Image"
 
     id: Optional[str] = Field(None, alias="imageId")
+    width: Optional[int] = None
+    height: Optional[int] = None
+    size: Optional[int] = None
+    image_type: Optional[str] = Field(None, alias="imageType")
+    is_emoji: Optional[bool] = Field(None, alias="isEmoji")
 
     def __init__(
         self,

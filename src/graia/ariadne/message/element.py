@@ -692,7 +692,7 @@ class MultimediaElement(Element):
                 path = Path(path)
             if not path.exists():
                 raise FileNotFoundError(f"{path} is not exist!")
-            data["url"] = path.absolute().as_uri()
+            data["base64"] = b64encode(path.read_bytes())
         elif base64:
             data["base64"] = base64
         elif data_bytes:

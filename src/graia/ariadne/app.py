@@ -225,9 +225,9 @@ class Ariadne:
     @classmethod
     def _patch_launch_manager(cls) -> None:
         if "http.universal_client" not in cls.launch_manager.launchables:
-            from graia.amnesia.builtins.aiohttp import AiohttpService
+            from graia.amnesia.builtins.aiohttp import AiohttpClientService
 
-            cls.launch_manager.add_service(AiohttpService())
+            cls.launch_manager.add_service(AiohttpClientService())
 
         if (
             "http.universal_server" in cls.service.required

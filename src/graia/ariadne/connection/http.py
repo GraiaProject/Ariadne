@@ -8,21 +8,20 @@ from graia.amnesia.json import Json
 from graia.amnesia.transport import Transport
 from graia.amnesia.transport.common.http import AbstractServerRequestIO, HttpEndpoint
 from graia.amnesia.transport.common.http.extra import HttpRequest
+from graia.amnesia.transport.common.server import AbstractRouter
 from launart import Launart
 from launart.utilles import wait_fut
 from loguru import logger
 
 from graia.ariadne.connection import ConnectionMixin
-
-from ..exception import InvalidSession
-from ._info import HttpClientInfo, HttpServerInfo
-from .util import (
+from graia.ariadne.connection._info import HttpClientInfo, HttpServerInfo
+from graia.ariadne.connection.util import (
     CallMethod,
     DatetimeJsonEncoder,
     build_event,
-    get_router,
     validate_response,
 )
+from graia.ariadne.exception import InvalidSession
 
 
 class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
@@ -50,7 +49,7 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
         return {"command": "", "data": {}}
 
     async def launch(self, mgr: Launart) -> None:
-        router = get_router(mgr)
+        router = mgr.get_interface(AbstractRouter)
         router.use(self)
 
 

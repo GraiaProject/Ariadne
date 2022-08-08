@@ -6,11 +6,9 @@ from enum import Enum
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type, Union, overload
 
-from graia.amnesia.builtins.aiohttp import AiohttpRouter
-from launart import Launart
 from loguru import logger
 
-from ..exception import (
+from graia.ariadne.exception import (
     AccountMuted,
     AccountNotFound,
     InvalidArgument,
@@ -22,29 +20,11 @@ from ..exception import (
     UnknownTarget,
     UnVerifiedSession,
 )
-from ..util import gen_subclass
+from graia.ariadne.util import gen_subclass
 
 if TYPE_CHECKING:
 
     from ..event import MiraiEvent
-
-
-try:
-    from graia.amnesia.builtins.starlette import StarletteRouter
-
-    def get_router(mgr: Launart) -> Union[AiohttpRouter, StarletteRouter]:
-        if AiohttpRouter in mgr._service_bind:
-            return mgr.get_interface(AiohttpRouter)
-        if StarletteRouter in mgr._service_bind:
-            return mgr.get_interface(StarletteRouter)
-        raise ValueError("No router found")
-
-except ImportError:
-
-    def get_router(mgr: Launart) -> Union[AiohttpRouter, StarletteRouter]:
-        if AiohttpRouter in mgr._service_bind:
-            return mgr.get_interface(AiohttpRouter)
-        raise ValueError("No router found")
 
 
 code_exceptions_mapping: Dict[int, Type[Exception]] = {

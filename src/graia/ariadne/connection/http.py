@@ -97,13 +97,18 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
         )
         self.status.session_key = session_key
 
-    async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
+    async def call(
+        self, command: str, method: CallMethod, params: Optional[dict] = None, *, in_session: bool = True
+    ) -> Any:
+        logger.critical("HttpClient: call", style="dark_orange")
         params = params or {}
         command = command.replace("_", "/")
         while not self.status.connected:
             await self.status.wait_for_update()
-        if not self.status.session_key:
-            await self.http_auth()
+        if in_session:
+            if not self.status.session_key:
+                await self.http_auth()
+            params["sessionKey"] = self.status.session_key
         try:
             if method in (CallMethod.GET, CallMethod.RESTGET):
                 return await self.request("GET", self.info.get_url(command), params=params)

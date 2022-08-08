@@ -19,9 +19,7 @@ from launart import ExportInterface, Launchable, LaunchableStatus
 from statv import Stats
 from typing_extensions import Self
 
-from ..event import MiraiEvent
-from ..util import camel_to_snake
-from ._info import (
+from graia.ariadne.connection._info import (
     HttpClientInfo,
     HttpServerInfo,
     T_Info,
@@ -29,7 +27,9 @@ from ._info import (
     WebsocketClientInfo,
     WebsocketServerInfo,
 )
-from .util import CallMethod
+from graia.ariadne.connection.util import CallMethod
+from graia.ariadne.event import MiraiEvent
+from graia.ariadne.util import camel_to_snake
 
 if TYPE_CHECKING:
     from ..service import ElizabethService
@@ -100,7 +100,14 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
         self.event_callbacks = []
         self.status = ConnectionStatus()
 
-    async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
+    async def call(
+        self,
+        command: str,
+        method: CallMethod,
+        params: Optional[dict] = None,
+        *,
+        in_session: bool = True,
+    ) -> Any:
         """调用下层 API
 
         Args:
@@ -109,7 +116,7 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
             params (dict, optional): 调用参数
         """
         if self.fallback:
-            return await self.fallback.call(command, method, params)
+            return await self.fallback.call(command, method, params, in_session=in_session)
         raise NotImplementedError(
             f"Connection {self} can't perform {command!r}, consider configuring a HttpClientConnection?"
         )
@@ -118,8 +125,14 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
         return f"<{self.__class__.__name__} {self.status} with {len(self.event_callbacks)} callbacks>"
 
 
-from .http import HttpClientConnection, HttpServerConnection  # noqa: E402
-from .ws import WebsocketClientConnection, WebsocketServerConnection  # noqa: E402
+from graia.ariadne.connection.http import (  # noqa: E402
+    HttpClientConnection,
+    HttpServerConnection,
+)
+from graia.ariadne.connection.ws import (  # noqa: E402
+    WebsocketClientConnection,
+    WebsocketServerConnection,
+)
 
 CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {
     HttpClientInfo: HttpClientConnection,
@@ -160,16 +173,6 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         """
         return ConnectionInterface(self.service, account)
 
-    async def _call(
-        self, command: str, method: CallMethod, params: dict, *, account: Optional[int] = None
-    ) -> Any:
-        connection = self.connection
-        if account is not None:
-            connection = self.service.connections.get(account)
-        if connection is None:
-            raise ValueError(f"Unable to find connection to execute {command}")
-        return await connection.call(command, method, params)
-
     async def call(
         self,
         command: str,
@@ -191,11 +194,14 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         Returns:
             Any: 调用结果
         """
-        if in_session:
-            await self.status.wait_for_available()  # wait until session_key is present
-            session_key = self.status.session_key
-            params["sessionKey"] = session_key
-        return await self._call(command, method, params, account=account)
+        if account is None:
+            connection = self.connection
+        else:
+            connection = self.service.connections.get(account)
+        if connection is None:
+            raise ValueError(f"Unable to find connection to execute {command}")
+
+        return await connection.call(command, method, params, in_session=in_session)
 
     def add_callback(self, callback: Callable[[MiraiEvent], Awaitable[Any]]) -> None:
         """添加事件回调

@@ -90,21 +90,28 @@ class WebsocketConnectionMixin(Transport, ConnectionMixin[T_Info]):
         self.status.alive = False
         logger.info("Websocket connection closed", style="dark_orange")
 
-    async def call(self, command: str, method: CallMethod, params: Optional[dict] = None) -> Any:
+    async def call(
+        self,
+        command: str,
+        method: CallMethod,
+        params: Optional[dict] = None,
+        *,
+        in_session: bool = True,
+    ) -> Any:
         params = params or {}
         sync_id: str = secrets.token_urlsafe(12)
         fut = asyncio.get_running_loop().create_future()
-        content: Dict[str, Any] = {"syncId": sync_id, "command": command, "content": params or {}}
+        content: Dict[str, Any] = {
+            "syncId": sync_id,
+            "command": command,
+            "content": params or {},
+        }
         if method == CallMethod.RESTGET:
             content["subCommand"] = "get"
         elif method == CallMethod.RESTPOST:
             content["subCommand"] = "update"
         elif method == CallMethod.MULTIPART:
-            if self.fallback:
-                return await self.fallback.call(command, method, params)
-            raise NotImplementedError(
-                f"Connection {self} can't perform {command!r}, consider configuring a HttpClientConnection?"
-            )
+            return await super().call(command, method, params, in_session=in_session)
         self.futures[sync_id] = fut
         await self.status.wait_for_available()
         assert self.ws_io

@@ -310,7 +310,7 @@ class Ariadne:
         Returns:
             str: 版本信息.
         """
-        result = await self.connection._call("about", CallMethod.GET, {})
+        result = await self.connection.call("about", CallMethod.GET, {}, in_session=False)
         return result["version"]
 
     async def get_file_iterator(

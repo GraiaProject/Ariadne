@@ -516,7 +516,7 @@ class Ariadne:
         target = target.id if isinstance(target, Group) else target
 
         await self.connection.call(
-            "file/move",
+            "file_move",
             CallMethod.POST,
             {
                 "id": id,

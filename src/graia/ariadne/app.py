@@ -1522,6 +1522,8 @@ class Ariadne:
             if result["messageId"] < 0:
                 logger.warning("Failed to send message, your account may be blocked.")
             return BotMessage(messageId=result["messageId"], origin=message)
+=======
+>>>>>>> feat: BotMessage.subject
 
     @ariadne_api
     async def send_temp_message(
@@ -1579,6 +1581,8 @@ class Ariadne:
             if result["messageId"] < 0:
                 logger.warning("Failed to send message, your account may be limited.")
             return BotMessage(messageId=result["messageId"], origin=message)
+=======
+>>>>>>> feat: BotMessage.subject
 
     @overload
     async def send_message(

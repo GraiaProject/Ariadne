@@ -205,6 +205,9 @@ class BotMessage(AriadneBaseModel):
     origin: Optional["MessageChain"]
     """原始消息链 (发送的消息链)"""
 
+    subject: Union[Friend, Group, Member, Stranger, int]
+    """消息接收者"""
+
 
 __all__ = [
     "Client",

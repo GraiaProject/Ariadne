@@ -100,7 +100,6 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
     async def call(
         self, command: str, method: CallMethod, params: Optional[dict] = None, *, in_session: bool = True
     ) -> Any:
-        logger.critical("HttpClient: call", style="dark_orange")
         params = params or {}
         command = command.replace("_", "/")
         while not self.status.connected:

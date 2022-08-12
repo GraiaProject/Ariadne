@@ -1,14 +1,24 @@
 """Mirai 的各种事件"""
+
 from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from graia.broadcast.entities.dispatcher import BaseDispatcher
+from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from pydantic import Field
+from pydantic import Field, root_validator
 from typing_extensions import Literal
 
 from ..connection.util import CallMethod
+from ..dispatcher import (
+    BaseDispatcher,
+    FriendDispatcher,
+    GroupDispatcher,
+    MemberDispatcher,
+    NoneDispatcher,
+    OperatorDispatcher,
+    OperatorMemberDispatcher,
+)
 from ..message.chain import MessageChain
 from ..message.element import Element
 from ..model import Client, Friend, Group, Member, MemberPerm
@@ -129,13 +139,7 @@ class FriendInputStatusChangedEvent(FriendEvent):
     inputting: bool
     """是否正在输入"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, FriendInputStatusChangedEvent) and generic_issubclass(
-                Friend, interface.annotation
-            ):
-                return interface.event.friend
+    Dispatcher = FriendDispatcher
 
 
 class FriendNickChangedEvent(FriendEvent):
@@ -152,7 +156,7 @@ class FriendNickChangedEvent(FriendEvent):
     type = "FriendNickChangedEvent"
 
     friend: Friend
-    """好友信息 (nickname 值) 不确定"""
+    """好友信息"""
 
     from_name: str = Field(..., alias="from")
     """原昵称"""
@@ -160,13 +164,12 @@ class FriendNickChangedEvent(FriendEvent):
     to_name: str = Field(..., alias="to")
     """新昵称"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, FriendNickChangedEvent) and generic_issubclass(
-                Friend, interface.annotation
-            ):
-                return interface.event.friend
+    Dispatcher = FriendDispatcher
+
+    @root_validator
+    def _(cls, values: Dict[str, Any]):
+        values["friend"].nickname = values["to_name"]
+        return values
 
 
 class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
@@ -191,13 +194,7 @@ class BotGroupPermissionChangeEvent(GroupEvent, BotEvent):
     group: Group
     """权限改变所在的群信息"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotGroupPermissionChangeEvent) and generic_issubclass(
-                Group, interface.annotation
-            ):
-                return interface.event.group
+    Dispatcher = GroupDispatcher
 
 
 class BotMuteEvent(GroupEvent, BotEvent):
@@ -220,14 +217,7 @@ class BotMuteEvent(GroupEvent, BotEvent):
     operator: Member
     """执行禁言操作的管理员/群主"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotMuteEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.operator.group
+    Dispatcher = OperatorDispatcher
 
 
 class BotUnmuteEvent(GroupEvent, BotEvent):
@@ -247,14 +237,7 @@ class BotUnmuteEvent(GroupEvent, BotEvent):
     operator: Member
     """操作的管理员或群主信息"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotUnmuteEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.operator.group
+    Dispatcher = OperatorDispatcher
 
 
 class BotJoinGroupEvent(GroupEvent, BotEvent):
@@ -277,14 +260,13 @@ class BotJoinGroupEvent(GroupEvent, BotEvent):
     inviter: Optional[Member] = Field(..., alias="invitor")
     """如果被邀请入群则为邀请人的 Member 对象"""
 
-    class Dispatcher(BaseDispatcher):
+    class Dispatcher(AbstractDispatcher):
+        mixin = [GroupDispatcher]
+
         @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotJoinGroupEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.inviter
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+        async def catch(interface: DispatcherInterface["BotJoinGroupEvent"]):
+            if (inviter := interface.event.inviter) and generic_issubclass(Member, interface.annotation):
+                return inviter
 
 
 class BotLeaveEventActive(GroupEvent, BotEvent):
@@ -300,13 +282,7 @@ class BotLeaveEventActive(GroupEvent, BotEvent):
     group: Group
     """Bot 退出的群的信息"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotLeaveEventActive) and generic_issubclass(
-                Group, interface.annotation
-            ):
-                return interface.event.group
+    Dispatcher = GroupDispatcher
 
 
 class BotLeaveEventKick(GroupEvent, BotEvent):
@@ -326,14 +302,8 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
     operator: Optional[Member]
     """操作员, 为群主或管理员"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotLeaveEventKick):
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class BotLeaveEventDisband(GroupEvent, BotEvent):
@@ -353,14 +323,8 @@ class BotLeaveEventDisband(GroupEvent, BotEvent):
     operator: Optional[Member]
     """操作员, 为群主"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, BotLeaveEventDisband):
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class GroupRecallEvent(GroupEvent):
@@ -392,14 +356,8 @@ class GroupRecallEvent(GroupEvent):
     operator: Optional[Member]
     """撤回消息的群成员, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupRecallEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class FriendRecallEvent(FriendEvent):
@@ -471,17 +429,16 @@ class NudgeEvent(MiraiEvent):
             data["friend_id"] = data["subject"]["id"]
         super().__init__(**data)
 
-    class Dispatcher(BaseDispatcher):
+    class Dispatcher(AbstractDispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
             from ..app import Ariadne
 
-            ev = interface.event
-            if isinstance(ev, NudgeEvent):
-                if generic_issubclass(Group, interface.annotation) and ev.group_id is not None:
-                    return await Ariadne.current().get_group(ev.group_id)
-                if generic_issubclass(Friend, interface.annotation) and ev.friend_id is not None:
-                    return await Ariadne.current().get_friend(ev.friend_id)
+            event = interface.event
+            if generic_issubclass(Group, interface.annotation) and event.group_id is not None:
+                return await Ariadne.current().get_group(event.group_id, assertion=True, cache=True)
+            if generic_issubclass(Friend, interface.annotation) and event.friend_id is not None:
+                return await Ariadne.current().get_friend(event.friend_id, assertion=True, cache=True)
 
 
 class GroupNameChangeEvent(GroupEvent):
@@ -510,14 +467,8 @@ class GroupNameChangeEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupNameChangeEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class GroupEntranceAnnouncementChangeEvent(GroupEvent):
@@ -546,14 +497,8 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupEntranceAnnouncementChangeEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class GroupMuteAllEvent(GroupEvent):
@@ -582,14 +527,8 @@ class GroupMuteAllEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupMuteAllEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class GroupAllowAnonymousChatEvent(GroupEvent):
@@ -618,14 +557,8 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupAllowAnonymousChatEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class GroupAllowConfessTalkEvent(GroupEvent):
@@ -654,14 +587,8 @@ class GroupAllowConfessTalkEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupAllowConfessTalkEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class GroupAllowMemberInviteEvent(GroupEvent):
@@ -690,14 +617,8 @@ class GroupAllowMemberInviteEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupAllowMemberInviteEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.group
+    class Dispatch(BaseDispatcher):
+        mixin = [GroupDispatcher, OperatorDispatcher]
 
 
 class MemberJoinEvent(GroupEvent):
@@ -719,16 +640,17 @@ class MemberJoinEvent(GroupEvent):
     inviter: Optional[Member] = Field(..., alias="invitor")
     """邀请该成员的成员, 可为 None"""
 
-    class Dispatcher(BaseDispatcher):
+    class Dispatcher(AbstractDispatcher):
+        mixin = [MemberDispatcher]
+
         @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberJoinEvent):
-                if interface.name == "inviter" and generic_issubclass(Member, interface.annotation):
-                    return interface.event.inviter
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+        async def catch(interface: DispatcherInterface["MemberJoinEvent"]):
+            if interface.name == "inviter" and generic_issubclass(Member, interface.annotation):
+                if inviter := interface.event.inviter:
+                    return inviter
+                elif result := await NoneDispatcher.catch(interface):
+                    return result
+                interface.crash()
 
 
 class MemberLeaveEventKick(GroupEvent):
@@ -753,16 +675,7 @@ class MemberLeaveEventKick(GroupEvent):
     operator: Optional[Member]
     """执行了该操作的管理员/群主, 也可能是 Bot 账号"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberLeaveEventKick):
-                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = OperatorMemberDispatcher
 
 
 class MemberLeaveEventQuit(GroupEvent):
@@ -782,14 +695,7 @@ class MemberLeaveEventQuit(GroupEvent):
     member: Member
     """主动退出群组的成员"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberLeaveEventQuit):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = MemberDispatcher
 
 
 class MemberCardChangeEvent(GroupEvent):
@@ -821,16 +727,7 @@ class MemberCardChangeEvent(GroupEvent):
     operator: Optional[Member]
     """更改群名片的操作者, 可能是管理员/群主, 该成员自己, 也可能是 Bot 账号(这时, `operator` 为 `None`)."""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberCardChangeEvent):
-                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = OperatorMemberDispatcher
 
 
 class MemberSpecialTitleChangeEvent(GroupEvent):
@@ -856,14 +753,7 @@ class MemberSpecialTitleChangeEvent(GroupEvent):
     member: Member
     """被更改头衔的群组成员"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberSpecialTitleChangeEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = MemberDispatcher
 
 
 class MemberPermissionChangeEvent(GroupEvent):
@@ -889,14 +779,7 @@ class MemberPermissionChangeEvent(GroupEvent):
     member: Member
     """权限改动的群员的信息"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberPermissionChangeEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = MemberDispatcher
 
 
 class MemberMuteEvent(GroupEvent):
@@ -925,16 +808,7 @@ class MemberMuteEvent(GroupEvent):
     operator: Optional[Member]
     """该操作的执行者, 也可能是 Bot 账号"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberMuteEvent):
-                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = OperatorMemberDispatcher
 
 
 class MemberUnmuteEvent(GroupEvent):
@@ -961,16 +835,7 @@ class MemberUnmuteEvent(GroupEvent):
     operator: Optional[Member]
     """操作执行者, 可能是管理员或是群主, 也可能是 Bot 账号"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberUnmuteEvent):
-                if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
-                    return interface.event.operator
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = OperatorMemberDispatcher
 
 
 class MemberHonorChangeEvent(GroupEvent):
@@ -996,14 +861,7 @@ class MemberHonorChangeEvent(GroupEvent):
     honor: str
     """获得/失去的荣誉"""
 
-    class Dispatcher(BaseDispatcher):
-        @staticmethod
-        async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, MemberHonorChangeEvent):
-                if generic_issubclass(Member, interface.annotation):
-                    return interface.event.member
-                if generic_issubclass(Group, interface.annotation):
-                    return interface.event.member.group
+    Dispatcher = MemberDispatcher
 
 
 class RequestEvent(MiraiEvent):

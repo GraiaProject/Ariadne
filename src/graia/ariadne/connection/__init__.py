@@ -19,7 +19,9 @@ from launart import ExportInterface, Launchable, LaunchableStatus
 from statv import Stats
 from typing_extensions import Self
 
-from graia.ariadne.connection._info import (
+from ..event import MiraiEvent
+from ..util import camel_to_snake
+from ._info import (
     HttpClientInfo,
     HttpServerInfo,
     T_Info,
@@ -27,9 +29,7 @@ from graia.ariadne.connection._info import (
     WebsocketClientInfo,
     WebsocketServerInfo,
 )
-from graia.ariadne.connection.util import CallMethod
-from graia.ariadne.event import MiraiEvent
-from graia.ariadne.util import camel_to_snake
+from .util import CallMethod
 
 if TYPE_CHECKING:
     from ..service import ElizabethService
@@ -125,14 +125,8 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
         return f"<{self.__class__.__name__} {self.status} with {len(self.event_callbacks)} callbacks>"
 
 
-from graia.ariadne.connection.http import (  # noqa: E402
-    HttpClientConnection,
-    HttpServerConnection,
-)
-from graia.ariadne.connection.ws import (  # noqa: E402
-    WebsocketClientConnection,
-    WebsocketServerConnection,
-)
+from .http import HttpClientConnection, HttpServerConnection  # noqa: E402
+from .ws import WebsocketClientConnection, WebsocketServerConnection  # noqa: E402
 
 CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {
     HttpClientInfo: HttpClientConnection,

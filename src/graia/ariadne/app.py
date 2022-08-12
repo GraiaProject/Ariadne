@@ -30,8 +30,6 @@ from graia.broadcast import Broadcast
 from launart import Launart
 from loguru import logger
 
-from graia.ariadne.exception import AriadneConfigurationError
-
 from .connection import ConnectionInterface
 from .connection._info import U_Info
 from .connection.util import CallMethod, UploadMethod, build_event
@@ -39,6 +37,7 @@ from .context import enter_context, enter_message_send_context
 from .event import MiraiEvent
 from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
 from .event.mirai import FriendEvent, GroupEvent
+from .exception import AriadneConfigurationError
 from .message.chain import MessageChain, MessageContainer
 from .message.element import Source
 from .model import (

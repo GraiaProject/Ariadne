@@ -10,8 +10,6 @@ from graia.broadcast import Broadcast
 from launart import Launart, Service
 from loguru import logger
 
-from graia.ariadne.exception import AriadneConfigurationError
-
 from .connection import (
     CONFIG_MAP,
     ConnectionInterface,
@@ -20,6 +18,7 @@ from .connection import (
 )
 from .connection._info import HttpClientInfo, U_Info
 from .dispatcher import ContextDispatcher, NoneDispatcher
+from .exception import AriadneConfigurationError
 
 ARIADNE_ASCII_LOGO = r"""
     _         _           _

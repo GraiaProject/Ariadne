@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type, Union, ove
 
 from loguru import logger
 
-from graia.ariadne.exception import (
+from ..exception import (
     AccountMuted,
     AccountNotFound,
     InvalidArgument,
@@ -20,10 +20,9 @@ from graia.ariadne.exception import (
     UnknownTarget,
     UnVerifiedSession,
 )
-from graia.ariadne.util import gen_subclass
+from ..util import gen_subclass
 
 if TYPE_CHECKING:
-
     from ..event import MiraiEvent
 
 

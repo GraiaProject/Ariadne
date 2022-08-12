@@ -36,11 +36,10 @@ from pydantic.class_validators import Validator
 from pydantic.fields import ModelField
 from typing_extensions import Self
 
-from graia.ariadne.model.util import AriadneBaseModel
-
 from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
 from ...event.message import MessageEvent
+from ...model.util import AriadneBaseModel
 from ...typing import DictStrAny, MaybeFlag, Sentinel, Wrapper
 from ...util import constant, gen_subclass, resolve_dispatchers_mixin, type_repr
 from ..chain import MessageChain

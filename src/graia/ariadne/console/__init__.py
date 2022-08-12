@@ -148,8 +148,8 @@ class Console:
 
     async def loop(self) -> None:
         """Console 的输入循环"""
-        from graia.ariadne.message.chain import MessageChain
-        from graia.ariadne.message.element import Plain
+        from ..message.chain import MessageChain
+        from ..message.element import Plain
 
         class _Dispatcher(BaseDispatcher):
             def __init__(self, command: str, console: Console) -> None:

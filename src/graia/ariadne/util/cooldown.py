@@ -26,9 +26,8 @@ from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.utilles import argument_signature
 
-from graia.ariadne.typing import generic_issubclass
-
 from ..event.message import MessageEvent
+from ..typing import generic_issubclass
 
 T_Time = TypeVar("T_Time", timedelta, datetime, float, int)
 

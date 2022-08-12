@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Literal, Union
 from pydantic import BaseConfig, BaseModel, Extra
 from typing_extensions import NotRequired, TypedDict
 
-from graia.ariadne.util import snake_to_camel
+from ..util import snake_to_camel
 
 if TYPE_CHECKING:
     from ..typing import AbstractSetIntStr, DictStrAny, MappingIntStrAny

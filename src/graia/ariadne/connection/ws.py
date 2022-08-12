@@ -25,18 +25,9 @@ from launart.utilles import wait_fut
 from loguru import logger
 from yarl import URL
 
-from graia.ariadne.connection import ConnectionMixin
-from graia.ariadne.connection._info import (
-    T_Info,
-    WebsocketClientInfo,
-    WebsocketServerInfo,
-)
-from graia.ariadne.connection.util import (
-    CallMethod,
-    DatetimeJsonEncoder,
-    build_event,
-    validate_response,
-)
+from . import ConnectionMixin
+from ._info import T_Info, WebsocketClientInfo, WebsocketServerInfo
+from .util import CallMethod, DatetimeJsonEncoder, build_event, validate_response
 
 t = TransportRegistrar()
 

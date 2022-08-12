@@ -13,15 +13,10 @@ from launart import Launart
 from launart.utilles import wait_fut
 from loguru import logger
 
-from graia.ariadne.connection import ConnectionMixin
-from graia.ariadne.connection._info import HttpClientInfo, HttpServerInfo
-from graia.ariadne.connection.util import (
-    CallMethod,
-    DatetimeJsonEncoder,
-    build_event,
-    validate_response,
-)
-from graia.ariadne.exception import InvalidSession
+from ..exception import InvalidSession
+from . import ConnectionMixin
+from ._info import HttpClientInfo, HttpServerInfo
+from .util import CallMethod, DatetimeJsonEncoder, build_event, validate_response
 
 
 class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):

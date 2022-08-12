@@ -331,14 +331,21 @@ class Ariadne:
         return Ariadne.instances[cls.options["default_account"]]
 
     @ariadne_api
-    async def get_version(self) -> str:
+    async def get_version(self, *, cache: bool = False) -> str:
         """获取后端 Mirai HTTP API 版本.
+
+        Args:
+            cache (bool, optional): 是否缓存结果, 默认为 False.
 
         Returns:
             str: 版本信息.
         """
-        result = await self.connection.call("about", CallMethod.GET, {}, in_session=False)
-        return result["version"]
+        interface = self.launch_manager.get_interface(Memcache)
+        if cache and (version := await interface.get(f"account.{self.account}.version")):
+            return version
+        version = (await self.connection.call("about", CallMethod.GET, {}, in_session=False))["version"]
+        await interface.set(f"account.{self.account}.version", version)
+        return version
 
     @ariadne_api
     async def get_bot_list(self) -> List[int]:

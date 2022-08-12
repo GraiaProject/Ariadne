@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 from aiohttp import FormData
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
+from graia.amnesia.builtins.memcache import Memcache
 from graia.amnesia.json import Json
 from graia.amnesia.transport import Transport
 from graia.amnesia.transport.common.http import AbstractServerRequestIO, HttpEndpoint
@@ -84,6 +85,11 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
         return validate_response(result)
 
     async def http_auth(self) -> None:
+        from ..app import Ariadne
+
+        app = Ariadne.current()
+        await app.launch_manager.get_interface(Memcache).delete(f"account.{app.account}.version")
+
         data = await self.request(
             "POST",
             self.info.get_url("verify"),

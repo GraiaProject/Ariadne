@@ -1754,3 +1754,30 @@ class Ariadne:
                 "target": target,
             },
         )
+
+    @ariadne_api
+    async def get_roaming_message(
+        self, start: datetime, end: datetime, target: Union[Friend, int]
+    ) -> List[FriendMessage]:
+        """获取漫游消息. 需要 Mirai API HTTP 2.6.0+.
+
+        Args:
+            start (datetime): 起始时间.
+            end (datetime): 结束时间.
+            target (Union[Friend, int]): 漫游消息对象.
+
+        Returns:
+            List[FriendMessage]: 漫游消息列表.
+        """
+        target = target if isinstance(target, int) else target.id
+        result = await self.connection.call(
+            "roamingMessages",
+            CallMethod.POST,
+            {
+                "target": target,
+                "start": start.timestamp(),
+                "end": end.timestamp(),
+            },
+        )
+
+        return [FriendMessage.parse_obj(i) for i in result]

@@ -52,7 +52,7 @@ class NoneDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if generic_isinstance(type(None), interface.annotation):
+        if generic_isinstance(None, interface.annotation):
             return Force(None)
 
 

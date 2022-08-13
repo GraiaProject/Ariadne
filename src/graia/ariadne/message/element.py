@@ -16,7 +16,7 @@ from typing_extensions import Self
 
 from ..connection.util import UploadMethod
 from ..model import AriadneBaseModel, Friend, Member, Stranger
-from ..util import deprecated, escape_bracket, internal_cls
+from ..util import escape_bracket, internal_cls
 
 if TYPE_CHECKING:
     from ..event.message import MessageEvent
@@ -38,17 +38,6 @@ class Element(AriadneBaseModel, BaseElement):
 
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))
-
-    if not TYPE_CHECKING:
-
-        @deprecated("0.8.0", "Use `display` instead.")
-        def as_display(self) -> str:
-            """返回该元素的 "显示" 形式字符串, 趋近于你见到的样子.
-
-            Returns:
-                str: "显示" 字符串.
-            """
-            return str(self)
 
     @property
     def display(self) -> str:

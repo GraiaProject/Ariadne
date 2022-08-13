@@ -132,6 +132,9 @@ class Source(Element):
     time: datetime
     """发送时间"""
 
+    def __int__(self):
+        return self.id
+
     def as_persistent_string(self) -> str:
         return ""
 

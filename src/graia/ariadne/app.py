@@ -313,6 +313,15 @@ class Ariadne:
         result = await self.connection.call("about", CallMethod.GET, {}, in_session=False)
         return result["version"]
 
+    @ariadne_api
+    async def get_bot_list(self) -> List[int]:
+        """获取所有当前登录账号. 需要 Mirai API HTTP 2.6.0+.
+
+        Returns:
+            List[int]: 机器人列表.
+        """
+        return await self.connection.call("botList", CallMethod.GET, {}, in_session=False)
+
     async def get_file_iterator(
         self,
         target: Union[Group, int],

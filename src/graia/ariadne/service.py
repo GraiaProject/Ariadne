@@ -34,7 +34,7 @@ async def check_update(session: ClientSession, name: str, current: str, output: 
     """在线检查更新"""
     result: str = current
     try:
-        async with session.get(f"https://mirrors.aliyun.com/pypi/web/json/{name}") as resp:
+        async with session.get(f"http://mirrors.aliyun.com/pypi/web/json/{name}") as resp:
             data = await resp.text()
             result: str = json.loads(data)["info"]["version"]
     except Exception as e:

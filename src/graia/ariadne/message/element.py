@@ -379,6 +379,12 @@ class PokeMethods(str, Enum):
     QiaoMen = "QiaoMen"
     """敲门"""
 
+    Unknown = "Unknown"
+
+    @staticmethod
+    def _missing_(_) -> "PokeMethods":
+        return PokeMethods.Unknown
+
 
 class Poke(Element):
     """表示消息中戳一戳消息元素"""

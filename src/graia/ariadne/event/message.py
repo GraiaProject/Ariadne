@@ -1,5 +1,5 @@
 """Ariadne 消息事件"""
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
@@ -136,6 +136,42 @@ class ActiveMessage(MiraiEvent):
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
+
+    if not TYPE_CHECKING:
+
+        @property
+        def messageId(self) -> int:
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(
+                "ActiveMessage.messageId is deprecated since Ariadne 0.9, "
+                "and scheduled for removal in in Ariadne 0.10. "
+                "Use ActiveMessage.id or int(ActiveMessage) instead."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            return self.id
+
+        @property
+        def origin(self) -> MessageChain:
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(
+                "ActiveMessage.origin is deprecated since Ariadne 0.9, "
+                "and scheduled for removal in in Ariadne 0.10. "
+                "Use ActiveMessage.message_chain instead.",
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=2).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            return self.message_chain
 
 
 class ActiveFriendMessage(ActiveMessage):

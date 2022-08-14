@@ -2,7 +2,7 @@
 from typing import Optional, TypeVar, Union, overload
 
 from ..app import Ariadne
-from ..model import BotMessage
+from ..event.message import ActiveMessage
 from ..typing import SendMessageAction, SendMessageException
 
 Exc_T = TypeVar("Exc_T", bound=SendMessageException)
@@ -55,11 +55,11 @@ class Safe(SendMessageAction):
 
     @overload
     @staticmethod
-    async def exception(item) -> BotMessage:
+    async def exception(item) -> ActiveMessage:
         ...
 
     @overload
-    async def exception(self, item) -> BotMessage:
+    async def exception(self, item) -> ActiveMessage:
         ...
 
     @staticmethod

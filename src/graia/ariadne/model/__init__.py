@@ -12,7 +12,6 @@ from ..util import gen_subclass, internal_cls
 if TYPE_CHECKING:
     from ..app import Ariadne
     from ..event import MiraiEvent
-    from ..message.chain import MessageChain
 
 from .relationship import Client as Client
 from .relationship import Friend as Friend
@@ -196,17 +195,25 @@ class Profile(AriadneBaseModel):
     """性别"""
 
 
-class BotMessage(AriadneBaseModel):
-    """指示 Bot 发出的消息."""
+if not TYPE_CHECKING:
 
-    messageId: int
-    """消息 ID"""
+    def __getattr__(name):
+        if name == "BotMessage":
+            from traceback import format_exception_only
+            from warnings import warn
 
-    origin: Optional["MessageChain"]
-    """原始消息链 (发送的消息链)"""
+            from ..event.message import ActiveMessage
 
-    subject: Union[Friend, Group, Member, Stranger, int]
-    """消息接收者"""
+            warning = DeprecationWarning(
+                "BotMessage is deprecated since Ariadne 0.9, "
+                "and scheduled for removal in Ariadne 0.10. "
+                "Use ActiveMessage instead"
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            globals()["BotMessage"] = ActiveMessage
+            return ActiveMessage
 
 
 __all__ = [
@@ -224,5 +231,4 @@ __all__ = [
     "Announcement",
     "FileInfo",
     "Profile",
-    "BotMessage",
 ]

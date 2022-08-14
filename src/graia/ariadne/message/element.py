@@ -860,9 +860,7 @@ def _update_forward_refs():
     Internal function.
     Update the forward references.
     """
-    from ..model import BotMessage
     from .chain import MessageChain
 
     Quote.update_forward_refs(MessageChain=MessageChain)
     ForwardNode.update_forward_refs(MessageChain=MessageChain)
-    BotMessage.update_forward_refs(MessageChain=MessageChain)

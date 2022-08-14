@@ -36,8 +36,9 @@ from typing_extensions import (
 )
 
 if TYPE_CHECKING:
+    from .event.message import ActiveMessage
     from .message.chain import MessageChain
-    from .model import BotMessage, Friend, Group, Member
+    from .model import Friend, Group, Member
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -95,11 +96,11 @@ class SendMessageAction(Generic[T, R]):
         return item
 
     @staticmethod
-    async def result(item: "BotMessage") -> R:
+    async def result(item: "ActiveMessage") -> R:
         """处理返回结果
 
         Args:
-            item (BotMessage): SendMessage 成功时的结果
+            item (ActiveMessage): SendMessage 成功时的结果
 
         Returns:
             R: 要实际由 SendMessage 返回的数据
@@ -124,7 +125,7 @@ class SendMessageActionProtocol(Protocol, Generic[T_co]):
     async def param(self, item: SendMessageDict) -> SendMessageDict:
         ...
 
-    async def result(self, item: "BotMessage") -> T_co:
+    async def result(self, item: "ActiveMessage") -> T_co:
         ...
 
     async def exception(self, item: SendMessageException) -> Any:

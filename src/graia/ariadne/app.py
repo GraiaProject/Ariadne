@@ -38,13 +38,21 @@ from .connection._info import U_Info
 from .connection.util import CallMethod, UploadMethod, build_event
 from .context import enter_context, enter_message_send_context
 from .event import MiraiEvent
-from .event.message import FriendMessage, GroupMessage, MessageEvent, TempMessage
+from .event.message import (
+    ActiveFriendMessage,
+    ActiveGroupMessage,
+    ActiveMessage,
+    ActiveTempMessage,
+    FriendMessage,
+    GroupMessage,
+    MessageEvent,
+    TempMessage,
+)
 from .event.mirai import FriendEvent, GroupEvent
 from .message.chain import MessageChain, MessageContainer
 from .message.element import Source
 from .model import (
     Announcement,
-    BotMessage,
     FileInfo,
     Friend,
     Group,
@@ -1009,21 +1017,21 @@ class Ariadne:
         )
 
     @ariadne_api
-    async def set_essence(self, target: Union[Source, BotMessage, int]) -> None:
+    async def set_essence(self, target: Union[Source, ActiveMessage, int]) -> None:
         """
         添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
 
         请自行判断消息来源是否为群组.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, \
-            可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+            target (Union[Source, ActiveMessage, int]): 特定信息的 `messageId`, \
+            可以是 `Source` 实例, `ActiveMessage` 实例或者是单纯的 int 整数.
 
         Returns:
             None: 没有返回.
         """
-        if isinstance(target, BotMessage):
-            target = target.messageId
+        if isinstance(target, ActiveMessage):
+            target = target.id
         elif isinstance(target, Source):
             target = target.id
 
@@ -1532,7 +1540,7 @@ class Ariadne:
         message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
-    ) -> BotMessage:
+    ) -> ActiveFriendMessage:
         """发送消息给好友, 可以指定回复的消息.
 
         Args:
@@ -1541,7 +1549,7 @@ class Ariadne:
             quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
-            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+            ActiveFriendMessage: 即当前会话账号所发出消息的事件, 可用于回复.
         """
         from .event.message import ActiveFriendMessage
 
@@ -1563,18 +1571,17 @@ class Ariadne:
                         **({"quote": quote} if quote else {}),
                     },
                 )
-                subject = await self.get_friend(int(target), assertion=True, cache=True)
                 event = ActiveFriendMessage(
                     messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())])
                     + message,
-                    subject=subject,
+                    subject=(await self.get_friend(int(target), assertion=True, cache=True)),
                 )
                 with enter_context(self, event):
                     await self.log_config.log(self, event)
                     self.service.broadcast.postEvent(event)
                 if result["messageId"] < 0:
                     logger.warning("Failed to send message, your account may be blocked.")
-                return BotMessage(message_id=result["messageId"], origin=message)
+                return event
             except UnknownTarget:
                 await self.launch_manager.get_interface(Memcache).delete(
                     f"account.{self.account}.friend.{int(target)}"
@@ -1588,7 +1595,7 @@ class Ariadne:
         message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
-    ) -> BotMessage:
+    ) -> ActiveGroupMessage:
         """发送消息到群组内, 可以指定回复的消息.
 
         Args:
@@ -1597,7 +1604,7 @@ class Ariadne:
             quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
-            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+            ActiveGroupMessage: 即当前会话账号所发出消息的事件, 可用于回复.
         """
         from .event.message import ActiveGroupMessage
 
@@ -1622,18 +1629,17 @@ class Ariadne:
                         **({"quote": quote} if quote else {}),
                     },
                 )
-                subject = await self.get_group(int(target), assertion=True, cache=True)
                 event: ActiveGroupMessage = ActiveGroupMessage(
                     messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())])
                     + message,
-                    subject=subject,
+                    subject=(await self.get_group(int(target), assertion=True, cache=True)),
                 )
                 with enter_context(self, event):
                     await self.log_config.log(self, event)
                     self.service.broadcast.postEvent(event)
                 if result["messageId"] < 0:
                     logger.warning("Failed to send message, your account may be blocked.")
-                return BotMessage(message_id=result["messageId"], origin=message)
+                return event
             except UnknownTarget:
                 await self.launch_manager.get_interface(Memcache).delete(
                     f"account.{self.account}.group.{int(target)}"
@@ -1648,7 +1654,7 @@ class Ariadne:
         group: Optional[Union[Group, int]] = None,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
-    ) -> BotMessage:
+    ) -> ActiveTempMessage:
         """发送临时会话给群组中的特定成员, 可指定回复的消息.
 
         Warning:
@@ -1661,7 +1667,7 @@ class Ariadne:
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
-            BotMessage: 即当前会话账号所发出消息的元数据, 内包含有一 `messageId` 属性, 可用于回复.
+            ActiveTempMessage: 即当前会话账号所发出消息的事件, 可用于回复.
         """
         from .event.message import ActiveTempMessage
 
@@ -1687,7 +1693,6 @@ class Ariadne:
                         **({"quote": quote} if quote else {}),
                     },
                 )
-                subject = await self.get_member(int(group), int(target), cache=True)
                 event: ActiveTempMessage = ActiveTempMessage(
                     messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())])
                     + message,
@@ -1698,7 +1703,7 @@ class Ariadne:
                     self.service.broadcast.postEvent(event)
                 if result["messageId"] < 0:
                     logger.warning("Failed to send message, your account may be limited.")
-                return BotMessage(message_id=result["messageId"], origin=message)
+                return event
             except UnknownTarget:
                 await self.launch_manager.get_interface(Memcache).delete(
                     f"account.{self.account}.group.{int(group)}.member.{int(target)}"
@@ -1729,7 +1734,7 @@ class Ariadne:
             未传入使用默认 action
 
         Returns:
-            Union[T, R]: 默认实现为 BotMessage
+            Union[T, R]: 默认实现为 ActiveMessage
         """
         ...
 
@@ -1741,7 +1746,7 @@ class Ariadne:
         *,
         quote: Union[bool, int, Source, MessageChain] = False,
         action: Literal[Sentinel] = Sentinel,
-    ) -> BotMessage:
+    ) -> ActiveMessage:
         """
         依据传入的 `target` 自动发送消息.
 
@@ -1757,7 +1762,7 @@ class Ariadne:
             未传入使用默认 action
 
         Returns:
-            Union[T, R]: 默认实现为 BotMessage
+            Union[T, R]: 默认实现为 ActiveMessage
         """
         ...
 
@@ -1785,7 +1790,7 @@ class Ariadne:
             未传入使用默认 action
 
         Returns:
-            Union[T, R]: 默认实现为 BotMessage
+            Union[T, R]: 默认实现为 ActiveMessage
         """
         action = action if action is not Sentinel else self.default_send_action
         data: Dict[Any, Any] = {"message": MessageChain(message)}
@@ -1818,10 +1823,16 @@ class Ariadne:
                 logger.warning(
                     f"Unable to send {data['message']} to {data['target']} of type {type(data['target'])}"
                 )
-                return await action.result(BotMessage(messageId=-1, origin=data["message"]))
-        except Exception as e:
+                return await action.result(
+                    ActiveMessage(
+                        type="Unknown",
+                        messageChain=MessageChain([Source(id=-1, time=datetime.now())]) + data["message"],
+                        subject=data["target"],
+                    )
+                )
+        except SendMessageException as e:
             e.send_data = send_data  # type: ignore
-            return await action.exception(cast(SendMessageException, e))
+            return await action.exception(e)
         else:
             return await action.result(val)
 
@@ -1856,29 +1867,21 @@ class Ariadne:
         )
 
     @ariadne_api
-    async def recall_message(self, target: Union[MessageChain, Source, BotMessage, int]) -> None:
+    async def recall_message(self, target: Union[MessageChain, Source, ActiveMessage, int]) -> None:
         """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
-            target (Union[Source, BotMessage, int]): 特定信息的 `messageId`, \
-            可以是 `Source` 实例, `BotMessage` 实例或者是单纯的 int 整数.
+            target (Union[Source, ActiveMessage, int]): 特定信息的 `messageId`, \
+            可以是 `Source` 实例, `ActiveMessage` 实例或者是单纯的 int 整数.
 
         Returns:
-            None: 没有返回.
+            None: 没有返回
         """
-        if isinstance(target, BotMessage):
-            target = target.messageId
-        elif isinstance(target, Source):
+        if isinstance(target, (ActiveMessage, Source)):
             target = target.id
         elif isinstance(target, MessageChain):
             target = target.get_first(Source).id
-        await self.connection.call(
-            "recall",
-            CallMethod.POST,
-            {
-                "target": target,
-            },
-        )
+        await self.connection.call("recall", CallMethod.POST, {"target": target})
 
     @ariadne_api
     async def get_roaming_message(

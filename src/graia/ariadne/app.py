@@ -28,6 +28,7 @@ from typing import (
 from graia.amnesia.builtins.memcache import Memcache, MemcacheService
 from graia.amnesia.transport.common.storage import CacheStorage
 from graia.broadcast import Broadcast
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from launart import Launart
 from loguru import logger
 
@@ -63,6 +64,7 @@ from .model import (
     Profile,
     Stranger,
 )
+from .model.relationship import Client
 from .model.util import AriadneOptions
 from .service import ElizabethService
 from .typing import (
@@ -221,11 +223,13 @@ class Ariadne:
         with ExitStack() as stack:
             stack.enter_context(enter_context(self, event))
             sys.audit("AriadnePostRemoteEvent", event)
-
-            if isinstance(event, MessageEvent) and event.message_chain.only(Source):
-                event.message_chain.append("<! 不支持的消息类型 !>")
-
             cache_set = self.launch_manager.get_interface(Memcache).set
+
+            if isinstance(event, (MessageEvent, ActiveMessage)):
+                await cache_set(f"account.{self.account}.message.{int(event)}", event)
+                if event.message_chain.only(Source):
+                    event.message_chain.append("<! 不支持的消息类型 !>")
+
             if isinstance(event, FriendEvent):
                 stack.enter_context(enter_message_send_context(UploadMethod.Friend))
 
@@ -1017,29 +1021,66 @@ class Ariadne:
         )
 
     @ariadne_api
-    async def set_essence(self, target: Union[Source, ActiveMessage, int]) -> None:
+    async def set_essence(
+        self,
+        message: Union[GroupMessage, ActiveGroupMessage, Source, int],
+        target: Optional[Union[Group, int]] = None,
+    ) -> None:
         """
         添加指定消息为群精华消息; 需要具有相应权限(管理员/群主).
 
         请自行判断消息来源是否为群组.
 
         Args:
-            target (Union[Source, ActiveMessage, int]): 特定信息的 `messageId`, \
-            可以是 `Source` 实例, `ActiveMessage` 实例或者是单纯的 int 整数.
+            message (Union[GroupMessage, ActiveGroupMessage, Source, int]): 指定的消息.
+            target (Union[Group, int], optional): 指定的群组. message 类型为 Source 或 int 时必需.
+
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
+                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Returns:
             None: 没有返回.
         """
-        if isinstance(target, ActiveMessage):
-            target = target.id
-        elif isinstance(target, Source):
-            target = target.id
+        if isinstance(message, GroupMessage):
+            target = message.sender.group
+        elif isinstance(message, ActiveGroupMessage):
+            target = message.subject
+        elif target is None:
+            from warnings import warn
 
-        await self.connection.call(
-            "setEssence",
-            CallMethod.POST,
-            {"target": target},
-        )
+            warning = DeprecationWarning(
+                "Passing Source or int as message without passing target to Ariadne.set_essence() "
+                "is deprecated in Ariadne 0.9, and scheduled for removal in Ariadne 0.10."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning(
+                "".join(traceback.format_exception_only(type(warning), warning)).strip()
+            )
+
+        if tuple(map(int, (await self.get_version(cache=True)).split("."))) >= (2, 6, 0):
+            if target is not None:
+                pass
+            elif (
+                event := await self.launch_manager.get_interface(Memcache).get(
+                    f"account.{self.account}.message.{int(message)}"
+                )
+            ) and isinstance(event, (GroupMessage, ActiveGroupMessage)):
+                return await self.set_essence(event)
+            elif (
+                target := await DispatcherInterface.ctx.get().lookup_param("target", Optional[Group], None)
+            ) is None:
+                raise TypeError("set_essence() missing 1 required positional argument: 'target'")
+
+            params = {
+                "messageId": int(message),
+                "target": int(target),
+            }
+        else:
+            params = {
+                "target": int(message),
+            }
+
+        await self.connection.call("setEssence", CallMethod.POST, params)
 
     @ariadne_api
     async def get_group_config(self, group: Union[Group, int]) -> GroupConfig:
@@ -1515,23 +1556,63 @@ class Ariadne:
         return Profile.parse_obj(result)
 
     @ariadne_api
-    async def get_message_from_id(self, messageId: int) -> MessageEvent:
+    async def get_message_from_id(
+        self,
+        message: Union[Source, int],
+        target: Optional[Union[Friend, Group, Member, Stranger, Client, int]] = None,
+    ) -> Union[MessageEvent, ActiveMessage]:
         """从 消息 ID 提取 消息事件.
 
         Args:
-            messageId (int): 消息 ID.
+            message (Union[Source, int]): 指定的消息.
+            target (Union[Friend, Group, Member, Stranger, Client, int], optional): 指定的好友或群组. \
+                message 类型为 Source 或 int 时必需.
+
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
+                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Returns:
             MessageEvent: 提取的事件.
         """
-        result = await self.connection.call(
-            "messageFromId",
-            CallMethod.GET,
-            {
-                "id": messageId,
-            },
+        if target is None:
+            from warnings import warn
+
+            warning = DeprecationWarning(
+                "Not passing target to Ariadne.get_message_from_id() is deprecated in Ariadne 0.9, "
+                "and scheduled for removal in Ariadne 0.10."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning(
+                "".join(traceback.format_exception_only(type(warning), warning)).strip()
+            )
+
+        if tuple(map(int, (await self.get_version(cache=True)).split("."))) >= (2, 6, 0):
+            if target is not None:
+                pass
+            elif event := await self.launch_manager.get_interface(Memcache).get(
+                f"account.{self.account}.message.{message}"
+            ):
+                return event
+            elif (
+                target := await DispatcherInterface.ctx.get().lookup_param(
+                    "target", Optional[Union[Friend, Group, Member, Stranger, Client]], None
+                )
+            ) is None:
+                raise TypeError("get_message_from_id() missing 1 required positional argument: 'target'")
+
+            params = {
+                "messageId": int(message),
+                "target": self.account if isinstance(target, Client) else int(target),
+            }
+        else:
+            params = {
+                "id": int(message),
+            }
+
+        return cast(
+            Union[MessageEvent, ActiveMessage],
+            build_event(await self.connection.call("messageFromId", CallMethod.GET, params)),
         )
-        return cast(MessageEvent, build_event(result))
 
     @ariadne_api
     async def send_friend_message(
@@ -1867,21 +1948,64 @@ class Ariadne:
         )
 
     @ariadne_api
-    async def recall_message(self, target: Union[MessageChain, Source, ActiveMessage, int]) -> None:
-        """撤回特定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
+    async def recall_message(
+        self,
+        message: Union[MessageEvent, ActiveMessage, Source, int],
+        target: Optional[Union[Friend, Group, Member, Stranger, Client, int]] = None,
+    ) -> None:
+        """撤回指定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Args:
-            target (Union[Source, ActiveMessage, int]): 特定信息的 `messageId`, \
-            可以是 `Source` 实例, `ActiveMessage` 实例或者是单纯的 int 整数.
+            message (Union[MessageEvent, ActiveMessage, Source, int]): 指定的消息.
+            target (Union[Friend, Group, Member, Stranger, Client, int], optional): 指定的好友或群组. \
+                message 类型为 Source 或 int 时必需.
+
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
+                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Returns:
             None: 没有返回
         """
-        if isinstance(target, (ActiveMessage, Source)):
-            target = target.id
-        elif isinstance(target, MessageChain):
-            target = target.get_first(Source).id
-        await self.connection.call("recall", CallMethod.POST, {"target": target})
+        if isinstance(message, MessageEvent):
+            target = message.sender
+        elif isinstance(message, ActiveMessage):
+            target = message.subject
+        elif target is None:
+            from warnings import warn
+
+            warning = DeprecationWarning(
+                "Passing Source or int as message without passing target to Ariadne.recall_message() "
+                "is deprecated in Ariadne 0.9, and scheduled for removal in Ariadne 0.10."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning(
+                "".join(traceback.format_exception_only(type(warning), warning)).strip()
+            )
+
+        if tuple(map(int, (await self.get_version(cache=True)).split("."))) >= (2, 6, 0):
+            if target is not None:
+                pass
+            elif event := await self.launch_manager.get_interface(Memcache).get(
+                f"account.{self.account}.message.{int(message)}"
+            ):
+                return await self.recall_message(event)
+            elif (
+                target := await DispatcherInterface.ctx.get().lookup_param(
+                    "target", Optional[Union[Friend, Group, Member, Stranger, Client]], None
+                )
+            ) is None:
+                raise TypeError("recall_message() missing 1 required positional argument: 'target'")
+
+            params = {
+                "messageId": int(message),
+                "target": self.account if isinstance(target, Client) else int(target),
+            }
+        else:
+            params = {
+                "target": int(message),
+            }
+
+        await self.connection.call("recall", CallMethod.POST, params)
 
     @ariadne_api
     async def get_roaming_message(

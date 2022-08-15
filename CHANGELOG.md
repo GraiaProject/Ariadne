@@ -2,6 +2,12 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `Ariadne.get_version`, `Ariadne.file_remove` 调用时报错的问题
+修复了遥测 SSL 版本过低的问题
+修复了 `Poke` 无法解析未知 Poke 类型的问题
+
 ## 0.8.2
 
 ### 修复

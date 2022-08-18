@@ -146,7 +146,7 @@ class ActiveMessage(MiraiEvent):
 
             from loguru import logger
 
-            warning = DeprecationWarning(
+            warning = DeprecationWarning(  # FIXME: deprecated
                 "ActiveMessage.messageId is deprecated since Ariadne 0.9, "
                 "and scheduled for removal in in Ariadne 0.10. "
                 "Use ActiveMessage.id or int(ActiveMessage) instead."
@@ -163,7 +163,7 @@ class ActiveMessage(MiraiEvent):
 
             from loguru import logger
 
-            warning = DeprecationWarning(
+            warning = DeprecationWarning(  # FIXME: deprecated
                 "ActiveMessage.origin is deprecated since Ariadne 0.9, "
                 "and scheduled for removal in in Ariadne 0.10. "
                 "Use ActiveMessage.message_chain instead.",

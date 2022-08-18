@@ -1048,7 +1048,7 @@ class Ariadne:
         elif target is None:
             from warnings import warn
 
-            warning = DeprecationWarning(
+            warning = DeprecationWarning(  # FIXME: deprecated
                 "Passing Source or int as message without passing target to Ariadne.set_essence() "
                 "is deprecated in Ariadne 0.9, and scheduled for removal in Ariadne 0.10."
             )
@@ -1577,7 +1577,7 @@ class Ariadne:
         if target is None:
             from warnings import warn
 
-            warning = DeprecationWarning(
+            warning = DeprecationWarning(  # FIXME: deprecated
                 "Not passing target to Ariadne.get_message_from_id() is deprecated in Ariadne 0.9, "
                 "and scheduled for removal in Ariadne 0.10."
             )
@@ -1973,7 +1973,7 @@ class Ariadne:
         elif target is None:
             from warnings import warn
 
-            warning = DeprecationWarning(
+            warning = DeprecationWarning(  # FIXME: deprecated
                 "Passing Source or int as message without passing target to Ariadne.recall_message() "
                 "is deprecated in Ariadne 0.9, and scheduled for removal in Ariadne 0.10."
             )
@@ -1991,7 +1991,7 @@ class Ariadne:
                 return await self.recall_message(event)
             elif (
                 target := await DispatcherInterface.ctx.get().lookup_param(
-                    "target", Optional[Union[Friend, Group, Member, Stranger, Client]], None
+                    "target", Union[Friend, Group, Member, Stranger, Client, None], None
                 )
             ) is None:
                 raise TypeError("recall_message() missing 1 required positional argument: 'target'")

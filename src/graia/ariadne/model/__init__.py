@@ -164,9 +164,7 @@ class FileInfo(AriadneBaseModel):
     def _(cls, val: Optional[dict]):
         if not val:
             return None
-        if "remark" in val:  # Friend
-            return Friend.parse_obj(val)
-        return Group.parse_obj(val)  # Group
+        return Friend.parse_obj(val) if "remark" in val else Group.parse_obj(val)
 
 
 FileInfo.update_forward_refs(FileInfo=FileInfo)
@@ -204,7 +202,7 @@ if not TYPE_CHECKING:
 
             from ..event.message import ActiveMessage
 
-            warning = DeprecationWarning(
+            warning = DeprecationWarning(  # FIXME: deprecated
                 "BotMessage is deprecated since Ariadne 0.9, "
                 "and scheduled for removal in Ariadne 0.10. "
                 "Use ActiveMessage instead"

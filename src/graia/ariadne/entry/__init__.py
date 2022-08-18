@@ -1,6 +1,7 @@
 """Ariadne 一站式导入的提供模块"""
 
 import contextlib
+from typing import TYPE_CHECKING
 
 from ..app import Ariadne as Ariadne
 from ..connection.config import HttpClientConfig as HttpClientConfig
@@ -167,3 +168,12 @@ with contextlib.suppress(ImportError):
     from ..console.saya import ConsoleSchema as ConsoleSchema
 
 # We are using the star import because the dependencies may not be present
+
+
+if not TYPE_CHECKING:
+
+    def __getattr__(name):
+        if name == "BotMessage":
+            from ..model import BotMessage
+
+            return BotMessage

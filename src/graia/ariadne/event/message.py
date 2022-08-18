@@ -1,5 +1,5 @@
 """Ariadne 消息事件"""
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field
@@ -12,6 +12,7 @@ from ..dispatcher import (
     SubjectDispatcher,
 )
 from ..message.chain import MessageChain
+from ..message.element import Source
 from ..model import Client, Friend, Group, Member, Stranger
 from ..typing import generic_issubclass
 from . import MiraiEvent
@@ -29,6 +30,13 @@ class MessageEvent(MiraiEvent):
     sender: Union[Friend, Member, Client, Stranger]
     """发送者"""
 
+    def __int__(self):
+        return self.id
+
+    @property
+    def id(self) -> int:
+        return self.message_chain.get_first(Source).id
+
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
@@ -44,9 +52,6 @@ class FriendMessage(MessageEvent, FriendEvent):
     sender: Friend
     """发送者"""
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
-
 
 class GroupMessage(MessageEvent, GroupEvent):
     """群组消息"""
@@ -59,12 +64,10 @@ class GroupMessage(MessageEvent, GroupEvent):
     sender: Member
     """发送者"""
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
-
+    class Dispatcher(MessageEvent.Dispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, GroupMessage) and generic_issubclass(Group, interface.annotation):
+            if generic_issubclass(Group, interface.annotation):
                 return interface.event.sender.group
 
 
@@ -79,12 +82,10 @@ class TempMessage(MessageEvent):
     sender: Member
     """发送者"""
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
-
+    class Dispatcher(MessageEvent.Dispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, TempMessage) and generic_issubclass(Group, interface.annotation):
+            if generic_issubclass(Group, interface.annotation):
                 return interface.event.sender.group
 
 
@@ -99,9 +100,6 @@ class OtherClientMessage(MessageEvent):
     sender: Client
     """发送者"""
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
-
 
 class StrangerMessage(MessageEvent):
     """陌生人消息"""
@@ -113,9 +111,6 @@ class StrangerMessage(MessageEvent):
 
     sender: Stranger
     """发送者"""
-
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
 
 
 class ActiveMessage(MiraiEvent):
@@ -132,6 +127,52 @@ class ActiveMessage(MiraiEvent):
     sync: bool = False
     """是否为同步消息"""
 
+    def __int__(self):
+        return self.id
+
+    @property
+    def id(self) -> int:
+        return self.message_chain.get_first(Source).id
+
+    class Dispatcher(BaseDispatcher):
+        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
+
+    if not TYPE_CHECKING:
+
+        @property
+        def messageId(self) -> int:
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "ActiveMessage.messageId is deprecated since Ariadne 0.9, "
+                "and scheduled for removal in in Ariadne 0.10. "
+                "Use ActiveMessage.id or int(ActiveMessage) instead."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            return self.id
+
+        @property
+        def origin(self) -> MessageChain:
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "ActiveMessage.origin is deprecated since Ariadne 0.9, "
+                "and scheduled for removal in in Ariadne 0.10. "
+                "Use ActiveMessage.message_chain instead.",
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=2).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            return self.message_chain
+
 
 class ActiveFriendMessage(ActiveMessage):
     """主动好友消息"""
@@ -143,9 +184,6 @@ class ActiveFriendMessage(ActiveMessage):
 
     subject: Friend
     """消息接收者"""
-
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
 class ActiveGroupMessage(ActiveMessage):
@@ -159,9 +197,6 @@ class ActiveGroupMessage(ActiveMessage):
     subject: Group
     """消息接收者"""
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
-
 
 class ActiveTempMessage(ActiveMessage):
     """主动临时消息"""
@@ -174,12 +209,10 @@ class ActiveTempMessage(ActiveMessage):
     subject: Member
     """消息接收者"""
 
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
-
+    class Dispatcher(ActiveMessage.Dispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, ActiveTempMessage) and interface.annotation is Group:
+            if interface.annotation is Group:
                 return interface.event.subject.group
 
 
@@ -193,9 +226,6 @@ class ActiveStrangerMessage(ActiveMessage):
 
     subject: Stranger
     """消息接收者"""
-
-    class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
 
 
 class SyncMessage(MiraiEvent):

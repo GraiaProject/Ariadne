@@ -21,7 +21,7 @@ from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import deprecated, gen_subclass, unescape_bracket
+from ..util import gen_subclass, unescape_bracket
 from .element import (
     At,
     AtAll,
@@ -598,34 +598,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
 
     def __hash__(self) -> int:
         return id(self)
-
-    if not TYPE_CHECKING:
-
-        @classmethod
-        @deprecated("0.9.0", "Instantiate `MessageChain` directly instead.")
-        def create(cls, *elements: Union[Iterable[Element], Element, str]) -> Self:
-            """创建消息链.
-
-            Args:
-                *elements (Union[Iterable[Element], Element, str]): \
-                元素的容器, 为承载元素的可迭代对象/单元素实例, \
-                字符串会被自动不可逆的转换为 `Plain`
-
-            Returns:
-                MessageChain: 创建的消息链
-            """
-
-            return cls(*elements)
-
-        @deprecated("0.9.0", "Use `display` instead.")
-        def as_display(self) -> str:
-            """
-            获取以字符串形式表示的消息链, 且趋于通常你见到的样子.
-
-            Returns:
-                str: 以字符串形式表示的消息链
-            """
-            return "".join(i.display for i in self.content)
 
 
 _update_forward_refs()

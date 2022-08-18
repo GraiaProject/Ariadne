@@ -1,6 +1,5 @@
 """Ariadne 内置的 Dispatcher"""
 
-
 import asyncio
 import contextlib
 
@@ -11,6 +10,7 @@ from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
 from .message.element import Source
+from .model.relationship import Friend, Group, Member
 from .typing import generic_isinstance, generic_issubclass
 
 
@@ -52,7 +52,7 @@ class NoneDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if generic_isinstance(type(None), interface.annotation):
+        if generic_isinstance(None, interface.annotation):
             return Force(None)
 
 
@@ -101,3 +101,59 @@ class BaseDispatcher(AbstractDispatcher):
     @staticmethod
     async def catch(*_):
         pass
+
+
+class FriendDispatcher(AbstractDispatcher):
+    """提取 Friend 的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if generic_issubclass(Friend, interface.annotation):
+            return interface.event.friend
+
+
+class GroupDispatcher(AbstractDispatcher):
+    """提取 Group 的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if generic_issubclass(Group, interface.annotation):
+            return interface.event.group
+
+
+class MemberDispatcher(AbstractDispatcher):
+    """提取 Member 的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if generic_issubclass(Member, interface.annotation):
+            return interface.event.member
+        elif generic_issubclass(Group, interface.annotation):
+            return interface.event.member.group
+
+
+class OperatorDispatcher(AbstractDispatcher):
+    """提取 Operator 的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if operator := interface.event.operator:
+            if generic_issubclass(Member, interface.annotation):
+                return operator
+            elif generic_issubclass(Group, interface.annotation):
+                return operator.group
+
+
+class OperatorMemberDispatcher(AbstractDispatcher):
+    """提取 Operator 的 Dispatcher (同时有 Member 和 Operator)"""
+
+    mixin = [MemberDispatcher]
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
+            if operator := interface.event.operator:
+                return operator
+            elif result := await NoneDispatcher.catch(interface):
+                return result
+            interface.crash()

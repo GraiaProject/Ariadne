@@ -5,6 +5,7 @@ from typing import Any, Dict, MutableMapping, Optional
 from weakref import WeakValueDictionary
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
+from graia.amnesia.builtins.memcache import Memcache
 from graia.amnesia.transport import Transport
 from graia.amnesia.transport.common.http.extra import HttpRequest
 from graia.amnesia.transport.common.server import AbstractRouter
@@ -77,6 +78,11 @@ class WebsocketConnectionMixin(Transport, ConnectionMixin[T_Info]):
 
     @t.on(WebsocketCloseEvent)
     async def _(self, _: AbstractWebsocketIO) -> None:
+        from ..app import Ariadne
+
+        app = Ariadne.current()
+        await app.launch_manager.get_interface(Memcache).delete(f"account.{app.account}.version")
+
         self.status.session_key = None
         self.status.alive = False
         logger.info("Websocket connection closed", style="dark_orange")

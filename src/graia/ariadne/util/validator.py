@@ -4,9 +4,10 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.exceptions import ExecutionStop, RequirementCrashed
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 
+from ..event.message import ActiveMessage
 from ..message.chain import MessageChain
 from ..message.element import Quote, Source
-from ..model import BotMessage, Friend, Group, Member
+from ..model import Friend, Group, Member
 from ..typing import T
 
 
@@ -104,17 +105,17 @@ class Quoting(Decorator):
 
     msg_ids: Set[int]
 
-    def __init__(self, message: SequenceOrInstance[Union[int, BotMessage, MessageChain, Source]]):
+    def __init__(self, message: SequenceOrInstance[Union[int, ActiveMessage, MessageChain, Source]]):
         """
         Args:
-            message (SequenceOrInstance[Union[int, BotMessage, MessageChain, Source]]): 要回复的指定信息
+            message (SequenceOrInstance[Union[int, ActiveMessage, MessageChain, Source]]): 要回复的指定信息
         """
         if not isinstance(message, Sequence):
             message = [message]
         self.msg_ids = set()
         for msg in message:
-            if isinstance(msg, BotMessage):
-                self.msg_ids.add(msg.messageId)
+            if isinstance(msg, ActiveMessage):
+                self.msg_ids.add(msg.id)
             elif isinstance(msg, MessageChain):
                 self.msg_ids.add(msg.get_first(Quote).id)
             elif isinstance(msg, Source):

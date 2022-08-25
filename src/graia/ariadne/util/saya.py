@@ -131,7 +131,6 @@ def listen(*event: Union[Type[Dispatchable], str]) -> Wrapper:
 
     Args:
         *event (Union[Type[Dispatchable], str]): 事件类型或事件名称
-        priority (int, optional): 事件优先级, 越小越优先
 
     Returns:
         Callable[[T_Callable], T_Callable]: 装饰器

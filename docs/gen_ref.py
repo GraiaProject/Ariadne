@@ -10,12 +10,14 @@ fe = mkdocs_gen_files.FilesEditor.current()
 
 root = Path(__file__).parent.parent
 
-sys.path.append(Path(root, "src").resolve().as_posix())
+src = (root / "src").resolve()
 
-for path in sorted(Path(root, "src", "graia").glob("**/*.py")):
-    module_path = path.relative_to("src").with_suffix("")
-    doc_path = path.relative_to("src").with_suffix(".md")
-    full_doc_path = path.relative_to("src", "graia", "ariadne").with_suffix(".md")
+sys.path.append(src.as_posix())
+
+for path in sorted(Path(src, "graia").glob("**/*.py")):
+    module_path = path.relative_to(src).with_suffix("")
+    doc_path = path.relative_to(src).with_suffix(".md")
+    full_doc_path = path.relative_to(src / "graia" / "ariadne").with_suffix(".md")
 
     parts = list(module_path.parts)
     if parts[-1] == "__init__":

@@ -106,7 +106,7 @@ def loguru_exc_callback_async(loop, context: dict):
 
     Args:
         loop (AbstractEventLoop): 异常发生的事件循环
-        ctx (dict): 异常上下文
+        context (dict): 异常上下文
     """
     message = context.get("message")
     if not message:

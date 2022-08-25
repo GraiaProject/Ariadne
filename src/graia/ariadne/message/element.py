@@ -236,9 +236,8 @@ class Face(Element):
 
     def __init__(self, id: int = ..., name: str = ..., **data) -> None:
         """
-
         Args:
-            face_id (int, optional): QQ 表情编号
+            id (int, optional): QQ 表情编号
             name (str, optional): QQ 表情名称
         """
         if id is not ...:

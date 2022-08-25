@@ -289,7 +289,7 @@ class Ariadne:
         """以阻塞方式启动 Ariadne
 
         Args:
-            stop_signal (Iterable[signal.Signals], optional): 要监听的停止信号，默认为 `(signal.SIGINT,)`
+            stop_signals (Iterable[signal.Signals], optional): 要监听的停止信号，默认为 `(signal.SIGINT,)`
         """
         cls._patch_launch_manager()
         try:
@@ -1030,12 +1030,13 @@ class Ariadne:
 
         请自行判断消息来源是否为群组.
 
+        Note:
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
+                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
+
         Args:
             message (Union[GroupMessage, ActiveGroupMessage, Source, int]): 指定的消息.
             target (Union[Group, int], optional): 指定的群组. message 类型为 Source 或 int 时必需.
-
-            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
-                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Returns:
             None: 没有返回.
@@ -1562,13 +1563,14 @@ class Ariadne:
     ) -> Union[MessageEvent, ActiveMessage]:
         """从 消息 ID 提取 消息事件.
 
+        Note:
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
+                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
+
         Args:
             message (Union[Source, int]): 指定的消息.
             target (Union[Friend, Group, Member, Stranger, Client, int], optional): 指定的好友或群组. \
                 message 类型为 Source 或 int 时必需.
-
-            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
-                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Returns:
             MessageEvent: 提取的事件.
@@ -1954,13 +1956,14 @@ class Ariadne:
     ) -> None:
         """撤回指定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
+        Note:
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
+                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
+
         Args:
             message (Union[MessageEvent, ActiveMessage, Source, int]): 指定的消息.
             target (Union[Friend, Group, Member, Stranger, Client, int], optional): 指定的好友或群组. \
                 message 类型为 Source 或 int 时必需.
-
-            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
-                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Returns:
             None: 没有返回

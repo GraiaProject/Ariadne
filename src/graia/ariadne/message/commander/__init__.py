@@ -463,7 +463,7 @@ class Commander:
 
         Args:
             command (str): 要处理的命令
-            setting (Dict[str, Union[Slot, Arg]], optional): 参数设置.
+            settings (Dict[str, Union[Slot, Arg]], optional): 参数设置.
             dispatchers (Sequence[T_Dispatcher], optional): 可选的额外 Dispatcher 序列.
             decorators (Sequence[Decorator], optional): 可选的额外 Decorator 序列.
             nbsp (DictStrAny, optional): 可选的字符串评估命名空间.

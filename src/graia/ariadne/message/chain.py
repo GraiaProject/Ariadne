@@ -3,9 +3,9 @@ import re
 from copy import deepcopy
 from typing import (
     TYPE_CHECKING,
+    Any,
     Dict,
     Iterable,
-    Iterator,
     List,
     Literal,
     Sequence,
@@ -21,7 +21,7 @@ from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import gen_subclass, unescape_bracket
+from ..util import deprecated, gen_subclass, unescape_bracket
 from .element import (
     At,
     AtAll,
@@ -59,8 +59,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
 
     __root__: List[Element]
     """底层元素列表"""
-
-    __text_element_class__ = Plain
 
     @property
     def content(self) -> List[Element]:
@@ -145,6 +143,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             AriadneBaseModel.__init__(self, __root__=[])
             self.__root__ = __root__  # type: ignore
 
+    @deprecated("0.10.0")
     def unzip(self) -> List[Union[str, Element]]:
         """解压消息链为元素/单字符列表.
 
@@ -159,52 +158,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
                 unzipped.append(e)
         return unzipped
 
-    def has(self, item: Union[Element, Type[Element], Self, str]) -> bool:
-        """
-        判断消息链中是否含有特定的元素/元素类型/消息链/字符串.
-
-        Args:
-            item (Union[Element_T, Type[Element_T], Self]): 需要判断的元素/元素类型/消息链/字符串.
-
-        Returns:
-            bool: 判断结果
-        """
-        if isinstance(item, str):
-            return bool(self.find_sub_chain(MessageChain([Plain(item)], inline=True)))
-        if isinstance(item, Element):
-            return item in self.merge().content
-        if isinstance(item, type):
-            return item in [type(i) for i in self.content]
-        if isinstance(item, MessageChain):
-            return bool(self.find_sub_chain(item))
-        raise ValueError(f"{item} is not an acceptable argument!")
-
-    def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
-        """
-        获取消息链中所有特定类型的消息元素
-
-        Args:
-            element_class (T): 指定的消息元素的类型, 例如 "Plain", "At", "Image" 等.
-
-        Returns:
-            List[T]: 获取到的符合要求的所有消息元素; 另: 可能是空列表([]).
-        """
-        if count == -1:
-            count = len(self.content)
-        return [i for i in self.content if isinstance(i, element_class)][:count]
-
-    def __str__(self) -> str:
-        return "".join(str(e) for e in self.content)
-
     def __repr_args__(self) -> "ReprArgs":
         return [(None, list(self.content))]
-
-    # define as a method so pydantic won't complain
-    def __contains__(self, item: Union[Self, Type[Element_T], Element_T, str]) -> bool:
-        """
-        是否包含特定对象
-        """
-        return self.has(item)
 
     @overload
     def __getitem__(self, item: Tuple[Type[Element_T], int]) -> List[Element_T]:
@@ -222,9 +177,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
     def __getitem__(self, item: slice) -> Self:
         ...
 
-    def __getitem__(  # type: ignore
-        self, item: Union[Tuple[Type[Element], int], Type[Element], int, slice]
-    ) -> Union[List[Element], Element, Self]:
+    def __getitem__(self, item: Union[Tuple[Type[Element], int], Type[Element], int, slice]) -> Any:
         """
         可通过切片取出子消息链, 或元素.
 
@@ -239,16 +192,11 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         Returns:
             Union[List[Element], Element, MessageChain]: 索引结果.
         """
-        if isinstance(item, type) and issubclass(item, Element):
-            return self.get(item)
         if isinstance(item, tuple):
             return self.get(*item)
-        if isinstance(item, int):
-            return self.content[item]
-        if isinstance(item, slice):
-            return MessageChain(self.content[item], inline=True)
-        raise NotImplementedError(f"{item} is not allowed for item getting")
+        return super().__getitem__(item)
 
+    @deprecated("0.10.0", "Use `index_sub` instead")
     def find_sub_chain(self, subchain: MessageContainer) -> List[int]:
         """判断消息链是否含有子链. 使用 KMP 算法.
 
@@ -258,35 +206,9 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         Returns:
             List[int]: 所有找到的下标.
         """
-        pattern: List[Union[str, Element]] = (
-            subchain.unzip() if isinstance(subchain, MessageChain) else MessageChain(subchain).unzip()
-        )
+        sub: MessageChain = MessageChain(subchain)
 
-        match_target: List[Union[str, Element]] = self.unzip()
-
-        if len(match_target) < len(pattern):
-            return []
-
-        fallback: List[int] = [0 for _ in pattern]
-        current_fb: int = 0  # current fallback index
-        for i in range(1, len(pattern)):
-            while current_fb and pattern[i] != pattern[current_fb]:
-                current_fb = fallback[current_fb - 1]
-            if pattern[i] == pattern[current_fb]:
-                current_fb += 1
-            fallback[i] = current_fb
-
-        match_index: List[int] = []
-        ptr = 0
-        for i, e in enumerate(match_target):
-            while ptr and e != pattern[ptr]:
-                ptr = fallback[ptr - 1]
-            if e == pattern[ptr]:
-                ptr += 1
-            if ptr == len(pattern):
-                match_index.append(i - ptr + 1)
-                ptr = fallback[ptr - 1]
-        return match_index
+        return super().index_sub(sub)
 
     def as_sendable(self) -> Self:
         """将消息链转换为可发送形式 (去除 Source, Quote, File)
@@ -305,34 +227,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             other = MessageChain(other)
         return other.as_sendable().content == self.as_sendable().content
 
-    def __add__(self, content: Union[Self, List[Element], Element, str]) -> Self:
-        if isinstance(content, str):
-            content = Plain(content)
-        if isinstance(content, Element):
-            content = [content]
-        if isinstance(content, MessageChain):
-            content = content.content
-        return MessageChain(self.content + content, inline=True)
-
-    def __radd__(self, content: Union[Self, List[Element], Element, str]) -> Self:
-        if isinstance(content, str):
-            content = Plain(content)
-        if isinstance(content, Element):
-            content = [content]
-        if isinstance(content, MessageChain):
-            content = content.content
-        return MessageChain(content + self.content, inline=True)
-
-    def __iadd__(self, content: Union[Self, List[Element], Element, str]) -> Self:
-        if isinstance(content, str):
-            content = Plain(content)
-        if isinstance(content, Element):
-            content = [content]
-        if isinstance(content, MessageChain):
-            content = content.content
-        self.content.extend(content)
-        return self
-
     def __mul__(self, time: int) -> Self:
         result = []
         for _ in range(time):
@@ -346,9 +240,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         self.content.clear()
         self.content.extend(result)
         return self
-
-    def __iter__(self) -> Iterator[Element]:
-        yield from self.content
 
     def __len__(self) -> int:
         return len(self.content)
@@ -384,7 +275,9 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
                 or (exclude and not isinstance(i, exclude))
                 or not (include or exclude)
             ):
-                if not isinstance(i, MultimediaElement):
+                if isinstance(i, Plain):
+                    string_list.append(i.as_persistent_string().replace("[", "[_"))
+                elif not isinstance(i, MultimediaElement):
                     string_list.append(i.as_persistent_string())
                 else:
                     string_list.append(i.as_persistent_string(binary=binary))
@@ -411,7 +304,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
                 element_cls = ELEMENT_MAPPING[mirai[1]]
                 result.append(element_cls.parse_obj(Json.deserialize(unescape_bracket(j_string))))
             elif match:
-                result.append(Plain(match))
+                result.append(Plain(match.replace("[_", "[")))
         return MessageChain(result, inline=True)
 
     def _to_mapping_str(

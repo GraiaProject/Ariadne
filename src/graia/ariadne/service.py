@@ -227,7 +227,7 @@ class ElizabethService(Service):
 
     @property
     def required(self):
-        dependencies = {"http.universal_client"}
+        dependencies = {AiohttpClientInterface}
         for conn in self.connections.values():
             dependencies |= conn.dependencies
             dependencies.add(conn.id)

@@ -123,7 +123,7 @@ t = TransportRegistrar()
 class WebsocketServerConnection(WebsocketConnectionMixin[WebsocketServerInfo]):
     """Websocket 服务器连接"""
 
-    dependencies = {"http.universal_server"}
+    dependencies = {AbstractRouter}
 
     def __init__(self, info: WebsocketServerInfo) -> None:
         super().__init__(info)
@@ -165,7 +165,7 @@ t = TransportRegistrar()
 class WebsocketClientConnection(WebsocketConnectionMixin[WebsocketClientInfo]):
     """Websocket 客户端连接"""
 
-    dependencies = {"http.universal_client"}
+    dependencies = {AiohttpClientInterface}
     http_interface: AiohttpClientInterface
 
     @property

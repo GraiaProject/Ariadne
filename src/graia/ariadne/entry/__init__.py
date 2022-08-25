@@ -168,8 +168,6 @@ with contextlib.suppress(ImportError):
     from ..console.saya import ConsoleSchema as ConsoleSchema
 
 # We are using the star import because the dependencies may not be present
-
-
 if not TYPE_CHECKING:
 
     def __getattr__(name):
@@ -177,3 +175,4 @@ if not TYPE_CHECKING:
             from ..model import BotMessage
 
             return BotMessage
+        raise AttributeError

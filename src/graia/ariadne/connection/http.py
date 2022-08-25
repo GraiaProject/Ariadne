@@ -23,7 +23,7 @@ from .util import CallMethod, DatetimeJsonEncoder, build_event, validate_respons
 class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
     """HTTP 服务器连接"""
 
-    dependencies = {"http.universal_server"}
+    dependencies = {AbstractRouter}
 
     def __init__(self, config: HttpServerInfo) -> None:
         super().__init__(config)
@@ -52,7 +52,7 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
 class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
     """HTTP 客户端连接"""
 
-    dependencies = {"http.universal_client"}
+    dependencies = {AiohttpClientInterface}
     http_interface: AiohttpClientInterface
 
     def __init__(self, config: HttpClientInfo) -> None:

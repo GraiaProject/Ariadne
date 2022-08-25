@@ -862,7 +862,11 @@ def _update_forward_refs():
     Internal function.
     Update the forward references.
     """
+    import graia.amnesia.message
+
     from .chain import MessageChain
 
+    graia.amnesia.message.__message_chain_class__ = MessageChain
+    graia.amnesia.message.__text_element_class__ = Plain
     Quote.update_forward_refs(MessageChain=MessageChain)
     ForwardNode.update_forward_refs(MessageChain=MessageChain)

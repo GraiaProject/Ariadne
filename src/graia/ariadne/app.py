@@ -262,15 +262,15 @@ class Ariadne:
 
     @classmethod
     def _patch_launch_manager(cls) -> None:
-        if "http.universal_client" not in cls.launch_manager.launchables:
+        from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
+        from graia.amnesia.transport.common.server import AbstractRouter
+
+        if AiohttpClientInterface not in cls.launch_manager._service_bind:
             from graia.amnesia.builtins.aiohttp import AiohttpClientService
 
             cls.launch_manager.add_service(AiohttpClientService())
 
-        if (
-            "http.universal_server" in cls.service.required
-            and "http.universal_server" not in cls.launch_manager.launchables
-        ):
+        if AbstractRouter in cls.service.required and AbstractRouter not in cls.launch_manager._service_bind:
             from graia.amnesia.builtins.aiohttp import AiohttpServerService
 
             cls.launch_manager.add_service(AiohttpServerService())

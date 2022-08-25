@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -73,13 +75,13 @@ class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
 class ConnectionMixin(Launchable, Generic[T_Info]):
     status: ConnectionStatus
     info: T_Info
-    dependencies: ClassVar[Set[str]]
+    dependencies: ClassVar[Set[str | type[ExportInterface]]]
 
     fallback: Optional["HttpClientConnection"]
     event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
 
     @property
-    def required(self) -> Set[str]:
+    def required(self) -> Set[str | type[ExportInterface]]:
         return self.dependencies
 
     @property

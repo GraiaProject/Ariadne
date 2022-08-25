@@ -11,7 +11,7 @@ dependencies = [
     "aiohttp>=3.8, <4.0",
     "pydantic>=1.8,<2.0",
     "typing-extensions>=4.0,<5.0",
-    "graia-amnesia>=0.5.5,<6.0",
+    "graia-amnesia<0.7.0,>=0.6.0",
     "creart-graia<1.0.0,>=0.1.5",
     "launart<1.0.0,>=0.6.0",
 ]

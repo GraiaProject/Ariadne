@@ -25,7 +25,7 @@ def test_create():
         MessageChain("Hello World", [At(12345)], MessageChain([Plain("1234567")])).__root__ == chain.__root__
     )
     assert MessageChain.parse_obj(
-        [{"type": "At", "target": 12345}, {"type": "Plain", "text": "hello"}, {"type": "Broken"}, 5]
+        [{"type": "At", "target": 12345}, {"type": "Plain", "text": "hello"}, {"type": "Broken"}]
     ) == MessageChain([At(12345), "hello"])
 
 
@@ -107,7 +107,7 @@ def test_get():
     assert msg_chain[Plain, 1] == [Plain("Hello World!")]
     assert msg_chain[1] == At(target=12345)
     assert msg_chain[:2] == MessageChain(["Hello World!", At(target=12345)])
-    with pytest.raises(NotImplementedError):
+    with pytest.raises(TypeError):
         msg_chain["trial"]
     assert msg_chain.get(Plain) == msg_chain[Plain]
     assert msg_chain.get(Plain, 1) == msg_chain[Plain, 1]
@@ -167,13 +167,13 @@ async def test_download():
     chain = MessageChain(["text", Image(url=url)])
     from asyncio import Event, create_task
 
-    from graia.amnesia.builtins.aiohttp import AiohttpService
+    from graia.amnesia.builtins.aiohttp import AiohttpClientService
     from launart import Launchable
 
     from graia.ariadne.app import Ariadne
 
     Ariadne._ensure_config()
-    srv = AiohttpService()
+    srv = AiohttpClientService()
     Ariadne.launch_manager.add_service(srv)
 
     class L(Launchable):
@@ -185,7 +185,7 @@ async def test_download():
 
         @property
         def required(self):
-            return {"http.universal_client"}
+            return {"http.client/aiohttp"}
 
         async def launch(self, _):
             async with self.stage("blocking"):

@@ -2,19 +2,61 @@
 
 ## 未发布的更新
 
+适配 `mirai-api-http 2.6.0+` (@ProgramRipper)
+
+### 修复
+
+适配 `Amnesia 0.6.0+` (@BlueGlassBlock)
+
+修复了 `NoneDispatcher` (@ProgramRipper)
+
+
+### 增强
+
+`Formatter` 现在可以使用相对完整的格式化微型语言 (@BlueGlassBlock)
+
+对好友，群，群成员和版本等信息使用缓存 (@ProgramRipper)
+
+使用 `Amnesia` 内建的 `MessageChain` 方法 (@BlueGlassBlock)
+
+### 新增
+
+`{MessageEvent|ActiveMessage}` 的 `id` 字段. (@ProgramRipper)
+
+`get_roaming_message` 用于获取漫游消息. （@ProgramRipper)
+
+`get_bot_list` 用于获取所有登录的账号. (@ProgramRipper)
+
+`Image` 和 `FlashImage` 的新增元信息字段. (@ProgramRipper)
+
+### 弃用
+
+`BotMessage` 被标记为弃用. 它将在 `0.10.0` 中被移除. (@ProgramRipper)
+
+弃用了 `MessageChain.{zip|unzip|find_sub_chain}` (@BlueGlassBlock)
+
+`set_essence` `get_message_from_id` `recall_message` 不带上下文（直接使用 `int` / `Source`) 进行调用会触发警告.
+
+### 移除
+
+移除了 `as_display` 等弃用方法. (@BlueGlassBlock)
+
 ## 0.8.3
 
 ### 修复
 
 修复了 `Ariadne.get_version`, `Ariadne.file_remove` 调用时报错的问题
+
 修复了遥测 SSL 版本过低的问题
+
 修复了 `Poke` 无法解析未知 Poke 类型的问题
 
 ## 0.8.2
 
 ### 修复
 
-适配 `Amnesia0.5.5+`.
+适配 `Amnesia 0.5.5+`.
+
 修复了同时使用 http 和 webhook 通讯时无法调用 api 的问题
 
 ### 回退

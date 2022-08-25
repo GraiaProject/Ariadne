@@ -72,6 +72,7 @@ jobs:
           path: dist/
 
       - name: Merge to Master
+        if: ${{ github.event.inputs.changelog == 'true' }}
         run: |
           git checkout origin/master -b master
           git merge dev --ff-only

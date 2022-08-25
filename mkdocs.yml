@@ -11,7 +11,6 @@ theme:
   icon:
     repo: fontawesome/brands/git-alt
     logo: material/file-document-multiple-outline
-  favicon: images/favicon.png
 
   font:
     text: Noto Sans Simplified Chinese
@@ -47,6 +46,9 @@ copyright: Copyright &copy; Graia Project 2021-2022.
 
 extra:
   social:
+    - icon: netlify
+      link: https://graia-ariadne.netlify.app/
+      name: Netlify 镜像
     - icon: fontawesome/brands/cloudflare
       link: https://graia-ariadne.pages.dev/
       name: CloudFlare 镜像

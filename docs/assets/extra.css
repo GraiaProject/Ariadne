@@ -14,6 +14,11 @@ html .md-social a[title="ReadTheDocs 镜像"] {
     color: #8ca1af;
 }
 
+html .md-social a[title="Netlify 镜像"] {
+    color: #28afa0;
+}
+
+
 .md-social__link {
     font-size: auto;
     width: auto;

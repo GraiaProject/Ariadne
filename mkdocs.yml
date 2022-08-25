@@ -1,4 +1,4 @@
-site_name: Graia Ariadne 文档
+site_name: Graia Ariadne API 参考
 theme:
   features:
     - navigation.tabs

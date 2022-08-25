@@ -8,13 +8,18 @@ _Another elegant framework for mirai and mirai-api-http v2._
 
 [![PyPI](https://img.shields.io/pypi/v/graia-ariadne)](https://pypi.org/project/graia-ariadne)
 [![Python Version](https://img.shields.io/pypi/pyversions/graia-ariadne)](https://pypi.org/project/graia-ariadne)
-[![Docs](https://img.shields.io/badge/文档-here-blue)](https://graia.readthedocs.io/ariadne/)
-[![API docs](https://img.shields.io/badge/API_文档-here-purple)](https://graia.readthedocs.io/projects/ariadne/)
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 [![License](https://img.shields.io/github/license/GraiaProject/Ariadne)](https://github.com/GraiaProject/Ariadne/blob/master/LICENSE)
 [![pdm-managed](https://img.shields.io/badge/pdm-managed-blueviolet)](https://pdm.fming.dev)
+
+|文档|[![docs](https://img.shields.io/badge/readthedocs-gray)](https://graia.readthedocs.io/)|[![docs](https://img.shields.io/badge/netlify-28afa0)](https://graia.netlify.app/)|[![docs](https://img.shields.io/badge/cloudflare-orange)](https://graia.pages.dev/)|
+|:-:|:-:|:-:|:-:|
+
+|API 参考|[![docs](https://img.shields.io/badge/readthedocs-gray)](https://graia.readthedocs.io/projects/ariadne)|[![docs](https://img.shields.io/badge/netlify-28afa0)](https://graia-ariadne.netlify.app/)|[![docs](https://img.shields.io/badge/cloudflare-orange)](https://graia-ariadne.pages.dev/)|
+|:-:|:-:|:-:|:-:|
+
 
 </div>
 

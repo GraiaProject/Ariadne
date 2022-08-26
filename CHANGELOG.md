@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `GroupMessage` dispatcher 错误 (@BlueGlassBlock)
+
 ## 0.9.0
 
 适配 `mirai-api-http 2.6.0+` (@ProgramRipper)

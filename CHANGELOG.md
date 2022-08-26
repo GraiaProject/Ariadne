@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.9.1
+
 ### 修复
 
 修复了 `GroupMessage` dispatcher 错误 (@BlueGlassBlock)

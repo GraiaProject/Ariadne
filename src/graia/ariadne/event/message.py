@@ -67,7 +67,7 @@ class GroupMessage(MessageEvent, GroupEvent):
     class Dispatcher(MessageEvent.Dispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
-            if isinstance(interface.event, TempMessage) and generic_issubclass(Group, interface.annotation):
+            if isinstance(interface.event, GroupMessage) and generic_issubclass(Group, interface.annotation):
                 return interface.event.sender.group
 
 

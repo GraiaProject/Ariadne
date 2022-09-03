@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 依赖
+
+现在 `Ariadne` 依赖于 `pydantic~=1.9`. (@BlueGlassBlock)
+
 ## 0.9.1
 
 ### 修复

@@ -8,12 +8,12 @@ authors = [
 requires-python = ">=3.8,<4.0"
 dependencies = [
     "graia-broadcast~=0.18",
-    "aiohttp>=3.8, <4.0",
-    "pydantic>=1.8,<2.0",
-    "typing-extensions>=4.0,<5.0",
-    "graia-amnesia<0.7.0,>=0.6.0",
+    "aiohttp~=3.8",
+    "pydantic~=1.9",
+    "typing-extensions~=4.3",
+    "graia-amnesia~=0.6.0",
     "creart-graia<1.0.0,>=0.1.5",
-    "launart<1.0.0,>=0.6.0",
+    "launart~=0.6",
 ]
 name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
@@ -73,6 +73,7 @@ dev = [
     "uvicorn[standard]<1.0.0,>=0.18.2",
     "viztracer<1.0.0,>=0.15.3",
     "pydocstyle<7.0.0,>=6.1.1",
+    "graia-saya>=0.0.16",
 ]
 
 [tool.pdm.build]

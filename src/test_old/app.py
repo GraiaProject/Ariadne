@@ -12,7 +12,8 @@ from graia.saya.context import channel_instance
 from loguru import logger
 
 from graia.ariadne.entry import *
-from graia.ariadne.message.parser.base import RegexGroup
+from graia.ariadne.message.exp import MessageChain as ExpMessageChain
+from graia.ariadne.message.parser.base import RegexGroup, StartsWith
 from graia.ariadne.util import RichLogInstallOptions
 
 if __name__ == "__main__":
@@ -194,6 +195,12 @@ if __name__ == "__main__":
     )
     async def regex(app: Ariadne, chain: Annotated[MessageChain, RegexGroup("args")]):
         await app.send_friend_message(target, chain)
+
+    @bcc.receiver(GroupMessage, decorators=[StartsWith(".test exp")])
+    async def exp(app: Ariadne, ev: GroupMessage, exp_c: ExpMessageChain):
+        await app.send_message(ev, repr(exp_c.content))
+        res = await app.send_message(ev, repr(ev))
+        await app.send_message(ev, repr(res))
 
     @bcc.receiver(ApplicationLaunch)
     async def m(app: Ariadne):

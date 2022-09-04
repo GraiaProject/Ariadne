@@ -6,6 +6,13 @@
 
 现在 `Ariadne` 依赖于 `pydantic~=1.9`. (@BlueGlassBlock)
 
+### 新增
+
+`MessageEvent` 与 `ActiveMessage` 添加 `source` 与 `quote` 属性.
+
+实验性 API: `graia.ariadne.message.exp.MessageChain`
+
+使用此类型进行标注时会将前导 `Source` 与 `Quote` 去除.
 ## 0.9.1
 
 ### 修复

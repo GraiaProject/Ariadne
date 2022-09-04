@@ -139,7 +139,7 @@ class Source(Element):
         return ""
 
     async def fetch_original(self) -> "MessageChain":
-        """尝试从本元素恢复原本的消息链, 有可能失败.
+        """尝试从本标记恢复原本的消息链, 有可能失败.
 
         Returns:
             MessageChain: 原来的消息链.

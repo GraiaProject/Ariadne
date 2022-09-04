@@ -1,8 +1,9 @@
 """Ariadne 消息事件"""
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
 
+from graia.amnesia.message import Element
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from pydantic import Field
+from pydantic import Field, root_validator
 
 from ..dispatcher import (
     BaseDispatcher,
@@ -12,11 +13,26 @@ from ..dispatcher import (
     SubjectDispatcher,
 )
 from ..message.chain import MessageChain
-from ..message.element import Source
+from ..message.element import Quote, Source
 from ..model import Client, Friend, Group, Member, Stranger
 from ..typing import generic_issubclass
 from . import MiraiEvent
 from .mirai import FriendEvent, GroupEvent
+
+
+def _set_source_quote(_, values: Dict[str, Any]) -> Dict[str, Any]:
+    for element in values["messageChain"][:2]:
+        if isinstance(element, dict):
+            elem_typ: str = element.get("type", "Unknown")
+        elif isinstance(element, Element):
+            elem_typ: str = element.__class__.__name__
+        else:
+            continue
+        if elem_typ == "Source":
+            values["source"] = element
+        elif elem_typ == "Quote":
+            values["quote"] = element
+    return values
 
 
 class MessageEvent(MiraiEvent):
@@ -30,12 +46,20 @@ class MessageEvent(MiraiEvent):
     sender: Union[Friend, Member, Client, Stranger]
     """发送者"""
 
+    source: Source = cast(Source, ...)
+    """消息元数据标识"""
+
+    quote: Optional[Quote] = None
+    """可能的引用消息对象"""
+
+    __source_quote_setter = root_validator(pre=True, allow_reuse=True)(_set_source_quote)
+
     def __int__(self):
         return self.id
 
     @property
     def id(self) -> int:
-        return self.message_chain.get_first(Source).id
+        return self.source.id
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
@@ -127,12 +151,20 @@ class ActiveMessage(MiraiEvent):
     sync: bool = False
     """是否为同步消息"""
 
+    source: Source = cast(Source, ...)
+    """消息元数据标识"""
+
+    quote: Optional[Quote] = None
+    """可能的引用消息对象"""
+
+    __source_quote_setter = root_validator(pre=True, allow_reuse=True)(_set_source_quote)
+
     def __int__(self):
         return self.id
 
     @property
     def id(self) -> int:
-        return self.message_chain.get_first(Source).id
+        return self.source.id
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]

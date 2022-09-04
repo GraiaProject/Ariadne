@@ -47,7 +47,7 @@ ELEMENT_MAPPING: Dict[str, Type[Element]] = {
 }
 ORDINARY_ELEMENT_TYPES = frozenset([Plain, Image, Face, At, AtAll, Source, Quote])
 
-MessageOrigin = Union[str, dict, Element]
+MessageOrigin = Union[str, Element]
 
 MessageContainer = Union[MessageOrigin, Sequence["MessageContainer"], "MessageChain"]
 
@@ -66,7 +66,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return self.__root__
 
     @staticmethod
-    def build_chain(obj: MessageContainer) -> List[Element]:
+    def build_chain(obj: List[Dict] | MessageContainer) -> List[Element]:
         """内部接口, 会自动反序列化对象并生成.
 
         Args:
@@ -80,16 +80,15 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             return deepcopy(obj.content)
         if isinstance(obj, Element):
             return [obj]
-        if isinstance(obj, dict):
-            if obj.get("type") not in ELEMENT_MAPPING:
-                return []
-            return [ELEMENT_MAPPING[obj["type"]].parse_obj(obj)]
         if isinstance(obj, str):
             return [Plain(obj)]
-
         element_list: List[Element] = []
         for o in obj:
-            element_list.extend(MessageChain.build_chain(o))
+            if isinstance(o, dict):
+                if typ := ELEMENT_MAPPING.get(o.get("type", "Unknown")):
+                    element_list.append(typ.parse_obj(o))
+            else:
+                element_list.extend(MessageChain.build_chain(o))
 
         special_cnt: int = sum(element.__class__ not in ORDINARY_ELEMENT_TYPES for element in element_list)
 
@@ -98,8 +97,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return element_list
 
     @classmethod
-    def parse_obj(cls: Type[Self], obj: List[Union[dict, Element]]) -> Self:
-        """内部接口, 会自动将作为外部态的消息元素转为内部态.
+    def parse_obj(cls: Type[Self], obj: List[dict] | List[Element]) -> Self:
+        """解析 MessageChain.
 
         Args:
             obj (List[T]): 需要反序列化的对象

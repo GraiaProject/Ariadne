@@ -70,7 +70,7 @@ class SourceDispatcher(AbstractDispatcher):
         if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
             Source, interface.annotation
         ):
-            return interface.event.message_chain.get_first(Source)
+            return interface.event.source
 
 
 class SenderDispatcher(AbstractDispatcher):

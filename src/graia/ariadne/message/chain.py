@@ -66,7 +66,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return self.__root__
 
     @staticmethod
-    def build_chain(obj: List[Dict] | MessageContainer) -> List[Element]:
+    def build_chain(obj: Union[List[Dict], MessageContainer]) -> List[Element]:
         """内部接口, 会自动反序列化对象并生成.
 
         Args:
@@ -97,7 +97,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return element_list
 
     @classmethod
-    def parse_obj(cls: Type[Self], obj: List[dict] | List[Element]) -> Self:
+    def parse_obj(cls: Type[Self], obj: Union[List[dict], List[Element]]) -> Self:
         """解析 MessageChain.
 
         Args:

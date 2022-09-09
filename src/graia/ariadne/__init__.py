@@ -10,4 +10,4 @@ from .app import Ariadne as Ariadne  # noqa: F401
 if next(iter(Distribution.discover(name="graia-application-mirai")), None) is not None:
     raise ImportError("`graia-application-mirai` is out of support.")
 
-__version__ = "0.9.3"
+__version__ = "0.9.4"

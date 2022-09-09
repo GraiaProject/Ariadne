@@ -119,7 +119,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
     def __init__(
         self,
         __root__: MessageContainer,
-        *elements: Union[str, Element, Sequence[Union[str, Element]]],
+        *elements: MessageContainer,
         inline: bool = False,
     ) -> None:
         """
@@ -445,10 +445,20 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             old = MessageChain(old)
         if not isinstance(new, MessageChain):
             new = MessageChain(new)
-        index_list: List[int] = self.find_sub_chain(old)
-        unzipped_new: List[Union[str, Element]] = new.unzip()
-        unzipped_old: List[Union[str, Element]] = old.unzip()
-        unzipped_self: List[Union[str, Element]] = self.unzip()
+        index_list: List[int] = self.index_sub(old)
+
+        def unzip(chain: Self) -> List[Union[str, Element]]:
+            unzipped: List[Union[str, Element]] = []
+            for e in chain.content:
+                if isinstance(e, Plain):
+                    unzipped.extend(e.text)
+                else:
+                    unzipped.append(e)
+            return unzipped
+
+        unzipped_new: List[Union[str, Element]] = unzip(new)
+        unzipped_old: List[Union[str, Element]] = unzip(old)
+        unzipped_self: List[Union[str, Element]] = unzip(self)
         unzipped_result: List[Union[str, Element]] = []
         last_end: int = 0
         for start in index_list:

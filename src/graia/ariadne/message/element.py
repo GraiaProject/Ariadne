@@ -574,7 +574,7 @@ class Forward(Element):
 
     def as_persistent_string(self) -> str:
 
-        data: str = escape_bracket(f"[{','.join(node.json() for node in self.node_list)}")
+        data: str = escape_bracket(f"[{','.join(node.json() for node in self.node_list)}]")
         return f"[mirai:{self.type}:{data}]"
 
     @classmethod

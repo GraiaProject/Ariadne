@@ -84,12 +84,12 @@ def test_has():
     assert msg_chain.has(msg_chain)
     assert msg_chain.has(Plain)
     assert not msg_chain.has(Quote)
-    assert msg_chain.find_sub_chain(MessageChain(["Hello"])) == [0]
-    assert msg_chain.find_sub_chain(MessageChain(["Hello system"])) == []
-    assert msg_chain.find_sub_chain(MessageChain(["HeHeHe"])) == []
-    assert MessageChain(["HeHe"]).find_sub_chain(MessageChain(["HeHeHe"])) == []
-    assert MessageChain(["HeHeHeHe"]).find_sub_chain(MessageChain(["HeHeHe"])) == [0, 2]
-    assert MessageChain(["HeHeHaHaHoHo"]).find_sub_chain(MessageChain(["HeHeHoHo"])) == []
+    assert msg_chain.index_sub(MessageChain(["Hello"])) == [0]
+    assert msg_chain.index_sub(MessageChain(["Hello system"])) == []
+    assert msg_chain.index_sub(MessageChain(["HeHeHe"])) == []
+    assert MessageChain(["HeHe"]).index_sub(MessageChain(["HeHeHe"])) == []
+    assert MessageChain(["HeHeHeHe"]).index_sub(MessageChain(["HeHeHe"])) == [0, 2]
+    assert MessageChain(["HeHeHaHaHoHo"]).index_sub(MessageChain(["HeHeHoHo"])) == []
 
 
 def test_contain():
@@ -143,6 +143,11 @@ def test_persistent():
     assert MessageChain.from_persistent_string('hello![_[mirai:At:{"target":12345}]') == MessageChain(
         ["hello![", At(12345)]
     )
+
+    assert MessageChain.from_persistent_string(
+        r'[mirai:Forward:\u005b{"sender_id": 1710564415, "time": 1662203083, "sender_name": "\u65b9\u7cd6\u8d77\u53f8", "message_chain": \u005b{"type": "Plain", "text": "123"}\u005d, "message_id": null},{"sender_id": 1710564415, "time": 1662694196, "sender_name": "\u65b9\u7cd6\u8d77\u53f8", "message_chain": \u005b{"type": "Plain", "text": "test"}\u005d, "message_id": null}\u005d]'
+    )
+
     assert msg_chain.as_persistent_string(include=[At]) == '[mirai:At:{"target":12345}]'
     assert msg_chain.as_persistent_string(exclude=[At]) == "hello!"
     with pytest.raises(ValueError):

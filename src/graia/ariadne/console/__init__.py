@@ -148,6 +148,7 @@ class Console:
 
     async def loop(self) -> None:
         """Console 的输入循环"""
+        from graia.amnesia.message import MessageChain as BaseMessageChain
         from ..message.chain import MessageChain
         from ..message.element import Plain
 
@@ -159,7 +160,7 @@ class Console:
             async def catch(self, interface: DispatcherInterface):
                 if interface.annotation is str and interface.name == "command":
                     return self.command
-                if interface.annotation is MessageChain:
+                if interface.annotation in (MessageChain, BaseMessageChain):
                     return MessageChain([Plain(self.command)], inline=True)
                 if interface.annotation is Console:
                     return self.console

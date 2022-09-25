@@ -1564,8 +1564,7 @@ class Ariadne:
         """从 消息 ID 提取 消息事件.
 
         Note:
-            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \
-                将尝试使用缓存获得消息事件或以当前事件来源作为 target.
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 时, 将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Args:
             message (Union[Source, int]): 指定的消息.

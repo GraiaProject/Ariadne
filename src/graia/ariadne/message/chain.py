@@ -1,5 +1,6 @@
 """Ariadne 消息链的实现"""
 import re
+import warnings
 from copy import deepcopy
 from typing import (
     TYPE_CHECKING,
@@ -193,6 +194,12 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         """
         if isinstance(item, tuple):
             return self.get(*item)
+        if isinstance(item, (int, slice)):
+            warnings.warn(
+                "Indexing MessageChain with int will change behaviour in 0.10.0!\n"
+                "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095",
+                DeprecationWarning,
+            )
         return super().__getitem__(item)
 
     @deprecated("0.10.0", "Use `index_sub` instead")
@@ -216,6 +223,16 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             MessageChain: 转换后的消息链.
         """
         return self.exclude(Source, Quote, File)
+
+    def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
+        res = super().get(element_class, count)
+        if isinstance(res, (Quote, Source)):
+            warnings.warn(
+                "MessageChain.get(Quote/Source) is deprecated. And will be removed in 0.10.0.\n"
+                "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095",
+                DeprecationWarning,
+            )
+        return res
 
     def __eq__(self, other: Union[MessageContainer, Self]) -> bool:
         if id(self) == id(other):

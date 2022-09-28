@@ -23,6 +23,7 @@ class MessageChainDispatcher(AbstractDispatcher):
         from .message.exp import MessageChain as ExpMessageChain
 
         if isinstance(interface.event, (MessageEvent, ActiveMessage)):
+            # FIXME: ExpMessageChain as native.
             if generic_issubclass(MessageChain, interface.annotation):
                 return interface.event.message_chain
             elif generic_issubclass(ExpMessageChain, interface.annotation):

@@ -8,6 +8,20 @@
 
 维持 console dispatcher 的向后兼容性.
 
+### 弃用
+
+`Quote` 与 `Source` 在 `0.10.0` 将成为 `MessageEvent.quote` 与 `MessageEvent.source` 而不是 `MessageChain[1]` 与 `MessageChain[0]`.
+
+当然，`MessageChain.get_first(Quote)` 与 `MessageChain.get_first(Source)` 到时候也会报错.
+
+同时，`MessageChain.startswith` 的行为将会变得 **符合直觉**.
+
+相应的弃用警告已经发出.
+
+如果你想维持稳定行为，请迁移使用 `from graia.ariadne.message.exp import MessageChain as ExpMessageChain` 作为 **分发类型标注**.
+
+构造时原有消息链不受影响.
+
 ## 0.9.4
 
 ### 修复

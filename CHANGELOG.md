@@ -2,6 +2,12 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `graia.ariadne.connection.config.from_obj` 的 bug.
+
+维持 console dispatcher 的向后兼容性.
+
 ## 0.9.4
 
 ### 修复

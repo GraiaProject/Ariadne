@@ -125,4 +125,7 @@ def from_obj(obj: Union[ConfigTypedDict, Sequence[ConfigTypedDict]]) -> Union[Li
             extras.append(HttpServerConfig(**obj["http_server"]))
         if "websocket_server" in obj:
             extras.append(WebsocketServerConfig(**obj["websocket_server"]))
+
+        from ..app import Ariadne
+
         return Ariadne(config(obj["account"], obj["verify_key"], *extras))

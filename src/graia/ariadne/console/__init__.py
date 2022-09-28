@@ -149,6 +149,7 @@ class Console:
     async def loop(self) -> None:
         """Console 的输入循环"""
         from graia.amnesia.message import MessageChain as BaseMessageChain
+
         from ..message.chain import MessageChain
         from ..message.element import Plain
 

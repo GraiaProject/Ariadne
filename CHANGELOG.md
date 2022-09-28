@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.9.5
+
 ### 修复
 
 修复了 `graia.ariadne.connection.config.from_obj` 的 bug.

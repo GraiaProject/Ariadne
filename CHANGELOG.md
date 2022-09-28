@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `graia.ariadne.message.parser.twilight.ResultValue`.
+
 ## 0.9.5
 
 ### 修复

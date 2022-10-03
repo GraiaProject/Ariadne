@@ -6,6 +6,14 @@
 
 修复了 `graia.ariadne.message.parser.twilight.ResultValue`.
 
+修复了使用 Derive 特性时可能的参数检查 bug.
+
+### 更新
+
+支持 `RegexGroup` 作为 Decorator 使用.
+
+`MatchRegex` 现在默认统一为 `fullmatch`.
+
 ## 0.9.5
 
 ### 修复

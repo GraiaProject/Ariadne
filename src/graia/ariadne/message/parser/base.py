@@ -194,24 +194,27 @@ class MatchContent(ChainDecorator):
 class MatchRegex(ChainDecorator, BaseDispatcher):
     """匹配正则表达式"""
 
-    def __init__(self, regex: str, flags: re.RegexFlag = re.RegexFlag(0)) -> None:
+    def __init__(self, regex: str, flags: re.RegexFlag = re.RegexFlag(0), full: bool = True) -> None:
         """初始化匹配正则表达式.
 
         Args:
             regex (str): 正则表达式
             flags (re.RegexFlag): 正则表达式标志
+            full (bool): 是否要求完全匹配, 默认为 True.
         """
         self.regex: str = regex
         self.flags: re.RegexFlag = flags
+        self.pattern = re.compile(self.regex, self.flags)
+        self.match_func = self.pattern.fullmatch if full else self.pattern.match
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
-        if not re.match(self.regex, str(chain), self.flags):
+        if not self.match_func(str(chain)):
             raise ExecutionStop
         return chain
 
     async def beforeExecution(self, interface: DispatcherInterface[MessageEvent]):
         _mapping_str, _map = interface.event.message_chain._to_mapping_str()
-        if res := re.fullmatch(self.regex, _mapping_str, self.flags):
+        if res := self.match_func(_mapping_str):
             interface.local_storage["__parser_regex_match_obj__"] = res
             interface.local_storage["__parser_regex_match_map__"] = _map
         else:
@@ -222,8 +225,11 @@ class MatchRegex(ChainDecorator, BaseDispatcher):
             return interface.local_storage["__parser_regex_match_obj__"]
 
 
-class RegexGroup:
-    """正则表达式组的标志, 以 `Annotated[MessageChain, RegexGroup("xxx") 的形式使用"""
+class RegexGroup(Decorator):
+    """正则表达式组的标志
+    以 `Annotated[MessageChain, RegexGroup("xxx")]` 的形式使用,
+    或者作为 Decorator 使用.
+    """
 
     def __init__(self, target: Union[int, str]) -> None:
         """初始化
@@ -231,23 +237,26 @@ class RegexGroup:
         Args:
             target (Union[int, str]): 目标的组名或序号
         """
-        self.target = target
+        self.assign_target = target
 
     async def __call__(self, _, interface: DispatcherInterface[MessageEvent]):
         _res: re.Match = interface.local_storage["__parser_regex_match_obj__"]
         match_group: Tuple[str] = _res.groups()
         match_group_dict: Dict[str, str] = _res.groupdict()
         origin: Optional[str] = None
-        if isinstance(self.target, str) and self.target in match_group_dict:
-            origin = match_group_dict[self.target]
-        elif isinstance(self.target, int) and self.target < len(match_group):
-            origin = match_group[self.target]
+        if isinstance(self.assign_target, str) and self.assign_target in match_group_dict:
+            origin = match_group_dict[self.assign_target]
+        elif isinstance(self.assign_target, int) and self.assign_target < len(match_group):
+            origin = match_group[self.assign_target]
 
         return (
             MessageChain._from_mapping_string(origin, interface.local_storage["__parser_regex_match_map__"])
             if origin is not None
             else None
         )
+
+    async def target(self, interface: DecoratorInterface):
+        return self("", interface.dispatcher_interface)
 
 
 class MatchTemplate(ChainDecorator):

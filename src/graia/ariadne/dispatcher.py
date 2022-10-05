@@ -161,4 +161,3 @@ class OperatorMemberDispatcher(AbstractDispatcher):
                 return operator
             elif result := await NoneDispatcher.catch(interface):
                 return result
-            interface.crash()

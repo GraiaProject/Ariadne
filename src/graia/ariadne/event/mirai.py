@@ -650,7 +650,6 @@ class MemberJoinEvent(GroupEvent):
                     return inviter
                 elif result := await NoneDispatcher.catch(interface):
                     return result
-                interface.crash()
 
 
 class MemberLeaveEventKick(GroupEvent):

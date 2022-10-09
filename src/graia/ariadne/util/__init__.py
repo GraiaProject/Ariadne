@@ -1,6 +1,5 @@
 """本模块提供 Ariadne 内部使用的小工具, 以及方便的辅助模块."""
 
-import contextlib
 
 # Utility Layout
 import functools
@@ -76,29 +75,8 @@ def loguru_exc_callback(cls: Type[BaseException], val: BaseException, tb: Option
         val (Exception): 异常的实际值
         tb (TracebackType): 回溯消息
     """
-    if issubclass(cls, (ExecutionStop, PropagationCancelled)):
-        return
-    if tb:
-        exec_module_name = tb.tb_frame.f_globals.get("__name__", "")
-        if isinstance(val, RequirementCrashed) and exec_module_name.startswith("graia.broadcast"):
-            with contextlib.suppress(Exception):
-                local_dict = tb.tb_frame.f_locals
-                _, param_name, param_anno, param_default = val.args
-                if isinstance(param_anno, type):
-                    param_anno = param_anno.__qualname__
-                param_repr = "".join(
-                    [
-                        param_name,
-                        f": {type_repr(param_anno)}" if param_anno else "",
-                        f" = {param_default}" if param_default else "",
-                    ]
-                )
-                val = RequirementCrashed(
-                    f"Unable to lookup parameter ({param_repr})",
-                    local_dict["dispatchers"],
-                )
-
-    logger.opt(exception=(cls, val, tb)).error("Exception:")
+    if not issubclass(cls, (ExecutionStop, PropagationCancelled)):
+        logger.opt(exception=(cls, val, tb)).error("Exception:")
 
 
 def loguru_exc_callback_async(loop, context: dict):

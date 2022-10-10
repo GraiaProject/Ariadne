@@ -1,4 +1,8 @@
 site_name: Graia Ariadne API 参考
+
+watch:
+  - src/graia
+
 theme:
   features:
     - navigation.tabs
@@ -102,8 +106,6 @@ plugins:
       scripts:
         - docs/gen_ref.py
   - mkdocstrings:
-      watch:
-        - src/graia
       handlers:
         python:
           paths: [src]

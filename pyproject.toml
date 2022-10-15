@@ -2,12 +2,12 @@
 # PEP 621 project metadata
 # See https://www.python.org/dev/peps/pep-0621/
 authors = [
-    {name = "BlueGlassBlock", email = "blueglassblock@outlook.com"},
-    {name = "GreyElaina", email = "GreyElaina@outlook.com"},
+    { name = "BlueGlassBlock", email = "blueglassblock@outlook.com" },
+    { name = "GreyElaina", email = "GreyElaina@outlook.com" },
 ]
 requires-python = ">=3.8,<4.0"
 dependencies = [
-    "graia-broadcast~=0.18",
+    "graia-broadcast~=0.19",
     "aiohttp~=3.8",
     "pydantic~=1.9",
     "typing-extensions~=4.3",
@@ -19,18 +19,20 @@ name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
 readme = "README.md"
 keywords = ["graia", "bot", "qq", "framework", "mirai", "ariadne"]
-classifiers = ["Topic :: Communications :: Chat",
-"Framework :: Robot Framework :: Library",
-"Framework :: AsyncIO", "Typing :: Typed",
-"Development Status :: 4 - Beta",
-"Operating System :: OS Independent",
-"Programming Language :: Python :: Implementation :: CPython",
-"Programming Language :: Python :: 3.8",
-"Programming Language :: Python :: 3.9",
-"Programming Language :: Python :: 3.10",
-"Programming Language :: Python :: 3.11",
-"Programming Language :: Python :: 3.12",
-"Programming Language :: Python :: 3 :: Only",
+classifiers = [
+    "Topic :: Communications :: Chat",
+    "Framework :: Robot Framework :: Library",
+    "Framework :: AsyncIO",
+    "Typing :: Typed",
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
 ]
 dynamic = ["version"]
 
@@ -109,7 +111,7 @@ exclude_lines = [
     # Don't complain about abstract methods, they aren't run:
     "@(abc\\.)?abstractmethod",
     # Don't complain overload method / functions
-    "@(typing\\.)?overload"
+    "@(typing\\.)?overload",
 ]
 
 [tool.pyright]
@@ -118,7 +120,7 @@ ignore = [
     "**/site-packages/**/*.py",
     "**/test*/**/*.py",
     "**/adapter/**",
-    "**/temp/**/*.py"
+    "**/temp/**/*.py",
 ]
 
 [tool.pydocstyle]

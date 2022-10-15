@@ -2,6 +2,14 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了发送的 `MessageChain` 带有旧 `MessageChain` 的不可发送的 Element 的 bug. (@ProgramRipper)
+
+修复了 `recall_message` 的 `target` 相关问题。(@ProgramRipper)
+
+修复了 `ResultValue` 作为 `Derive` 使用时的实现问题。(@BlueGlassBlock)
+
 ## 0.9.6
 
 ### 修复

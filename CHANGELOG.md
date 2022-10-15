@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.9.7
+
 ### 修复
 
 修复了发送的 `MessageChain` 带有旧 `MessageChain` 的不可发送的 Element 的 bug. (@ProgramRipper)

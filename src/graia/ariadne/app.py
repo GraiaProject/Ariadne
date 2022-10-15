@@ -1967,11 +1967,15 @@ class Ariadne:
         Returns:
             None: 没有返回
         """
-        if isinstance(message, MessageEvent):
+        if target is not None:
+            pass
+        elif isinstance(message, GroupMessage):
+            target = message.sender.group
+        elif isinstance(message, MessageEvent):
             target = message.sender
         elif isinstance(message, ActiveMessage):
             target = message.subject
-        elif target is None:
+        else:
             from warnings import warn
 
             warning = DeprecationWarning(  # FIXME: deprecated

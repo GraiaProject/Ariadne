@@ -1641,20 +1641,19 @@ class Ariadne:
             quote = quote.id
 
         with enter_message_send_context(UploadMethod.Friend):
-            new_msg = message.copy().as_sendable()
+            message = message.as_sendable()
             try:
                 result = await self.connection.call(
                     "sendFriendMessage",
                     CallMethod.POST,
                     {
                         "target": int(target),
-                        "messageChain": new_msg.dict()["__root__"],
+                        "messageChain": message.dict()["__root__"],
                         **({"quote": quote} if quote else {}),
                     },
                 )
                 event = ActiveFriendMessage(
-                    messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())])
-                    + message,
+                    messageChain=MessageChain(Source(id=result["messageId"], time=datetime.now()), message),
                     subject=(await self.get_friend(int(target), assertion=True, cache=True)),
                 )
                 with enter_context(self, event):
@@ -1699,20 +1698,19 @@ class Ariadne:
             quote = quote.id
 
         with enter_message_send_context(UploadMethod.Group):
-            new_msg = message.copy().as_sendable()
+            message = message.as_sendable().copy()
             try:
                 result = await self.connection.call(
                     "sendGroupMessage",
                     CallMethod.POST,
                     {
                         "target": int(target),
-                        "messageChain": new_msg.dict()["__root__"],
+                        "messageChain": message.dict()["__root__"],
                         **({"quote": quote} if quote else {}),
                     },
                 )
-                event: ActiveGroupMessage = ActiveGroupMessage(
-                    messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())])
-                    + message,
+                event = ActiveGroupMessage(
+                    messageChain=MessageChain(Source(id=result["messageId"], time=datetime.now()), message),
                     subject=(await self.get_group(int(target), assertion=True, cache=True)),
                 )
                 with enter_context(self, event):
@@ -1775,8 +1773,7 @@ class Ariadne:
                     },
                 )
                 event: ActiveTempMessage = ActiveTempMessage(
-                    messageChain=MessageChain([Source(id=result["messageId"], time=datetime.now())])
-                    + message,
+                    messageChain=MessageChain(Source(id=result["messageId"], time=datetime.now()), message),
                     subject=(await self.get_member(int(group), int(target), cache=True)),
                 )
                 with enter_context(self, event):
@@ -1907,7 +1904,7 @@ class Ariadne:
                 return await action.result(
                     ActiveMessage(
                         type="Unknown",
-                        messageChain=MessageChain([Source(id=-1, time=datetime.now())]) + data["message"],
+                        messageChain=MessageChain(Source(id=-1, time=datetime.now()), data["message"]),
                         subject=data["target"],
                     )
                 )

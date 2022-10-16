@@ -302,7 +302,7 @@ class BotLeaveEventKick(GroupEvent, BotEvent):
     operator: Optional[Member]
     """操作员, 为群主或管理员"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -323,7 +323,7 @@ class BotLeaveEventDisband(GroupEvent, BotEvent):
     operator: Optional[Member]
     """操作员, 为群主"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -356,7 +356,7 @@ class GroupRecallEvent(GroupEvent):
     operator: Optional[Member]
     """撤回消息的群成员, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -467,7 +467,7 @@ class GroupNameChangeEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -497,7 +497,7 @@ class GroupEntranceAnnouncementChangeEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -527,7 +527,7 @@ class GroupMuteAllEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -557,7 +557,7 @@ class GroupAllowAnonymousChatEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -587,7 +587,7 @@ class GroupAllowConfessTalkEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 
@@ -617,7 +617,7 @@ class GroupAllowMemberInviteEvent(GroupEvent):
     operator: Optional[Member]
     """作出此操作的管理员/群主, 若为 None 则为 Bot 账号操作"""
 
-    class Dispatch(BaseDispatcher):
+    class Dispatcher(BaseDispatcher):
         mixin = [GroupDispatcher, OperatorDispatcher]
 
 

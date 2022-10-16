@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.9.8
+
 ### 修复
 
 修复了 `BotLeaveEventKick`, `BotLeaveEventDisband`, `GroupRecallEvent` 和 `GroupNameChangeEvent` 的 `Dispatcher` 拼写错误.

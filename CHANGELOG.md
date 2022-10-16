@@ -2,6 +2,12 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `BotLeaveEventKick`, `BotLeaveEventDisband`, `GroupRecallEvent` 和 `GroupNameChangeEvent` 的 `Dispatcher` 拼写错误.
+
+补充了 `ExceptionThrown` 和 `EventExceptionThrown` 的一站式导入.
+
 ## 0.9.7
 
 ### 修复

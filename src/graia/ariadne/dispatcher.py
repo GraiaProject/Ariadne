@@ -156,8 +156,9 @@ class OperatorMemberDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if interface.name == "operator" and generic_issubclass(Member, interface.annotation):
-            if operator := interface.event.operator:
-                return operator
-            elif result := await NoneDispatcher.catch(interface):
-                return result
+        if (
+            interface.name == "operator"
+            and generic_issubclass(Member, interface.annotation)
+            and (operator := interface.event.operator)
+        ):
+            return operator

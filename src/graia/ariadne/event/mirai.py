@@ -919,7 +919,7 @@ class NewFriendRequestEvent(RequestEvent, FriendEvent):
 
     type = "NewFriendRequestEvent"
 
-    requestId: int = Field(..., alias="eventId")
+    request_id: int = Field(..., alias="eventId")
     """事件标识，响应该事件时的标识"""
 
     supplicant: int = Field(..., alias="fromId")
@@ -1001,7 +1001,7 @@ class MemberJoinRequestEvent(RequestEvent, GroupEvent):
 
     type = "MemberJoinRequestEvent"
 
-    requestId: int = Field(..., alias="eventId")
+    request_id: int = Field(..., alias="eventId")
     """事件标识，响应该事件时的标识"""
 
     supplicant: int = Field(..., alias="fromId")

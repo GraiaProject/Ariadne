@@ -39,7 +39,7 @@ async def check_update(session: ClientSession, name: str, current: str, output: 
             result: str = json.loads(data)["info"]["version"]
     except Exception as e:
         logger.warning(f"Failed to retrieve latest version of {name}: {e}")
-    if result > current:
+    if tuple(map(int, str.split(result, "."))) > tuple(map(int, str.split(current, "."))):
         output.append(
             " ".join(
                 [

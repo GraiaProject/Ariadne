@@ -143,7 +143,6 @@ class WebsocketServerConnection(WebsocketConnectionMixin[WebsocketServerInfo]):
             if req.query_params.get(k) != v:
                 return await io.extra(WSConnectionClose)
         await io.extra(WSConnectionAccept)
-        logger.info("WebsocketServer")
         await io.send(
             {
                 "syncId": "#",

@@ -1,12 +1,11 @@
 """Ariadne 的类型标注"""
 
 
-import builtins
 import contextlib
 import enum
 import sys
 import types
-from types import MethodType, TracebackType
+from types import TracebackType
 from typing import (
     TYPE_CHECKING,
     AbstractSet,
@@ -207,19 +206,14 @@ AnnotatedType = type(Annotated[int, lambda x: x > 0])
 
 ExceptionHook: TypeAlias = Callable[[Type[BaseException], BaseException, Optional[TracebackType]], Any]
 
-if sys.version_info >= (3, 9):
-    classmethod = builtins.classmethod
-else:
 
-    class classmethod:
-        "Emulate PyClassMethod_Type()"
+class class_property(Generic[T]):
+    """Class-level property.
+    Link: https://stackoverflow.com/a/13624858/1280629
+    """
 
-        def __init__(self, f):
-            self.f = f
+    def __init__(self, fget: Callable[[Any], T]):
+        self.fget = fget
 
-        def __get__(self, obj, cls=None):
-            if cls is None:
-                cls = type(obj)
-            if hasattr(type(self.f), "__get__"):
-                return self.f.__get__(cls, cls)
-            return MethodType(self.f, cls)
+    def __get__(self, _, owner_cls) -> T:
+        return self.fget(owner_cls)

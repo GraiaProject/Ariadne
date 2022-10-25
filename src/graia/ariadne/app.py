@@ -72,7 +72,7 @@ from .typing import (
     SendMessageException,
     Sentinel,
     T,
-    classmethod,
+    class_property,
 )
 from .util import (
     RichLogInstallOptions,
@@ -99,8 +99,7 @@ class Ariadne:
     default_send_action: SendMessageActionProtocol
     log_config: LogConfig
 
-    @classmethod
-    @property
+    @class_property
     def broadcast(cls) -> Broadcast:
         """获取 Ariadne 的事件系统.
 
@@ -109,8 +108,7 @@ class Ariadne:
         """
         return cls.service.broadcast
 
-    @classmethod
-    @property
+    @class_property
     def default_account(cls) -> int:
         """获取默认账号.
 

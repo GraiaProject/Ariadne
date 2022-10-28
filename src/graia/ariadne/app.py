@@ -7,9 +7,11 @@ import os
 import signal
 import sys
 import traceback
+import warnings
 from contextlib import ExitStack
 from datetime import datetime
 from typing import (
+    IO,
     TYPE_CHECKING,
     Any,
     AsyncGenerator,
@@ -615,7 +617,7 @@ class Ariadne:
     @ariadne_api
     async def upload_file(
         self,
-        data: Union[bytes, io.IOBase, os.PathLike],
+        data: Union[bytes, IO[bytes], os.PathLike],
         method: Union[str, UploadMethod, None] = None,
         target: Union[Friend, Group, int] = -1,
         path: str = "",
@@ -626,7 +628,7 @@ class Ariadne:
         上传目标, (可选)上传目录ID.
 
         Args:
-            data (Union[bytes, io.IOBase, os.PathLike]): 文件的原始数据
+            data (Union[bytes, IO[bytes], os.PathLike]): 文件的原始数据
             method (str | UploadMethod, optional): 文件的上传类型
             target (Union[Friend, Group, int]): 文件上传目标, 即群组
             path (str): 目标路径, 默认为根路径.
@@ -663,12 +665,12 @@ class Ariadne:
 
     @ariadne_api
     async def upload_image(
-        self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
+        self, data: Union[bytes, IO[bytes], os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Image":
         """上传一张图片到远端服务器, 需要提供: 图片的原始数据(bytes), 图片的上传类型.
 
         Args:
-            data (Union[bytes, io.IOBase, os.PathLike]): 图片的原始数据
+            data (Union[bytes, IO[bytes], os.PathLike]): 图片的原始数据
             method (str | UploadMethod, optional): 图片的上传类型, 可从上下文推断
         Returns:
             Image: 生成的图片消息元素
@@ -694,12 +696,12 @@ class Ariadne:
 
     @ariadne_api
     async def upload_voice(
-        self, data: Union[bytes, io.IOBase, os.PathLike], method: Union[None, str, UploadMethod] = None
+        self, data: Union[bytes, IO[bytes], os.PathLike], method: Union[None, str, UploadMethod] = None
     ) -> "Voice":
         """上传语音到远端服务器, 需要提供: 语音的原始数据(bytes), 语音的上传类型.
 
         Args:
-            data (Union[bytes, io.IOBase, os.PathLike]): 语音的原始数据
+            data (Union[bytes, IO[bytes], os.PathLike]): 语音的原始数据
             method (str | UploadMethod, optional): 语音的上传类型, 可从上下文推断
         Returns:
             Voice: 生成的语音消息元素
@@ -1619,6 +1621,7 @@ class Ariadne:
         message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
+        action: Union[SendMessageActionProtocol, Literal[Sentinel]] = Sentinel,
     ) -> ActiveFriendMessage:
         """发送消息给好友, 可以指定回复的消息.
 
@@ -1632,8 +1635,19 @@ class Ariadne:
         """
         from .event.message import ActiveFriendMessage
 
+        if action is not Sentinel:  # TODO: REFACTOR
+            return await self.send_message(
+                await self.get_friend(target, assertion=True) if isinstance(target, int) else target,
+                message,
+                quote=quote or False,
+                action=action,
+            )
+
         message = MessageChain(message)
         if isinstance(quote, MessageChain):
+            warnings.warn(
+                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            )
             quote = quote.get_first(Source)
         if isinstance(quote, Source):
             quote = quote.id
@@ -1673,6 +1687,7 @@ class Ariadne:
         message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
+        action: Union[SendMessageActionProtocol, Literal[Sentinel]] = Sentinel,
     ) -> ActiveGroupMessage:
         """发送消息到群组内, 可以指定回复的消息.
 
@@ -1680,6 +1695,7 @@ class Ariadne:
             target (Union[Group, Member, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 或 Member 实例.
             message (MessageContainer): 有效的消息容器.
             quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+            action (SendMessageActionProtocol, optional): 消息发送的处理 action
 
         Returns:
             ActiveGroupMessage: 即当前会话账号所发出消息的事件, 可用于回复.
@@ -1690,7 +1706,18 @@ class Ariadne:
         if isinstance(target, Member):
             target = target.group
 
+        if action is not Sentinel:  # TODO: REFACTOR
+            return await self.send_message(
+                await self.get_group(target, assertion=True) if isinstance(target, int) else target,
+                message,
+                quote=quote or False,
+                action=action,
+            )
+
         if isinstance(quote, MessageChain):
+            warnings.warn(
+                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            )
             quote = quote.get_first(Source)
         if isinstance(quote, Source):
             quote = quote.id
@@ -1731,6 +1758,7 @@ class Ariadne:
         group: Optional[Union[Group, int]] = None,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
+        action: Union[SendMessageActionProtocol, Literal[Sentinel]] = Sentinel,
     ) -> ActiveTempMessage:
         """发送临时会话给群组中的特定成员, 可指定回复的消息.
 
@@ -1742,6 +1770,7 @@ class Ariadne:
             target (Union[Member, int]): 指定的群组成员, 可以是成员的 ID 也可以是 Member 实例.
             message (MessageContainer): 有效的消息容器.
             quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+            action (SendMessageActionProtocol, optional): 消息发送的处理 action
 
         Returns:
             ActiveTempMessage: 即当前会话账号所发出消息的事件, 可用于回复.
@@ -1749,15 +1778,29 @@ class Ariadne:
         from .event.message import ActiveTempMessage
 
         message = MessageChain(message)
+
         if isinstance(quote, MessageChain):
+            warnings.warn(
+                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            )
             quote = quote.get_first(Source)
-        if isinstance(quote, Source):
-            quote = quote.id
 
         new_msg = message.copy().as_sendable()
         group = target.group if (isinstance(target, Member) and not group) else group
         if not group:
             raise ValueError("Missing necessary argument: group")
+
+        if action is not Sentinel:  # TODO: REFACTOR
+            return await self.send_message(
+                await self.get_member(group, target, cache=True) if isinstance(target, int) else target,
+                message,
+                quote=quote or False,
+                action=action,
+            )
+
+        if isinstance(quote, Source):
+            quote = quote.id
+
         with enter_message_send_context(UploadMethod.Temp):
             try:
                 result = await self.connection.call(
@@ -1876,6 +1919,9 @@ class Ariadne:
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):
+            warnings.warn(
+                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            )
             data["quote"] = quote.get_first(Source)
         # target: MessageEvent
         if isinstance(target, GroupMessage):

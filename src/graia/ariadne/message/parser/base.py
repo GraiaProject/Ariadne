@@ -4,6 +4,7 @@ import difflib
 import fnmatch
 import re
 import weakref
+from collections import defaultdict
 from typing import (
     ClassVar,
     DefaultDict,
@@ -352,7 +353,7 @@ class FuzzyMatch(ChainDecorator):
 
 
 class FuzzyDispatcher(BaseDispatcher):
-    scope_map: ClassVar[DefaultDict[str, List[str]]] = DefaultDict(list)
+    scope_map: ClassVar[DefaultDict[str, List[str]]] = defaultdict(list)
     event_ref: ClassVar["Dict[int, Dict[str, Tuple[str, float]]]"] = {}
 
     def __init__(self, template: str, min_rate: float = 0.6, scope: str = "") -> None:

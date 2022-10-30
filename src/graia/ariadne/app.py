@@ -1621,7 +1621,7 @@ class Ariadne:
         message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
-        action: Union[SendMessageActionProtocol, Literal[Sentinel]] = Sentinel,
+        action: Union[SendMessageActionProtocol, Literal[Sentinel], None] = Sentinel,
     ) -> ActiveFriendMessage:
         """发送消息给好友, 可以指定回复的消息.
 
@@ -1635,20 +1635,24 @@ class Ariadne:
         """
         from .event.message import ActiveFriendMessage
 
-        if action is not Sentinel:  # TODO: REFACTOR
-            return await self.send_message(
-                await self.get_friend(target, assertion=True) if isinstance(target, int) else target,
-                message,
-                quote=quote or False,
-                action=action,
-            )
-
         message = MessageChain(message)
         if isinstance(quote, MessageChain):
             warnings.warn(
                 "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
             )
             quote = quote.get_first(Source)
+
+        if action is not None:  # TODO: REFACTOR
+            return cast(
+                ActiveFriendMessage,
+                await self.send_message(
+                    await self.get_friend(target, assertion=True) if isinstance(target, int) else target,
+                    message,
+                    quote=quote or False,
+                    action=action,
+                ),
+            )
+
         if isinstance(quote, Source):
             quote = quote.id
 
@@ -1687,7 +1691,7 @@ class Ariadne:
         message: MessageContainer,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
-        action: Union[SendMessageActionProtocol, Literal[Sentinel]] = Sentinel,
+        action: Union[SendMessageActionProtocol, Literal[Sentinel], None] = Sentinel,
     ) -> ActiveGroupMessage:
         """发送消息到群组内, 可以指定回复的消息.
 
@@ -1706,12 +1710,15 @@ class Ariadne:
         if isinstance(target, Member):
             target = target.group
 
-        if action is not Sentinel:  # TODO: REFACTOR
-            return await self.send_message(
-                await self.get_group(target, assertion=True) if isinstance(target, int) else target,
-                message,
-                quote=quote or False,
-                action=action,
+        if action is not None:  # TODO: REFACTOR
+            return cast(
+                ActiveGroupMessage,
+                await self.send_message(
+                    await self.get_group(target, assertion=True) if isinstance(target, int) else target,
+                    message,
+                    quote=quote or False,
+                    action=action,
+                ),
             )
 
         if isinstance(quote, MessageChain):
@@ -1758,7 +1765,7 @@ class Ariadne:
         group: Optional[Union[Group, int]] = None,
         *,
         quote: Optional[Union[Source, int, MessageChain]] = None,
-        action: Union[SendMessageActionProtocol, Literal[Sentinel]] = Sentinel,
+        action: Union[SendMessageActionProtocol, Literal[Sentinel], None] = Sentinel,
     ) -> ActiveTempMessage:
         """发送临时会话给群组中的特定成员, 可指定回复的消息.
 
@@ -1790,12 +1797,15 @@ class Ariadne:
         if not group:
             raise ValueError("Missing necessary argument: group")
 
-        if action is not Sentinel:  # TODO: REFACTOR
-            return await self.send_message(
-                await self.get_member(group, target, cache=True) if isinstance(target, int) else target,
-                message,
-                quote=quote or False,
-                action=action,
+        if action is not None:  # TODO: REFACTOR
+            return cast(
+                ActiveTempMessage,
+                await self.send_message(
+                    await self.get_member(group, target, cache=True) if isinstance(target, int) else target,
+                    message,
+                    quote=quote or False,
+                    action=action,
+                ),
             )
 
         if isinstance(quote, Source):
@@ -1936,11 +1946,11 @@ class Ariadne:
 
         try:
             if isinstance(data["target"], Friend):
-                val = await self.send_friend_message(**data)
+                val = await self.send_friend_message(**data, action=None)
             elif isinstance(data["target"], Group):
-                val = await self.send_group_message(**data)
+                val = await self.send_group_message(**data, action=None)
             elif isinstance(data["target"], Member):
-                val = await self.send_temp_message(**data)
+                val = await self.send_temp_message(**data, action=None)
             else:
                 logger.warning(
                     f"Unable to send {data['message']} to {data['target']} of type {type(data['target'])}"

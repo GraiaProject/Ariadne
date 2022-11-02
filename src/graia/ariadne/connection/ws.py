@@ -180,7 +180,8 @@ class WebsocketClientConnection(WebsocketConnectionMixin[WebsocketClientInfo]):
                     (URL(config.host) / "all").with_query(
                         {"qq": config.account, "verifyKey": config.verify_key}
                     )
-                )
+                ),
+                heartbeat=30.0,
             )
             await wait_fut(
                 [rider.use(self), mgr.status.wait_for_sigexit()],

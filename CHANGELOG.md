@@ -2,6 +2,32 @@
 
 ## 未发布的更新
 
+### 修复
+
+自行实现 `class_property` 以适应 `Python 3.11` 的更改。
+
+### 新增
+
+现在 `Ariadne.default_action` 会作用于所有发送方法。
+
+同时，所有发送方法都可以传入 `action` 参数。
+
+### 更改
+
+现在会使用 30s 一次的自动心跳包。这也许能解决长时间收不到消息导致的伪断连问题。
+
+将 `RequestEvent.requestId` 改为 `RequestEvent.request_id` （虽然没有人用这个）
+
+现在将全部改用 “实验性消息链” 的行为。（`Source` `Quote` 作为 `MessageEvent` 的属性）
+
+`Source` 与 `Quote` 不再是 `Element` 的子类。
+
+### 移除
+
+删除了自 `0.9` 以来弃用的属性。
+
+现在传入 `MessageChain` 作为 `quote` 对象会报错。
+
 ## 0.9.8
 
 ### 修复

@@ -10,13 +10,14 @@ from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union, overload
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.message import Element as BaseElement
 from graia.amnesia.message import Text as BaseText
-from pydantic import validator
 from pydantic.fields import Field
 from typing_extensions import Self
 
 from ..connection.util import UploadMethod
 from ..model import AriadneBaseModel, Friend, Member, Stranger
 from ..util import escape_bracket, internal_cls
+from . import Quote as Quote  # noqa: F401
+from . import Source as Source  # noqa: F401
 
 if TYPE_CHECKING:
     from ..event.message import MessageEvent
@@ -118,66 +119,6 @@ class Plain(Element, BaseText):
 
     def __eq__(self, other: object) -> bool:
         return isinstance(other, (Plain, BaseText)) and self.text == other.text
-
-
-@internal_cls()
-class Source(Element):
-    """表示消息在一个特定聊天区域内的唯一标识"""
-
-    type: str = "Source"
-
-    id: int
-    """消息 ID"""
-
-    time: datetime
-    """发送时间"""
-
-    def __int__(self):
-        return self.id
-
-    def as_persistent_string(self) -> str:
-        return ""
-
-    async def fetch_original(self) -> "MessageChain":
-        """尝试从本标记恢复原本的消息链, 有可能失败.
-
-        Returns:
-            MessageChain: 原来的消息链.
-        """
-        from ..app import Ariadne
-
-        return (await Ariadne.current().get_message_from_id(self.id)).message_chain
-
-
-@internal_cls()
-class Quote(Element):
-    """表示消息中回复其他消息/用户的部分, 通常包含一个完整的消息链(`origin` 属性)"""
-
-    type: str = "Quote"
-
-    id: int
-    """引用的消息 ID"""
-
-    group_id: int = Field(..., alias="groupId")
-    """引用消息所在群号 (好友消息为 0)"""
-
-    sender_id: int = Field(..., alias="senderId")
-    """发送者 QQ 号"""
-
-    target_id: int = Field(..., alias="targetId")
-    """原消息的接收者QQ号 (或群号) """
-
-    origin: "MessageChain"
-    """原来的消息链"""
-
-    @validator("origin", pre=True, allow_reuse=True)
-    def _(cls, v):
-        from .chain import MessageChain
-
-        return MessageChain(v)  # no need to parse objects, they are universal!
-
-    def as_persistent_string(self) -> str:
-        return ""
 
 
 class At(Element):
@@ -559,11 +500,7 @@ class Forward(Element):
                     node_list.append(i)
                 elif isinstance(i, MessageEvent):
                     if not isinstance(i.sender, Client):
-                        node_list.append(
-                            ForwardNode(
-                                i.sender, time=i.message_chain.get_first(Source).time, message=i.message_chain
-                            )
-                        )
+                        node_list.append(ForwardNode(i.sender, time=i.source.time, message=i.message_chain))
                 else:
                     node_list.extend(i)
             data.update(nodeList=node_list)

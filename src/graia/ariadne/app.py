@@ -50,8 +50,8 @@ from .event.message import (
 )
 from .event.mirai import FriendEvent, GroupEvent
 from .exception import AriadneConfigurationError, UnknownTarget
+from .message import Source
 from .message.chain import MessageChain, MessageContainer
-from .message.element import Source
 from .model import (
     Announcement,
     FileInfo,
@@ -225,7 +225,7 @@ class Ariadne:
 
             if isinstance(event, (MessageEvent, ActiveMessage)):
                 await cache_set(f"account.{self.account}.message.{int(event)}", event)
-                if event.message_chain.only(Source):
+                if not event.message_chain:
                     event.message_chain.append("<! 不支持的消息类型 !>")
 
             if isinstance(event, FriendEvent):
@@ -1903,7 +1903,7 @@ class Ariadne:
         data: Dict[Any, Any] = {"message": MessageChain(message)}
         # quote
         if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
-            data["quote"] = target.message_chain.get_first(Source)
+            data["quote"] = target.source
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):

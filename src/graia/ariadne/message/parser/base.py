@@ -29,7 +29,7 @@ from ...app import Ariadne
 from ...event.message import GroupMessage, MessageEvent
 from ...typing import Unions, generic_issubclass, get_origin
 from ..chain import MessageChain
-from ..element import At, Element, Plain, Quote, Source
+from ..element import At, Element, Plain
 
 
 class ChainDecorator(abc.ABC, Decorator, Derive[MessageChain]):
@@ -58,15 +58,11 @@ class DetectPrefix(ChainDecorator):
         self.prefix: List[str] = [prefix] if isinstance(prefix, str) else list(prefix)
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
-        header = chain.include(Quote, Source)
-        rest: MessageChain = chain.exclude(Quote, Source)
         for prefix in self.prefix:
-            if rest.startswith(prefix):
-                result = rest.removeprefix(prefix).removeprefix(" ")
-                break
-        else:
-            raise ExecutionStop
-        return header + result
+            if chain.startswith(prefix):
+                return chain.removeprefix(prefix).removeprefix(" ")
+
+        raise ExecutionStop
 
 
 class DetectSuffix(ChainDecorator):
@@ -81,15 +77,10 @@ class DetectSuffix(ChainDecorator):
         self.suffix: List[str] = [suffix] if isinstance(suffix, str) else list(suffix)
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
-        header = chain.include(Quote, Source)
-        rest: MessageChain = chain.exclude(Quote, Source)
         for suffix in self.suffix:
-            if rest.endswith(suffix):
-                result = rest.removesuffix(suffix).removesuffix(" ")
-                break
-        else:
-            raise ExecutionStop
-        return header + result
+            if chain.endswith(suffix):
+                return chain.removesuffix(suffix).removesuffix(" ")
+        raise ExecutionStop
 
 
 class MentionMe(ChainDecorator):
@@ -111,18 +102,12 @@ class MentionMe(ChainDecorator):
                 name = (await ariadne.get_member(interface.event.sender.group, ariadne.account)).name
             else:
                 name = (await ariadne.get_bot_profile()).nickname
-        header = chain.include(Quote, Source)
-        rest: MessageChain = chain.exclude(Quote, Source)
-        first: Element = rest[0]
-        result: Optional[MessageChain] = None
-        if isinstance(name, str) and rest and isinstance(first, Plain) and str(first).startswith(name):
-            result = header + rest.removeprefix(name).removeprefix(" ")
-        if rest and isinstance(first, At) and first.target == ariadne.account:
-            result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
-
-        if result is None:
-            raise ExecutionStop
-        return result
+        first: Element = chain[0]
+        if isinstance(name, str) and isinstance(first, Plain) and str(first).startswith(name):
+            return chain.removeprefix(name).removeprefix(" ")
+        if isinstance(first, At) and first.target == ariadne.account:
+            return MessageChain(chain.__root__[1:], inline=True).removeprefix(" ")
+        raise ExecutionStop
 
 
 class Mention(ChainDecorator):
@@ -137,23 +122,18 @@ class Mention(ChainDecorator):
         self.person: Union[int, str] = target
 
     async def __call__(self, chain: MessageChain, _) -> Optional[MessageChain]:
-        header = chain.include(Quote, Source)
-        rest: MessageChain = chain.exclude(Quote, Source)
-        first: Element = rest[0]
-        result: Optional[MessageChain] = None
+        first: Element = chain[0]
         if (
-            rest
+            chain
             and isinstance(first, Plain)
             and isinstance(self.person, str)
             and str(first).startswith(self.person)
         ):
-            result = header + rest.removeprefix(self.person).removeprefix(" ")
-        if rest and isinstance(first, At) and isinstance(self.person, int) and first.target == self.person:
-            result = header + MessageChain(rest.__root__[1:], inline=True).removeprefix(" ")
+            return chain.removeprefix(self.person).removeprefix(" ")
+        if isinstance(first, At) and isinstance(self.person, int) and first.target == self.person:
+            return MessageChain(chain.__root__[1:], inline=True).removeprefix(" ")
 
-        if result is None:
-            raise ExecutionStop
-        return result
+        raise ExecutionStop
 
 
 class ContainKeyword(ChainDecorator):

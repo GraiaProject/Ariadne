@@ -181,12 +181,12 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return super().__getitem__(item)
 
     def as_sendable(self) -> Self:
-        """将消息链转换为可发送形式 (去除 Source, Quote, File)
+        """将消息链转换为可发送形式 (去除 File)
 
         Returns:
             MessageChain: 转换后的消息链.
         """
-        return self.exclude(Source, Quote, File)
+        return self.exclude(File)
 
     def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
         res = super().get(element_class, count)
@@ -204,7 +204,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             return False
         if not isinstance(other, MessageChain):
             other = MessageChain(other)
-        return other.as_sendable().content == self.as_sendable().content
+        return other.content == self.content
 
     def __mul__(self, time: int) -> Self:
         result = []

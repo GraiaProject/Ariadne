@@ -1,6 +1,8 @@
 """Ariadne 消息相关的导入集合"""
 
 
+from ..message import Quote as Quote
+from ..message import Source as Source
 from ..message.chain import MessageChain as MessageChain
 from ..message.commander import Arg as Arg
 from ..message.commander import Commander as Commander
@@ -23,8 +25,6 @@ from ..message.element import MusicShare as MusicShare
 from ..message.element import Plain as Plain
 from ..message.element import Poke as Poke
 from ..message.element import PokeMethods as PokeMethods
-from ..message.element import Quote as Quote
-from ..message.element import Source as Source
 from ..message.element import Voice as Voice
 from ..message.formatter import Formatter as Formatter
 from ..message.parser.base import ContainKeyword as ContainKeyword

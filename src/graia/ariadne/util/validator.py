@@ -105,32 +105,27 @@ class Quoting(Decorator):
 
     msg_ids: Set[int]
 
-    def __init__(self, message: SequenceOrInstance[Union[int, ActiveMessage, MessageChain, Source]]):
+    def __init__(self, message: SequenceOrInstance[Union[int, ActiveMessage, Source]]):
         """
         Args:
-            message (SequenceOrInstance[Union[int, ActiveMessage, MessageChain, Source]]): 要回复的指定信息
+            message (SequenceOrInstance[Union[int, ActiveMessage, Source]]): 要回复的指定信息
         """
         if not isinstance(message, Sequence):
             message = [message]
         self.msg_ids = set()
         for msg in message:
-            if isinstance(msg, ActiveMessage):
-                self.msg_ids.add(msg.id)
-            elif isinstance(msg, MessageChain):
-                self.msg_ids.add(msg.get_first(Quote).id)
-            elif isinstance(msg, Source):
+            if isinstance(msg, (ActiveMessage, Source)):
                 self.msg_ids.add(msg.id)
             else:
                 self.msg_ids.add(msg)
 
     async def target(self, i: DecoratorInterface):
         try:
-            msg_chain: MessageChain = await i.dispatcher_interface.lookup_param(
-                "__decorator_parameter__", MessageChain, None
+            quote: Union[Quote, None] = await i.dispatcher_interface.lookup_param(
+                "__decorator_parameter_quote__", Union[Quote, None], None
             )
-            quotes = msg_chain.get(Quote)
-            if not quotes or quotes[0].id not in self.msg_ids:
+            if not quote or quote.id not in self.msg_ids:
                 raise RequirementCrashed
         except RequirementCrashed as e:
             raise ExecutionStop from e
-        return msg_chain
+        return await i.dispatcher_interface.lookup_param("__decorator_parameter__", MessageChain, None)

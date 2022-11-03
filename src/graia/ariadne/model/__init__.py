@@ -193,27 +193,6 @@ class Profile(AriadneBaseModel):
     """性别"""
 
 
-if not TYPE_CHECKING:
-
-    def __getattr__(name):
-        if name == "BotMessage":
-            from traceback import format_exception_only
-            from warnings import warn
-
-            from ..event.message import ActiveMessage
-
-            warning = DeprecationWarning(  # FIXME: deprecated
-                "BotMessage is deprecated since Ariadne 0.9, "
-                "and scheduled for removal in Ariadne 0.10. "
-                "Use ActiveMessage instead"
-            )
-            warn(warning, stacklevel=2)
-            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
-
-            globals()["BotMessage"] = ActiveMessage
-            return ActiveMessage
-
-
 __all__ = [
     "Client",
     "Friend",

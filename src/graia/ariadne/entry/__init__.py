@@ -166,13 +166,3 @@ with contextlib.suppress(ImportError):
     from ..console import Console as Console
     from ..console.saya import ConsoleBehaviour as ConsoleBehaviour
     from ..console.saya import ConsoleSchema as ConsoleSchema
-
-# We are using the star import because the dependencies may not be present
-if not TYPE_CHECKING:
-
-    def __getattr__(name):
-        if name == "BotMessage":
-            from ..model import BotMessage
-
-            return BotMessage
-        raise AttributeError

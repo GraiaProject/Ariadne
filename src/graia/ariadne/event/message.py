@@ -1,5 +1,5 @@
 """Ariadne 消息事件"""
-from typing import TYPE_CHECKING, Any, Dict, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union
 
 from graia.amnesia.message import Element
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
@@ -21,7 +21,8 @@ from .mirai import FriendEvent, GroupEvent
 
 
 def _set_source_quote(_, values: Dict[str, Any]) -> Dict[str, Any]:
-    for element in values["messageChain"][:2]:
+    chain: List[Union[Dict[str, Any], Element]] = values["messageChain"]
+    for element in chain[:2]:
         if isinstance(element, dict):
             elem_typ: str = element.get("type", "Unknown")
         elif isinstance(element, Element):
@@ -32,6 +33,13 @@ def _set_source_quote(_, values: Dict[str, Any]) -> Dict[str, Any]:
             values["source"] = element
         elif elem_typ == "Quote":
             values["quote"] = element
+    values["messageChain"] = list(
+        filter(
+            lambda x: (x.get("type", "Unknown") if isinstance(x, dict) else x.__class__.__name__)
+            not in ("Source", "Quote"),
+            chain,
+        )
+    )
     return values
 
 
@@ -46,7 +54,7 @@ class MessageEvent(MiraiEvent):
     sender: Union[Friend, Member, Client, Stranger]
     """发送者"""
 
-    source: Source = cast(Source, ...)
+    source: Source
     """消息元数据标识"""
 
     quote: Optional[Quote] = None
@@ -151,7 +159,7 @@ class ActiveMessage(MiraiEvent):
     sync: bool = False
     """是否为同步消息"""
 
-    source: Source = cast(Source, ...)
+    source: Source
     """消息元数据标识"""
 
     quote: Optional[Quote] = None
@@ -168,42 +176,6 @@ class ActiveMessage(MiraiEvent):
 
     class Dispatcher(BaseDispatcher):
         mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
-
-    if not TYPE_CHECKING:
-
-        @property
-        def messageId(self) -> int:
-            from traceback import format_exception_only
-            from warnings import warn
-
-            from loguru import logger
-
-            warning = DeprecationWarning(  # FIXME: deprecated
-                "ActiveMessage.messageId is deprecated since Ariadne 0.9, "
-                "and scheduled for removal in in Ariadne 0.10. "
-                "Use ActiveMessage.id or int(ActiveMessage) instead."
-            )
-            warn(warning, stacklevel=2)
-            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
-
-            return self.id
-
-        @property
-        def origin(self) -> MessageChain:
-            from traceback import format_exception_only
-            from warnings import warn
-
-            from loguru import logger
-
-            warning = DeprecationWarning(  # FIXME: deprecated
-                "ActiveMessage.origin is deprecated since Ariadne 0.9, "
-                "and scheduled for removal in in Ariadne 0.10. "
-                "Use ActiveMessage.message_chain instead.",
-            )
-            warn(warning, stacklevel=2)
-            logger.opt(depth=2).warning("".join(format_exception_only(type(warning), warning)).strip())
-
-            return self.message_chain
 
 
 class ActiveFriendMessage(ActiveMessage):

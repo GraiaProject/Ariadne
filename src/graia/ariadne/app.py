@@ -7,7 +7,6 @@ import os
 import signal
 import sys
 import traceback
-import warnings
 from contextlib import ExitStack
 from datetime import datetime
 from typing import (
@@ -1045,17 +1044,6 @@ class Ariadne:
             target = message.sender.group
         elif isinstance(message, ActiveGroupMessage):
             target = message.subject
-        elif target is None:
-            from warnings import warn
-
-            warning = DeprecationWarning(  # FIXME: deprecated
-                "Passing Source or int as message without passing target to Ariadne.set_essence() "
-                "is deprecated in Ariadne 0.9, and scheduled for removal in Ariadne 0.10."
-            )
-            warn(warning, stacklevel=2)
-            logger.opt(depth=1).warning(
-                "".join(traceback.format_exception_only(type(warning), warning)).strip()
-            )
 
         if tuple(map(int, (await self.get_version(cache=True)).split("."))) >= (2, 6, 0):
             if target is not None:
@@ -1574,17 +1562,6 @@ class Ariadne:
         Returns:
             MessageEvent: 提取的事件.
         """
-        if target is None:
-            from warnings import warn
-
-            warning = DeprecationWarning(  # FIXME: deprecated
-                "Not passing target to Ariadne.get_message_from_id() is deprecated in Ariadne 0.9, "
-                "and scheduled for removal in Ariadne 0.10."
-            )
-            warn(warning, stacklevel=2)
-            logger.opt(depth=1).warning(
-                "".join(traceback.format_exception_only(type(warning), warning)).strip()
-            )
 
         if tuple(map(int, (await self.get_version(cache=True)).split("."))) >= (2, 6, 0):
             if target is not None:
@@ -1620,7 +1597,7 @@ class Ariadne:
         target: Union[Friend, int],
         message: MessageContainer,
         *,
-        quote: Optional[Union[Source, int, MessageChain]] = None,
+        quote: Optional[Union[Source, int]] = None,
         action: Union[SendMessageActionProtocol, Literal[Sentinel], None] = Sentinel,
     ) -> ActiveFriendMessage:
         """发送消息给好友, 可以指定回复的消息.
@@ -1628,7 +1605,7 @@ class Ariadne:
         Args:
             target (Union[Friend, int]): 指定的好友
             message (MessageContainer): 有效的消息容器.
-            quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
 
         Returns:
             ActiveFriendMessage: 即当前会话账号所发出消息的事件, 可用于回复.
@@ -1637,10 +1614,9 @@ class Ariadne:
 
         message = MessageChain(message)
         if isinstance(quote, MessageChain):
-            warnings.warn(
-                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            raise TypeError(
+                "Using MessageChain as quote target is removed! Get a `Source` from event instead!"
             )
-            quote = quote.get_first(Source)
 
         if action is not None:  # TODO: REFACTOR
             return cast(
@@ -1669,7 +1645,8 @@ class Ariadne:
                     },
                 )
                 event = ActiveFriendMessage(
-                    messageChain=MessageChain(Source(id=result["messageId"], time=datetime.now()), message),
+                    messageChain=MessageChain(message),
+                    source=Source(id=result["messageId"], time=datetime.now()),
                     subject=(await self.get_friend(int(target), assertion=True, cache=True)),
                 )
                 with enter_context(self, event):
@@ -1690,7 +1667,7 @@ class Ariadne:
         target: Union[Group, Member, int],
         message: MessageContainer,
         *,
-        quote: Optional[Union[Source, int, MessageChain]] = None,
+        quote: Optional[Union[Source, int]] = None,
         action: Union[SendMessageActionProtocol, Literal[Sentinel], None] = Sentinel,
     ) -> ActiveGroupMessage:
         """发送消息到群组内, 可以指定回复的消息.
@@ -1698,7 +1675,7 @@ class Ariadne:
         Args:
             target (Union[Group, Member, int]): 指定的群组, 可以是群组的 ID 也可以是 Group 或 Member 实例.
             message (MessageContainer): 有效的消息容器.
-            quote (Optional[Union[Source, int, MessageChain]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
+            quote (Optional[Union[Source, int]], optional): 需要回复的消息, 不要忽视我啊喂?!!, 默认为 None.
             action (SendMessageActionProtocol, optional): 消息发送的处理 action
 
         Returns:
@@ -1722,10 +1699,10 @@ class Ariadne:
             )
 
         if isinstance(quote, MessageChain):
-            warnings.warn(
-                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            raise TypeError(
+                "Using MessageChain as quote target is removed! Get a `Source` from event instead!"
             )
-            quote = quote.get_first(Source)
+
         if isinstance(quote, Source):
             quote = quote.id
 
@@ -1742,7 +1719,8 @@ class Ariadne:
                     },
                 )
                 event = ActiveGroupMessage(
-                    messageChain=MessageChain(Source(id=result["messageId"], time=datetime.now()), message),
+                    messageChain=MessageChain(message),
+                    source=Source(id=result["messageId"], time=datetime.now()),
                     subject=(await self.get_group(int(target), assertion=True, cache=True)),
                 )
                 with enter_context(self, event):
@@ -1764,7 +1742,7 @@ class Ariadne:
         message: MessageContainer,
         group: Optional[Union[Group, int]] = None,
         *,
-        quote: Optional[Union[Source, int, MessageChain]] = None,
+        quote: Optional[Union[Source, int]] = None,
         action: Union[SendMessageActionProtocol, Literal[Sentinel], None] = Sentinel,
     ) -> ActiveTempMessage:
         """发送临时会话给群组中的特定成员, 可指定回复的消息.
@@ -1787,10 +1765,9 @@ class Ariadne:
         message = MessageChain(message)
 
         if isinstance(quote, MessageChain):
-            warnings.warn(
-                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            raise TypeError(
+                "Using MessageChain as quote target is removed! Get a `Source` from event instead!"
             )
-            quote = quote.get_first(Source)
 
         new_msg = message.copy().as_sendable()
         group = target.group if (isinstance(target, Member) and not group) else group
@@ -1824,7 +1801,8 @@ class Ariadne:
                     },
                 )
                 event: ActiveTempMessage = ActiveTempMessage(
-                    messageChain=MessageChain(Source(id=result["messageId"], time=datetime.now()), message),
+                    messageChain=MessageChain(message),
+                    source=Source(id=result["messageId"], time=datetime.now()),
                     subject=(await self.get_member(int(group), int(target), cache=True)),
                 )
                 with enter_context(self, event):
@@ -1901,7 +1879,7 @@ class Ariadne:
         target: Union[MessageEvent, Group, Friend, Member],
         message: MessageContainer,
         *,
-        quote: Union[bool, int, Source, MessageChain] = False,
+        quote: Union[bool, int, Source] = False,
         action: Union[SendMessageActionProtocol["T"], Literal[Sentinel]] = Sentinel,
     ) -> "T":
         """
@@ -1929,10 +1907,9 @@ class Ariadne:
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):
-            warnings.warn(
-                "Using MessageChain as quote target is deprecated! Get a `Source` from event instead!"
+            raise TypeError(
+                "Using MessageChain as quote target is removed! Get a `Source` from event instead!"
             )
-            data["quote"] = quote.get_first(Source)
         # target: MessageEvent
         if isinstance(target, GroupMessage):
             data["target"] = target.sender.group
@@ -1958,7 +1935,8 @@ class Ariadne:
                 return await action.result(
                     ActiveMessage(
                         type="Unknown",
-                        messageChain=MessageChain(Source(id=-1, time=datetime.now()), data["message"]),
+                        messageChain=MessageChain(data["message"]),
+                        source=Source(id=-1, time=datetime.now()),
                         subject=data["target"],
                     )
                 )
@@ -2026,17 +2004,6 @@ class Ariadne:
             target = message.sender
         elif isinstance(message, ActiveMessage):
             target = message.subject
-        else:
-            from warnings import warn
-
-            warning = DeprecationWarning(  # FIXME: deprecated
-                "Passing Source or int as message without passing target to Ariadne.recall_message() "
-                "is deprecated in Ariadne 0.9, and scheduled for removal in Ariadne 0.10."
-            )
-            warn(warning, stacklevel=2)
-            logger.opt(depth=1).warning(
-                "".join(traceback.format_exception_only(type(warning), warning)).strip()
-            )
 
         if tuple(map(int, (await self.get_version(cache=True)).split("."))) >= (2, 6, 0):
             if target is not None:

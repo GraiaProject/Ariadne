@@ -1,4 +1,5 @@
 """本模块创建了 Ariadne 中的上下文变量"""
+from __future__ import annotations
 
 from contextlib import contextmanager, suppress
 from contextvars import ContextVar
@@ -13,17 +14,12 @@ if TYPE_CHECKING:
     from .app import Ariadne
     from .connection.util import UploadMethod
 
-    ariadne_ctx: ContextVar[Ariadne] = ContextVar("ariadne")
-    event_ctx: ContextVar[Dispatchable] = ContextVar("event")
-    event_loop_ctx: ContextVar[AbstractEventLoop] = ContextVar("event_loop")
-    broadcast_ctx: ContextVar[Broadcast] = ContextVar("broadcast")
-    upload_method_ctx: ContextVar[UploadMethod] = ContextVar("upload_method")
-else:  # for not crashing pdoc
-    ariadne_ctx = ContextVar("ariadne")
-    event_ctx = ContextVar("event")
-    event_loop_ctx = ContextVar("event_loop")
-    broadcast_ctx = ContextVar("broadcast")
-    upload_method_ctx = ContextVar("upload_method")
+ariadne_ctx: ContextVar[Ariadne] = ContextVar("ariadne")
+event_ctx: ContextVar[Dispatchable] = ContextVar("event")
+event_loop_ctx: ContextVar[AbstractEventLoop] = ContextVar("event_loop")
+broadcast_ctx: ContextVar[Broadcast] = ContextVar("broadcast")
+upload_method_ctx: ContextVar[UploadMethod] = ContextVar("upload_method")
+
 
 context_map: Dict[str, ContextVar] = {
     "Ariadne": ariadne_ctx,

@@ -1,6 +1,5 @@
 """Ariadne 消息链的实现"""
 import re
-import warnings
 from copy import deepcopy
 from typing import (
     TYPE_CHECKING,
@@ -22,7 +21,7 @@ from graia.amnesia.message import MessageChain as BaseMessageChain
 from typing_extensions import Self
 
 from ..model import AriadneBaseModel
-from ..util import deprecated, gen_subclass, unescape_bracket
+from ..util import gen_subclass, unescape_bracket
 from .element import (
     At,
     AtAll,
@@ -143,21 +142,6 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
             AriadneBaseModel.__init__(self, __root__=[])
             self.__root__ = __root__  # type: ignore
 
-    @deprecated("0.10.0")
-    def unzip(self) -> List[Union[str, Element]]:
-        """解压消息链为元素/单字符列表.
-
-        Return:
-            List[Union[str, Element]]: 解压后的元素/字符列表.
-        """
-        unzipped: List[Union[str, Element]] = []
-        for e in self.content:
-            if isinstance(e, Plain):
-                unzipped.extend(e.text)
-            else:
-                unzipped.append(e)
-        return unzipped
-
     def __repr_args__(self) -> "ReprArgs":
         return [(None, list(self.content))]
 
@@ -194,27 +178,7 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         """
         if isinstance(item, tuple):
             return self.get(*item)
-        if isinstance(item, (int, slice)):
-            warnings.warn(
-                "Indexing MessageChain with int will change behaviour in 0.10.0!\n"
-                "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095",
-                DeprecationWarning,
-            )
         return super().__getitem__(item)
-
-    @deprecated("0.10.0", "Use `index_sub` instead")
-    def find_sub_chain(self, subchain: MessageContainer) -> List[int]:
-        """判断消息链是否含有子链. 使用 KMP 算法.
-
-        Args:
-            subchain (Union[MessageChain, List[Element]]): 要判断的子链.
-
-        Returns:
-            List[int]: 所有找到的下标.
-        """
-        sub: MessageChain = MessageChain(subchain)
-
-        return super().index_sub(sub)
 
     def as_sendable(self) -> Self:
         """将消息链转换为可发送形式 (去除 Source, Quote, File)
@@ -227,10 +191,9 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
     def get(self, element_class: Type[Element_T], count: int = -1) -> List[Element_T]:
         res = super().get(element_class, count)
         if isinstance(res, (Quote, Source)):
-            warnings.warn(
-                "MessageChain.get(Quote/Source) is deprecated. And will be removed in 0.10.0.\n"
+            raise IndexError(
+                "MessageChain.get(Quote/Source) is removed in 0.10.0.\n"
                 "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095",
-                DeprecationWarning,
             )
         return res
 

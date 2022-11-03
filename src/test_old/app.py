@@ -20,8 +20,11 @@ if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
         open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
     )
+    account = int(account)
+    target = int(target)
+    t_group = int(t_group)
     ALL_FLAG = True
-    Ariadne.config(inject_bypass_listener=True, install_log=RichLogInstallOptions(rich_traceback=True))
+    Ariadne.config(inject_bypass_listener=True)
 
     app = Ariadne(
         config(

@@ -9,7 +9,7 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
-from .message.element import Quote, Source
+from .message.element import Source
 from .model.relationship import Friend, Group, Member
 from .typing import generic_isinstance, generic_issubclass
 
@@ -20,16 +20,11 @@ class MessageChainDispatcher(AbstractDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
         from .event.message import ActiveMessage, MessageEvent
-        from .message.exp import MessageChain as ExpMessageChain
 
-        if isinstance(interface.event, (MessageEvent, ActiveMessage)):
-            # FIXME: ExpMessageChain as native.
-            if generic_issubclass(MessageChain, interface.annotation):
-                return interface.event.message_chain
-            elif generic_issubclass(ExpMessageChain, interface.annotation):
-                return ExpMessageChain(
-                    interface.event.message_chain.exclude(Source, Quote).content, inline=True
-                )
+        if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
+            MessageChain, interface.annotation
+        ):
+            return interface.event.message_chain
 
 
 class ContextDispatcher(AbstractDispatcher):

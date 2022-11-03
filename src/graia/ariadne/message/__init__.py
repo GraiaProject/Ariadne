@@ -1,11 +1,15 @@
 """本模块提供 Ariadne 消息相关部件."""
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from pydantic import Field, validator
 
 from ..model.util import AriadneBaseModel
 from ..util import internal_cls
-from .chain import MessageChain
+
+if TYPE_CHECKING:
+
+    from .chain import MessageChain
 
 
 @internal_cls()

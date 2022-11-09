@@ -8,6 +8,7 @@ from pydantic import Field, root_validator
 from ..dispatcher import (
     BaseDispatcher,
     MessageChainDispatcher,
+    QuoteDispatcher,
     SenderDispatcher,
     SourceDispatcher,
     SubjectDispatcher,
@@ -70,7 +71,7 @@ class MessageEvent(MiraiEvent):
         return self.source.id
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SenderDispatcher]
+        mixin = [MessageChainDispatcher, SourceDispatcher, QuoteDispatcher, SenderDispatcher]
 
 
 class FriendMessage(MessageEvent, FriendEvent):
@@ -146,7 +147,7 @@ class StrangerMessage(MessageEvent):
 
 
 class ActiveMessage(MiraiEvent):
-    """主动消息: Bot 账号发送给他人的消息"""
+    """主动消息：Bot 账号发送给他人的消息"""
 
     type: str
 
@@ -175,7 +176,7 @@ class ActiveMessage(MiraiEvent):
         return self.source.id
 
     class Dispatcher(BaseDispatcher):
-        mixin = [MessageChainDispatcher, SourceDispatcher, SubjectDispatcher]
+        mixin = [MessageChainDispatcher, SourceDispatcher, QuoteDispatcher, SubjectDispatcher]
 
 
 class ActiveFriendMessage(ActiveMessage):
@@ -233,7 +234,7 @@ class ActiveStrangerMessage(ActiveMessage):
 
 
 class SyncMessage(MiraiEvent):
-    """同步消息: 从其他客户端同步的主动消息"""
+    """同步消息：从其他客户端同步的主动消息"""
 
     sync = True
 

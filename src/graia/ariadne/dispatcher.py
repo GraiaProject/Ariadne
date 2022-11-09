@@ -9,7 +9,7 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from .message.chain import MessageChain
-from .message.element import Source
+from .message.element import Quote, Source
 from .model.relationship import Friend, Group, Member
 from .typing import generic_isinstance, generic_issubclass
 
@@ -67,6 +67,19 @@ class SourceDispatcher(AbstractDispatcher):
             Source, interface.annotation
         ):
             return interface.event.source
+
+
+class QuoteDispatcher(AbstractDispatcher):
+    """提取 MessageEvent 消息链 Quote 元素的 Dispatcher"""
+
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        from .event.message import ActiveMessage, MessageEvent
+
+        if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
+            Quote, interface.annotation
+        ):
+            return interface.event.quote or await NoneDispatcher.catch(interface)
 
 
 class SenderDispatcher(AbstractDispatcher):

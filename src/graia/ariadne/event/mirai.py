@@ -315,7 +315,7 @@ class BotLeaveEventDisband(GroupEvent, BotEvent):
         - Member (annotation): 操作者, 一定是群主.
     """
 
-    type: str = "BotLeaveEventKick"
+    type: str = "BotLeaveEventDisband"
 
     group: Group
     """Bot 退出的群的信息"""

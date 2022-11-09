@@ -150,23 +150,24 @@ class OperatorDispatcher(AbstractDispatcher):
 
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if operator := interface.event.operator:
-            if generic_issubclass(Member, interface.annotation):
-                return operator
-            elif generic_issubclass(Group, interface.annotation):
-                return operator.group
+        if generic_issubclass(Member, interface.annotation):
+            return interface.event.operator or await NoneDispatcher.catch(interface)
+        elif generic_issubclass(Group, interface.annotation):
+            # NOTE: operator 不为 None。因为 operator 可为 None 的事件必有 group 属性，
+            # 会由 dispatcher 之前的 GroupDispatcher 处理，不可能进入此处。
+            return interface.event.operator.group
 
 
 class OperatorMemberDispatcher(AbstractDispatcher):
     """提取 Operator 的 Dispatcher (同时有 Member 和 Operator)"""
 
-    mixin = [MemberDispatcher]
-
     @staticmethod
     async def catch(interface: DispatcherInterface):
-        if (
-            interface.name == "operator"
-            and generic_issubclass(Member, interface.annotation)
-            and (operator := interface.event.operator)
-        ):
-            return operator
+        if generic_issubclass(Member, interface.annotation):
+            return (
+                interface.event.operator or await NoneDispatcher.catch(interface)
+                if interface.name == "operator"
+                else interface.event.member
+            )
+        elif generic_issubclass(Group, interface.annotation):
+            return interface.event.member.group

@@ -290,6 +290,8 @@ class Ariadne:
         Args:
             stop_signals (Iterable[signal.Signals], optional): 要监听的停止信号，默认为 `(signal.SIGINT,)`
         """
+        if not cls.instances:
+            raise ValueError("No account specified.")
         cls._patch_launch_manager()
         try:
             cls.launch_manager.launch_blocking(loop=cls.service.loop, stop_signal=stop_signals)

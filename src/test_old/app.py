@@ -11,6 +11,7 @@ from graia.amnesia.builtins.aiohttp import AiohttpServerService
 from graia.saya.context import channel_instance
 from loguru import logger
 
+from graia.ariadne.connection import ConnectionInterface
 from graia.ariadne.entry import *
 from graia.ariadne.message.exp import MessageChain as ExpMessageChain
 from graia.ariadne.message.parser.base import RegexGroup, StartsWith
@@ -200,10 +201,10 @@ if __name__ == "__main__":
         await app.send_friend_message(target, chain)
 
     @bcc.receiver(GroupMessage, decorators=[StartsWith(".test exp")])
-    async def exp(app: Ariadne, ev: GroupMessage, exp_c: ExpMessageChain):
+    async def exp(app: Ariadne, ev: GroupMessage, exp_c: ExpMessageChain, interf: ConnectionInterface):
         await app.send_message(ev, repr(exp_c.content))
         res = await app.send_message(ev, repr(ev))
-        await app.send_message(ev, repr(res))
+        await app.send_message(ev, [repr(res), repr(interf)])
 
     @bcc.receiver(ApplicationLaunch)
     async def m(app: Ariadne):

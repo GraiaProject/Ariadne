@@ -18,7 +18,7 @@ from .connection import (
     HttpClientConnection,
 )
 from .connection._info import HttpClientInfo, U_Info
-from .dispatcher import ContextDispatcher, NoneDispatcher
+from .dispatcher import ContextDispatcher, LaunartInterfaceDispatcher, NoneDispatcher
 from .exception import AriadneConfigurationError
 
 ARIADNE_ASCII_LOGO = r"""
@@ -119,6 +119,8 @@ class ElizabethService(Service):
 
         if ContextDispatcher not in self.broadcast.prelude_dispatchers:
             self.broadcast.prelude_dispatchers.append(ContextDispatcher)
+        if LaunartInterfaceDispatcher not in self.broadcast.prelude_dispatchers:
+            self.broadcast.prelude_dispatchers.append(LaunartInterfaceDispatcher)
         if NoneDispatcher not in self.broadcast.finale_dispatchers:
             self.broadcast.finale_dispatchers.append(NoneDispatcher)
 
@@ -214,11 +216,6 @@ class ElizabethService(Service):
         self.base_telemetry()
         async with self.stage("preparing"):
             self.http_interface = mgr.get_interface(AiohttpClientInterface)
-            if self.broadcast:
-                if asyncio.get_running_loop() is not self.loop:
-                    raise AriadneConfigurationError("Broadcast is attached to a different loop")
-            else:
-                self.broadcast = Broadcast(loop=self.loop)
             if "default_account" in Ariadne.options:
                 app = Ariadne.current()
                 with enter_context(app=app):

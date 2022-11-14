@@ -7,6 +7,7 @@ from graia.broadcast import Broadcast
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
 from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+from launart import ExportInterface, Launart
 
 from .message.chain import MessageChain
 from .message.element import Quote, Source
@@ -47,6 +48,23 @@ class ContextDispatcher(AbstractDispatcher):
             return Ariadne.current()
 
 
+class LaunartInterfaceDispatcher(AbstractDispatcher):
+    @staticmethod
+    async def catch(interface: DispatcherInterface):
+        from graia.ariadne.typing import Unions, get_args, get_origin
+
+        if isinstance(interface.annotation, type) and issubclass(interface.annotation, ExportInterface):
+            manager = Launart.current()
+            with contextlib.suppress(ValueError):
+                return manager.get_interface(interface.annotation)
+        elif get_origin(interface.annotation) in Unions and (types := get_args(interface.annotation)):
+            manager = Launart.current()
+            for anno in types:
+                if isinstance(anno, type) and issubclass(anno, ExportInterface):
+                    with contextlib.suppress(ValueError):
+                        return manager.get_interface(anno)
+
+
 class NoneDispatcher(AbstractDispatcher):
     """给 Optional[...] 提供 None 的 Dispatcher"""
 
@@ -79,7 +97,7 @@ class QuoteDispatcher(AbstractDispatcher):
         if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
             Quote, interface.annotation
         ):
-            return interface.event.quote or await NoneDispatcher.catch(interface)
+            return interface.event.quote
 
 
 class SenderDispatcher(AbstractDispatcher):
@@ -151,7 +169,7 @@ class OperatorDispatcher(AbstractDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
         if generic_issubclass(Member, interface.annotation):
-            return interface.event.operator or await NoneDispatcher.catch(interface)
+            return interface.event.operator
         elif generic_issubclass(Group, interface.annotation):
             # NOTE: operator 不为 None。因为 operator 可为 None 的事件必有 group 属性，
             # 会由 dispatcher 之前的 GroupDispatcher 处理，不可能进入此处。
@@ -164,10 +182,6 @@ class OperatorMemberDispatcher(AbstractDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
         if generic_issubclass(Member, interface.annotation):
-            return (
-                interface.event.operator or await NoneDispatcher.catch(interface)
-                if interface.name == "operator"
-                else interface.event.member
-            )
+            return interface.event.operator if interface.name == "operator" else interface.event.member
         elif generic_issubclass(Group, interface.annotation):
             return interface.event.member.group

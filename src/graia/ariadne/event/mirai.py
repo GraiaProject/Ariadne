@@ -15,7 +15,6 @@ from ..dispatcher import (
     FriendDispatcher,
     GroupDispatcher,
     MemberDispatcher,
-    NoneDispatcher,
     OperatorDispatcher,
     OperatorMemberDispatcher,
 )
@@ -646,10 +645,7 @@ class MemberJoinEvent(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberJoinEvent"]):
             if interface.name == "inviter" and generic_issubclass(Member, interface.annotation):
-                if inviter := interface.event.inviter:
-                    return inviter
-                elif result := await NoneDispatcher.catch(interface):
-                    return result
+                return interface.event.inviter
 
 
 class MemberLeaveEventKick(GroupEvent):

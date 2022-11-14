@@ -6,11 +6,17 @@
 
 自行实现 `class_property` 以适应 `Python 3.11` 的更改。
 
+修复了预览版 PyPI 包会导致更新检查失败的问题。
+
 ### 新增
+
+支持分派 `Quote` 和 `launart.ExportInterface`。
 
 现在 `Ariadne.default_action` 会作用于所有发送方法。
 
-同时，所有发送方法都可以传入 `action` 参数。
+所有发送方法都可以传入 `action` 参数。
+
+没有配置账号时会引发 `ValueError`。
 
 ### 更改
 

@@ -122,6 +122,7 @@ ignore = [
     "**/adapter/**",
     "**/temp/**/*.py",
 ]
+reportShadowedImports = false
 
 [tool.pydocstyle]
 match-dir = "(?!\\.)(?!test).*"

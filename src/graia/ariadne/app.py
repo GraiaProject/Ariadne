@@ -1904,8 +1904,11 @@ class Ariadne:
         action = action if action is not Sentinel else self.default_send_action
         data: Dict[Any, Any] = {"message": MessageChain(message)}
         # quote
-        if isinstance(quote, bool) and quote and isinstance(target, MessageEvent):
-            data["quote"] = target.source
+        if isinstance(quote, bool):
+            if quote:
+                if isinstance(target, MessageEvent):
+                    data["quote"] = target.source
+                raise TypeError("Passing `quote=True` is only valid when passing a MessageEvent.")
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):

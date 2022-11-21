@@ -5,6 +5,7 @@ import contextlib
 import enum
 import sys
 import types
+import typing_extensions
 from types import TracebackType
 from typing import (
     TYPE_CHECKING,
@@ -23,16 +24,7 @@ from typing import (
     TypeVar,
     Union,
 )
-
-import typing_extensions
-from typing_extensions import (
-    Annotated,
-    ParamSpec,
-    Protocol,
-    TypeAlias,
-    get_args,
-    runtime_checkable,
-)
+from typing_extensions import Annotated, ParamSpec, Protocol, TypeAlias, get_args, runtime_checkable
 
 if TYPE_CHECKING:
     from .event.message import ActiveMessage

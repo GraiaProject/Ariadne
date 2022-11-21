@@ -5,17 +5,8 @@ import fnmatch
 import re
 import weakref
 from collections import defaultdict
-from typing import (
-    ClassVar,
-    DefaultDict,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-)
+from typing import ClassVar, DefaultDict, Dict, Iterable, List, Optional, Tuple, Type, Union
+from typing_extensions import get_args
 
 from graia.broadcast.builtin.derive import Derive
 from graia.broadcast.entities.decorator import Decorator
@@ -23,13 +14,12 @@ from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from typing_extensions import get_args
 
 from ...app import Ariadne
-from ...event.message import GroupMessage, MessageEvent
-from ...typing import Unions, generic_issubclass, get_origin
 from ..chain import MessageChain
 from ..element import At, Element, Plain
+from ...event.message import GroupMessage, MessageEvent
+from ...typing import Unions, generic_issubclass, get_origin
 
 
 class ChainDecorator(abc.ABC, Decorator, Derive[MessageChain]):

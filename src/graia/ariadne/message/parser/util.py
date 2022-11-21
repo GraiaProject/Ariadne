@@ -18,9 +18,9 @@ from typing import (
     overload,
 )
 
+from ..chain import Element_T, MessageChain
 from ...message.element import Element
 from ...typing import T
-from ..chain import Element_T, MessageChain
 
 if TYPE_CHECKING:
     from .twilight import Twilight

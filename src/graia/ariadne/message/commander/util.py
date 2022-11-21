@@ -18,16 +18,16 @@ from typing import (
     TypeVar,
     Union,
 )
+from typing_extensions import Self
 from weakref import WeakKeyDictionary, WeakSet
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from typing_extensions import Self
 
-from ...typing import MaybeFlag, Sentinel, T
 from ..chain import MessageChain
 from ..element import Element, Plain, Quote, Source
+from ...typing import MaybeFlag, Sentinel, T
 
 L_PAREN = ("{", "[")
 R_PAREN = ("}", "]")
@@ -138,7 +138,7 @@ def parse_param(param_str: str) -> Union[Param, AnnotatedParam]:
         return Param(names)
     assert len(names) == 1, f"Invalid param: {param_str}"
     return AnnotatedParam(
-        names[0], wildcard, *map(lambda s: unescape(s).strip().lstrip(":=").strip() if s else None, extra)
+        names[0], wildcard, *(unescape(s).strip().lstrip(":=").strip() if s else None for s in extra)
     )
 
 
@@ -251,7 +251,7 @@ class MatchNode(Generic[T_MatchEntry]):
 
     def _inspect(self, fwd=""):
         if not self.next:
-            print(fwd)
+            pass
         for k, node in self.next.items():
             node._inspect(f"{fwd}{'<PARAM>' if k is Sentinel else k} ")
 

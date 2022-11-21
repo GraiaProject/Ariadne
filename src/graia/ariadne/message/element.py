@@ -6,23 +6,24 @@ from io import BytesIO
 from json import dumps as j_dump
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union, overload
+from typing_extensions import Self
+
+from pydantic.fields import Field
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.amnesia.message import Element as BaseElement
 from graia.amnesia.message import Text as BaseText
-from pydantic.fields import Field
-from typing_extensions import Self
 
+from . import Quote as Quote  # noqa: F401
+from . import Source as Source  # noqa: F401
 from ..connection.util import UploadMethod
 from ..model import AriadneBaseModel, Friend, Member, Stranger
 from ..util import escape_bracket, internal_cls
-from . import Quote as Quote  # noqa: F401
-from . import Source as Source  # noqa: F401
 
 if TYPE_CHECKING:
+    from .chain import MessageChain
     from ..event.message import MessageEvent
     from ..typing import ReprArgs
-    from .chain import MessageChain
 
 
 class Element(AriadneBaseModel, BaseElement):

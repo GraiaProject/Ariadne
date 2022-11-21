@@ -26,29 +26,23 @@ from typing import (
     final,
     overload,
 )
+from typing_extensions import Self
+
+from pydantic.utils import Representation
 
 from graia.broadcast.builtin.derive import Derive, DeriveDispatcher
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from pydantic.utils import Representation
-from typing_extensions import Self
 
-from ...typing import (
-    AnnotatedType,
-    Sentinel,
-    T,
-    generic_isinstance,
-    generic_issubclass,
-    get_origin,
-)
+from .base import ChainDecorator
 from ..chain import MessageChain
 from ..commander.util import Param as ParamToken
 from ..commander.util import Text as TextToken
 from ..commander.util import tokenize
 from ..element import Element
-from .base import ChainDecorator
+from ...typing import AnnotatedType, Sentinel, T, generic_isinstance, generic_issubclass, get_origin
 from .util import (
     ElementType,
     MessageChainType,

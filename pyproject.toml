@@ -55,10 +55,8 @@ full = ["richuru~=0.1", "graia-scheduler~=0.0", "graia-saya~=0.0"]
 [tool.pdm.dev-dependencies]
 dev = [
     "black>=22.6.0",
-    "isort>=5.10.1",
     "pytest<8.0,>=7.1",
     "coverage<7.0,>=6.4",
-    "flake8>=5.0.4",
     "pytest-asyncio<1.0.0,>=0.19.0",
     "devtools>=0.9",
     "pre-commit<3.0,>=2.20",
@@ -73,6 +71,7 @@ dev = [
     "fastapi<1.0.0,>=0.79.0",
     "uvicorn[standard]<1.0.0,>=0.18.2",
     "graia-saya>=0.0.16",
+    "ruff>=0.0.132",
 ]
 
 [tool.pdm.build]
@@ -85,9 +84,6 @@ path = "src/graia/ariadne/__init__.py"
 [build-system]
 requires = ["pdm-pep517>=1.0.0"]
 build-backend = "pdm.pep517.api"
-
-[tool.isort]
-profile = "black"
 
 [tool.black]
 line-length = 110
@@ -124,5 +120,46 @@ ignore = [
 ]
 reportShadowedImports = false
 
-[tool.pydocstyle]
-match-dir = "(?!\\.)(?!test).*"
+[tool.ruff]
+line-length = 110
+
+select = ["E", "F", "I", "U", "C", "T", "Q"]
+ignore = ["C901", "I252"]
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+    "src/graia/ariadne/entry/*"
+]
+per-file-ignores = {}
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Assume Python 3.10.
+target-version = "py38"
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.isort]
+known-first-party = ["graia"]
+extra-standard-library = ["typing_extensions"]

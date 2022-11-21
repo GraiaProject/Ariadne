@@ -5,9 +5,7 @@ __all__ = []
 
 with contextlib.suppress(ImportError):
     from graia.saya import Saya as Saya
-    from graia.saya.builtins.broadcast.behaviour import (
-        BroadcastBehaviour as BroadcastBehaviour,
-    )
+    from graia.saya.builtins.broadcast.behaviour import BroadcastBehaviour as BroadcastBehaviour
     from graia.saya.builtins.broadcast.schema import ListenerSchema as ListenerSchema
     from graia.saya.event import SayaModuleInstalled as SayaModuleInstalled
     from graia.saya.event import SayaModuleUninstall as SayaModuleUninstall

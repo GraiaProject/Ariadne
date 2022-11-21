@@ -6,17 +6,13 @@ import re
 from typing import Coroutine, Dict, Iterable, List, Tuple, Type, overload
 
 from aiohttp import ClientSession
-from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
-from graia.broadcast import Broadcast
 from launart import Launart, Service
 from loguru import logger
 
-from .connection import (
-    CONFIG_MAP,
-    ConnectionInterface,
-    ConnectionMixin,
-    HttpClientConnection,
-)
+from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
+from graia.broadcast import Broadcast
+
+from .connection import CONFIG_MAP, ConnectionInterface, ConnectionMixin, HttpClientConnection
 from .connection._info import HttpClientInfo, U_Info
 from .dispatcher import ContextDispatcher, LaunartInterfaceDispatcher, NoneDispatcher
 from .exception import AriadneConfigurationError
@@ -206,12 +202,7 @@ class ElizabethService(Service):
         """Launart 启动点"""
         from .app import Ariadne
         from .context import enter_context
-        from .event.lifecycle import (
-            AccountLaunch,
-            AccountShutdown,
-            ApplicationLaunch,
-            ApplicationShutdown,
-        )
+        from .event.lifecycle import AccountLaunch, AccountShutdown, ApplicationLaunch, ApplicationShutdown
 
         self.base_telemetry()
         async with self.stage("preparing"):

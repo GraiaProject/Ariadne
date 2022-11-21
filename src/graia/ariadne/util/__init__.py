@@ -25,19 +25,16 @@ from typing import (
     Union,
 )
 
+from loguru import logger
+
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.entities.listener import Listener
 from graia.broadcast.entities.namespace import Namespace
-from graia.broadcast.exceptions import (
-    ExecutionStop,
-    PropagationCancelled,
-    RequirementCrashed,
-)
+from graia.broadcast.exceptions import ExecutionStop, PropagationCancelled, RequirementCrashed
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
-from loguru import logger
 
 from ..typing import ExceptionHook, P, R, T, Wrapper
 
@@ -173,6 +170,7 @@ def inject_bypass_listener(broadcast: Broadcast):
             )
 
     import creart
+
     import graia.broadcast.entities.listener
 
     graia.broadcast.entities.listener.Listener = BypassListener  # type: ignore

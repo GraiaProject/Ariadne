@@ -22,9 +22,7 @@ from ..event.message import TempMessage as TempMessage
 from ..event.message import TempSyncMessage as TempSyncMessage
 from ..event.mirai import BotEvent as BotEvent
 from ..event.mirai import BotGroupPermissionChangeEvent as BotGroupPermissionChangeEvent
-from ..event.mirai import (
-    BotInvitedJoinGroupRequestEvent as BotInvitedJoinGroupRequestEvent,
-)
+from ..event.mirai import BotInvitedJoinGroupRequestEvent as BotInvitedJoinGroupRequestEvent
 from ..event.mirai import BotJoinGroupEvent as BotJoinGroupEvent
 from ..event.mirai import BotLeaveEventActive as BotLeaveEventActive
 from ..event.mirai import BotLeaveEventKick as BotLeaveEventKick
@@ -44,9 +42,7 @@ from ..event.mirai import FriendRecallEvent as FriendRecallEvent
 from ..event.mirai import GroupAllowAnonymousChatEvent as GroupAllowAnonymousChatEvent
 from ..event.mirai import GroupAllowConfessTalkEvent as GroupAllowConfessTalkEvent
 from ..event.mirai import GroupAllowMemberInviteEvent as GroupAllowMemberInviteEvent
-from ..event.mirai import (
-    GroupEntranceAnnouncementChangeEvent as GroupEntranceAnnouncementChangeEvent,
-)
+from ..event.mirai import GroupEntranceAnnouncementChangeEvent as GroupEntranceAnnouncementChangeEvent
 from ..event.mirai import GroupEvent as GroupEvent
 from ..event.mirai import GroupMuteAllEvent as GroupMuteAllEvent
 from ..event.mirai import GroupNameChangeEvent as GroupNameChangeEvent

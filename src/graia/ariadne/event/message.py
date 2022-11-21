@@ -1,10 +1,12 @@
 """Ariadne 消息事件"""
 from typing import Any, Dict, List, Optional, Union
 
-from graia.amnesia.message import Element
-from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from pydantic import Field, root_validator
 
+from graia.amnesia.message import Element
+from graia.broadcast.interfaces.dispatcher import DispatcherInterface
+
+from . import MiraiEvent
 from ..dispatcher import (
     BaseDispatcher,
     MessageChainDispatcher,
@@ -15,10 +17,9 @@ from ..dispatcher import (
 )
 from ..message.chain import MessageChain
 from ..message.element import Quote, Source
+from .mirai import FriendEvent, GroupEvent
 from ..model import Client, Friend, Group, Member, Stranger
 from ..typing import generic_issubclass
-from . import MiraiEvent
-from .mirai import FriendEvent, GroupEvent
 
 
 def _set_source_quote(_, values: Dict[str, Any]) -> Dict[str, Any]:

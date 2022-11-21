@@ -6,9 +6,7 @@ with contextlib.suppress(ImportError):
     from graia.scheduler import GraiaScheduler as GraiaScheduler
     from graia.scheduler import SchedulerTask as SchedulerTask
     from graia.scheduler.exception import AlreadyStarted as AlreadyStarted
-    from graia.scheduler.saya.behaviour import (
-        GraiaSchedulerBehaviour as GraiaSchedulerBehaviour,
-    )
+    from graia.scheduler.saya.behaviour import GraiaSchedulerBehaviour as GraiaSchedulerBehaviour
     from graia.scheduler.saya.behaviour import SchedulerSchema as SchedulerSchema
     from graia.scheduler.timers import crontabify as crontabify
     from graia.scheduler.timers import every as every

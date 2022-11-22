@@ -2,10 +2,10 @@
 import functools
 from datetime import datetime
 from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Optional, Type, Union
+from typing_extensions import Literal
 
 from loguru import logger
 from pydantic import Field, validator
-from typing_extensions import Literal
 
 from ..util import gen_subclass, internal_cls
 

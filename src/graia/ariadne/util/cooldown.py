@@ -21,6 +21,7 @@ from typing import (
     cast,
     overload,
 )
+from typing_extensions import Any, TypeVar
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.event import Dispatchable
@@ -28,7 +29,6 @@ from graia.broadcast.entities.signatures import Force
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.utilles import argument_signature
-from typing_extensions import Any, TypeVar
 
 from ..event.message import MessageEvent
 from ..typing import generic_issubclass

@@ -3,11 +3,12 @@
 import asyncio
 import contextlib
 
+from launart import ExportInterface, Launart
+
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
 from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from launart import ExportInterface, Launart
 
 from .message.chain import MessageChain
 from .message.element import Quote, Source

@@ -1,6 +1,7 @@
 """Ariadne 的事件"""
-from graia.broadcast import Dispatchable
 from pydantic import validator
+
+from graia.broadcast import Dispatchable
 
 from ..dispatcher import BaseDispatcher
 from ..exception import InvalidEventTypeDefinition

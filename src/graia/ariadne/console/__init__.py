@@ -10,17 +10,18 @@ from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
+from loguru import logger
+from prompt_toolkit.formatted_text import AnyFormattedText
+from prompt_toolkit.patch_stdout import StdoutProxy
+from prompt_toolkit.shortcuts.prompt import PromptSession
+from prompt_toolkit.styles import Style
+
 from graia.broadcast import Broadcast
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.entities.exectarget import ExecTarget
 from graia.broadcast.exceptions import DisabledNamespace, PropagationCancelled
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
-from loguru import logger
-from prompt_toolkit.formatted_text import AnyFormattedText
-from prompt_toolkit.patch_stdout import StdoutProxy
-from prompt_toolkit.shortcuts.prompt import PromptSession
-from prompt_toolkit.styles import Style
 
 from ..dispatcher import ContextDispatcher
 from ..event.lifecycle import ApplicationLaunch, ApplicationShutdown

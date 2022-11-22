@@ -147,7 +147,11 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
-    "src/graia/ariadne/entry/*"
+    "src/graia/ariadne/entry/*",
+    "src/test/**",
+    "src/test_old/**",
+    "gen_ref.py",
+    "extract-release-notes.py"
 ]
 per-file-ignores = {}
 

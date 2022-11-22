@@ -1,15 +1,16 @@
 """Broadcast Interrupt 相关的工具"""
 import asyncio
 from typing import Awaitable, Callable, Generic, List, Optional, Type, TypeVar, cast
+from typing_extensions import overload
 
 from creart import it
+
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.event import Dispatchable
 from graia.broadcast.exceptions import ExecutionStop
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 from graia.broadcast.interrupt import InterruptControl, Waiter
 from graia.broadcast.typing import T_Dispatcher
-from typing_extensions import overload
 
 from ..typing import T
 

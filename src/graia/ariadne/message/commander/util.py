@@ -25,9 +25,9 @@ from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.dispatcher import BaseDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
+from ...typing import MaybeFlag, Sentinel, T
 from ..chain import MessageChain
 from ..element import Element, Plain, Quote, Source
-from ...typing import MaybeFlag, Sentinel, T
 
 L_PAREN = ("{", "[")
 R_PAREN = ("}", "]")

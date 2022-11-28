@@ -10,7 +10,6 @@ from pydantic import Field, root_validator
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
-from . import MiraiEvent
 from ..connection.util import CallMethod
 from ..dispatcher import (
     BaseDispatcher,
@@ -24,6 +23,7 @@ from ..message.chain import MessageChain
 from ..message.element import Element
 from ..model import Client, Friend, Group, Member, MemberPerm
 from ..typing import generic_issubclass
+from . import MiraiEvent
 
 
 class BotEvent(MiraiEvent):

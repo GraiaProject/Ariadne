@@ -37,13 +37,14 @@ from graia.broadcast.exceptions import PropagationCancelled
 from graia.broadcast.typing import T_Dispatcher
 from graia.broadcast.utilles import dispatcher_mixin_handler
 
-from ..chain import MessageChain
 from ...context import event_ctx
 from ...dispatcher import ContextDispatcher
-from ..element import Element, Plain
 from ...event.message import MessageEvent
 from ...model.util import AriadneBaseModel
 from ...typing import DictStrAny, MaybeFlag, Sentinel, Wrapper
+from ...util import constant, gen_subclass, resolve_dispatchers_mixin, type_repr
+from ..chain import MessageChain
+from ..element import Element, Plain
 from .util import (
     AnnotatedParam,
     ChainContent,
@@ -59,7 +60,6 @@ from .util import (
     split,
     tokenize,
 )
-from ...util import constant, gen_subclass, resolve_dispatchers_mixin, type_repr
 
 T_Callable = TypeVar("T_Callable", bound=Callable)
 

@@ -8,10 +8,10 @@ from statv import Stats
 
 from graia.amnesia.transport.common.status import ConnectionStatus as BaseConnectionStatus
 
-from ._info import HttpClientInfo, HttpServerInfo, T_Info, U_Info, WebsocketClientInfo, WebsocketServerInfo
 from ..event import MiraiEvent
-from .util import CallMethod
 from ..util import camel_to_snake
+from ._info import HttpClientInfo, HttpServerInfo, T_Info, U_Info, WebsocketClientInfo, WebsocketServerInfo
+from .util import CallMethod
 
 if TYPE_CHECKING:
     from ..service import ElizabethService

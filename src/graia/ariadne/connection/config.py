@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING, Dict, List, NamedTuple, Sequence, Type, Union, overload
 from typing_extensions import NotRequired, Required, TypedDict
 
-from ._info import HttpClientInfo, HttpServerInfo, U_Info, WebsocketClientInfo, WebsocketServerInfo
 from ..typing import DictStrAny
+from ._info import HttpClientInfo, HttpServerInfo, U_Info, WebsocketClientInfo, WebsocketServerInfo
 
 if TYPE_CHECKING:
     from ..app import Ariadne

@@ -8,6 +8,8 @@
 
 修复了预览版 PyPI 包会导致更新检查失败的问题。
 
+修复了 `Ariadne.make_directory` 的错误参数。
+
 ### 新增
 
 支持分派 `Quote` 和 `launart.ExportInterface`。
@@ -17,6 +19,10 @@
 所有发送方法都可以传入 `action` 参数。
 
 没有配置账号时会引发 `ValueError`。
+
+丰富了 `CoolDown` 的功能。
+
+向 `Ariadne.send_message` 的 `quote` 传入错误参数时会引发 `TypeError`。
 
 ### 更改
 

@@ -507,7 +507,7 @@ class Ariadne:
             CallMethod.POST,
             {
                 "id": id,
-                "name": name,
+                "directoryName": name,
                 "target": target,
             },
         )

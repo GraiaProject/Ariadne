@@ -15,9 +15,9 @@ from graia.amnesia.transport.common.http import AbstractServerRequestIO, HttpEnd
 from graia.amnesia.transport.common.http.extra import HttpRequest
 from graia.amnesia.transport.common.server import AbstractRouter
 
+from ..exception import InvalidSession
 from . import ConnectionMixin
 from ._info import HttpClientInfo, HttpServerInfo
-from ..exception import InvalidSession
 from .util import CallMethod, DatetimeJsonEncoder, build_event, validate_response
 
 

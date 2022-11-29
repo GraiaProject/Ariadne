@@ -20,6 +20,8 @@ from typing_extensions import Self
 from graia.amnesia.json import Json
 from graia.amnesia.message import MessageChain as BaseMessageChain
 
+from ..model import AriadneBaseModel
+from ..util import gen_subclass, unescape_bracket
 from .element import (
     At,
     AtAll,
@@ -33,8 +35,6 @@ from .element import (
     Source,
     _update_forward_refs,
 )
-from ..model import AriadneBaseModel
-from ..util import gen_subclass, unescape_bracket
 
 if TYPE_CHECKING:
     from ..typing import ReprArgs

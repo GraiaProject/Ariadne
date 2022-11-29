@@ -16,10 +16,10 @@ from graia.broadcast.interfaces.decorator import DecoratorInterface
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ...app import Ariadne
-from ..chain import MessageChain
-from ..element import At, Element, Plain
 from ...event.message import GroupMessage, MessageEvent
 from ...typing import Unions, generic_issubclass, get_origin
+from ..chain import MessageChain
+from ..element import At, Element, Plain
 
 
 class ChainDecorator(abc.ABC, Decorator, Derive[MessageChain]):

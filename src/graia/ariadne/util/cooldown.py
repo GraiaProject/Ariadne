@@ -1,4 +1,3 @@
-import builtins
 import contextlib
 import inspect
 import typing
@@ -36,6 +35,8 @@ from ..typing import generic_issubclass
 T_Time = TypeVar("T_Time", timedelta, datetime, float, int, None, default=datetime)
 
 T_SourceKey = TypeVar("T_SourceKey", bound=Hashable, default=int)
+
+NoneType = type(None)
 
 
 class CoolDown(BaseDispatcher, Generic[T_SourceKey]):
@@ -98,7 +99,7 @@ class CoolDown(BaseDispatcher, Generic[T_SourceKey]):
         next_exec_time: datetime = self.source.get(target, current_time)
         delta: timedelta = next_exec_time - current_time
         satisfied: bool = delta < timedelta(seconds=0)
-        if builtins.type(None) in typing.get_args(type) and delta.total_seconds() <= 0:
+        if NoneType in typing.get_args(type) and delta.total_seconds() <= 0:
             result = None, satisfied
         elif generic_issubclass(datetime, type):
             result = next_exec_time, satisfied
@@ -141,7 +142,7 @@ class CoolDown(BaseDispatcher, Generic[T_SourceKey]):
         annotation = interface.annotation
         next_exec_time: datetime = interface.local_storage[f"{__name__}:next_exec_time"]
         delta: timedelta = interface.local_storage[f"{__name__}:delta"]
-        if builtins.type(None) in typing.get_args(annotation) and delta.total_seconds() <= 0:
+        if NoneType in typing.get_args(annotation) and delta.total_seconds() <= 0:
             return Force(None)
         if generic_issubclass(datetime, annotation):
             return next_exec_time

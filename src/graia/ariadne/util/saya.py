@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Callable, Dict, List, Optional, Type, Union, overload
+from typing import Callable, overload
 
 from graia.broadcast.entities.decorator import Decorator
 from graia.broadcast.entities.event import Dispatchable
@@ -78,7 +78,7 @@ def decorate(name: str, decorator: Decorator, /) -> Wrapper:
 
 
 @overload
-def decorate(map: Dict[str, Decorator], /) -> Wrapper:
+def decorate(map: dict[str, Decorator], /) -> Wrapper:
     """给指定参数名称附加装饰器
 
     Args:
@@ -100,7 +100,7 @@ def decorate(*args) -> Wrapper:
     Returns:
         Callable[[T_Callable], T_Callable]: 装饰器
     """
-    arg: Union[Dict[str, Decorator], List[Decorator]]
+    arg: dict[str, Decorator] | list[Decorator]
     if isinstance(args[0], str):
         name: str = args[0]
         decorator: Decorator = args[1]
@@ -126,7 +126,7 @@ def decorate(*args) -> Wrapper:
     return wrapper
 
 
-def listen(*event: Union[Type[Dispatchable], str]) -> Wrapper:
+def listen(*event: type[Dispatchable] | str) -> Wrapper:
     """在当前 Saya Channel 中监听指定事件
 
     Args:
@@ -135,8 +135,8 @@ def listen(*event: Union[Type[Dispatchable], str]) -> Wrapper:
     Returns:
         Callable[[T_Callable], T_Callable]: 装饰器
     """
-    EVENTS: Dict[str, Type[Dispatchable]] = {e.__name__: e for e in gen_subclass(Dispatchable)}
-    events: List[Type[Dispatchable]] = [e if isinstance(e, type) else EVENTS[e] for e in event]
+    EVENTS: dict[str, type[Dispatchable]] = {e.__name__: e for e in gen_subclass(Dispatchable)}
+    events: list[type[Dispatchable]] = [e if isinstance(e, type) else EVENTS[e] for e in event]
 
     def wrapper(func: T_Callable) -> T_Callable:
         cube = ensure_cube_as_listener(func)
@@ -146,7 +146,7 @@ def listen(*event: Union[Type[Dispatchable], str]) -> Wrapper:
     return wrapper
 
 
-def priority(priority: int, *events: Type[Dispatchable]) -> Wrapper:
+def priority(priority: int, *events: type[Dispatchable]) -> Wrapper:
     """设置事件优先级
 
     Args:
@@ -161,7 +161,7 @@ def priority(priority: int, *events: Type[Dispatchable]) -> Wrapper:
         cube = ensure_cube_as_listener(func)
         cube.metaclass.priority = priority
         if events:
-            extra: Dict[Optional[Type[Dispatchable]], int] = getattr(cube.metaclass, "extra_priorities", {})
+            extra: dict[type[Dispatchable] | None, int] = getattr(cube.metaclass, "extra_priorities", {})
             extra.update((e, priority) for e in events)
         return func
 

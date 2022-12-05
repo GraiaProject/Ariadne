@@ -5,19 +5,7 @@ import functools
 import inspect
 import re
 from contextvars import ContextVar
-from typing import (
-    Any,
-    Dict,
-    FrozenSet,
-    Generic,
-    Iterable,
-    List,
-    MutableMapping,
-    Optional,
-    Set,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Iterable, List, MutableMapping, TypeVar, Union
 from typing_extensions import Self
 from weakref import WeakKeyDictionary, WeakSet
 
@@ -73,9 +61,9 @@ def unescape(string: str) -> str:
 
 class Text:
     __slots__ = "choice"
-    choice: FrozenSet[str]
+    choice: frozenset[str]
 
-    def __init__(self, choice: Union[Iterable[str], str]) -> None:
+    def __init__(self, choice: Iterable[str] | str) -> None:
         self.choice = frozenset((choice,)) if isinstance(choice, str) else frozenset(choice)
 
     def __repr__(self) -> str:
@@ -84,7 +72,7 @@ class Text:
 
 class Param:
     __slots__ = ("names",)
-    names: FrozenSet[str]
+    names: frozenset[str]
 
     def __init__(self, names: Iterable[str]) -> None:
         self.names = frozenset(names)
@@ -96,16 +84,16 @@ class Param:
 class AnnotatedParam:
     __slots__ = ("name", "annotation", "default", "wildcard")
     name: str
-    annotation: Optional[str]
-    default: Optional[str]
+    annotation: str | None
+    default: str | None
     wildcard: bool
 
     def __init__(
         self,
         name: str,
         wildcard: bool = False,
-        annotation: Optional[str] = None,
-        default: Optional[str] = None,
+        annotation: str | None = None,
+        default: str | None = None,
     ) -> None:
         self.name = name
         self.annotation = annotation
@@ -126,7 +114,7 @@ U_Token = Union[Text, Param, AnnotatedParam]
 ann_assign = re.compile(r"(?P<name>[^:=]+)(?P<annotation>:[^=]+)?(?P<default>=.+)?")
 
 
-def parse_param(param_str: str) -> Union[Param, AnnotatedParam]:
+def parse_param(param_str: str) -> Param | AnnotatedParam:
     wildcard: bool = param_str.startswith("...")
     if wildcard:
         param_str = param_str[3:]
@@ -142,13 +130,13 @@ def parse_param(param_str: str) -> Union[Param, AnnotatedParam]:
     )
 
 
-def _pop(char_stk: List[str]) -> str:
+def _pop(char_stk: list[str]) -> str:
     piece = "".join(char_stk)
     char_stk.clear()
     return piece
 
 
-def tokenize(string: str) -> List[U_Token]:
+def tokenize(string: str) -> list[U_Token]:
     """将字符串转义化, 并处理为 Text,  Param 两种 token
 
     Args:
@@ -161,8 +149,8 @@ def tokenize(string: str) -> List[U_Token]:
     string = escape(string)
 
     paren: str = ""
-    char_stk: List[str] = []
-    token: List[U_Token] = []
+    char_stk: list[str] = []
+    token: list[U_Token] = []
     pop = functools.partial(_pop, char_stk)
 
     for index, char in enumerate(string):
@@ -196,14 +184,14 @@ def tokenize(string: str) -> List[U_Token]:
 
 
 class MatchEntry:
-    def __init__(self, tokens: List[U_Token]) -> None:
-        self.nodes: List[MaybeFlag[FrozenSet[str]]] = [
+    def __init__(self, tokens: list[U_Token]) -> None:
+        self.nodes: list[MaybeFlag[frozenset[str]]] = [
             token.choice if isinstance(token, Text) else Sentinel for token in tokens
         ]
-        self.tokens: List[Union[Text, Param]] = [
+        self.tokens: list[Text | Param] = [
             token.to_param() if isinstance(token, AnnotatedParam) else token for token in tokens
         ]
-        self.params: List[Param] = [token for token in self.tokens if isinstance(token, Param)]
+        self.params: list[Param] = [token for token in self.tokens if isinstance(token, Param)]
 
 
 T_MatchEntry = TypeVar("T_MatchEntry", bound=MatchEntry)
@@ -211,7 +199,7 @@ T_MatchEntry = TypeVar("T_MatchEntry", bound=MatchEntry)
 
 class MatchNode(Generic[T_MatchEntry]):
     __slots__ = ("next", "entries")
-    next: Dict[MaybeFlag[str], MatchNode[T_MatchEntry]]
+    next: dict[MaybeFlag[str], MatchNode[T_MatchEntry]]
     entries: WeakSet[T_MatchEntry]
 
     def __init__(self) -> None:
@@ -228,12 +216,12 @@ class MatchNode(Generic[T_MatchEntry]):
         if index >= len(entry.nodes):
             self.entries.add(entry)
             return
-        current: MaybeFlag[FrozenSet[str]] = entry.nodes[index]
+        current: MaybeFlag[frozenset[str]] = entry.nodes[index]
         if current is Sentinel:
             self.next.setdefault(current, MatchNode()).push(entry, index + 1)
         else:
-            target_nodes: List[MatchNode[T_MatchEntry]] = []
-            conflicts: Dict[MatchNode[T_MatchEntry], Set[str]] = {}
+            target_nodes: list[MatchNode[T_MatchEntry]] = []
+            conflicts: dict[MatchNode[T_MatchEntry], set[str]] = {}
             for piece, node in {piece: self.next[piece] for piece in current if piece in self.next}.items():
                 conflicts.setdefault(node, set()).add(piece)
             for old_node, conflict_fields in conflicts.items():
@@ -274,7 +262,7 @@ def convert_empty(obj: T) -> MaybeFlag[T]:
 class ContextVarDispatcher(BaseDispatcher):
     """分发常量给指定名称的参数"""
 
-    def __init__(self, data_ctx: ContextVar[Dict[str, Any]]) -> None:
+    def __init__(self, data_ctx: ContextVar[dict[str, Any]]) -> None:
         self.data_ctx = data_ctx
 
     async def catch(self, interface: DispatcherInterface):
@@ -290,7 +278,7 @@ split_cache: MutableMapping[MessageChain, ChainContentList] = WeakKeyDictionary(
 quote_pairs = {"'": "'", '"': '"', "‘": "’", "“": "”"}
 
 
-def extract_str(buf: ChainContent) -> Optional[str]:
+def extract_str(buf: ChainContent) -> str | None:
     if len(buf) == 1 and isinstance(buf[0], str):
         return buf[0]
 
@@ -308,7 +296,7 @@ def split(chain: MessageChain) -> ChainContentList:
         if not isinstance(elem, Plain):
             buffer.append(elem)
             continue
-        cache: List[str] = []
+        cache: list[str] = []
         skipping: bool = False
         for char in elem.text:
             if char == "\\" or skipping:

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import string
-from typing import Any, Literal, Union
+from typing import Any, Literal
 
 from .chain import MessageChain
 from .element import Element, Plain
@@ -52,8 +52,8 @@ class Formatter:
 
     def format(
         self,
-        *args: Union[Element, MessageChain, str, Any],
-        **kwargs: Union[Element, MessageChain, str, Any],
+        *args: Element | MessageChain | str | Any,
+        **kwargs: Element | MessageChain | str | Any,
     ) -> MessageChain:
         """通过初始化时传入的格式字符串 格式化消息链
 

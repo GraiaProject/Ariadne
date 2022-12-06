@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from enum import Enum
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, Dict, Literal, Optional, Type, Union, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from loguru import logger
 
@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from ..event import MiraiEvent
 
 
-code_exceptions_mapping: Dict[int, Type[Exception]] = {
+code_exceptions_mapping: dict[int, type[Exception]] = {
     1: InvalidVerifyKey,
     2: AccountNotFound,
     3: InvalidSession,
@@ -42,7 +42,7 @@ code_exceptions_mapping: Dict[int, Type[Exception]] = {
 
 
 @overload
-def validate_response(data: Any, raising: Literal[False]) -> Union[Any, Exception]:
+def validate_response(data: Any, raising: Literal[False]) -> Any | Exception:
     ...
 
 
@@ -63,7 +63,7 @@ def validate_response(data: Any, raising: bool = True):
 
 
 @lru_cache(maxsize=1024)
-def extract_event_type(event_type: str) -> Optional[Type[MiraiEvent]]:
+def extract_event_type(event_type: str) -> type[MiraiEvent] | None:
     from ..event import MiraiEvent
 
     return next((cls for cls in gen_subclass(MiraiEvent) if cls.__name__ == event_type), None)
@@ -83,10 +83,10 @@ def build_event(data: dict) -> MiraiEvent:
     Returns:
         MiraiEvent: 已经被序列化的事件
     """
-    event_type: Optional[str] = data.get("type")
+    event_type: str | None = data.get("type")
     if not event_type or not isinstance(event_type, str):
         raise InvalidArgument("Unable to find 'type' field for automatic parsing", data)
-    event_class: Optional[Type[MiraiEvent]] = extract_event_type(event_type)
+    event_class: type[MiraiEvent] | None = extract_event_type(event_type)
     if not event_class:
         logger.error("An event is not recognized! Please report with your log to help us diagnose.")
         raise ValueError(f"Unable to find event: {event_type}", data)

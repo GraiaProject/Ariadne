@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Dict, Generic, List, Optional, Set, Type
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Generic, Optional
 from typing_extensions import Self
 
 from launart import ExportInterface, Launchable, LaunchableStatus
@@ -23,15 +23,15 @@ class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
     alive = Stats[bool]("alive", default=False)
 
     def __init__(self) -> None:
-        self._session_key: Optional[str] = None
+        self._session_key: str | None = None
         super().__init__()
 
     @property
-    def session_key(self) -> Optional[str]:
+    def session_key(self) -> str | None:
         return self._session_key
 
     @session_key.setter
-    def session_key(self, value: Optional[str]) -> None:
+    def session_key(self, value: str | None) -> None:
         self._session_key = value
         self.connected = value is not None
 
@@ -55,13 +55,13 @@ class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
 class ConnectionMixin(Launchable, Generic[T_Info]):
     status: ConnectionStatus
     info: T_Info
-    dependencies: ClassVar[Set[str | type[ExportInterface]]]
+    dependencies: ClassVar[set[str | type[ExportInterface]]]
 
     fallback: Optional["HttpClientConnection"]
-    event_callbacks: List[Callable[[MiraiEvent], Awaitable[Any]]]
+    event_callbacks: list[Callable[[MiraiEvent], Awaitable[Any]]]
 
     @property
-    def required(self) -> Set[str | type[ExportInterface]]:
+    def required(self) -> set[str | type[ExportInterface]]:
         return self.dependencies
 
     @property
@@ -86,7 +86,7 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
         self,
         command: str,
         method: CallMethod,
-        params: Optional[dict] = None,
+        params: dict | None = None,
         *,
         in_session: bool = True,
     ) -> Any:
@@ -112,7 +112,7 @@ from .http import HttpServerConnection as HttpServerConnection  # noqa: E402
 from .ws import WebsocketClientConnection as WebsocketClientConnection  # noqa: E402
 from .ws import WebsocketServerConnection as WebsocketServerConnection  # noqa: E402
 
-CONFIG_MAP: Dict[Type[U_Info], Type[ConnectionMixin]] = {
+CONFIG_MAP: dict[type[U_Info], type[ConnectionMixin]] = {
     HttpClientInfo: HttpClientConnection,
     HttpServerInfo: HttpServerConnection,
     WebsocketClientInfo: WebsocketClientConnection,
@@ -124,9 +124,9 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
     """Elizabeth 连接接口"""
 
     service: "ElizabethService"
-    connection: Optional[ConnectionMixin]
+    connection: ConnectionMixin | None
 
-    def __init__(self, service: "ElizabethService", account: Optional[int] = None) -> None:
+    def __init__(self, service: "ElizabethService", account: int | None = None) -> None:
         """初始化连接接口
 
         Args:
@@ -157,7 +157,7 @@ class ConnectionInterface(ExportInterface["ElizabethService"]):
         method: CallMethod,
         params: dict,
         *,
-        account: Optional[int] = None,
+        account: int | None = None,
         in_session: bool = True,
     ) -> Any:
         """发起一个调用

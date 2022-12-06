@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager, suppress
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
@@ -21,7 +21,7 @@ broadcast_ctx: ContextVar[Broadcast] = ContextVar("broadcast")
 upload_method_ctx: ContextVar[UploadMethod] = ContextVar("upload_method")
 
 
-context_map: Dict[str, ContextVar] = {
+context_map: dict[str, ContextVar] = {
     "Ariadne": ariadne_ctx,
     "Dispatchable": event_ctx,
     "AbstractEventLoop": event_loop_ctx,

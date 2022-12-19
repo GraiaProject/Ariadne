@@ -436,8 +436,24 @@ class ForwardNode(AriadneBaseModel):
     message_chain: Optional["MessageChain"] = Field(None, alias="messageChain")
     """发送的消息链"""
 
-    message_id: Optional[int] = Field(None, alias="messageId")
-    """缓存的消息 ID"""
+    if not TYPE_CHECKING:
+
+        @property
+        def message_id(self) -> None:
+            """缓存的消息 ID"""
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "ForwardNode.message_id is always None and "
+                "deprecated in Ariadne 0.11, scheduled for removal in Ariadne 0.12."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            return None
 
     def __init__(
         self,

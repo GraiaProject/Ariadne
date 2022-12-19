@@ -1016,6 +1016,9 @@ class MemberJoinRequestEvent(RequestEvent, GroupEvent):
     group_name: str = Field(..., alias="groupName")
     """申请人申请入群的群名称"""
 
+    inviter_id: Optional[int] = Field(None, alias="invitorId")
+    """邀请该申请人的成员QQ号, 可为 None"""
+
     async def accept(self, message: str = "") -> None:
         """同意对方加入群组.
 

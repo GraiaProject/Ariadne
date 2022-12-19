@@ -12,7 +12,6 @@ with open("./release-notes.md", encoding="utf-8", mode="w") as f:
             continue
         if line.split(" ") and line.split(" ")[0] == "##":
             break
-        print(line, file=f)
 
 with open("./CHANGELOG.md", encoding="utf-8", mode="w") as f:
     f.write(changelog_text.replace("## 未发布的更新", f"## 未发布的更新\n\n## {tag_name}"))

@@ -2,11 +2,10 @@ import asyncio
 import time
 
 from devtools import debug
-from graia.broadcast import Broadcast
 
 from graia.ariadne.entry.message import *
-from graia.ariadne.message.commander import Arg, Commander, Slot
-from graia.ariadne.util import Dummy
+from graia.ariadne.message.commander import Commander
+from graia.broadcast import Broadcast
 
 RUN = 10000
 
@@ -47,6 +46,5 @@ if __name__ == "__main__":
             ed = time.time()
             sec += ed - st
 
-        print(f"Commander: {RUN*handles/sec} loop/s per handler, {RUN} loops, {handles} handlers")
 
     asyncio.run(m())

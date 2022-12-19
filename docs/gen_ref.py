@@ -29,7 +29,7 @@ for path in sorted(Path(src, "graia").glob("**/*.py")):
     nav[parts] = full_doc_path
 
     with fe.open(full_doc_path, "w") as f:
-        print(f"::: {'.'.join(parts)}", file=f)
+        pass
 
     fe.set_edit_path(full_doc_path, path)
 

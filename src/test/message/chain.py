@@ -1,20 +1,9 @@
 import base64
 
-import aiohttp
 import pytest
 
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import (
-    At,
-    AtAll,
-    BaseText,
-    Element,
-    Image,
-    Plain,
-    Quote,
-    Source,
-)
-from graia.ariadne.util import Dummy
+from graia.ariadne.message.element import At, BaseText, Element, Image, Plain, Quote, Source
 
 __name__ = "graia.test.message.chain"  # monkey patch to pass internal class check
 
@@ -170,11 +159,10 @@ def test_persistent():
 async def test_download():
     url = "https://avatars.githubusercontent.com/u/67151942?s=200&v=4"
     chain = MessageChain(["text", Image(url=url)])
-    from asyncio import Event, create_task
 
-    from graia.amnesia.builtins.aiohttp import AiohttpClientService
     from launart import Launchable
 
+    from graia.amnesia.builtins.aiohttp import AiohttpClientService
     from graia.ariadne.app import Ariadne
 
     Ariadne._ensure_config()
@@ -208,7 +196,6 @@ def test_presentation():
     msg_chain = MessageChain("Hello World!", At(target=12345), "Foo test!\n")
     assert msg_chain.display == "Hello World!@12345Foo test!\n"
     assert str(msg_chain) == msg_chain.display
-    print(repr(msg_chain))
     assert (
         repr(msg_chain)
         == "MessageChain([Plain(text='Hello World!'), At(target=12345), Plain(text='Foo test!\\n')])"

@@ -1,25 +1,21 @@
 import asyncio
 import os
 import re
-import sys
 from datetime import datetime
 from typing import Annotated, Optional, Union
 
-import creart
 import devtools
-from graia.amnesia.builtins.aiohttp import AiohttpServerService
-from graia.saya.context import channel_instance
 from loguru import logger
 
 from graia.ariadne.connection import ConnectionInterface
 from graia.ariadne.entry import *
 from graia.ariadne.message.exp import MessageChain as ExpMessageChain
 from graia.ariadne.message.parser.base import RegexGroup, StartsWith
-from graia.ariadne.util import RichLogInstallOptions
+from graia.saya.context import channel_instance
 
 if __name__ == "__main__":
     url, account, verify_key, target, t_group = (
-        open(os.path.join(__file__, "..", "test.temp"), "r").read().split(" ")
+        open(os.path.join(__file__, "..", "test.temp")).read().split(" ")
     )
     account = int(account)
     target = int(target)

@@ -238,24 +238,21 @@ class Ariadne:
 
             elif isinstance(event, GroupEvent):
                 stack.enter_context(enter_message_send_context(UploadMethod.Group))
-                group: Optional[Group] = None
+                group = cast(Optional[Group], getattr(event, "group", None))
 
-                member: Optional[Member] = getattr(event, "sender", None) or getattr(event, "member", None)
-                if member:
-                    group = member.group
-                    await asyncio.gather(
-                        cache_set(f"account.{self.account}.group.{int(group)}", group),
-                        cache_set(f"account.{self.account}.group.{int(group)}.member.{int(member)}", member),
-                    )
-
-                member: Optional[Member] = getattr(event, "operator", None) or getattr(event, "inviter", None)
+                member = cast(
+                    Optional[Member],
+                    getattr(event, "sender", None)
+                    or getattr(event, "member", None)
+                    or getattr(event, "operator", None)
+                    or getattr(event, "inviter", None),
+                )
                 if member:
                     if not group:
                         group = member.group
-                        await cache_set(f"account.{self.account}.group.{int(group)}", group)
                     await cache_set(f"account.{self.account}.group.{int(group)}.member.{int(member)}", member)
 
-                if not group and (group := getattr(event, "group", None)):
+                if group:
                     await cache_set(f"account.{self.account}.group.{int(group)}", group)
 
             self.service.broadcast.postEvent(event)

@@ -10,10 +10,10 @@ repos:
         language_version: python3.8
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.176'  # Use the sha / tag you want to point at
+    rev: 'v0.0.190'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
-        args: [--fix]
+        args: [--force-exclude] # https://github.com/charliermarsh/ruff/issues/1301
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:

@@ -271,12 +271,13 @@ dependencies = [
 
 [[package]]
 name = "graia-scheduler"
-version = "0.0.10"
-requires_python = ">=3.7,<4.0"
+version = "0.1.0"
+requires_python = ">=3.8,<4.0"
 summary = "a scheduler for graia framework"
 dependencies = [
     "croniter<2.0.0,>=1.0.0",
     "graia-broadcast>=0.19.0",
+    "launart<1.0.0,>=0.6.1",
 ]
 
 [[package]]
@@ -998,7 +999,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:f2da94b56f2343c0f5072227c39ed86f0a801203f1d9a3bf260d2995630ecbbb"
+content_hash = "sha256:7086d34c42bd5cc2a1f3377b34e9117a9ab69f1f4cee5d64418c24a8280685fc"
 
 [metadata.files]
 "aiohttp 3.8.3" = [
@@ -1434,9 +1435,9 @@ content_hash = "sha256:f2da94b56f2343c0f5072227c39ed86f0a801203f1d9a3bf260d29956
     {url = "https://files.pythonhosted.org/packages/99/c5/6f1c66f487d2bb798ba6171edfb333fc53b8868fbc415c2afc9eaa0c3def/graia_saya-0.0.17.tar.gz", hash = "sha256:3d093b9a63733483b57ae677e9e70dfd2b7a12931ca554625cdaf04a34e4f3b2"},
     {url = "https://files.pythonhosted.org/packages/d6/13/1584c130ba77f499ba138bb86f3d1630a1f5505dcdca313b7f636151c527/graia_saya-0.0.17-py3-none-any.whl", hash = "sha256:d286edd2cc5955c588bb515bdaeadda5fbbf6a60341e0db79772a3181b393e8a"},
 ]
-"graia-scheduler 0.0.10" = [
-    {url = "https://files.pythonhosted.org/packages/4c/58/0171da0e922bc07fe2216cb014d72d64b6cd38bdb7170ed046544d24a906/graia_scheduler-0.0.10-py3-none-any.whl", hash = "sha256:9e725b83aeb36c9f95754c979fe01a4b6e23eea0ae6c527e3d3bb7ca388e02aa"},
-    {url = "https://files.pythonhosted.org/packages/5e/32/f3a7d761fd8ef2f617db5665fc0efa68b690bdd02d96b938c6209bce5749/graia-scheduler-0.0.10.tar.gz", hash = "sha256:fbfd2043dbeaa4faec4bf38416297dbb9b5314941b4c22f30cec643bd7fb54b9"},
+"graia-scheduler 0.1.0" = [
+    {url = "https://files.pythonhosted.org/packages/5a/3d/e1311b633381c3a6d516d1c38ac0fb0414a582cb85d6c4c9de749ed9ed71/graia-scheduler-0.1.0.tar.gz", hash = "sha256:ae0b3a51c4ce5486a3945bff5f96c2f6de2e19ad3b9051a27b983dd77006e098"},
+    {url = "https://files.pythonhosted.org/packages/c3/d9/2761ec66125e17e1a0458eb229df656ecc45c9592488c3dc03644c2faddf/graia_scheduler-0.1.0-py3-none-any.whl", hash = "sha256:e1dd02e989125ca0d654155f0277f2225da74030d324bf5fb20bf10ffa69ec6a"},
 ]
 "griffe 0.25.1" = [
     {url = "https://files.pythonhosted.org/packages/83/97/344a2444db98769441fd9650e6bb5d336108d53d80edf000537621114e6e/griffe-0.25.1-py3-none-any.whl", hash = "sha256:a2d6cef8129579438c3e71401a5fb035ffea5afa8f8e27d946dbb9e136b90b1a"},

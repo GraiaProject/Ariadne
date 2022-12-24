@@ -236,9 +236,6 @@ class ElizabethService(Service):
                 if coro.__qualname__ == "Broadcast.Executor":
                     task.cancel()
                     logger.debug(f"Cancelled {task.get_name()} (Broadcast.Executor)")
-                elif coro.cr_frame.f_globals["__name__"].startswith("graia.scheduler"):
-                    task.cancel()
-                    logger.debug(f"Cancelled {task.get_name()} (Scheduler Task)")
 
             logger.info("Checking for updates...", alt="[cyan]Checking for updates...[/]")
             await self.check_update()

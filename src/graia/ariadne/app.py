@@ -8,7 +8,7 @@ import signal
 import sys
 import traceback
 from contextlib import ExitStack
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -225,7 +225,7 @@ class Ariadne:
             cache_set = self.launch_manager.get_interface(Memcache).set
 
             if isinstance(event, (MessageEvent, ActiveMessage)):
-                await cache_set(f"account.{self.account}.message.{int(event)}", event)
+                await cache_set(f"account.{self.account}.message.{int(event)}", event, timedelta(seconds=120))
                 if not event.message_chain:
                     event.message_chain.append("<! 不支持的消息类型 !>")
 
@@ -234,7 +234,9 @@ class Ariadne:
 
                 friend: Optional[Friend] = getattr(event, "sender", None) or getattr(event, "friend", None)
                 if friend:
-                    await cache_set(f"account.{self.account}.friend.{int(friend)}", friend)
+                    await cache_set(
+                        f"account.{self.account}.friend.{int(friend)}", friend, timedelta(seconds=120)
+                    )
 
             elif isinstance(event, GroupEvent):
                 stack.enter_context(enter_message_send_context(UploadMethod.Group))
@@ -250,10 +252,16 @@ class Ariadne:
                 if member:
                     if not group:
                         group = member.group
-                    await cache_set(f"account.{self.account}.group.{int(group)}.member.{int(member)}", member)
+                    await cache_set(
+                        f"account.{self.account}.group.{int(group)}.member.{int(member)}",
+                        member,
+                        timedelta(seconds=120),
+                    )
 
                 if group:
-                    await cache_set(f"account.{self.account}.group.{int(group)}", group)
+                    await cache_set(
+                        f"account.{self.account}.group.{int(group)}", group, timedelta(seconds=120)
+                    )
 
             self.service.broadcast.postEvent(event)
 
@@ -354,7 +362,7 @@ class Ariadne:
         if cache and (version := await interface.get(f"account.{self.account}.version")):
             return version
         version = (await self.connection.call("about", CallMethod.GET, {}, in_session=False))["version"]
-        await interface.set(f"account.{self.account}.version", version)
+        await interface.set(f"account.{self.account}.version", version, timedelta(seconds=120))
         return version
 
     @ariadne_api
@@ -1247,7 +1255,9 @@ class Ariadne:
         ]
 
         cache_set = self.launch_manager.get_interface(Memcache).set
-        await asyncio.gather(*(cache_set(f"account.{self.account}.friend.{int(i)}", i) for i in result))
+        await asyncio.gather(
+            *(cache_set(f"account.{self.account}.friend.{int(i)}", i, timedelta(seconds=120)) for i in result)
+        )
         return result
 
     @overload
@@ -1328,7 +1338,9 @@ class Ariadne:
         ]
 
         cache_set = self.launch_manager.get_interface(Memcache).set
-        await asyncio.gather(*(cache_set(f"account.{self.account}.group.{int(i)}", i) for i in result))
+        await asyncio.gather(
+            *(cache_set(f"account.{self.account}.group.{int(i)}", i, timedelta(120)) for i in result)
+        )
         return result
 
     @overload
@@ -1418,8 +1430,13 @@ class Ariadne:
         cache_set = self.launch_manager.get_interface(Memcache).set
 
         await asyncio.gather(
-            cache_set(f"account.{self.account}.group.{group_id}", result[0].group),
-            *(cache_set(f"account.{self.account}.group.{group_id}.member.{int(i)}", i) for i in result),
+            cache_set(f"account.{self.account}.group.{group_id}", result[0].group, timedelta(seconds=120)),
+            *(
+                cache_set(
+                    f"account.{self.account}.group.{group_id}.member.{int(i)}", i, timedelta(seconds=120)
+                )
+                for i in result
+            ),
         )
 
         return result
@@ -1455,7 +1472,8 @@ class Ariadne:
         )
 
         await asyncio.gather(
-            interface.set(f"account.{self.account}.group.{group_id}", result), interface.set(key, result)
+            interface.set(f"account.{self.account}.group.{group_id}", result, timedelta(seconds=120)),
+            interface.set(key, result, timedelta(seconds=120)),
         )
 
         return result

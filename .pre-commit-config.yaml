@@ -13,7 +13,7 @@ repos:
     rev: 'v0.0.194'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
-        args: [--force-exclude] # https://github.com/charliermarsh/ruff/issues/1301
+        args: [--force-exclude, --fix] # https://github.com/charliermarsh/ruff/issues/1301
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:

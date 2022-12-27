@@ -26,7 +26,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: dev
+          ref: ${{ env.GITHUB_REF }}
           token: ${{ secrets.GH_TOKEN }}
 
       - name: Setup Python
@@ -75,5 +75,5 @@ jobs:
         if: ${{ github.event.inputs.changelog == 'true' }}
         run: |
           git checkout origin/master -b master
-          git merge dev --ff-only
+          git merge $GITHUB_REF --ff-only
           git push --set-upstream origin master

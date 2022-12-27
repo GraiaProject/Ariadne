@@ -7,7 +7,7 @@ import os
 import signal
 import sys
 import traceback
-from contextlib import ExitStack
+from contextlib import ExitStack, suppress
 from datetime import datetime, timedelta
 from typing import (
     IO,
@@ -269,6 +269,16 @@ class Ariadne:
     def _patch_launch_manager(cls) -> None:
         from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
         from graia.amnesia.transport.common.server import AbstractRouter
+
+        with suppress(ImportError):
+            import creart
+
+            from graia.scheduler import GraiaScheduler
+            from graia.scheduler.service import SchedulerService
+
+            if SchedulerService not in cls.launch_manager._service_bind:
+
+                cls.launch_manager.add_service(SchedulerService(creart.it(GraiaScheduler)))
 
         if AiohttpClientInterface not in cls.launch_manager._service_bind:
             from graia.amnesia.builtins.aiohttp import AiohttpClientService

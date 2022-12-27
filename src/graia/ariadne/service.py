@@ -91,7 +91,9 @@ def get_dist_map() -> Dict[str, str]:
     dist_map: Dict[str, str] = {}
     for dist in importlib.metadata.distributions():
         name: str = dist.metadata["Name"]
-        version: str = dist.version
+        version: str = dist.metadata["Version"]
+        if not name or not version:
+            continue
         if name.startswith(monitored_prefix):
             dist_map[name] = max(version, dist_map.get(name, ""))
     return dist_map

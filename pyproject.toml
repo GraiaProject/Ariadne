@@ -13,7 +13,7 @@ dependencies = [
     "typing-extensions>=4.4,<5.0",
     "graia-amnesia~=0.7.0",
     "creart-graia<1.0.0,>=0.1.5",
-    "launart~=0.6",
+    "launart>=0.6.2,<1.0.0",
 ]
 name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."

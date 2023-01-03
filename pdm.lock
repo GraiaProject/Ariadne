@@ -271,7 +271,7 @@ dependencies = [
 
 [[package]]
 name = "graia-scheduler"
-version = "0.1.1"
+version = "0.1.4"
 requires_python = ">=3.8,<4.0"
 summary = "a scheduler for graia framework"
 dependencies = [
@@ -413,7 +413,7 @@ dependencies = [
 
 [[package]]
 name = "launart"
-version = "0.6.1"
+version = "0.6.2"
 requires_python = ">=3.8"
 summary = "Component lifetime manager for runtime."
 dependencies = [
@@ -1428,9 +1428,9 @@ content_hash = "sha256:840e286ea5a4d821d04dc4ed4286c6933b0f35758edebc0427d1fb0b5
     {url = "https://files.pythonhosted.org/packages/99/c5/6f1c66f487d2bb798ba6171edfb333fc53b8868fbc415c2afc9eaa0c3def/graia_saya-0.0.17.tar.gz", hash = "sha256:3d093b9a63733483b57ae677e9e70dfd2b7a12931ca554625cdaf04a34e4f3b2"},
     {url = "https://files.pythonhosted.org/packages/d6/13/1584c130ba77f499ba138bb86f3d1630a1f5505dcdca313b7f636151c527/graia_saya-0.0.17-py3-none-any.whl", hash = "sha256:d286edd2cc5955c588bb515bdaeadda5fbbf6a60341e0db79772a3181b393e8a"},
 ]
-"graia-scheduler 0.1.1" = [
-    {url = "https://files.pythonhosted.org/packages/5e/57/55432accdae600250c4fc0adf48737571be922ba472877a297276da51501/graia_scheduler-0.1.1-py3-none-any.whl", hash = "sha256:0859502972fa894a28931abe4eb8421eb4c8a80f91ef6a78792ecf1efce191db"},
-    {url = "https://files.pythonhosted.org/packages/a5/98/a6527f0558227f9d936d76452675c5cedd6e3b014d4672116f25888738ed/graia-scheduler-0.1.1.tar.gz", hash = "sha256:d4b1f1333f2910cec20b2c5a8e2dc0a301841af0d500d7969a19f93182cbd9eb"},
+"graia-scheduler 0.1.4" = [
+    {url = "https://files.pythonhosted.org/packages/83/74/dbb7d7c46b9cf5c62ccf22c88593758580d1975423e854ff0435ac32e32b/graia_scheduler-0.1.4-py3-none-any.whl", hash = "sha256:88dea855e751cfd581f1da670feadb0a149617e3ffdbfb22535b264d1b6881f6"},
+    {url = "https://files.pythonhosted.org/packages/a8/1f/8f2551070c9023eef21dac6a729e9ae65c9f4d7807f840813d6a004cd0a1/graia-scheduler-0.1.4.tar.gz", hash = "sha256:1e832f4f1f379b84f4f5c9187d11a93fa1ae0a2f49d455fb886b71fcce3b94b4"},
 ]
 "griffe 0.25.1" = [
     {url = "https://files.pythonhosted.org/packages/83/97/344a2444db98769441fd9650e6bb5d336108d53d80edf000537621114e6e/griffe-0.25.1-py3-none-any.whl", hash = "sha256:a2d6cef8129579438c3e71401a5fb035ffea5afa8f8e27d946dbb9e136b90b1a"},
@@ -1523,9 +1523,9 @@ content_hash = "sha256:840e286ea5a4d821d04dc4ed4286c6933b0f35758edebc0427d1fb0b5
     {url = "https://files.pythonhosted.org/packages/20/00/2f3c7b30ca75b36588a3d4e203b909bd15e5c70fd449bf1e2b88fabd55ef/jupyter_core-5.1.1.tar.gz", hash = "sha256:f342d29eb6edb06f8dffa69adea987b3a9ee2b6702338a8cb6911516ea0b432d"},
     {url = "https://files.pythonhosted.org/packages/63/bc/4a0d2789cade48e700af35af31991a91daeee9a5388ca40604c40483dad7/jupyter_core-5.1.1-py3-none-any.whl", hash = "sha256:f1038179d0f179b0e92c8fa2289c012b29dafdc9484b41821079f1a496f5a0f2"},
 ]
-"launart 0.6.1" = [
-    {url = "https://files.pythonhosted.org/packages/14/47/33a21e34b66f36b51a02bb550f039b6278fa84fcf2fb5e53cf1a98218a68/launart-0.6.1.tar.gz", hash = "sha256:630d5582c3f5e7b68df0b2bde46f5bdfef69557fdade2af8414172e4c862dd15"},
-    {url = "https://files.pythonhosted.org/packages/88/87/639dd473934384dff27b95508accab7dd302d63f4eaf1f48822176294e40/launart-0.6.1-py3-none-any.whl", hash = "sha256:515ccadb1aa2c0ff5647bad10bd4dab53913edbe63eb0f550a80bbe723b31658"},
+"launart 0.6.2" = [
+    {url = "https://files.pythonhosted.org/packages/4c/6c/b580e9360eca012d687a21faf5423acbbc3b862400fcfe345305251fc4c3/launart-0.6.2.tar.gz", hash = "sha256:a729e3475de87580d9ed6e257a9020709e1ce0f213ff670047b488ca4d4c874d"},
+    {url = "https://files.pythonhosted.org/packages/96/67/b3b10f164ef2e42b181720b97fb5300007d05cdfe5f2f49c6c86a2ef647f/launart-0.6.2-py3-none-any.whl", hash = "sha256:db7d1441d6e8bb22c714644c7a9c2bcd3614ff7f79f204cb3060ee7df4e47c2f"},
 ]
 "loguru 0.6.0" = [
     {url = "https://files.pythonhosted.org/packages/75/1f/d3818863e4be96bd641c4643c535a98f0fa2a12efa7c8ba35f763fa778ee/loguru-0.6.0.tar.gz", hash = "sha256:066bd06758d0a513e9836fd9c6b5a75bfb3fd36841f4b996bc60b547a309d41c"},

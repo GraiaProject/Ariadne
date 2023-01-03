@@ -127,10 +127,11 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
 
     async def launch(self, mgr: Launart) -> None:
         self.http_interface = mgr.get_interface(AiohttpClientInterface)
-        if self.is_hook:
+        exit_signal = asyncio.create_task(mgr.status.wait_for_sigexit())
+        if self.is_hook:  # FIXME
+            await exit_signal
             return
         async with self.stage("blocking"):
-            exit_signal = asyncio.create_task(mgr.status.wait_for_sigexit())
             while not exit_signal.done():
                 try:
                     if not self.status.session_key:

@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `Launart 0.6.2` 兼容性。([#209](https://github.com/GraiaProject/Ariadne/issues/209))
+
 ## 0.10.2
 
 ### 修复

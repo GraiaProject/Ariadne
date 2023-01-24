@@ -13,6 +13,7 @@ repos:
     rev: 'v0.0.230'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
+      - args: [--fix]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:

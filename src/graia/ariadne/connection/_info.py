@@ -9,7 +9,7 @@ class HttpClientInfo(NamedTuple):
     host: str
 
     def get_url(self, route: str) -> str:
-        return str((URL(self.host) / route))
+        return str(URL(self.host) / route)
 
 
 class WebsocketClientInfo(NamedTuple):
@@ -18,7 +18,7 @@ class WebsocketClientInfo(NamedTuple):
     host: str
 
     def get_url(self, route: str) -> str:
-        return str((URL(self.host) / route))
+        return str(URL(self.host) / route)
 
 
 class WebsocketServerInfo(NamedTuple):

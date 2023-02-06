@@ -277,7 +277,6 @@ class Ariadne:
             from graia.scheduler.service import SchedulerService
 
             if SchedulerService not in cls.launch_manager._service_bind:
-
                 cls.launch_manager.add_service(SchedulerService(creart.it(GraiaScheduler)))
 
         if AiohttpClientInterface not in cls.launch_manager._service_bind:

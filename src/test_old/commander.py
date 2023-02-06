@@ -22,7 +22,6 @@ async def main():
     cmd = Commander(bcc)
 
     class Scope(BaseModel):
-
         _ = pydantic.validator("*", pre=True, allow_reuse=True)(chain_validator)
 
         scope: str

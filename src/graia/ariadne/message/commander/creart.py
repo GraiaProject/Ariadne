@@ -45,5 +45,4 @@ class CommanderBehaviourCreator(AbstractCreator):
 
     @staticmethod
     def create(create_type: type[CommanderBehaviour]) -> CommanderBehaviour:
-
         return create_type(create(Commander))

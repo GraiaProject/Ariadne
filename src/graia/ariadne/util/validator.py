@@ -12,7 +12,6 @@ from ..typing import T
 
 
 class Certain(Decorator, Generic[T]):
-
     pre = True
 
     def __init__(self, value: T, annotation: Optional[Type[T]] = None) -> None:

@@ -17,14 +17,16 @@ from typing import (
     Literal,
     Mapping,
     Optional,
+    Protocol,
     Sequence,
     Tuple,
     Type,
     TypedDict,
     TypeVar,
     Union,
+    runtime_checkable,
 )
-from typing_extensions import Annotated, ParamSpec, Protocol, TypeAlias, get_args, runtime_checkable
+from typing_extensions import Annotated, ParamSpec, TypeAlias, get_args
 
 if TYPE_CHECKING:
     from .event.message import ActiveMessage

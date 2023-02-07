@@ -1,8 +1,7 @@
 """Ariadne 各种 model 存放的位置"""
 import functools
 from datetime import datetime
-from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Optional, Type, Union
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Literal, Optional, Type, Union
 
 from loguru import logger
 from pydantic import Field, validator

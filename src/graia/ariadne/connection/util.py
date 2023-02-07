@@ -95,7 +95,6 @@ def build_event(data: dict) -> MiraiEvent:
 
 
 class CallMethod(str, Enum):
-
     GET = "GET"
     POST = "POST"
     RESTGET = "get"

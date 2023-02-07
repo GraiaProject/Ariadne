@@ -8,7 +8,6 @@ from ..model.util import AriadneBaseModel
 from ..util import internal_cls
 
 if TYPE_CHECKING:
-
     from .chain import MessageChain
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager, suppress
 from contextvars import ContextVar
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from asyncio.events import AbstractEventLoop
@@ -31,7 +31,7 @@ context_map: dict[str, ContextVar] = {
 
 
 @contextmanager
-def enter_message_send_context(method: "UploadMethod"):
+def enter_message_send_context(method: UploadMethod):
     """进入消息发送上下文
 
     Args:
@@ -43,7 +43,7 @@ def enter_message_send_context(method: "UploadMethod"):
 
 
 @contextmanager
-def enter_context(app: Optional["Ariadne"] = None, event: Optional["Dispatchable"] = None):
+def enter_context(app: Ariadne | None = None, event: Dispatchable | None = None):
     """进入事件上下文
 
     Args:

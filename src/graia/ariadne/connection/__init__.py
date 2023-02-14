@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Generic, Optional
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, ClassVar, Generic
 from typing_extensions import Self
 
 from launart import ExportInterface, Launchable, LaunchableStatus
@@ -57,7 +57,7 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
     info: T_Info
     dependencies: ClassVar[set[str | type[ExportInterface]]]
 
-    fallback: Optional["HttpClientConnection"]
+    fallback: HttpClientConnection | None
     event_callbacks: list[Callable[[MiraiEvent], Awaitable[Any]]]
 
     @property
@@ -123,10 +123,10 @@ CONFIG_MAP: dict[type[U_Info], type[ConnectionMixin]] = {
 class ConnectionInterface(ExportInterface["ElizabethService"]):
     """Elizabeth 连接接口"""
 
-    service: "ElizabethService"
+    service: ElizabethService
     connection: ConnectionMixin | None
 
-    def __init__(self, service: "ElizabethService", account: int | None = None) -> None:
+    def __init__(self, service: ElizabethService, account: int | None = None) -> None:
         """初始化连接接口
 
         Args:

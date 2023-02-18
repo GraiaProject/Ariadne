@@ -1398,11 +1398,12 @@ class Ariadne:
             raise ValueError(f"Group {group_id} not found.")
 
     @ariadne_api
-    async def get_member_list(self, group: Union[Group, int]) -> List[Member]:
+    async def get_member_list(self, group: Union[Group, int], *, cache: bool = True) -> List[Member]:
         """尝试从已知的群组获取对应成员的列表.
 
         Args:
             group (Union[Group, int]): 已知的群组
+            cache (bool, optional): 是否使用缓存. Defaults to True.
 
         Returns:
             List[Member]: 群内成员的 Member 对象.
@@ -1411,12 +1412,23 @@ class Ariadne:
 
         result = [
             Member.parse_obj(i)
-            for i in await self.connection.call(
-                "memberList",
-                CallMethod.GET,
-                {
-                    "target": group_id,
-                },
+            for i in await (
+                self.connection.call(
+                    "memberList",
+                    CallMethod.GET,
+                    {
+                        "target": group_id,
+                    },
+                )
+                if cache
+                else self.connection.call(
+                    "latestMemberList",
+                    CallMethod.GET,
+                    {
+                        "target": group_id,
+                        "memberIds": [],
+                    },
+                )
             )
         ]
 

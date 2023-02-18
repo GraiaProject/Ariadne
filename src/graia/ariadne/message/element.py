@@ -482,7 +482,7 @@ class Forward(Element):
 
     type = "Forward"
 
-    node_list: List[ForwardNode] = Field(None, alias="nodeList")
+    node_list: List[ForwardNode] = Field(default_factory=list, alias="nodeList")
     """转发节点列表"""
 
     def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"], **data) -> None:

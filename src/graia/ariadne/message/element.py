@@ -489,6 +489,14 @@ class ForwardNode(AriadneBaseModel):
         super().__init__(**data)
 
 
+class DisplayStrategy(AriadneBaseModel):
+    title: Optional[str] = None
+    brief: Optional[str] = None
+    source: Optional[str] = None
+    preview: Optional[List[str]] = None
+    summary: Optional[str] = None
+
+
 class Forward(Element):
     """
     指示合并转发信息
@@ -501,11 +509,20 @@ class Forward(Element):
     node_list: List[ForwardNode] = Field(None, alias="nodeList")
     """转发节点列表"""
 
-    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"], **data) -> None:
+    display_strategy: Optional[DisplayStrategy] = Field(None, alias="display")
+    """预览策略"""
+
+    def __init__(
+        self,
+        *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"],
+        display: Optional[DisplayStrategy] = None,
+        **data,
+    ) -> None:
         """构建转发消息对象
 
         Args:
             *nodes (List[ForwardNode]): 转发节点的列表
+            display (DisplayStrategy, optional): 预览策略
         """
         from ..event.message import MessageEvent
         from ..model.relationship import Client
@@ -521,6 +538,10 @@ class Forward(Element):
                 else:
                     node_list.extend(i)
             data.update(nodeList=node_list)
+
+        if display:
+            data.update(display=display)
+
         super().__init__(**data)
 
     def __str__(self) -> str:

@@ -1649,7 +1649,9 @@ class Ariadne:
             return cast(
                 ActiveFriendMessage,
                 await self.send_message(
-                    await self.get_friend(target, assertion=True) if isinstance(target, int) else target,
+                    await self.get_friend(target, assertion=True, cache=True)
+                    if isinstance(target, int)
+                    else target,
                     message,
                     quote=quote or False,
                     action=action,
@@ -1718,7 +1720,9 @@ class Ariadne:
             return cast(
                 ActiveGroupMessage,
                 await self.send_message(
-                    await self.get_group(target, assertion=True) if isinstance(target, int) else target,
+                    await self.get_group(target, assertion=True, cache=True)
+                    if isinstance(target, int)
+                    else target,
                     message,
                     quote=quote or False,
                     action=action,

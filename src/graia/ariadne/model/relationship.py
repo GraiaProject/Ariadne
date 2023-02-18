@@ -304,6 +304,8 @@ class GroupConfig(AriadneBaseModel):
     anonymous_chat: bool = False
     """允许匿名聊天"""
 
+    mute_all: bool = False
+    """是否在全员禁言"""
 
 class MemberInfo(AriadneBaseModel):
     """描述群组成员的可修改状态, 修改需要管理员/群主权限."""

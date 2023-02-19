@@ -48,3 +48,7 @@ class AccountLaunch(ApplicationLifecycleEvent):
 
 class AccountShutdown(ApplicationLifecycleEvent):
     """指示账号的链接关闭."""
+
+
+class AccountConnectionFail(ApplicationLifecycleEvent):
+    """和 mirai-api-http 的链接断开，不论是因为连接失败还是配置失败"""

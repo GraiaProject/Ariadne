@@ -23,6 +23,7 @@ from ..dispatcher import MessageChainDispatcher as MessageChainDispatcher
 from ..dispatcher import SourceDispatcher as SourceDispatcher
 from .event import AccountLaunch as AccountLaunch
 from .event import AccountShutdown as AccountShutdown
+from .event import AccountConnectionFail as AccountConnectionFail
 from .event import ActiveFriendMessage as ActiveFriendMessage
 from .event import ActiveGroupMessage as ActiveGroupMessage
 from .event import ActiveMessage as ActiveMessage

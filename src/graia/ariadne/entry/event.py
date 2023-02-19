@@ -5,6 +5,7 @@ from ..event.lifecycle import ApplicationLaunch as ApplicationLaunch
 from ..event.lifecycle import ApplicationLaunched as ApplicationLaunched
 from ..event.lifecycle import ApplicationShutdown as ApplicationShutdown
 from ..event.lifecycle import ApplicationShutdowned as ApplicationShutdowned
+from ..event.lifecycle import AccountConnectionFail as AccountConnectionFail
 from ..event.message import ActiveFriendMessage as ActiveFriendMessage
 from ..event.message import ActiveGroupMessage as ActiveGroupMessage
 from ..event.message import ActiveMessage as ActiveMessage

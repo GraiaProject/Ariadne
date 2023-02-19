@@ -72,6 +72,7 @@ class WebsocketConnectionMixin(Transport, ConnectionMixin[T_Info]):
 
     @t.handle(WebsocketReconnect)
     async def _(self, _) -> bool:
+        self._connection_fail()
         logger.warning("Websocket reconnecting in 5s...", style="dark_orange")
         await asyncio.sleep(5)
         logger.warning("Websocket reconnecting...", style="dark_orange")

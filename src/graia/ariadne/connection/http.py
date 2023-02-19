@@ -146,6 +146,7 @@ class HttpClientConnection(ConnectionMixin[HttpClientInfo]):
                 except Exception as e:
                     self.status.session_key = None
                     self.status.alive = False
+                    self._connection_fail()
                     logger.exception(e)
                     continue
                 assert isinstance(data, list)

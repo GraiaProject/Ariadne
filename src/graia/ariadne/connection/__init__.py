@@ -59,6 +59,7 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
 
     fallback: HttpClientConnection | None
     event_callbacks: list[Callable[[MiraiEvent], Awaitable[Any]]]
+    _connection_fail: Callable
 
     @property
     def required(self) -> set[str | type[ExportInterface]]:

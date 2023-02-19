@@ -3,7 +3,8 @@ import os
 import re
 import sys
 from datetime import datetime
-from typing import Annotated, Optional, Union
+from typing import Optional, Union
+from typing_extensions import Annotated
 
 import creart
 import devtools
@@ -63,6 +64,10 @@ if __name__ == "__main__":
     @bcc.receiver(CommandExecutedEvent)
     async def print_remote_cmd(event: CommandExecutedEvent):
         logger.debug(event)
+
+    @bcc.receiver(AccountConnectionFail)
+    async def print_fail(app: Ariadne):
+        print(f"FAILURE: {app.account}")
 
     @bcc.receiver(
         MessageEvent,

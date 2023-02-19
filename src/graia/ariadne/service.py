@@ -2,12 +2,12 @@
 import asyncio
 import importlib.metadata
 import json
-import re
 from typing import Coroutine, Dict, Iterable, List, Tuple, Type, overload
 
 from aiohttp import ClientSession
 from launart import Launart, Service
 from loguru import logger
+from packaging.version import Version
 
 from graia.amnesia.builtins.aiohttp import AiohttpClientInterface
 from graia.broadcast import Broadcast
@@ -26,55 +26,19 @@ ARIADNE_ASCII_LOGO = r"""
 
 monitored_prefix = ("kayaku", "statv", "launart", "luma", "graia", "avilla")
 
-VERSION_PATTERN = re.compile(
-    r"""
-    v?
-    (?:
-        (?:(?P<epoch>[0-9]+)!)?                           # epoch
-        (?P<release>[0-9]+(?:\.[0-9]+)*)                  # release segment
-        (?P<pre>                                          # pre-release
-            [-_\.]?
-            (?P<pre_l>(a|b|c|rc|alpha|beta|pre|preview))
-            [-_\.]?
-            (?P<pre_n>[0-9]+)?
-        )?
-        (?P<post>                                         # post release
-            (?:-(?P<post_n1>[0-9]+))
-            |
-            (?:
-                [-_\.]?
-                (?P<post_l>post|rev|r)
-                [-_\.]?
-                (?P<post_n2>[0-9]+)?
-            )
-        )?
-        (?P<dev>                                          # dev release
-            [-_\.]?
-            (?P<dev_l>dev)
-            [-_\.]?
-            (?P<dev_n>[0-9]+)?
-        )?
-    )
-    (?:\+(?P<local>[a-z0-9]+(?:[-_\.][a-z0-9]+)*))?       # local version
-""",
-    re.VERBOSE | re.IGNORECASE,
-)
-
 
 async def check_update(session: ClientSession, name: str, current: str, output: List[str]) -> None:
     """在线检查更新"""
     result: str = current
-    if match := VERSION_PATTERN.fullmatch(current):
-        current = match.group("release")
+    result_version = current_version = Version(current)
     try:
         async with session.get(f"http://mirrors.aliyun.com/pypi/web/json/{name}") as resp:
             data = await resp.text()
             result: str = json.loads(data)["info"]["version"]
-            if match := VERSION_PATTERN.fullmatch(result):
-                result = match.group("release")
+            result_version = Version(result)
     except Exception as e:
         logger.warning(f"Failed to retrieve latest version of {name}: {e}")
-    if tuple(map(int, str.split(result, "."))) > tuple(map(int, str.split(current, "."))):
+    if result_version > current_version:
         output.append(
             " ".join(
                 [
@@ -88,7 +52,7 @@ async def check_update(session: ClientSession, name: str, current: str, output: 
 
 def get_dist_map() -> Dict[str, str]:
     """获取与项目相关的发行字典"""
-    dist_map: Dict[str, str] = {}
+    dist_map: dict[str, str] = {}
     for dist in importlib.metadata.distributions():
         name: str = dist.metadata["Name"]
         version: str = dist.metadata["Version"]
@@ -215,6 +179,14 @@ class ElizabethService(Service):
                     self.broadcast.postEvent(ApplicationLaunch(app))
             for conn in self.connections.values():
                 app = Ariadne.current(conn.info.account)
+
+                def _disconnect_cb():
+                    from graia.ariadne.event.lifecycle import AccountConnectionFail
+
+                    self.broadcast.postEvent(AccountConnectionFail(app))
+
+                conn._connection_fail = _disconnect_cb
+
                 with enter_context(app=app):
                     self.broadcast.postEvent(AccountLaunch(app))
 

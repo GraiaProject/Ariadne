@@ -14,6 +14,7 @@ dependencies = [
     "graia-amnesia~=0.7.0",
     "creart-graia<1.0.0,>=0.1.5",
     "launart>=0.6.2,<1.0.0",
+    "packaging>=23.0",
 ]
 name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
@@ -160,3 +161,6 @@ target-version = "py38"
 [tool.ruff.isort]
 known-first-party = ["graia"]
 extra-standard-library = ["typing_extensions"]
+
+[tool.ruff.pyupgrade]
+keep-runtime-typing = true

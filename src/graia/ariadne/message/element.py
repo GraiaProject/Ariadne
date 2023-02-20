@@ -36,7 +36,7 @@ class Element(AriadneBaseModel, BaseElement):
     """元素类型"""
 
     def __init__(self, **data):
-        return super().__init__(**data)
+        super().__init__(**data)
 
     def __hash__(self):
         return hash((type(self),) + tuple(self.__dict__.values()))

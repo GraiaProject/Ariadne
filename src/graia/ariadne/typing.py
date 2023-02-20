@@ -43,15 +43,15 @@ T_stop = TypeVar("T_stop")
 T_step = TypeVar("T_step")
 
 
-MessageIndex = Union[Tuple[int, Optional[int]], int]
+MessageIndex: TypeAlias = Union[Tuple[int, Optional[int]], int]
 
-IntStr = Union[int, str]
-AbstractSetIntStr = AbstractSet[IntStr]
-DictIntStrAny = Dict[IntStr, Any]
-DictStrAny = Dict[str, Any]
-MappingIntStrAny = Mapping[IntStr, Any]
-ReprArgs = Sequence[Tuple[Optional[str], Any]]
-Unions = (Union, types.UnionType) if sys.version_info >= (3, 10) else (Union,)
+IntStr: TypeAlias = Union[int, str]
+AbstractSetIntStr: TypeAlias = AbstractSet[IntStr]
+DictIntStrAny: TypeAlias = Dict[IntStr, Any]
+DictStrAny: TypeAlias = Dict[str, Any]
+MappingIntStrAny: TypeAlias = Mapping[IntStr, Any]
+ReprArgs: TypeAlias = Sequence[Tuple[Optional[str], Any]]
+Unions: Tuple[Any, ...] = (Union, types.UnionType) if sys.version_info >= (3, 10) else (Union,)
 
 
 class SendMessageDict(TypedDict):
@@ -114,7 +114,7 @@ class SendMessageAction(Generic[T, R]):
 
 
 @runtime_checkable
-class SendMessageActionProtocol(Protocol, Generic[T_co]):
+class SendMessageActionProtocol(Protocol[T_co]):
     async def param(self, item: SendMessageDict) -> SendMessageDict:
         ...
 
@@ -196,7 +196,10 @@ T_Callable = TypeVar("T_Callable", bound=Callable)
 
 Wrapper: TypeAlias = Callable[[T_Callable], T_Callable]
 
-AnnotatedType = type(Annotated[int, lambda x: x > 0])
+if TYPE_CHECKING:
+    AnnotatedType = type
+else:
+    AnnotatedType = type(Annotated[int, lambda x: x > 0])
 
 ExceptionHook: TypeAlias = Callable[[Type[BaseException], BaseException, Optional[TracebackType]], Any]
 

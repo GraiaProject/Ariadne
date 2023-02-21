@@ -491,10 +491,15 @@ class ForwardNode(AriadneBaseModel):
 
 class DisplayStrategy(AriadneBaseModel):
     title: Optional[str] = None
+    """卡片顶部标题"""
     brief: Optional[str] = None
+    """消息列表预览"""
     source: Optional[str] = None
+    """未知"""
     preview: Optional[List[str]] = None
+    """卡片消息预览 (只显示前 4 条)"""
     summary: Optional[str] = None
+    """卡片底部摘要"""
 
 
 class Forward(Element):

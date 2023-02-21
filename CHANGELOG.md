@@ -2,9 +2,37 @@
 
 ## 未发布的更新
 
+### 新增
+
+`MemberJoinRequestEvent.invitor_id` 邀请申请人入群者
+
+`GroupConfig.mute_all` 是否在全员禁言
+
+`Ariadne.kick_member(block: bool = False)` 是否不再接受该成员加群申请
+
+`Ariadne.get_member_list(cache: bool = True)` 是否使用缓存的群员列表
+
+`DisplayStrategy`, `Forward(display: DisplayStrategy | None = None)` 转发消息的预览策略
+
+`NudgeEvent.subject` 戳一戳上下文
+
+### 改进
+
+带 action 调用 `Ariadne.send_friend_message()` 和 `Ariadne.send_group_message()` 时使用缓存的 `Friend` 和 `Group` 对象。
+
 ### 修复
 
 修复了 `Ariadne.send_message()` 向未知目标发送消息时报错的问题。
+
+修复了 `Forward` 为空时发送失败的问题。
+
+### 弃用
+
+弃用 `ForwardNode.message_id`。
+它从来都不是 `ForwardNode` 显式声明的参数，在接收到的消息中一直为 `None`。
+想复用接收到的消息，请直接将 `MessageEvent` 作为 `Forward` 的参数。
+
+弃用 `NudgeEvent.context_type`, `NudgeEvent.origin_subject_info`, `NudgeEvent.friend_id` 和 `NudgeEvent.group_id`
 
 ## 0.10.3
 

@@ -310,7 +310,7 @@ class GroupConfig(AriadneBaseModel):
     anonymous_chat: bool = False
     """允许匿名聊天"""
 
-    mute_all: bool = False
+    mute_all: bool = Field(False, exclude=True)
     """是否在全员禁言"""
 
 

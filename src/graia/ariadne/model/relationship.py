@@ -52,6 +52,8 @@ class Group(AriadneBaseModel):
     account_perm: MemberPerm = Field(..., alias="permission")
     """你在群中的权限"""
 
+    __kind: Optional[Literal["Group"]] = Field(None, alias="kind")
+
     def __int__(self):
         return self.id
 
@@ -209,6 +211,8 @@ class Friend(AriadneBaseModel):
     remark: str
     """自行设置的代称"""
 
+    __kind: Optional[Literal["Friend"]] = Field(None, alias="kind")
+
     def __int__(self):
         return self.id
 
@@ -257,6 +261,8 @@ class Stranger(AriadneBaseModel):
     remark: str
     """自行设置的代称"""
 
+    __kind: Optional[Literal["Stranger"]] = Field(None, alias="kind")
+
     def __int__(self):
         return self.id
 
@@ -304,6 +310,9 @@ class GroupConfig(AriadneBaseModel):
     anonymous_chat: bool = False
     """允许匿名聊天"""
 
+    mute_all: bool = False
+    """是否在全员禁言"""
+
 
 class MemberInfo(AriadneBaseModel):
     """描述群组成员的可修改状态, 修改需要管理员/群主权限."""
@@ -325,3 +334,5 @@ class Client(AriadneBaseModel):
 
     platform: str
     """平台字符串表示"""
+
+    __kind: Optional[Literal["OtherClient"]] = Field(None, alias="kind")

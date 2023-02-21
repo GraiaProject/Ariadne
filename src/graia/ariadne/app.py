@@ -993,7 +993,7 @@ class Ariadne:
 
     @ariadne_api
     async def kick_member(
-        self, group: Union[Group, int], member: Union[Member, int], message: str = ""
+        self, group: Union[Group, int], member: Union[Member, int], message: str = "", block: bool = False
     ) -> None:
         """
         将目标群组成员从指定群组踢出; 需要具有相应权限(管理员/群主)
@@ -1002,6 +1002,7 @@ class Ariadne:
             group (Union[Group, int]): 指定的群组
             member (Union[Member, int]): 指定的群成员(只能是普通群员或者是管理员, 后者则要求群主权限)
             message (str, optional): 对踢出对象要展示的消息
+            block (bool, optional): 是否不再接受该成员加群申请
 
         Returns:
             None: 没有返回.
@@ -1013,6 +1014,7 @@ class Ariadne:
                 "target": group.id if isinstance(group, Group) else group,
                 "memberId": member.id if isinstance(member, Member) else member,
                 "msg": message,
+                "block": block,
             },
         )
 
@@ -1414,11 +1416,12 @@ class Ariadne:
             raise ValueError(f"Group {group_id} not found.")
 
     @ariadne_api
-    async def get_member_list(self, group: Union[Group, int]) -> List[Member]:
+    async def get_member_list(self, group: Union[Group, int], *, cache: bool = True) -> List[Member]:
         """尝试从已知的群组获取对应成员的列表.
 
         Args:
             group (Union[Group, int]): 已知的群组
+            cache (bool, optional): 是否使用缓存. Defaults to True.
 
         Returns:
             List[Member]: 群内成员的 Member 对象.
@@ -1427,12 +1430,23 @@ class Ariadne:
 
         result = [
             Member.parse_obj(i)
-            for i in await self.connection.call(
-                "memberList",
-                CallMethod.GET,
-                {
-                    "target": group_id,
-                },
+            for i in await (
+                self.connection.call(
+                    "memberList",
+                    CallMethod.GET,
+                    {
+                        "target": group_id,
+                    },
+                )
+                if cache
+                else self.connection.call(
+                    "latestMemberList",
+                    CallMethod.GET,
+                    {
+                        "target": group_id,
+                        "memberIds": [],
+                    },
+                )
             )
         ]
 

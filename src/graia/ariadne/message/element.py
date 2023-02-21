@@ -436,8 +436,24 @@ class ForwardNode(AriadneBaseModel):
     message_chain: Optional["MessageChain"] = Field(None, alias="messageChain")
     """发送的消息链"""
 
-    message_id: Optional[int] = Field(None, alias="messageId")
-    """缓存的消息 ID"""
+    if not TYPE_CHECKING:
+
+        @property
+        def message_id(self) -> None:
+            """缓存的消息 ID"""
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "ForwardNode.message_id is always None and "
+                "deprecated in Ariadne 0.11, scheduled for removal in Ariadne 0.12."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            return None
 
     def __init__(
         self,
@@ -473,6 +489,14 @@ class ForwardNode(AriadneBaseModel):
         super().__init__(**data)
 
 
+class DisplayStrategy(AriadneBaseModel):
+    title: Optional[str] = None
+    brief: Optional[str] = None
+    source: Optional[str] = None
+    preview: Optional[List[str]] = None
+    summary: Optional[str] = None
+
+
 class Forward(Element):
     """
     指示合并转发信息
@@ -485,11 +509,20 @@ class Forward(Element):
     node_list: List[ForwardNode] = Field(default_factory=list, alias="nodeList")
     """转发节点列表"""
 
-    def __init__(self, *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"], **data) -> None:
+    display_strategy: Optional[DisplayStrategy] = Field(None, alias="display")
+    """预览策略"""
+
+    def __init__(
+        self,
+        *nodes: Union[Iterable[ForwardNode], ForwardNode, "MessageEvent"],
+        display: Optional[DisplayStrategy] = None,
+        **data,
+    ) -> None:
         """构建转发消息对象
 
         Args:
             *nodes (List[ForwardNode]): 转发节点的列表
+            display (DisplayStrategy, optional): 预览策略
         """
         from ..event.message import MessageEvent
         from ..model.relationship import Client
@@ -505,6 +538,10 @@ class Forward(Element):
                 else:
                     node_list.extend(i)
             data.update(nodeList=node_list)
+
+        if display:
+            data.update(display=display)
+
         super().__init__(**data)
 
     def __str__(self) -> str:

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import Field, root_validator
 
@@ -20,8 +20,8 @@ from ..dispatcher import (
 )
 from ..message.chain import MessageChain
 from ..message.element import Element
-from ..model import Client, Friend, Group, Member, MemberPerm
-from ..typing import generic_issubclass
+from ..model import Client, Friend, Group, Member, MemberPerm, Stranger
+from ..typing import generic_isinstance, generic_issubclass
 from . import MiraiEvent
 
 
@@ -396,9 +396,6 @@ class NudgeEvent(MiraiEvent):
 
     type: str = "NudgeEvent"
 
-    context_type: Literal["friend", "group"]
-    """戳一戳的位置"""
-
     supplicant: int = Field(..., alias="fromId")
     """动作发出者的 QQ 号"""
 
@@ -411,33 +408,118 @@ class NudgeEvent(MiraiEvent):
     msg_suffix: str = Field(..., alias="suffix")
     """自定义动作内容"""
 
-    origin_subject_info: Dict[str, Any] = Field(..., alias="subject")
-    """原始来源"""
+    subject: Union[Group, Friend, Stranger, Client, Dict[str, Any]] = Field(...)
+    """事件来源上下文"""
 
-    friend_id: Optional[int] = None
-    """好友 QQ 号, 如果为好友间戳一戳"""
+    if not TYPE_CHECKING:
 
-    group_id: Optional[int] = None
-    """群组 QQ 号, 如果为群内戳一戳"""
+        @property
+        def context_type(self) -> Literal["group", "friend", "stranger", "client"]:
+            """戳一戳的位置"""
+            from traceback import format_exception_only
+            from warnings import warn
 
-    def __init__(self, **data: Any) -> None:
-        ctx_type = data["context_type"] = str.lower(data["subject"]["kind"])
-        if ctx_type == "group":
-            data["group_id"] = data["subject"]["id"]
-        else:
-            data["friend_id"] = data["subject"]["id"]
-        super().__init__(**data)
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "NudgeEvent.context_type is deprecated in Ariadne 0.11 "
+                "and scheduled for removal in Ariadne 0.12, "
+                "use NudgeEvent.subject instead."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+
+            if isinstance(self.subject, Group):
+                return "group"
+            elif isinstance(self.subject, Friend):
+                return "friend"
+            elif isinstance(self.subject, Stranger):
+                return "stranger"
+            elif isinstance(self.subject, Client):
+                return "client"
+            else:
+                return self.subject["kind"]
+
+        @property
+        def origin_subject_info(self) -> Dict[str, Any]:
+            """原始来源"""
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "NudgeEvent.origin_subject_info is deprecated in Ariadne 0.11 "
+                "and scheduled for removal in Ariadne 0.12, "
+                "use NudgeEvent.subject instead."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+            return self.subject if isinstance(self.subject, dict) else self.subject.dict()
+
+        @property
+        def friend_id(self) -> Optional[int]:
+            """好友 QQ 号，如果为好友间戳一戳"""
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "NudgeEvent.friend_id is deprecated in Ariadne 0.11 "
+                "and scheduled for removal in Ariadne 0.12, "
+                "use NudgeEvent.subject instead."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+            if isinstance(self.subject, Friend):
+                return int(self.subject)
+            elif isinstance(self.subject, dict) and self.subject["kind"] == "Friend":
+                return self.subject["id"]
+
+        @property
+        def group_id(self) -> Optional[int]:
+            """群组 QQ 号，如果为群内戳一戳"""
+            from traceback import format_exception_only
+            from warnings import warn
+
+            from loguru import logger
+
+            warning = DeprecationWarning(  # FIXME: deprecated
+                "NudgeEvent.group_id is deprecated in Ariadne 0.11 "
+                "and scheduled for removal in Ariadne 0.12, "
+                "use NudgeEvent.subject instead."
+            )
+            warn(warning, stacklevel=2)
+            logger.opt(depth=1).warning("".join(format_exception_only(type(warning), warning)).strip())
+            if isinstance(self.subject, Group):
+                return int(self.subject)
+            elif isinstance(self.subject, dict) and self.subject["kind"] == "Group":
+                return self.subject["id"]
 
     class Dispatcher(AbstractDispatcher):
         @staticmethod
         async def catch(interface: DispatcherInterface):
             from ..app import Ariadne
 
-            event = interface.event
-            if generic_issubclass(Group, interface.annotation) and event.group_id is not None:
-                return await Ariadne.current().get_group(event.group_id, assertion=True, cache=True)
-            if generic_issubclass(Friend, interface.annotation) and event.friend_id is not None:
-                return await Ariadne.current().get_friend(event.friend_id, assertion=True, cache=True)
+            event: NudgeEvent = interface.event
+
+            if isinstance(event.subject, dict):
+                app = Ariadne.current()
+                subject = None
+
+                if event.subject["kind"] == "Group":
+                    subject = await app.get_group(event.subject["id"])
+                elif event.subject["kind"] == "Friend":
+                    subject = await app.get_friend(event.subject["id"])
+
+                if subject is not None:
+                    event.subject = subject
+
+                return subject
+
+            elif generic_isinstance(event.subject, interface.annotation):
+                return event.subject
 
 
 class GroupNameChangeEvent(GroupEvent):
@@ -1014,6 +1096,9 @@ class MemberJoinRequestEvent(RequestEvent, GroupEvent):
 
     group_name: str = Field(..., alias="groupName")
     """申请人申请入群的群名称"""
+
+    inviter_id: Optional[int] = Field(None, alias="invitorId")
+    """邀请该申请人的成员QQ号, 可为 None"""
 
     async def accept(self, message: str = "") -> None:
         """同意对方加入群组.

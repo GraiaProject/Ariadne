@@ -16,6 +16,8 @@
 
 `NudgeEvent.subject` 戳一戳上下文
 
+`AccountConnectionFail` 生命周期事件，在连接错误时被触发（断开连接/连接失败）
+
 ### 改进
 
 带 action 调用 `Ariadne.send_friend_message()` 和 `Ariadne.send_group_message()` 时使用缓存的 `Friend` 和 `Group` 对象。

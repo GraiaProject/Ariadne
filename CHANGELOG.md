@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.11.0
+
 ### 新增
 
 `MemberJoinRequestEvent.invitor_id` 邀请申请人入群者

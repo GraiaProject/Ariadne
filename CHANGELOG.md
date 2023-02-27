@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `Commander` 无法正确处理 `PropagationCancelled` 特殊异常的问题。
+
 ## 0.11.0
 
 ### 新增

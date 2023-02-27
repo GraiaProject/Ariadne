@@ -13,6 +13,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    Final,
     Generic,
     Literal,
     Mapping,
@@ -187,7 +188,7 @@ class _SentinelClass(enum.Enum):
     _Sentinel = object()
 
 
-Sentinel = _SentinelClass._Sentinel
+Sentinel: Final = _SentinelClass._Sentinel
 
 FlagAlias: TypeAlias = Literal[Sentinel]
 MaybeFlag: TypeAlias = Union[Literal[Sentinel], T]

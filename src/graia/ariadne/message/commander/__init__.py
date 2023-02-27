@@ -611,4 +611,4 @@ class Commander:
             done, _ = await asyncio.wait(tasks)
             for task in done:
                 if task.exception() and isinstance(task.exception(), PropagationCancelled):
-                    return
+                    raise PropagationCancelled

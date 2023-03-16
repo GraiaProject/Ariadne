@@ -98,7 +98,7 @@ class QuoteDispatcher(AbstractDispatcher):
         if isinstance(interface.event, (MessageEvent, ActiveMessage)) and generic_issubclass(
             Quote, interface.annotation
         ):
-            return interface.event.quote
+            return Force(interface.event.quote)
 
 
 class SenderDispatcher(AbstractDispatcher):
@@ -170,7 +170,7 @@ class OperatorDispatcher(AbstractDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
         if generic_issubclass(Member, interface.annotation):
-            return interface.event.operator
+            return Force(interface.event.operator)
         elif generic_issubclass(Group, interface.annotation):
             # NOTE: operator 不为 None。因为 operator 可为 None 的事件必有 group 属性，
             # 会由 dispatcher 之前的 GroupDispatcher 处理，不可能进入此处。
@@ -183,6 +183,6 @@ class OperatorMemberDispatcher(AbstractDispatcher):
     @staticmethod
     async def catch(interface: DispatcherInterface):
         if generic_issubclass(Member, interface.annotation):
-            return interface.event.operator if interface.name == "operator" else interface.event.member
+            return Force(interface.event.operator) if interface.name == "operator" else interface.event.member
         elif generic_issubclass(Group, interface.annotation):
             return interface.event.member.group

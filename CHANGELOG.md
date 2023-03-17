@@ -2,6 +2,11 @@
 
 ## 未发布的更新
 
+### 修复
+
+修复了 `NoneDispatcher` 被缓存时，会激进地为所有 `Optional` 值赋值为 `None` 的问题。
+（这修复了 `Optional[Quote]` 等值的分发）
+
 ## 0.11.1
 
 ### 修复

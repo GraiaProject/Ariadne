@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Literal, Optional, Union
 from pydantic import Field, root_validator
 
 from graia.broadcast.entities.dispatcher import BaseDispatcher as AbstractDispatcher
-from graia.broadcast.entities.signatures import Force
 from graia.broadcast.interfaces.dispatcher import DispatcherInterface
 
 from ..connection.util import CallMethod
@@ -517,7 +516,7 @@ class NudgeEvent(MiraiEvent):
                 if subject is not None:
                     event.subject = subject
 
-                return Force(subject)
+                return subject
 
             elif generic_isinstance(event.subject, interface.annotation):
                 return event.subject
@@ -728,7 +727,7 @@ class MemberJoinEvent(GroupEvent):
         @staticmethod
         async def catch(interface: DispatcherInterface["MemberJoinEvent"]):
             if interface.name == "inviter" and generic_issubclass(Member, interface.annotation):
-                return Force(interface.event.inviter)
+                return interface.event.inviter
 
 
 class MemberLeaveEventKick(GroupEvent):

@@ -14,7 +14,7 @@ class InvalidVerifyKey(Exception):
 
 
 class AccountNotFound(Exception):
-    """未能使用所配置的账号激活 sessionKey, 请检查 mirai_session 配置."""
+    """未能使用所配置的账号激活 session key, 请检查配置."""
 
 
 class InvalidSession(Exception):

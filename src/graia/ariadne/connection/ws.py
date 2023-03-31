@@ -46,9 +46,11 @@ class WebsocketConnectionMixin(Transport, ConnectionMixin[T_Info]):
     @t.on(WebsocketReceivedEvent)
     @data_type(str)
     @json_require
-    async def _(self, _: AbstractWebsocketIO, raw: Any) -> None:  # event pass and callback
+    async def _(self, io: AbstractWebsocketIO, raw: Any) -> None:  # event pass and callback
         assert isinstance(raw, dict)
         if "code" in raw:  # something went wrong
+            if raw["code"] in (2, 3, 4):
+                await io.extra(WSConnectionClose)  # Invalidate session to allow reattempt
             validate_response(raw)  # raise it
         sync_id: str = raw.get("syncId", "#")
         data = raw.get("data", None)

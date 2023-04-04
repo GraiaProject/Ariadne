@@ -397,7 +397,8 @@ class Commander:
 
         Args:
             *caster (Callable): 验证器
-            type (Literal["slot", "wildcard", "arg"], optional): 应用验证器的区域, 默认为不是 wildcard 的 Slot.
+            type (Literal["slot", "wildcard", "arg"], optional): \
+                应用验证器的区域, 默认为不是 wildcard 的 Slot.
         """
         assert type in ("slot", "wildcard", "arg")
         validators: List[Callable] = getattr(self, f"_{type}_validators")

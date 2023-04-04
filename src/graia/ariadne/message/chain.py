@@ -192,8 +192,10 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         res = super().get(element_class, count)
         if isinstance(res, (Quote, Source)):
             raise IndexError(
-                "MessageChain.get(Quote/Source) is removed in 0.10.0.\n"
-                "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095",
+                (
+                    "MessageChain.get(Quote/Source) is removed in 0.10.0.\n"
+                    "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095"
+                ),
             )
         return res
 
@@ -357,7 +359,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         Args:
             prefix (str): 要移除的前缀.
             copy (bool, optional): 是否在副本上修改, 默认为 True.
-            skip_header (bool, optional): 是否要忽略 Source 与 Quote 类型查找, 默认为 True. (移除后仍会带上 Source 与 Quote)
+            skip_header (bool, optional): 是否要忽略 Source 与 Quote 类型查找, \
+                默认为 True. (移除后仍会带上 Source 与 Quote)
 
         Returns:
             MessageChain: 修改后的消息链, 若未移除则原样返回.

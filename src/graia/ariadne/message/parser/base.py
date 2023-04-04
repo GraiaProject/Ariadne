@@ -237,7 +237,8 @@ class MatchTemplate(ChainDecorator):
         """初始化
 
         Args:
-            template (List[Union[Type[Element], Element]]): 匹配模板， 可以为 `Element` 类或其 `Union`, `str`, `Plain` 实例
+            template (List[Union[Type[Element], Element]]): \
+                匹配模板，可以为 `Element` 类或其 `Union`, `str`, `Plain` 实例
         """
         self.template: List[Union[Tuple[Type[Element], ...], Element, str]] = []
         for element in template:

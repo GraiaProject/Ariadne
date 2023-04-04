@@ -904,8 +904,10 @@ class Ariadne:
     @ariadne_api
     async def mute_member(self, group: Union[Group, int], member: Union[Member, int], time: int) -> None:
         """
-        在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主); `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正; \
-        当 `time` 小于等于 `0` 时, 不会触发禁言操作; 禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+        在指定群组禁言指定群成员; 需要具有相应权限(管理员/群主);
+        `time` 不得大于 `30*24*60*60=2592000` 或小于 `0`, 否则会自动修正;
+        当 `time` 小于等于 `0` 时, 不会触发禁言操作;
+        禁言对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
 
         Args:
             group (Union[Group, int]): 指定的群组
@@ -934,7 +936,9 @@ class Ariadne:
     @ariadne_api
     async def unmute_member(self, group: Union[Group, int], member: Union[Member, int]) -> None:
         """
-        在指定群组解除对指定群成员的禁言; 需要具有相应权限(管理员/群主); 对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
+        在指定群组解除对指定群成员的禁言;
+        需要具有相应权限(管理员/群主);
+        对象极有可能触发 `PermissionError`, 在这之前请对其进行判断!
 
         Args:
             group (Union[Group, int]): 指定的群组
@@ -1141,9 +1145,11 @@ class Ariadne:
         修改指定群组成员的可修改状态; 需要具有相应权限(管理员/群主).
 
         Args:
-            member (Union[Member, int]): 指定的群组成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
+            member (Union[Member, int]): \
+                指定的群组成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
             info (MemberInfo): 已修改的指定群组成员的可修改状态
-            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+            group (Optional[Union[Group, int]], optional): \
+                如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
 
         Raises:
             TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
@@ -1181,7 +1187,8 @@ class Ariadne:
         Args:
             member (Union[Member, int]): 指定群成员, 可为 Member 实例, 若前设成立, 则不需要提供 group.
             assign (bool): 是否设置群成员为管理员.
-            group (Optional[Union[Group, int]], optional): 如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
+            group (Optional[Union[Group, int]], optional): \
+                如果 member 为 Member 实例, 则不需要提供本项, 否则需要. 默认为 None.
 
         Raises:
             TypeError: 提供了错误的参数, 阅读有关文档得到问题原因
@@ -1561,7 +1568,8 @@ class Ariadne:
 
         Args:
             member (Union[Member, int]): 群员对象.
-            group (Optional[Union[Group, int]], optional): 检索的群. 提供 Member 形式的 member 参数后可以不提供.
+            group (Optional[Union[Group, int]], optional): \
+                检索的群. 提供 Member 形式的 member 参数后可以不提供.
 
         Raises:
             ValueError: 没有提供可检索的群 ID.
@@ -1593,7 +1601,8 @@ class Ariadne:
         """从 消息 ID 提取 消息事件.
 
         Note:
-            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 时, 将尝试使用缓存获得消息事件或以当前事件来源作为 target.
+            后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 时,
+            将尝试使用缓存获得消息事件或以当前事件来源作为 target.
 
         Args:
             message (Union[Source, int]): 指定的消息.
@@ -1663,9 +1672,11 @@ class Ariadne:
             return cast(
                 ActiveFriendMessage,
                 await self.send_message(
-                    await self.get_friend(target, assertion=True, cache=True)
-                    if isinstance(target, int)
-                    else target,
+                    (
+                        await self.get_friend(target, assertion=True, cache=True)
+                        if isinstance(target, int)
+                        else target
+                    ),
                     message,
                     quote=quote or False,
                     action=action,
@@ -1734,9 +1745,11 @@ class Ariadne:
             return cast(
                 ActiveGroupMessage,
                 await self.send_message(
-                    await self.get_group(target, assertion=True, cache=True)
-                    if isinstance(target, int)
-                    else target,
+                    (
+                        await self.get_group(target, assertion=True, cache=True)
+                        if isinstance(target, int)
+                        else target
+                    ),
                     message,
                     quote=quote or False,
                     action=action,
@@ -2030,7 +2043,9 @@ class Ariadne:
         message: Union[MessageEvent, ActiveMessage, Source, int],
         target: Optional[Union[Friend, Group, Member, Stranger, Client, int]] = None,
     ) -> None:
-        """撤回指定的消息; 撤回自己的消息需要在发出后 2 分钟内才能成功撤回; 如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
+        """撤回指定的消息;
+        撤回自己的消息需要在发出后 2 分钟内才能成功撤回;
+        如果在群组内, 需要撤回他人的消息则需要管理员/群主权限.
 
         Note:
             后端 Mirai HTTP API 版本 >= 2.6.0, 仅指定 message 且类型为 Source 或 int 时, \

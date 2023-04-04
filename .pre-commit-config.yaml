@@ -1,8 +1,9 @@
 repos:
   - repo: https://github.com/psf/black
-    rev: '23.1.0'
+    rev: '23.3.0'
     hooks:
       - id: black
+        args: [--preview]
         # It is recommended to specify the latest version of Python
         # supported by your project here, or alternatively use
         # pre-commit's default_language_version, see
@@ -10,7 +11,7 @@ repos:
         language_version: python3.8
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.259'  # Use the sha / tag you want to point at
+    rev: 'v0.0.260'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
         args: [--fix]

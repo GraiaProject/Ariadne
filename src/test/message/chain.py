@@ -145,7 +145,11 @@ def test_persistent():
     )
 
     assert MessageChain.from_persistent_string(
-        r'[mirai:Forward:\u005b{"sender_id": 1710564415, "time": 1662203083, "sender_name": "\u65b9\u7cd6\u8d77\u53f8", "message_chain": \u005b{"type": "Plain", "text": "123"}\u005d, "message_id": null},{"sender_id": 1710564415, "time": 1662694196, "sender_name": "\u65b9\u7cd6\u8d77\u53f8", "message_chain": \u005b{"type": "Plain", "text": "test"}\u005d, "message_id": null}\u005d]'
+        r'[mirai:Forward:\u005b{"sender_id": 1710564415, "time": 1662203083, "sender_name":'
+        r' "\u65b9\u7cd6\u8d77\u53f8", "message_chain": \u005b{"type": "Plain", "text": "123"}\u005d,'
+        r' "message_id": null},{"sender_id": 1710564415, "time": 1662694196, "sender_name":'
+        r' "\u65b9\u7cd6\u8d77\u53f8", "message_chain": \u005b{"type": "Plain", "text": "test"}\u005d,'
+        r' "message_id": null}\u005d]'
     )
 
     assert msg_chain.as_persistent_string(include=[At]) == '[mirai:At:{"target":12345}]'

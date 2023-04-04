@@ -58,7 +58,10 @@ async def main():
         )
 
     @cmd.command(
-        r"[luckperm | lp] group {0 | target} [permission | perm] set {perm: List\[MessageChain\]} {value = True}",
+        (
+            r"[luckperm | lp] group {0 | target} [permission | perm] set {perm: List\[MessageChain\]} {value"
+            r" = True}"
+        ),
         {
             "scope": Arg(
                 "[@scope|-s] {scope}",

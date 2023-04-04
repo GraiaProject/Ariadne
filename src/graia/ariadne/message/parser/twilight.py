@@ -679,7 +679,8 @@ class Twilight(Generic[T_Sparkle], BaseDispatcher):
         """从 shell 式命令生成 Twilight.
 
         Args:
-            command (str): 命令, 使用 {param} 或 {0} 的形式创建参数占位符. 使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
+            command (str): 命令, 使用 {param} 或 {0} 的形式创建参数占位符. \
+                使用 [a|b] 创建选择匹配. 使用 反斜杠 转义.
 
             extra_args (List[Match], optional): 可选的额外 Match 列表.
 

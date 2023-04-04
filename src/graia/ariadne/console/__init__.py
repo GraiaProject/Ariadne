@@ -54,10 +54,14 @@ class Console:
             默认为 "{library_name} {graia_ariadne_version}>".
             r_prompt (AnyFormattedText, optional): 右侧提示, 可使用 f-string 形式的格式化字符串. 默认为空.
             style (Style, optional): 输入提示的格式, 详见 prompt_toolkit 的介绍.
-            extra_data_getter (Iterable[() -> Dict[str, Any], optional): 额外的 Callable, 用于生成 prompt 的格式化数据.
-            replace_logger (bool, optional): 是否尝试替换 loguru 的 0 号 handler (sys.stderr) 为 StdoutProxy. 默认为 True.
-            listen_launch (bool, optional): 是否监听 Ariadne 的 ApplicationLaunched 事件并启动自身, 默认为 True.
-            listen_shutdown (bool, optional): 是否监听 Ariadne 的 ApplicationShutdowned 事件并停止自身, 默认为 True.
+            extra_data_getter (Iterable[() -> Dict[str, Any], optional): \
+                额外的 Callable, 用于生成 prompt 的格式化数据.
+            replace_logger (bool, optional): \
+                是否尝试替换 loguru 的 0 号 handler (sys.stderr) 为 StdoutProxy. 默认为 True.
+            listen_launch (bool, optional): \
+                是否监听 Ariadne 的 ApplicationLaunched 事件并启动自身, 默认为 True.
+            listen_shutdown (bool, optional): \
+                是否监听 Ariadne 的 ApplicationShutdowned 事件并停止自身, 默认为 True.
         """
         self.broadcast = broadcast
 

@@ -139,3 +139,5 @@ tmp/
 *.temp
 
 release-notes.md
+
+.pdm-python

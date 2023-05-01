@@ -1964,7 +1964,8 @@ class Ariadne:
             if quote:
                 if isinstance(target, MessageEvent):
                     data["quote"] = target.source
-                raise TypeError("Passing `quote=True` is only valid when passing a MessageEvent.")
+                else:
+                    raise TypeError("Passing `quote=True` is only valid when passing a MessageEvent.")
         elif isinstance(quote, (int, Source)):
             data["quote"] = quote
         elif isinstance(quote, MessageChain):

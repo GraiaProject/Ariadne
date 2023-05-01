@@ -33,7 +33,7 @@ class HttpServerConnection(ConnectionMixin[HttpServerInfo], Transport):
     async def handle_request(self, io: AbstractServerRequestIO):
         req: HttpRequest = await io.extra(HttpRequest)
         if req.headers.get("qq") != str(self.info.account):
-            return
+            return "Not registered account", {"status": 403}
         for k, v in self.info.headers.items():
             if req.headers.get(k) != v:
                 return "Authorization failed", {"status": 401}

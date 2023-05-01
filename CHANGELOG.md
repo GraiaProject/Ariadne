@@ -2,6 +2,11 @@
 
 ## 未发布的更新
 
+### 修复
+
+- 修复了 `Ariadne.send_message` 在 `quote = True` 时永远会引发 `TypeError` 的问题 ([#229](https://github.com/GraiaProject/Ariadne/issues/229))
+- 使用 HttpServer 时，传入的 qq header 有误会返回 403 而非引发 500 Internal Error ([#230](https://github.com/GraiaProject/Ariadne/issues/230))
+
 ## 0.11.3
 
 ### 修复

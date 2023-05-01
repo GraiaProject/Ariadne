@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.11.4
+
 ### 修复
 
 - 修复了 `Ariadne.send_message` 在 `quote = True` 时永远会引发 `TypeError` 的问题 ([#229](https://github.com/GraiaProject/Ariadne/issues/229))

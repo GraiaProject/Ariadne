@@ -3,6 +3,7 @@ from typing import Optional, TypeVar, Union, overload
 
 from ..app import Ariadne
 from ..event.message import ActiveMessage
+from ..exception import RemoteException, UnknownError, UnknownTarget
 from ..typing import SendMessageAction, SendMessageException
 
 Exc_T = TypeVar("Exc_T", bound=SendMessageException)
@@ -77,9 +78,13 @@ class Safe(SendMessageAction):
 
         for type in [AtAll, At, Poke, Forward, MultimediaElement]:
             convert(chain, type)
-            val = await ariadne.send_message(**item.send_data, action=Ignore)  # type: ignore
-            if val is not None:
-                return val
+            try:
+                val = await ariadne.send_message(**item.send_data, action=Strict)  # type: ignore
+            except (UnknownTarget, RemoteException, UnknownError):  # 这些错误可以继续重试
+                continue
+            except SendMessageException:  # 其他错误
+                break
+            return val
 
         if not ignore:
             raise item

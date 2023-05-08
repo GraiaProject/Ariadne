@@ -2,6 +2,10 @@
 
 ## 未发布的更新
 
+### 修复
+
+`Safe` 发送动作仅会捕获部分异常并进行重试，而非全部捕获。([#234](https://github.com/GraiaProject/Ariadne/issues/234))
+
 ## 0.11.4
 
 ### 修复

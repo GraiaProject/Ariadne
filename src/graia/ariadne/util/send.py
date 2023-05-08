@@ -47,8 +47,13 @@ class Safe(SendMessageAction):
 
     行为:
     在第一次尝试失败后先移除 quote,
-    之后每次失败时按顺序替换元素为其asDisplay: AtAll, At, Poke, Forward, MultimediaElement
-    若最后还是失败 (AccountMuted 等), 则会引发原始异常 (通过传入 ignore 决定)
+    之后每次失败时按顺序替换元素为其 str 形式: AtAll, At, Poke, Forward, MultimediaElement
+
+    仅会对以下错误进行重试:
+
+    - `UnknownTarget` (指向对象不存在，可能由移除成员等行为引发竞争)
+    - `RemoteException` (网络问题)
+    - `UnknownError` (其他由 RPC 引发的未知错误)
     """
 
     def __init__(self, ignore: bool = False) -> None:

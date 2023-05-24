@@ -161,6 +161,3 @@ target-version = "py38"
 [tool.ruff.isort]
 known-first-party = ["graia"]
 extra-standard-library = ["typing_extensions"]
-
-[tool.ruff.pyupgrade]
-keep-runtime-typing = true

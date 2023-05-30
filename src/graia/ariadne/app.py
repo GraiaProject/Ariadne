@@ -1502,7 +1502,7 @@ class Ariadne:
         )
 
         await asyncio.gather(
-            interface.set(f"account.{self.account}.group.{group_id}", result, timedelta(seconds=120)),
+            interface.set(f"account.{self.account}.group.{group_id}", result.group, timedelta(seconds=120)),
             interface.set(key, result, timedelta(seconds=120)),
         )
 

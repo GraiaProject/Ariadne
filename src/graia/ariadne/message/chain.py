@@ -192,10 +192,8 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         res = super().get(element_class, count)
         if isinstance(res, (Quote, Source)):
             raise IndexError(
-                (
-                    "MessageChain.get(Quote/Source) is removed in 0.10.0.\n"
-                    "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095"
-                ),
+                "MessageChain.get(Quote/Source) is removed in 0.10.0.\n"
+                "See https://github.com/GraiaProject/Ariadne/blob/dev/CHANGELOG.md#095",
             )
         return res
 

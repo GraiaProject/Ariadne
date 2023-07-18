@@ -2,7 +2,7 @@ ci:
   autoupdate_commit_msg: "chore(deps,pre-commit.ci): bump"
 repos:
   - repo: https://github.com/psf/black
-    rev: '23.3.0'
+    rev: '23.7.0'
     hooks:
       - id: black
         args: [--preview]
@@ -13,7 +13,7 @@ repos:
         language_version: python3.8
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.0.277'  # Use the sha / tag you want to point at
+    rev: 'v0.0.278'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
         args: [--fix]

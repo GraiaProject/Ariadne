@@ -178,7 +178,7 @@ class TwilightHelpManager:
 
     def __init__(self, name: str, display_name: Optional[str] = AUTO_ID):
         self.name: str = name
-        self.help_map: Dict[str, "Twilight"] = {}
+        self.help_map: Dict[str, Twilight] = {}
         if display_name == self.AUTO_ID:
             self.display_name = None if name.startswith(("global", "local", "_")) else name
         else:

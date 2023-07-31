@@ -13,7 +13,7 @@ repos:
         language_version: python3.8
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.0.280'  # Use the sha / tag you want to point at
+    rev: 'v0.0.281'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
         args: [--fix]

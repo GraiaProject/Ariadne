@@ -5,6 +5,7 @@ import json
 from typing import Coroutine, Dict, Iterable, List, Tuple, Type, overload
 
 from aiohttp import ClientSession
+from creart import it
 from launart import Launart, Service
 from loguru import logger
 from packaging.version import Version
@@ -242,7 +243,7 @@ class ElizabethService(Service):
         Returns:
             asyncio.AbstractEventLoop: 事件循环
         """
-        return self.broadcast.loop
+        return it(asyncio.AbstractEventLoop)
 
     @overload
     def get_interface(self, interface_type: Type[ConnectionInterface]) -> ConnectionInterface:

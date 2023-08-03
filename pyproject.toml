@@ -7,13 +7,13 @@ authors = [
 ]
 requires-python = ">=3.8,<4.0"
 dependencies = [
-    "graia-broadcast~=0.19",
+    "graia-broadcast>=0.19,<0.21",
     "aiohttp~=3.8",
     "pydantic~=1.9",
     "typing-extensions>=4.4,<5.0",
     "graia-amnesia~=0.7.0",
-    "creart-graia<1.0.0,>=0.1.5",
-    "launart>=0.6.2,<1.0.0",
+    "creart-graia==0.1.5",
+    "launart~=0.6.2",
     "packaging>=23.0",
 ]
 name = "graia-ariadne"
@@ -62,7 +62,7 @@ dev = [
     "devtools>=0.9",
     "pre-commit<3.0,>=2.20",
     "mkdocstrings[python]<1.0.0,>=0.19.0",
-    "mkdocs-material<9.0.0,>=8.4.0",
+    "mkdocs-material>=8.4.0",
     "mkdocs-gen-files<1.0.0,>=0.3.5",
     "mkdocs-section-index<1.0.0,>=0.3.4",
     "mkdocs-literate-nav<1.0.0,>=0.4.1",

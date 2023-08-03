@@ -96,11 +96,11 @@ class Safe(SendMessageAction):
 
     @overload
     @staticmethod
-    async def exception(s, i):
+    async def exception(s, i):  # sourcery skip # pyright: ignore
         ...
 
     @overload
-    async def exception(s, i):  # sourcery skip: instance-method-first-arg-name
+    async def exception(s, i):  # sourcery skip # pyright: ignore
         ...
 
     async def exception(s: Union["Safe", Exc_T], i: Optional[Exc_T] = None):  # type: ignore

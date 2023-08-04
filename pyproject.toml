@@ -46,10 +46,10 @@ commander = "graia.ariadne.message.commander.creart:CommanderCreator"
 commander_behaviour = "graia.ariadne.message.commander.creart:CommanderBehaviourCreator"
 
 [project.optional-dependencies]
-standard = ["richuru~=0.1", "graia-scheduler~=0.1.1", "graia-saya~=0.0"]
-graia = ["graia-scheduler~=0.1.1", "graia-saya~=0.0"]
+standard = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya>=0.0.18,<1.0"]
+graia = ["graia-scheduler~=0.2.0", "graia-saya>=0.0.18,<1.0"]
 fastapi = ["fastapi<1.0.0,>=0.74.1", "uvicorn[standard]<1.0.0,>=0.17.5"]
-full = ["richuru~=0.1", "graia-scheduler~=0.1.1", "graia-saya~=0.0"]
+full = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya>=0.0.18,<1.0"]
 
 [tool.pdm]
 
@@ -68,10 +68,10 @@ dev = [
     "mkdocs-literate-nav<1.0.0,>=0.4.1",
     "ipykernel<7.0.0,>=6.15.1",
     "richuru<1.0.0,>=0.1.1",
-    "graia-scheduler<1.0,>=0.0",
+    "graia-scheduler<1.0,>=0.2",
     "fastapi<1.0.0,>=0.79.0",
     "uvicorn[standard]<1.0.0,>=0.18.2",
-    "graia-saya>=0.0.16",
+    "graia-saya>=0.0.18",
     "ruff>=0.0.132",
 ]
 

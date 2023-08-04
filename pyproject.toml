@@ -7,14 +7,14 @@ authors = [
 ]
 requires-python = ">=3.8,<4.0"
 dependencies = [
-    "graia-broadcast>=0.22.1,<0.23",
+    "graia-broadcast~=0.23.0",
     "aiohttp~=3.8",
     "pydantic~=1.9",
     "typing-extensions>=4.4,<5.0",
     "graia-amnesia~=0.7.0",
-    "creart-graia @ git+https://github.com/GraiaProject/creart-graia.git",
-    "launart~=0.6.2",
+    "launart>=0.6.4,<0.7",
     "packaging>=23.0",
+    "creart~=0.3.0",
 ]
 name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
@@ -83,8 +83,8 @@ source = "file"
 path = "src/graia/ariadne/__init__.py"
 
 [build-system]
-requires = ["pdm-pep517>=1.0.0"]
-build-backend = "pdm.pep517.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.black]
 line-length = 110

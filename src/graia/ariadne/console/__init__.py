@@ -3,8 +3,10 @@
 注意, 本实现并不 robust, 但是可以使用
 """
 
+import asyncio
 import contextlib
 import importlib.metadata
+from creart import it
 import sys
 from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
@@ -173,7 +175,7 @@ class Console:
                 if interface.annotation is Broadcast:
                     return self.console.broadcast
                 if interface.annotation is AbstractEventLoop:
-                    return self.console.broadcast.loop
+                    return asyncio.get_running_loop()
 
         while self.running:
             try:
@@ -214,7 +216,7 @@ class Console:
                     logger.remove(0)
                 self.handler_id = logger.add(StdoutProxy(raw=True))  # type: ignore
 
-            self.task = self.broadcast.loop.create_task(self.loop())
+            self.task = it(AbstractEventLoop).create_task(self.loop())
 
     def stop(self):
         """提示 Console 停止, 非异步, 幂等"""

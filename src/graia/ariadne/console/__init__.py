@@ -6,12 +6,12 @@
 import asyncio
 import contextlib
 import importlib.metadata
-from creart import it
 import sys
 from asyncio.events import AbstractEventLoop
 from asyncio.tasks import Task
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
+from creart import it
 from loguru import logger
 from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.patch_stdout import StdoutProxy

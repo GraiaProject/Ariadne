@@ -2,6 +2,8 @@
 
 ## 未发布的更新
 
+## 0.11.7
+
 ### 修复
 
 - 通过 `creart` 获得 `asyncio.AbstractEventLoop`

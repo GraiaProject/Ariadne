@@ -7,14 +7,14 @@ authors = [
 ]
 requires-python = ">=3.8,<4.0"
 dependencies = [
-    "graia-broadcast>=0.19,<0.21",
+    "graia-broadcast~=0.23.0",
     "aiohttp~=3.8",
     "pydantic~=1.9",
     "typing-extensions>=4.4,<5.0",
     "graia-amnesia~=0.7.0",
-    "creart-graia==0.1.5",
-    "launart~=0.6.2",
+    "launart>=0.6.4,<0.7",
     "packaging>=23.0",
+    "creart~=0.3.0",
 ]
 name = "graia-ariadne"
 description = "Another elegant Python QQ Bot framework for mirai and mirai-api-http v2."
@@ -46,10 +46,10 @@ commander = "graia.ariadne.message.commander.creart:CommanderCreator"
 commander_behaviour = "graia.ariadne.message.commander.creart:CommanderBehaviourCreator"
 
 [project.optional-dependencies]
-standard = ["richuru~=0.1", "graia-scheduler~=0.1.1", "graia-saya~=0.0"]
-graia = ["graia-scheduler~=0.1.1", "graia-saya~=0.0"]
+standard = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya~=0.0.18"]
+graia = ["graia-scheduler~=0.2.0", "graia-saya~=0.0.18"]
 fastapi = ["fastapi<1.0.0,>=0.74.1", "uvicorn[standard]<1.0.0,>=0.17.5"]
-full = ["richuru~=0.1", "graia-scheduler~=0.1.1", "graia-saya~=0.0"]
+full = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya~=0.0.18"]
 
 [tool.pdm]
 
@@ -68,10 +68,10 @@ dev = [
     "mkdocs-literate-nav<1.0.0,>=0.4.1",
     "ipykernel<7.0.0,>=6.15.1",
     "richuru<1.0.0,>=0.1.1",
-    "graia-scheduler<1.0,>=0.0",
+    "graia-scheduler<1.0,>=0.2",
     "fastapi<1.0.0,>=0.79.0",
     "uvicorn[standard]<1.0.0,>=0.18.2",
-    "graia-saya>=0.0.16",
+    "graia-saya>=0.0.18",
     "ruff>=0.0.132",
 ]
 
@@ -83,8 +83,8 @@ source = "file"
 path = "src/graia/ariadne/__init__.py"
 
 [build-system]
-requires = ["pdm-pep517>=1.0.0"]
-build-backend = "pdm.pep517.api"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [tool.black]
 line-length = 110
@@ -154,7 +154,6 @@ extend-exclude = [
     "gen_ref.py",
     "extract-release-notes.py"
 ]
-per-file-ignores = {}
 
 target-version = "py38"
 

@@ -2,6 +2,11 @@
 
 ## 未发布的更新
 
+### 修复
+
+- 通过 `creart` 获得 `asyncio.AbstractEventLoop`
+- 提高 graia 基建依赖版本
+
 ## 0.11.6
 
 ### 修复

@@ -608,7 +608,7 @@ class Commander:
             tasks: List[asyncio.Task] = []
             for entry, param in execution:
                 commander_param_ctx.set(param)
-                tasks.append(self.broadcast.loop.create_task(self.broadcast.Executor(entry, dispatchers)))
+                tasks.append(asyncio.create_task(self.broadcast.Executor(entry, dispatchers)))
             done, _ = await asyncio.wait(tasks)
             for task in done:
                 if task.exception() and isinstance(task.exception(), PropagationCancelled):

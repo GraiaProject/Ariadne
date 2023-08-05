@@ -309,7 +309,7 @@ class Ariadne:
             raise ValueError("No account specified.")
         cls._patch_launch_manager()
         try:
-            cls.launch_manager.launch_blocking(loop=cls.service.loop, stop_signal=stop_signals)
+            cls.launch_manager.launch_blocking(stop_signal=stop_signals)
         except asyncio.CancelledError:
             logger.info("Launch manager exited.", style="red")
 

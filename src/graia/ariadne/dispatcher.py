@@ -43,7 +43,7 @@ class ContextDispatcher(AbstractDispatcher):
             return Ariadne.service.broadcast
 
         if generic_issubclass(asyncio.AbstractEventLoop, interface.annotation):
-            return Ariadne.service.broadcast.loop
+            return Ariadne.service.loop
 
         if generic_issubclass(Ariadne, interface.annotation):
             return Ariadne.current()

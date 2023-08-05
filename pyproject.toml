@@ -46,10 +46,10 @@ commander = "graia.ariadne.message.commander.creart:CommanderCreator"
 commander_behaviour = "graia.ariadne.message.commander.creart:CommanderBehaviourCreator"
 
 [project.optional-dependencies]
-standard = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya>=0.0.18,<1.0"]
-graia = ["graia-scheduler~=0.2.0", "graia-saya>=0.0.18,<1.0"]
+standard = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya~=0.0.18"]
+graia = ["graia-scheduler~=0.2.0", "graia-saya~=0.0.18"]
 fastapi = ["fastapi<1.0.0,>=0.74.1", "uvicorn[standard]<1.0.0,>=0.17.5"]
-full = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya>=0.0.18,<1.0"]
+full = ["richuru~=0.1", "graia-scheduler~=0.2.0", "graia-saya~=0.0.18"]
 
 [tool.pdm]
 

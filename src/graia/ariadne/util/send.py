@@ -1,4 +1,5 @@
 """本模块包含许多用于 Ariadne.SendMessage 的 action 函数"""
+
 from typing import Optional, TypeVar, Union, overload
 
 from ..app import Ariadne
@@ -61,12 +62,10 @@ class Safe(SendMessageAction):
 
     @overload
     @staticmethod
-    async def exception(item) -> ActiveMessage:
-        ...
+    async def exception(item) -> ActiveMessage: ...
 
     @overload
-    async def exception(self, item) -> ActiveMessage:
-        ...
+    async def exception(self, item) -> ActiveMessage: ...
 
     @staticmethod
     async def _handle(item: SendMessageException, ignore: bool):

@@ -147,17 +147,15 @@ class WebsocketServerConnection(WebsocketConnectionMixin[WebsocketServerInfo]):
             if req.query_params.get(k) != v:
                 return await io.extra(WSConnectionClose)
         await io.extra(WSConnectionAccept)
-        await io.send(
-            {
-                "syncId": "#",
-                "command": "verify",
-                "content": {
-                    "verifyKey": self.info.verify_key,
-                    "sessionKey": None,
-                    "qq": self.info.account,
-                },
-            }
-        )
+        await io.send({
+            "syncId": "#",
+            "command": "verify",
+            "content": {
+                "verifyKey": self.info.verify_key,
+                "sessionKey": None,
+                "qq": self.info.account,
+            },
+        })
         self.ws_io = io
 
 

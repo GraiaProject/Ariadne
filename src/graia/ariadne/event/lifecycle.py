@@ -1,4 +1,5 @@
 """Ariadne, Adapter 生命周期相关事件"""
+
 import typing
 
 from graia.broadcast.entities.event import Dispatchable

@@ -1,4 +1,5 @@
 """用于 Ariadne 数据模型的工具类."""
+
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Literal, Union
 from typing_extensions import NotRequired, TypedDict

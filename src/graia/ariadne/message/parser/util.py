@@ -1,4 +1,5 @@
 """消息链处理器用到的工具函数, 类"""
+
 import argparse
 import inspect
 import re
@@ -225,8 +226,7 @@ class TwilightHelpManager:
         *,
         prefix_src: Literal["brief", "usage", "description"] = "brief",
         fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
-    ) -> str:
-        ...
+    ) -> str: ...
 
     @overload
     def get_help(
@@ -237,8 +237,7 @@ class TwilightHelpManager:
         prefix_src: Literal["brief", "usage", "description"] = "brief",
         fmt_func: Callable[[str], T],
         fmt_cls: Type[argparse.HelpFormatter] = argparse.HelpFormatter,
-    ) -> T:
-        ...
+    ) -> T: ...
 
     def get_help(
         self,

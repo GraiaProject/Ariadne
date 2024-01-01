@@ -1,4 +1,5 @@
 """Saya 相关的工具"""
+
 from __future__ import annotations
 
 import inspect

@@ -41,14 +41,12 @@ class ConnectionStatus(BaseConnectionStatus, LaunchableStatus):
 
     def __repr__(self) -> str:
         return "<ConnectionStatus {}>".format(
-            " ".join(
-                [
-                    f"connected={self.connected}",
-                    f"alive={self.alive}",
-                    f"verified={self.session_key is not None}",
-                    f"stage={self.stage}",
-                ]
-            )
+            " ".join([
+                f"connected={self.connected}",
+                f"alive={self.alive}",
+                f"verified={self.session_key is not None}",
+                f"stage={self.stage}",
+            ])
         )
 
 
@@ -70,14 +68,12 @@ class ConnectionMixin(Launchable, Generic[T_Info]):
         return {}
 
     def __init__(self, info: T_Info) -> None:
-        self.id = ".".join(
-            [
-                "elizabeth",
-                "connection",
-                str(info.account),
-                camel_to_snake(self.__class__.__qualname__),
-            ]
-        )
+        self.id = ".".join([
+            "elizabeth",
+            "connection",
+            str(info.account),
+            camel_to_snake(self.__class__.__qualname__),
+        ])
         self.info = info
         self.fallback = None
         self.event_callbacks = []

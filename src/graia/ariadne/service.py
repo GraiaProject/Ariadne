@@ -1,4 +1,5 @@
 """Ariadne 的 launart 服务相关"""
+
 import asyncio
 import importlib.metadata
 import json
@@ -41,13 +42,11 @@ async def check_update(session: ClientSession, name: str, current: str, output: 
         logger.warning(f"Failed to retrieve latest version of {name}: {e}")
     if result_version > current_version:
         output.append(
-            " ".join(
-                [
-                    f"[cyan]{name}[/]:" if name.startswith("graiax-") else f"[magenta]{name}[/]:",
-                    f"[green]{current}[/]",
-                    f"-> [yellow]{result}[/]",
-                ]
-            )
+            " ".join([
+                f"[cyan]{name}[/]:" if name.startswith("graiax-") else f"[magenta]{name}[/]:",
+                f"[green]{current}[/]",
+                f"-> [yellow]{result}[/]",
+            ])
         )
 
 
@@ -95,12 +94,10 @@ class ElizabethService(Service):
         output: List[str] = [""]
         dist_map: Dict[str, str] = get_dist_map()
         output.extend(
-            " ".join(
-                [
-                    f"[blue]{name}[/]:" if name.startswith("graiax-") else f"[magenta]{name}[/]:",
-                    f"[green]{version}[/]",
-                ]
-            )
+            " ".join([
+                f"[blue]{name}[/]:" if name.startswith("graiax-") else f"[magenta]{name}[/]:",
+                f"[green]{version}[/]",
+            ])
             for name, version in dist_map.items()
         )
         output.sort()
@@ -246,12 +243,10 @@ class ElizabethService(Service):
         return it(asyncio.AbstractEventLoop)
 
     @overload
-    def get_interface(self, interface_type: Type[ConnectionInterface]) -> ConnectionInterface:
-        ...
+    def get_interface(self, interface_type: Type[ConnectionInterface]) -> ConnectionInterface: ...
 
     @overload
-    def get_interface(self, interface_type: type) -> None:
-        ...
+    def get_interface(self, interface_type: type) -> None: ...
 
     def get_interface(self, interface_type: type):
         if interface_type is ConnectionInterface:

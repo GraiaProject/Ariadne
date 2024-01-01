@@ -1,6 +1,5 @@
 """Ariadne 消息相关的导入集合"""
 
-
 from ..message import Quote as Quote
 from ..message import Source as Source
 from ..message.chain import MessageChain as MessageChain

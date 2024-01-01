@@ -168,13 +168,13 @@ class CoolDown(BaseDispatcher, Generic[T_SourceKey]):
 
         @overload
         @contextlib.asynccontextmanager
-        async def trigger(self, target: int) -> AsyncGenerator[Tuple[Optional[datetime], bool], None]:
-            ...
+        async def trigger(self, target: int) -> AsyncGenerator[Tuple[Optional[datetime], bool], None]: ...
 
         @overload
         @contextlib.asynccontextmanager
-        async def trigger(self, target: int, type: Type[T_Time]) -> AsyncGenerator[Tuple[T_Time, bool], None]:
-            ...
+        async def trigger(
+            self, target: int, type: Type[T_Time]
+        ) -> AsyncGenerator[Tuple[T_Time, bool], None]: ...
 
     @contextlib.asynccontextmanager
     async def trigger(

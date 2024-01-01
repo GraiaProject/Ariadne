@@ -22,8 +22,7 @@ if __name__ == "__main__":
         for _ in range(handles):
 
             @cmd.command(".test foo bar fox mop {v}")
-            def _(v: At):
-                ...
+            def _(v: At): ...
 
         async def disp(entry, dispatchers):
             debug(dispatchers[0].data)
@@ -34,8 +33,7 @@ if __name__ == "__main__":
 
         await cmd.execute(msg)
 
-        async def a(*args, **kwargs):
-            ...
+        async def a(*args, **kwargs): ...
 
         cmd.broadcast.Executor = a
 

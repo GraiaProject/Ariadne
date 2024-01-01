@@ -1,4 +1,5 @@
 """Ariadne 控制台对 Saya 封装的 Behaviour 与 Schema"""
+
 from dataclasses import dataclass, field
 from typing import Callable, List
 

@@ -1,4 +1,5 @@
 """基于 format string 的消息链格式化器"""
+
 from __future__ import annotations
 
 import string

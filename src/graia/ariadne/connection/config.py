@@ -87,13 +87,11 @@ class ConfigTypedDict(TypedDict):
 
 
 @overload
-def from_obj(obj: Sequence[ConfigTypedDict]) -> List["Ariadne"]:
-    ...
+def from_obj(obj: Sequence[ConfigTypedDict]) -> List["Ariadne"]: ...
 
 
 @overload
-def from_obj(obj: ConfigTypedDict) -> "Ariadne":
-    ...
+def from_obj(obj: ConfigTypedDict) -> "Ariadne": ...
 
 
 def from_obj(obj: Union[ConfigTypedDict, Sequence[ConfigTypedDict]]) -> Union[List["Ariadne"], "Ariadne"]:

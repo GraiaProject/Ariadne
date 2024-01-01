@@ -1,4 +1,5 @@
 """Ariadne 的事件"""
+
 from graia.broadcast import Dispatchable
 
 from ..dispatcher import BaseDispatcher

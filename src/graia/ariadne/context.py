@@ -1,4 +1,5 @@
 """本模块创建了 Ariadne 中的上下文变量"""
+
 from __future__ import annotations
 
 from contextlib import contextmanager, suppress

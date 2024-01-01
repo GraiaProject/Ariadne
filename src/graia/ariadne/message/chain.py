@@ -1,4 +1,5 @@
 """Ariadne 消息链的实现"""
+
 import re
 from copy import deepcopy
 from typing import (
@@ -109,12 +110,10 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return cls(cls.build_chain(obj), inline=True)
 
     @overload
-    def __init__(self, __root__: Sequence[Element], *, inline: Literal[True]) -> None:
-        ...
+    def __init__(self, __root__: Sequence[Element], *, inline: Literal[True]) -> None: ...
 
     @overload
-    def __init__(self, *elements: MessageContainer, inline: Literal[False] = False) -> None:
-        ...
+    def __init__(self, *elements: MessageContainer, inline: Literal[False] = False) -> None: ...
 
     def __init__(
         self,
@@ -146,20 +145,16 @@ class MessageChain(BaseMessageChain, AriadneBaseModel):
         return [(None, list(self.content))]
 
     @overload
-    def __getitem__(self, item: Tuple[Type[Element_T], int]) -> List[Element_T]:
-        ...
+    def __getitem__(self, item: Tuple[Type[Element_T], int]) -> List[Element_T]: ...
 
     @overload
-    def __getitem__(self, item: Type[Element_T]) -> List[Element_T]:
-        ...
+    def __getitem__(self, item: Type[Element_T]) -> List[Element_T]: ...
 
     @overload
-    def __getitem__(self, item: int) -> Element:
-        ...
+    def __getitem__(self, item: int) -> Element: ...
 
     @overload
-    def __getitem__(self, item: slice) -> Self:
-        ...
+    def __getitem__(self, item: slice) -> Self: ...
 
     def __getitem__(self, item: Union[Tuple[Type[Element], int], Type[Element], int, slice]) -> Any:
         """

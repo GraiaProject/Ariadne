@@ -1,6 +1,5 @@
 """本模块提供 Ariadne 内部使用的小工具, 以及方便的辅助模块."""
 
-
 # Utility Layout
 import functools
 import inspect

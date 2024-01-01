@@ -1,6 +1,5 @@
 """Ariadne 的类型标注"""
 
-
 import contextlib
 import enum
 import sys
@@ -116,14 +115,11 @@ class SendMessageAction(Generic[T, R]):
 
 @runtime_checkable
 class SendMessageActionProtocol(Protocol[T_co]):
-    async def param(self, item: SendMessageDict) -> SendMessageDict:
-        ...
+    async def param(self, item: SendMessageDict) -> SendMessageDict: ...
 
-    async def result(self, item: "ActiveMessage") -> T_co:
-        ...
+    async def result(self, item: "ActiveMessage") -> T_co: ...
 
-    async def exception(self, item: SendMessageException) -> Any:
-        ...
+    async def exception(self, item: SendMessageException) -> Any: ...
 
 
 def generic_issubclass(cls: Any, par: Union[type, Any, Tuple[type, ...]]) -> bool:

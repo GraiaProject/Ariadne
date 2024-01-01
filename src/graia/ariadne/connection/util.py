@@ -42,13 +42,11 @@ code_exceptions_mapping: dict[int, type[Exception]] = {
 
 
 @overload
-def validate_response(data: Any, raising: Literal[False]) -> Any | Exception:
-    ...
+def validate_response(data: Any, raising: Literal[False]) -> Any | Exception: ...
 
 
 @overload
-def validate_response(data: Any, raising: Literal[True] = True) -> Any:
-    ...
+def validate_response(data: Any, raising: Literal[True] = True) -> Any: ...
 
 
 def validate_response(data: Any, raising: bool = True):

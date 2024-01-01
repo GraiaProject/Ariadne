@@ -1,4 +1,5 @@
 """Ariadne 基础的 parser, 包括 DetectPrefix 与 DetectSuffix"""
+
 import abc
 import difflib
 import fnmatch
@@ -26,8 +27,9 @@ class ChainDecorator(abc.ABC, Decorator, Derive[MessageChain]):
     pre = True
 
     @abc.abstractmethod
-    async def __call__(self, chain: MessageChain, interface: DispatcherInterface) -> Optional[MessageChain]:
-        ...
+    async def __call__(
+        self, chain: MessageChain, interface: DispatcherInterface
+    ) -> Optional[MessageChain]: ...
 
     async def target(self, interface: DecoratorInterface):
         return await self(

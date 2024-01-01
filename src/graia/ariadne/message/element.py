@@ -1,4 +1,5 @@
 """Ariadne 中的消息元素"""
+
 from base64 import b64decode, b64encode
 from datetime import datetime
 from enum import Enum
@@ -563,12 +564,10 @@ class Forward(Element):
         return cls(**obj)
 
     @overload
-    def __getitem__(self, key: int) -> ForwardNode:
-        ...
+    def __getitem__(self, key: int) -> ForwardNode: ...
 
     @overload
-    def __getitem__(self, key: slice) -> List[ForwardNode]:
-        ...
+    def __getitem__(self, key: slice) -> List[ForwardNode]: ...
 
     def __getitem__(self, key: Union[int, slice]) -> Union[ForwardNode, List[ForwardNode]]:
         return self.node_list[key]

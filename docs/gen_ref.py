@@ -1,4 +1,5 @@
 """Generate the code reference pages and navigation."""
+
 import sys
 from pathlib import Path
 

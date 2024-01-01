@@ -288,17 +288,15 @@ def test_list_method():
     assert msg_chain.index(Quote) is None
 
     # extend
-    assert msg_chain.extend(Plain("hi"), MessageChain(["good"]), ["why"], "obj", copy=True) == MessageChain(
-        [
-            Plain("Hello World!"),
-            Plain("How are you?"),
-            At(12345),
-            Plain("hi"),
-            Plain("good"),
-            Plain("why"),
-            Plain("obj"),
-        ]
-    )
+    assert msg_chain.extend(Plain("hi"), MessageChain(["good"]), ["why"], "obj", copy=True) == MessageChain([
+        Plain("Hello World!"),
+        Plain("How are you?"),
+        At(12345),
+        Plain("hi"),
+        Plain("good"),
+        Plain("why"),
+        Plain("obj"),
+    ])
 
     # append
     msg_chain.append("yo")

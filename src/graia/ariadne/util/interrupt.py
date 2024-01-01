@@ -1,4 +1,5 @@
 """Broadcast Interrupt 相关的工具"""
+
 import asyncio
 from typing import Awaitable, Callable, Generic, List, Optional, Type, TypeVar, cast
 from typing_extensions import overload
@@ -37,16 +38,13 @@ class _ExtendedWaiter(Waiter, Generic[T, T_E]):
         self.block_propagation = block_propagation
 
     @overload
-    async def wait(self, timeout: float, default: T) -> T:
-        ...
+    async def wait(self, timeout: float, default: T) -> T: ...
 
     @overload
-    async def wait(self, timeout: float, default: Optional[T] = None) -> Optional[T]:
-        ...
+    async def wait(self, timeout: float, default: Optional[T] = None) -> Optional[T]: ...
 
     @overload
-    async def wait(self, timeout: None = None) -> T:
-        ...
+    async def wait(self, timeout: None = None) -> T: ...
 
     async def wait(self, timeout: Optional[float] = None, default: Optional[T] = None):
         """等待 Waiter, 如果超时则返回默认值

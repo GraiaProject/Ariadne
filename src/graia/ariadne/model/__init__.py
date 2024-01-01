@@ -1,4 +1,5 @@
 """Ariadne 各种 model 存放的位置"""
+
 import functools
 from datetime import datetime
 from typing import TYPE_CHECKING, Awaitable, Callable, Dict, Literal, Optional, Type, Union
@@ -58,15 +59,13 @@ class LogConfig(Dict[Type["MiraiEvent"], Optional[str]]):
         user_seg = "{event.sender.nickname}({event.sender.id})"
         group_seg = "{event.sender.group.name}({event.sender.group.id})"
         client_seg = "{event.sender.platform}({event.sender.id})"
-        self.update(
-            {
-                GroupMessage: f"{account_seg}: [RECV][{group_seg}] {sender_seg} -> {msg_chain_seg}",
-                TempMessage: f"{account_seg}: [RECV][{group_seg}:{sender_seg}] -> {msg_chain_seg}",
-                FriendMessage: f"{account_seg}: [RECV][{user_seg}] -> {msg_chain_seg}",
-                StrangerMessage: f"{account_seg}: [RECV][{user_seg}] -> {msg_chain_seg}",
-                OtherClientMessage: f"{account_seg}: [RECV][{client_seg}] -> {msg_chain_seg}",
-            }
-        )
+        self.update({
+            GroupMessage: f"{account_seg}: [RECV][{group_seg}] {sender_seg} -> {msg_chain_seg}",
+            TempMessage: f"{account_seg}: [RECV][{group_seg}:{sender_seg}] -> {msg_chain_seg}",
+            FriendMessage: f"{account_seg}: [RECV][{user_seg}] -> {msg_chain_seg}",
+            StrangerMessage: f"{account_seg}: [RECV][{user_seg}] -> {msg_chain_seg}",
+            OtherClientMessage: f"{account_seg}: [RECV][{client_seg}] -> {msg_chain_seg}",
+        })
         for active_msg_cls in gen_subclass(ActiveMessage):
             label: str = "[SYNC] " if active_msg_cls.__fields__["sync"].default else "[SEND]"
             self[active_msg_cls] = f"{account_seg}: {label}[{{event.subject}}] <- {msg_chain_seg}"

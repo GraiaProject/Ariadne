@@ -1,4 +1,5 @@
 """Twilight: 混合式消息链处理器"""
+
 import abc
 import contextlib
 import enum
@@ -443,16 +444,13 @@ class Sparkle(Representation):
         self.res = match_result
 
     @overload
-    def __getitem__(self, item: Union[int, str]) -> MatchResult:
-        ...
+    def __getitem__(self, item: Union[int, str]) -> MatchResult: ...
 
     @overload
-    def __getitem__(self, item: Type[int]) -> List[MatchResult]:
-        ...
+    def __getitem__(self, item: Type[int]) -> List[MatchResult]: ...
 
     @overload
-    def __getitem__(self, item: Type[str]) -> Dict[str, MatchResult]:
-        ...
+    def __getitem__(self, item: Type[str]) -> Dict[str, MatchResult]: ...
 
     def __getitem__(self, item: Union[int, str, Type[int], Type[str]]):
         if not isinstance(item, type):

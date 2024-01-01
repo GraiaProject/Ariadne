@@ -1,4 +1,5 @@
 """本模块提供 Ariadne 消息相关部件."""
+
 from datetime import datetime
 from typing import TYPE_CHECKING
 

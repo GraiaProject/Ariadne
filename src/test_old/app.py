@@ -129,14 +129,12 @@ if __name__ == "__main__":
     @bcc.receiver(
         MessageEvent,
         dispatchers=[
-            Twilight(
-                [
-                    FullMatch(".test"),
-                    "help" @ ArgumentMatch("--help", "-h", action="store_true"),
-                    "arg" @ WildcardMatch().flags(re.DOTALL),
-                    "verbose" @ ArgumentMatch("--verbose", action="store_true"),
-                ]
-            )
+            Twilight([
+                FullMatch(".test"),
+                "help" @ ArgumentMatch("--help", "-h", action="store_true"),
+                "arg" @ WildcardMatch().flags(re.DOTALL),
+                "verbose" @ ArgumentMatch("--verbose", action="store_true"),
+            ])
         ],
     )
     async def reply1(

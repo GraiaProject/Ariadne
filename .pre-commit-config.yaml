@@ -2,7 +2,7 @@ ci:
   autoupdate_schedule: "quarterly"
 repos:
   - repo: https://github.com/psf/black
-    rev: '23.7.0'
+    rev: '23.12.1'
     hooks:
       - id: black
         args: [--preview]
@@ -13,13 +13,13 @@ repos:
         language_version: python3.8
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.0.282'  # Use the sha / tag you want to point at
+    rev: 'v0.1.9'  # Use the sha / tag you want to point at
     hooks:
       - id: ruff
         args: [--fix]
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
